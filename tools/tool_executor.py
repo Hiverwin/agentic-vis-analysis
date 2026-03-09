@@ -20,7 +20,7 @@ class ToolExecutor:
         
         Args:
             tool_name: 工具名称
-            params: 参数字典（必须包含 vega_spec）
+            params: 参数字典（state 通过 vega_spec 键传入）
             validate: 是否验证参数
             
         Returns:
@@ -76,10 +76,15 @@ class ToolExecutor:
         
         errors = []
         
-        # 检查必需参数
+        # 检查必需参数（兼容 state / vega_spec 双写法）
         for param_name, param_spec in param_specs.items():
             if param_spec.get('required', False):
-                if param_name not in params:
+                has_param = param_name in params
+                if not has_param and param_name == 'state':
+                    has_param = 'vega_spec' in params
+                elif not has_param and param_name == 'vega_spec':
+                    has_param = 'state' in params
+                if not has_param:
                     errors.append(f'Missing required parameter: {param_name}')
         
         return {
@@ -103,9 +108,9 @@ class ToolExecutor:
         """记录执行历史"""
         from datetime import datetime
         
-        # 不记录 vega_spec 以节省内存
-        params_for_log = {k: v for k, v in params.items() if k != 'vega_spec'}
-        result_for_log = {k: v for k, v in result.items() if k != 'vega_spec'}
+        # 不记录大对象以节省内存
+        params_for_log = {k: v for k, v in params.items() if k not in ('vega_spec', 'state')}
+        result_for_log = {k: v for k, v in result.items() if k not in ('vega_spec', 'state')}
         
         record = {
             'timestamp': datetime.now().isoformat(),

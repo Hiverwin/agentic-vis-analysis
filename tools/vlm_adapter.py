@@ -46,15 +46,12 @@ class VLMToolAdapter:
             # 转换参数为 JSON Schema 格式
             params_schema = self._convert_params_to_json_schema(tool_info['params'])
             
-            # 从 properties 中移除 vega_spec（模型不需要知道这个参数）
-            if 'properties' in params_schema and 'vega_spec' in params_schema['properties']:
-                del params_schema['properties']['vega_spec']
+            for key in ('vega_spec', 'state'):
+                if 'properties' in params_schema and key in params_schema['properties']:
+                    del params_schema['properties'][key]
+                if 'required' in params_schema and key in params_schema['required']:
+                    params_schema['required'].remove(key)
             
-            # 从 required 中移除 vega_spec
-            if 'required' in params_schema and 'vega_spec' in params_schema['required']:
-                params_schema['required'].remove('vega_spec')
-            
-            # 🔧 修复：确保所有 array 和 object 类型的 schema 都完整
             self._fix_schema_types(params_schema)
             
             openai_tool = {
@@ -128,13 +125,12 @@ class VLMToolAdapter:
             # 转换参数
             params_schema = self._convert_params_to_json_schema(tool_info['params'])
             
-            # 移除 vega_spec
-            if 'properties' in params_schema and 'vega_spec' in params_schema['properties']:
-                del params_schema['properties']['vega_spec']
-            if 'required' in params_schema and 'vega_spec' in params_schema['required']:
-                params_schema['required'].remove('vega_spec')
+            for key in ('vega_spec', 'state'):
+                if 'properties' in params_schema and key in params_schema['properties']:
+                    del params_schema['properties'][key]
+                if 'required' in params_schema and key in params_schema['required']:
+                    params_schema['required'].remove(key)
             
-            # 修复 schema 类型
             self._fix_schema_types(params_schema)
             
             anthropic_tool = {
@@ -173,7 +169,7 @@ class VLMToolAdapter:
             params_desc = []
             for param_name, param_spec in tool_info['params'].items():
                 # 跳过 vega_spec
-                if param_name == 'vega_spec':
+                if param_name in ('vega_spec', 'state'):
                     continue
                     
                 param_type = param_spec.get('type', 'any')
@@ -259,7 +255,7 @@ class VLMToolAdapter:
         
         for param_name, param_spec in params.items():
             # 跳过 vega_spec 参数（在这里就过滤掉）
-            if param_name == 'vega_spec':
+            if param_name in ('vega_spec', 'state'):
                 continue
             
             param_type = param_spec.get('type', 'string')

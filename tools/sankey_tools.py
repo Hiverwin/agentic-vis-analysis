@@ -19,6 +19,7 @@
 from typing import Dict, Any, List, Optional, Tuple, Union
 import copy
 import json
+from state_manager import DataStore, tool_output
 
 
 # ═══════════════════════════════════════════════════════════
@@ -46,9 +47,17 @@ def _escape_vega_str(name: str) -> str:
     return str(name).replace("\\", "\\\\").replace("'", "\\'")
 
 
-def _find_data_source(vega_spec: Dict, name: str) -> Tuple[Optional[List], Optional[int]]:
+def _find_data_source(state: Dict, name: str) -> Tuple[Optional[List], Optional[int]]:
     """从 Vega spec 的 data 数组中找到指定 name 的数据源。"""
-    data = vega_spec.get("data", [])
+    data = state.get("data", [])
+    if not isinstance(data, list):
+        store_data = DataStore.get()
+        if isinstance(store_data, list):
+            data = store_data
+        elif isinstance(store_data, dict) and isinstance(store_data.get("data"), list):
+            data = store_data.get("data", [])
+        else:
+            data = []
     if not isinstance(data, list):
         return None, None
     for i, d in enumerate(data):
@@ -57,16 +66,16 @@ def _find_data_source(vega_spec: Dict, name: str) -> Tuple[Optional[List], Optio
     return None, None
 
 
-def _get_raw_links(vega_spec: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
-    return _find_data_source(vega_spec, "rawLinks")
+def _get_raw_links(state: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
+    return _find_data_source(state, "rawLinks")
 
 
-def _get_node_config(vega_spec: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
-    return _find_data_source(vega_spec, "nodeConfig")
+def _get_node_config(state: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
+    return _find_data_source(state, "nodeConfig")
 
 
-def _get_depth_labels(vega_spec: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
-    return _find_data_source(vega_spec, "depthLabelsData")
+def _get_depth_labels(state: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
+    return _find_data_source(state, "depthLabelsData")
 
 
 def _compute_node_flows(links: List[Dict]) -> Dict[str, Dict[str, float]]:
@@ -92,16 +101,16 @@ def _compute_node_flows(links: List[Dict]) -> Dict[str, Dict[str, float]]:
     return flows
 
 
-def _find_signal(vega_spec: Dict, signal_name: str) -> Tuple[Optional[Dict], Optional[int]]:
-    signals = vega_spec.get("signals", [])
+def _find_signal(state: Dict, signal_name: str) -> Tuple[Optional[Dict], Optional[int]]:
+    signals = state.get("signals", [])
     for i, sig in enumerate(signals):
         if isinstance(sig, dict) and sig.get("name") == signal_name:
             return sig, i
     return None, None
 
 
-def _find_mark(vega_spec: Dict, mark_name: str) -> Optional[Dict]:
-    for mark in vega_spec.get("marks", []):
+def _find_mark(state: Dict, mark_name: str) -> Optional[Dict]:
+    for mark in state.get("marks", []):
         if mark.get("name") == mark_name:
             return mark
         if mark.get("type") == "group":
@@ -111,8 +120,8 @@ def _find_mark(vega_spec: Dict, mark_name: str) -> Optional[Dict]:
     return None
 
 
-def _update_x_scale_domain(vega_spec: Dict, max_depth: int):
-    for scale in vega_spec.get("scales", []):
+def _update_x_scale_domain(state: Dict, max_depth: int):
+    for scale in state.get("scales", []):
         if scale.get("name") == "x":
             scale["domain"] = list(range(max_depth + 1))
             return
@@ -122,17 +131,25 @@ def _make_error(msg: str) -> Dict[str, Any]:
     return {"success": False, "error": msg}
 
 
-def _make_success(operation: str, message: str, vega_spec: Dict = None, **extra) -> Dict[str, Any]:
+def _make_success(operation: str, message: str, state: Dict = None, **extra) -> Dict[str, Any]:
     result = {"success": True, "operation": operation, "message": message}
-    if vega_spec is not None:
-        result["vega_spec"] = vega_spec
+    if state is not None:
+        result["vega_state"] = state
     result.update(extra)
     return result
 
 
-def _build_ui_hints(vega_spec: Dict) -> Dict[str, Any]:
+def _ensure_working_data(spec: Dict[str, Any]) -> None:
+    if isinstance(spec.get("data"), list):
+        return
+    store_data = DataStore.get()
+    if isinstance(store_data, list):
+        spec["data"] = copy.deepcopy(store_data)
+
+
+def _build_ui_hints(state: Dict) -> Dict[str, Any]:
     """
-    从 vega_spec 中提取前端 UI 控件需要的全部元数据。
+    从 state 中提取前端 UI 控件需要的全部元数据。
 
     返回结构示例:
     {
@@ -203,9 +220,9 @@ def _build_ui_hints(vega_spec: Dict) -> Dict[str, Any]:
         "value_range": {"min": 0, "max": 0}
     }
 
-    nodes, _ = _get_node_config(vega_spec)
-    links, _ = _get_raw_links(vega_spec)
-    depth_labels_data, _ = _get_depth_labels(vega_spec)
+    nodes, _ = _get_node_config(state)
+    links, _ = _get_raw_links(state)
+    depth_labels_data, _ = _get_depth_labels(state)
 
     if not nodes or not links:
         return hints
@@ -272,7 +289,7 @@ def _build_ui_hints(vega_spec: Dict) -> Dict[str, Any]:
         hints["value_range"] = {"min": round(min(values), 2), "max": round(max(values), 2)}
 
     # collapsed groups
-    state = vega_spec.get("_sankey_state", {})
+    state = state.get("_sankey_state", {})
     hints["collapsed_groups"] = state.get("collapsed_groups", {})
 
     return hints
@@ -282,25 +299,25 @@ def _build_ui_hints(vega_spec: Dict) -> Dict[str, Any]:
 #  元数据提取工具（前端首先调用这个来填充 UI）
 # ═══════════════════════════════════════════════════════════
 
-def get_node_options(vega_spec: Dict) -> Dict[str, Any]:
+def get_node_options(state: Dict) -> Dict[str, Any]:
     """
-    从 vega_spec 中提取完整的节点元数据，供前端填充 UI 控件。
+    从 state 中提取完整的节点元数据，供前端填充 UI 控件。
 
     前端应在以下时机调用：
     - 页面首次加载 sankey spec 时
     - 任何工具执行后 spec 发生变化时（也可以直接用返回值中的 _ui_hints）
 
     Args:
-        vega_spec: Vega 规范
+        state: Vega 规范
 
     Returns:
         包含 all_nodes, nodes_by_depth, adjacency, edges, collapsed_groups, value_range 等字段的字典。
     """
-    nodes, _ = _get_node_config(vega_spec)
+    nodes, _ = _get_node_config(state)
     if not nodes:
         return _make_error("Cannot find nodeConfig data source")
 
-    hints = _build_ui_hints(vega_spec)
+    hints = _build_ui_hints(state)
 
     return {
         "success": True,
@@ -314,24 +331,25 @@ def get_node_options(vega_spec: Dict) -> Dict[str, Any]:
 #  数据操作类工具
 # ═══════════════════════════════════════════════════════════
 
-def filter_flow(vega_spec: Dict, min_value: float) -> Dict[str, Any]:
+def filter_flow(state: Dict, min_value: float) -> Dict[str, Any]:
     """
     过滤流量：只显示 value >= min_value 的连接。
 
     Args:
-        vega_spec: Vega 规范
+        state: Vega 规范
         min_value:  最小流量阈值
     """
-    links, links_idx = _get_raw_links(vega_spec)
+    links, links_idx = _get_raw_links(state)
     if links is None:
         return _make_error("Cannot find rawLinks data source")
 
     if not any(link.get("value", 0) >= min_value for link in links):
         return _make_error(f"No links with value >= {min_value}")
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
+    _ensure_working_data(new_state)
 
-    sig, sig_idx = _find_signal(new_spec, "threshold")
+    sig, sig_idx = _find_signal(new_state, "threshold")
     if sig is not None:
         sig["value"] = min_value
         bind = sig.get("bind", {})
@@ -342,9 +360,9 @@ def filter_flow(vega_spec: Dict, min_value: float) -> Dict[str, Any]:
         result = _make_success(
             "filter_flow",
             f"Set threshold signal to {min_value}. {filtered_count}/{len(links)} links visible.",
-            vega_spec=new_spec
+            state=new_state
         )
-        result["_ui_hints"] = _build_ui_hints(new_spec)
+        result["_ui_hints"] = _build_ui_hints(new_state)
         return result
 
     filtered_links = [l for l in links if l.get("value", 0) >= min_value]
@@ -352,23 +370,23 @@ def filter_flow(vega_spec: Dict, min_value: float) -> Dict[str, Any]:
     for link in filtered_links:
         used_nodes.add(link["source"])
         used_nodes.add(link["target"])
-    new_spec["data"][links_idx]["values"] = filtered_links
-    nodes, nodes_idx = _get_node_config(new_spec)
+    new_state["data"][links_idx]["values"] = filtered_links
+    nodes, nodes_idx = _get_node_config(new_state)
     if nodes is not None and nodes_idx is not None:
-        new_spec["data"][nodes_idx]["values"] = [
+        new_state["data"][nodes_idx]["values"] = [
             n for n in nodes if n.get("name") in used_nodes
         ]
     result = _make_success(
         "filter_flow",
         f"Filtered to {len(filtered_links)} links with value >= {min_value}",
-        vega_spec=new_spec
+        state=new_state
     )
-    result["_ui_hints"] = _build_ui_hints(new_spec)
+    result["_ui_hints"] = _build_ui_hints(new_state)
     return result
 
 
 def collapse_nodes(
-    vega_spec: Dict,
+    state: Dict,
     nodes_to_collapse: List[str],
     aggregate_name: str = "Other"
 ) -> Dict[str, Any]:
@@ -376,12 +394,12 @@ def collapse_nodes(
     折叠多个节点：将指定节点合并为一个聚合节点。
 
     Args:
-        vega_spec:          Vega 规范
+        state:          Vega 规范
         nodes_to_collapse:  要折叠的节点名称列表
         aggregate_name:     聚合后的节点名称（默认 "Other"）
     """
-    links, links_idx = _get_raw_links(vega_spec)
-    nodes, nodes_idx = _get_node_config(vega_spec)
+    links, links_idx = _get_raw_links(state)
+    nodes, nodes_idx = _get_node_config(state)
     if links is None or nodes is None:
         return _make_error("Cannot find rawLinks or nodeConfig data source")
 
@@ -391,15 +409,16 @@ def collapse_nodes(
     if missing:
         return _make_error(f"Nodes not found: {sorted(missing)}")
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
+    _ensure_working_data(new_state)
 
-    if "_sankey_state" not in new_spec:
-        new_spec["_sankey_state"] = {
+    if "_sankey_state" not in new_state:
+        new_state["_sankey_state"] = {
             "original_nodes": copy.deepcopy(nodes),
             "original_links": copy.deepcopy(links),
             "collapsed_groups": {}
         }
-    state = new_spec["_sankey_state"]
+    state = new_state["_sankey_state"]
     state.setdefault("collapsed_groups", {})
     state["collapsed_groups"][aggregate_name] = list(nodes_to_collapse)
 
@@ -434,27 +453,27 @@ def collapse_nodes(
 
     new_links = [{"source": s, "target": t, "value": v} for (s, t), v in link_agg.items()]
 
-    new_spec["data"][nodes_idx]["values"] = new_nodes
-    new_spec["data"][links_idx]["values"] = new_links
+    new_state["data"][nodes_idx]["values"] = new_nodes
+    new_state["data"][links_idx]["values"] = new_links
 
     result = _make_success(
         "collapse_nodes",
         f'Collapsed {len(nodes_to_collapse)} nodes into "{aggregate_name}"',
-        vega_spec=new_spec
+        state=new_state
     )
-    result["_ui_hints"] = _build_ui_hints(new_spec)
+    result["_ui_hints"] = _build_ui_hints(new_state)
     return result
 
 
-def expand_node(vega_spec: Dict, aggregate_name: str) -> Dict[str, Any]:
+def expand_node(state: Dict, aggregate_name: str) -> Dict[str, Any]:
     """
     展开聚合节点：恢复被折叠的原始节点。
 
     Args:
-        vega_spec:       Vega 规范
+        state:       Vega 规范
         aggregate_name:  要展开的聚合节点名称
     """
-    state = vega_spec.get("_sankey_state", {})
+    state = state.get("_sankey_state", {})
     collapsed_groups = state.get("collapsed_groups", {})
 
     if not state:
@@ -468,12 +487,13 @@ def expand_node(vega_spec: Dict, aggregate_name: str) -> Dict[str, Any]:
     if not original_nodes or not original_links:
         return _make_error("Original data lost, cannot expand")
 
-    links, links_idx = _get_raw_links(vega_spec)
-    nodes, nodes_idx = _get_node_config(vega_spec)
+    links, links_idx = _get_raw_links(state)
+    nodes, nodes_idx = _get_node_config(state)
     if links is None or nodes is None:
         return _make_error("Cannot find rawLinks or nodeConfig data source")
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
+    _ensure_working_data(new_state)
     collapsed_node_names = set(collapsed_groups[aggregate_name])
 
     new_nodes = [n for n in nodes if n.get("name") != aggregate_name]
@@ -503,41 +523,42 @@ def expand_node(vega_spec: Dict, aggregate_name: str) -> Dict[str, Any]:
         if not exists:
             restored_links.append(copy.deepcopy(link))
 
-    new_spec["data"][nodes_idx]["values"] = new_nodes
-    new_spec["data"][links_idx]["values"] = restored_links
-    del new_spec["_sankey_state"]["collapsed_groups"][aggregate_name]
+    new_state["data"][nodes_idx]["values"] = new_nodes
+    new_state["data"][links_idx]["values"] = restored_links
+    del new_state["_sankey_state"]["collapsed_groups"][aggregate_name]
 
     result = _make_success(
         "expand_node",
         f'Expanded "{aggregate_name}" back to {len(collapsed_node_names)} nodes',
-        vega_spec=new_spec
+        state=new_state
     )
-    result["_ui_hints"] = _build_ui_hints(new_spec)
+    result["_ui_hints"] = _build_ui_hints(new_state)
     return result
 
 
-def auto_collapse_by_rank(vega_spec: Dict, top_n: int = 5) -> Dict[str, Any]:
+def auto_collapse_by_rank(state: Dict, top_n: int = 5) -> Dict[str, Any]:
     """
     按流量排名自动折叠：每层只保留 top N 个节点，其余折叠到 "Others (Layer X)"。
 
     Args:
-        vega_spec: Vega 规范
+        state: Vega 规范
         top_n:     每层保留的 top 节点数量（默认 5）
     """
-    links, links_idx = _get_raw_links(vega_spec)
-    nodes, nodes_idx = _get_node_config(vega_spec)
+    links, links_idx = _get_raw_links(state)
+    nodes, nodes_idx = _get_node_config(state)
     if links is None or nodes is None:
         return _make_error("Cannot find rawLinks or nodeConfig data source")
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
+    _ensure_working_data(new_state)
 
-    if "_sankey_state" not in new_spec:
-        new_spec["_sankey_state"] = {
+    if "_sankey_state" not in new_state:
+        new_state["_sankey_state"] = {
             "original_nodes": copy.deepcopy(nodes),
             "original_links": copy.deepcopy(links),
             "collapsed_groups": {}
         }
-    state = new_spec["_sankey_state"]
+    state = new_state["_sankey_state"]
     state.setdefault("collapsed_groups", {})
 
     node_flows = _compute_node_flows(links)
@@ -575,9 +596,9 @@ def auto_collapse_by_rank(vega_spec: Dict, top_n: int = 5) -> Dict[str, Any]:
         result = _make_success(
             "auto_collapse_by_rank",
             f"All layers have <= {top_n} nodes, nothing to collapse",
-            vega_spec=new_spec
+            state=new_state
         )
-        result["_ui_hints"] = _build_ui_hints(new_spec)
+        result["_ui_hints"] = _build_ui_hints(new_state)
         return result
 
     new_nodes = [n for n in nodes if n.get("name") in nodes_to_keep]
@@ -606,25 +627,25 @@ def auto_collapse_by_rank(vega_spec: Dict, top_n: int = 5) -> Dict[str, Any]:
 
     new_links = [{"source": s, "target": t, "value": v} for (s, t), v in link_agg.items()]
 
-    new_spec["data"][nodes_idx]["values"] = new_nodes
-    new_spec["data"][links_idx]["values"] = new_links
+    new_state["data"][nodes_idx]["values"] = new_nodes
+    new_state["data"][links_idx]["values"] = new_links
 
     total_collapsed = sum(len(info["collapsed_nodes"]) for info in collapsed_by_layer.values())
     result = _make_success(
         "auto_collapse_by_rank",
         f"Kept top {top_n} per layer, collapsed {total_collapsed} nodes into {len(collapsed_by_layer)} groups",
-        vega_spec=new_spec,
+        state=new_state,
         collapsed_groups={
             info["aggregate_name"]: info["collapsed_nodes"]
             for info in collapsed_by_layer.values()
         }
     )
-    result["_ui_hints"] = _build_ui_hints(new_spec)
+    result["_ui_hints"] = _build_ui_hints(new_state)
     return result
 
 
 def reorder_nodes_in_layer(
-    vega_spec: Dict,
+    state: Dict,
     depth: int,
     order: Optional[List[str]] = None,
     sort_by: Optional[str] = None,
@@ -633,7 +654,7 @@ def reorder_nodes_in_layer(
     重排桑基图某一层内节点的上下顺序。
 
     Args:
-        vega_spec: Vega 规范
+        state: Vega 规范
         depth:     要重排的层（0, 1, 2, ...）
         order:     节点名称列表，从上到下。与 sort_by 互斥。
         sort_by:   排序方式："value_desc", "value_asc", "name"
@@ -643,8 +664,8 @@ def reorder_nodes_in_layer(
     if order is not None and sort_by is not None:
         return _make_error('Cannot specify both "order" and "sort_by"')
 
-    links, _ = _get_raw_links(vega_spec)
-    nodes, nodes_idx = _get_node_config(vega_spec)
+    links, _ = _get_raw_links(state)
+    nodes, nodes_idx = _get_node_config(state)
     if nodes is None:
         return _make_error("Cannot find nodeConfig data source")
     if links is None:
@@ -681,8 +702,9 @@ def reorder_nodes_in_layer(
 
     name_to_new_order = {name: i for i, name in enumerate(sorted_names)}
 
-    new_spec = copy.deepcopy(vega_spec)
-    for node in new_spec["data"][nodes_idx]["values"]:
+    new_state = copy.deepcopy(state)
+    _ensure_working_data(new_state)
+    for node in new_state["data"][nodes_idx]["values"]:
         if node.get("depth") == depth and node.get("name") in name_to_new_order:
             node["order"] = name_to_new_order[node["name"]]
 
@@ -690,10 +712,10 @@ def reorder_nodes_in_layer(
     result = _make_success(
         "reorder_nodes_in_layer",
         f"Reordered {len(sorted_names)} nodes at depth {depth} ({method})",
-        vega_spec=new_spec,
+        state=new_state,
         reordered_nodes=sorted_names
     )
-    result["_ui_hints"] = _build_ui_hints(new_spec)
+    result["_ui_hints"] = _build_ui_hints(new_state)
     return result
 
 
@@ -701,19 +723,19 @@ def reorder_nodes_in_layer(
 #  视觉交互类工具
 # ═══════════════════════════════════════════════════════════
 
-def highlight_path(vega_spec: Dict, path: Union[str, List[str]]) -> Dict[str, Any]:
+def highlight_path(state: Dict, path: Union[str, List[str]]) -> Dict[str, Any]:
     """
     高亮多步路径：强调指定边，弱化其他边和节点。
 
     Args:
-        vega_spec: Vega 规范
+        state: Vega 规范
         path:      节点路径列表。支持 ["A","B","C"]、'["A","B","C"]'、'A,B,C'
     """
     path = _parse_path_arg(path)
     if not path or len(path) < 2:
         return _make_error("Path must contain at least 2 nodes")
 
-    links, _ = _get_raw_links(vega_spec)
+    links, _ = _get_raw_links(state)
     if links is None:
         return _make_error("Cannot find rawLinks data source")
 
@@ -730,7 +752,7 @@ def highlight_path(vega_spec: Dict, path: Union[str, List[str]]) -> Dict[str, An
     if not highlight_edges:
         return _make_error(f"No valid edges in path. Missing: {missing_edges}")
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
     path_nodes = set(path)
     edge_conditions = [
@@ -742,13 +764,13 @@ def highlight_path(vega_spec: Dict, path: Union[str, List[str]]) -> Dict[str, An
     node_conditions = [f"datum.name === '{_escape_vega_str(n)}'" for n in path_nodes]
     is_path_node = " || ".join(node_conditions)
 
-    edge_mark = _find_mark(new_spec, "edgeMark")
+    edge_mark = _find_mark(new_state, "edgeMark")
     if edge_mark:
         update = edge_mark.setdefault("encode", {}).setdefault("update", {})
         update["fillOpacity"] = {"signal": f"({is_on_path}) ? 0.75 : 0.06"}
         update["strokeOpacity"] = {"signal": f"({is_on_path}) ? 0.5 : 0.02"}
 
-    node_mark = _find_mark(new_spec, "nodeRect")
+    node_mark = _find_mark(new_state, "nodeRect")
     if node_mark:
         update = node_mark.setdefault("encode", {}).setdefault("update", {})
         update["fillOpacity"] = {"signal": f"({is_path_node}) ? 1.0 : 0.15"}
@@ -759,23 +781,23 @@ def highlight_path(vega_spec: Dict, path: Union[str, List[str]]) -> Dict[str, An
     result = _make_success(
         "highlight_path",
         f"Highlighted path: {path_desc}{warning}",
-        vega_spec=new_spec,
+        state=new_state,
         highlighted_edges=len(highlight_edges),
         total_edges_in_path=len(path) - 1
     )
-    result["_ui_hints"] = _build_ui_hints(new_spec)
+    result["_ui_hints"] = _build_ui_hints(new_state)
     return result
 
 
-def trace_node(vega_spec: Dict, node_name: str) -> Dict[str, Any]:
+def trace_node(state: Dict, node_name: str) -> Dict[str, Any]:
     """
     追踪节点：高亮与该节点直接相连的所有连接。
 
     Args:
-        vega_spec: Vega 规范
+        state: Vega 规范
         node_name: 节点名称
     """
-    links, _ = _get_raw_links(vega_spec)
+    links, _ = _get_raw_links(state)
     if links is None:
         return _make_error("Cannot find rawLinks data source")
 
@@ -786,29 +808,29 @@ def trace_node(vega_spec: Dict, node_name: str) -> Dict[str, Any]:
     if not node_exists:
         return _make_error(f'Node "{node_name}" not found in links')
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
-    sig, sig_idx = _find_signal(new_spec, "selectedNode")
+    sig, sig_idx = _find_signal(new_state, "selectedNode")
     if sig is not None:
         sig["value"] = node_name
         result = _make_success(
             "trace_node",
             f"Set selectedNode signal to '{node_name}'. Connected flows highlighted.",
-            vega_spec=new_spec
+            state=new_state
         )
-        result["_ui_hints"] = _build_ui_hints(new_spec)
+        result["_ui_hints"] = _build_ui_hints(new_state)
         return result
 
     en = _escape_vega_str(node_name)
     edge_expr = f"datum.source === '{en}' || datum.target === '{en}' ? 0.75 : 0.08"
     node_expr = f"datum.name === '{en}' ? 1.0 : 0.2"
 
-    edge_mark = _find_mark(new_spec, "edgeMark")
+    edge_mark = _find_mark(new_state, "edgeMark")
     if edge_mark:
         update = edge_mark.setdefault("encode", {}).setdefault("update", {})
         update["fillOpacity"] = {"signal": edge_expr}
 
-    node_mark = _find_mark(new_spec, "nodeRect")
+    node_mark = _find_mark(new_state, "nodeRect")
     if node_mark:
         update = node_mark.setdefault("encode", {}).setdefault("update", {})
         update["fillOpacity"] = {"signal": node_expr}
@@ -816,22 +838,22 @@ def trace_node(vega_spec: Dict, node_name: str) -> Dict[str, Any]:
     result = _make_success(
         "trace_node",
         f"Traced all connections of node: {node_name}",
-        vega_spec=new_spec
+        state=new_state
     )
-    result["_ui_hints"] = _build_ui_hints(new_spec)
+    result["_ui_hints"] = _build_ui_hints(new_state)
     return result
 
 
-def color_flows(vega_spec: Dict, nodes: List[str], color: str = "#e74c3c") -> Dict[str, Any]:
+def color_flows(state: Dict, nodes: List[str], color: str = "#e74c3c") -> Dict[str, Any]:
     """
     给与指定节点相连的流着色。
 
     Args:
-        vega_spec: Vega 规范
+        state: Vega 规范
         nodes:     节点名称列表
         color:     着色颜色（默认红色 #e74c3c）
     """
-    links_data, _ = _get_raw_links(vega_spec)
+    links_data, _ = _get_raw_links(state)
     if links_data is None:
         return _make_error("Cannot find rawLinks data source")
 
@@ -847,7 +869,7 @@ def color_flows(vega_spec: Dict, nodes: List[str], color: str = "#e74c3c") -> Di
     if not colored_edges:
         return _make_error(f"No flows connected to nodes: {sorted(nodes_set)}")
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
     parts = [
         f"(datum.source === '{_escape_vega_str(s)}' && datum.target === '{_escape_vega_str(t)}')"
@@ -855,7 +877,7 @@ def color_flows(vega_spec: Dict, nodes: List[str], color: str = "#e74c3c") -> Di
     ]
     is_colored = " || ".join(parts)
 
-    edge_mark = _find_mark(new_spec, "edgeMark")
+    edge_mark = _find_mark(new_state, "edgeMark")
     if edge_mark is None:
         return _make_error("Cannot find edgeMark in Vega spec")
 
@@ -881,10 +903,10 @@ def color_flows(vega_spec: Dict, nodes: List[str], color: str = "#e74c3c") -> Di
     result = _make_success(
         "color_flows",
         f"Colored {len(colored_edges)} flows connected to nodes: {sorted(nodes_set)}",
-        vega_spec=new_spec,
+        state=new_state,
         colored_count=len(colored_edges)
     )
-    result["_ui_hints"] = _build_ui_hints(new_spec)
+    result["_ui_hints"] = _build_ui_hints(new_state)
     return result
 
 
@@ -893,22 +915,22 @@ def color_flows(vega_spec: Dict, nodes: List[str], color: str = "#e74c3c") -> Di
 # ═══════════════════════════════════════════════════════════
 
 def calculate_conversion_rate(
-    vega_spec: Dict,
+    state: Dict,
     node_name: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     计算转化率：分析每个节点的入流、出流和转化率。
 
     Args:
-        vega_spec: Vega 规范
+        state: Vega 规范
         node_name: 指定节点名称（可选）。不指定则返回所有节点的转化率。
     """
-    links, _ = _get_raw_links(vega_spec)
+    links, _ = _get_raw_links(state)
     if links is None:
         return _make_error("Cannot find rawLinks data source")
 
     node_flows = _compute_node_flows(links)
-    ui_hints = _build_ui_hints(vega_spec)
+    ui_hints = _build_ui_hints(state)
 
     conversions = []
     for name in sorted(node_flows.keys()):
@@ -992,15 +1014,15 @@ def calculate_conversion_rate(
     return result
 
 
-def find_bottleneck(vega_spec: Dict, top_n: int = 3) -> Dict[str, Any]:
+def find_bottleneck(state: Dict, top_n: int = 3) -> Dict[str, Any]:
     """
     识别流失最严重的节点。
 
     Args:
-        vega_spec: Vega 规范
+        state: Vega 规范
         top_n:     返回流失最严重的前 N 个节点
     """
-    links, _ = _get_raw_links(vega_spec)
+    links, _ = _get_raw_links(state)
     if links is None:
         return _make_error("Cannot find rawLinks data source")
 
@@ -1030,7 +1052,7 @@ def find_bottleneck(vega_spec: Dict, top_n: int = 3) -> Dict[str, Any]:
             bottlenecks=[],
             total_bottleneck_nodes=0
         )
-        result["_ui_hints"] = _build_ui_hints(vega_spec)
+        result["_ui_hints"] = _build_ui_hints(state)
         return result
 
     result = _make_success(
@@ -1039,7 +1061,7 @@ def find_bottleneck(vega_spec: Dict, top_n: int = 3) -> Dict[str, Any]:
         bottlenecks=top,
         total_bottleneck_nodes=len(bottlenecks)
     )
-    result["_ui_hints"] = _build_ui_hints(vega_spec)
+    result["_ui_hints"] = _build_ui_hints(state)
     return result
 
 
@@ -1060,3 +1082,8 @@ __all__ = [
     "find_bottleneck",
     "reorder_nodes_in_layer",
 ]
+
+for _fn_name in __all__:
+    _fn = globals().get(_fn_name)
+    if callable(_fn):
+        globals()[_fn_name] = tool_output(_fn)

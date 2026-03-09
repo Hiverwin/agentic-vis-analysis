@@ -1,11 +1,12 @@
 """
-热力图专用工具（简化版 - 使用 vega_spec）
+热力图专用工具（简化版 - 使用 state）
 """
 
 from typing import Dict, Any, List, Optional, Union, Tuple
 import copy
 import json
 from datetime import datetime
+from state_manager import DataStore, tool_output
 
 
 def _datum_ref(field: str) -> str:
@@ -16,30 +17,30 @@ def _datum_ref(field: str) -> str:
     return f"datum['{s}']"
 
 
-def adjust_color_scale(vega_spec: Dict, scheme: str = "viridis", domain: List = None) -> Dict[str, Any]:
+def adjust_color_scale(state: Dict, scheme: str = "viridis", domain: List = None) -> Dict[str, Any]:
     """
     调整颜色比例
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         scheme: 颜色方案 (如 "viridis", "blues", "reds", "greens", "oranges", "purples")
         domain: 数值范围 [min, max]，用于控制颜色映射的数值范围
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
-    if 'color' not in new_spec['encoding']:
-        new_spec['encoding']['color'] = {}
-    if 'scale' not in new_spec['encoding']['color']:
-        new_spec['encoding']['color']['scale'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
+    if 'color' not in new_state['encoding']:
+        new_state['encoding']['color'] = {}
+    if 'scale' not in new_state['encoding']['color']:
+        new_state['encoding']['color']['scale'] = {}
     
     # 设置颜色方案
-    new_spec['encoding']['color']['scale']['scheme'] = scheme
+    new_state['encoding']['color']['scale']['scheme'] = scheme
     
     # 如果指定了 domain，设置数值范围
     if domain is not None and len(domain) == 2:
-        new_spec['encoding']['color']['scale']['domain'] = domain
+        new_state['encoding']['color']['scale']['domain'] = domain
     
     message = f'Changed color scheme to {scheme}'
     if domain:
@@ -48,13 +49,13 @@ def adjust_color_scale(vega_spec: Dict, scheme: str = "viridis", domain: List = 
     return {
         'success': True,
         'operation': 'adjust_color_scale',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': message
     }
 
 
 def filter_cells(
-    vega_spec: Dict,
+    state: Dict,
     min_value: Optional[float] = None,
     max_value: Optional[float] = None,
 ) -> Dict[str, Any]:
@@ -65,9 +66,9 @@ def filter_cells(
     if min_value is None and max_value is None:
         return {'success': False, 'error': 'Must provide at least one of min_value or max_value'}
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
-    color_enc = (new_spec.get('encoding', {}) or {}).get('color', {}) or {}
+    color_enc = (new_state.get('encoding', {}) or {}).get('color', {}) or {}
     color_field = color_enc.get('field')
     if not color_field:
         return {'success': False, 'error': 'Cannot find color field'}
@@ -81,8 +82,8 @@ def filter_cells(
         else:
             value_field = f'{str(agg).lower()}_{color_field}'
 
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
 
     ref = _datum_ref(value_field)
     tests: List[str] = []
@@ -92,7 +93,7 @@ def filter_cells(
         tests.append(f'{ref} <= {float(max_value)}')
     filter_expr = ' && '.join(tests)
 
-    new_spec['transform'].append({'filter': filter_expr})
+    new_state['transform'].append({'filter': filter_expr})
 
     msg = 'Filtered cells'
     if min_value is not None and max_value is not None:
@@ -105,13 +106,122 @@ def filter_cells(
     return {
         'success': True,
         'operation': 'filter_cells',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': msg
+    }
+
+def select_submatrix(state: Dict, x_values: List = None, 
+                    y_values: List = None) -> Dict[str, Any]:
+    """Select submatrix"""
+    if not x_values and not y_values:
+        return {'success': False, 'error': 'Must specify x_values or y_values'}
+    
+    new_state = copy.deepcopy(state)
+    
+    # month name to number mapping (Vega month starts from 0: 0=Jan, 11=Dec)
+    MONTH_MAP = {
+        "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3,
+        "May": 4, "Jun": 5, "Jul": 6, "Aug": 7,
+        "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11,
+        "January": 0, "February": 1, "March": 2, "April": 3,
+        "May": 4, "June": 5, "July": 6, "August": 7,
+        "September": 8, "October": 9, "November": 10, "December": 11
+    }
+    
+    encoding = new_state.get('encoding', {})
+    x_encoding = encoding.get('x', {})
+    y_encoding = encoding.get('y', {})
+    
+    x_field = x_encoding.get('field')
+    y_field = y_encoding.get('field')
+    x_timeunit = x_encoding.get('timeUnit')
+    y_timeunit = y_encoding.get('timeUnit')
+    
+    if 'transform' not in new_state:
+        new_state['transform'] = []
+    
+    filters = []
+    
+    # process X axis filtering
+    if x_values and x_field:
+        if x_timeunit:
+            # has timeUnit, use Vega expression function
+            if x_timeunit == 'date':
+                # extract date (1-31)
+                x_nums = ','.join([str(int(v)) for v in x_values])
+                filters.append(f'indexof([{x_nums}], date(datum.{x_field})) >= 0')
+            elif x_timeunit == 'month':
+                # extract month, try to convert month name to number
+                x_months = []
+                for v in x_values:
+                    if v in MONTH_MAP:
+                        x_months.append(str(MONTH_MAP[v]))
+                    else:
+                        try:
+                            x_months.append(str(int(v)))
+                        except:
+                            x_months.append(f'"{v}"')
+                x_str = ','.join(x_months)
+                filters.append(f'indexof([{x_str}], month(datum.{x_field})) >= 0')
+            elif x_timeunit == 'year':
+                x_nums = ','.join([str(int(v)) for v in x_values])
+                filters.append(f'indexof([{x_nums}], year(datum.{x_field})) >= 0')
+            else:
+                # other timeUnit, use function name directly
+                x_str = ','.join([f'"{v}"' for v in x_values])
+                filters.append(f'indexof([{x_str}], {x_timeunit}(datum.{x_field})) >= 0')
+        else:
+            # no timeUnit, match field value directly
+            x_str = ','.join([f'"{v}"' for v in x_values])
+            filters.append(f'indexof([{x_str}], datum.{x_field}) >= 0')
+    
+    # process Y axis filtering
+    if y_values and y_field:
+        if y_timeunit:
+            # has timeUnit, use Vega expression function
+            if y_timeunit == 'date':
+                y_nums = ','.join([str(int(v)) for v in y_values])
+                filters.append(f'indexof([{y_nums}], date(datum.{y_field})) >= 0')
+            elif y_timeunit == 'month':
+                # extract month, try to convert month name to number
+                y_months = []
+                for v in y_values:
+                    if v in MONTH_MAP:
+                        y_months.append(str(MONTH_MAP[v]))
+                    else:
+                        try:
+                            y_months.append(str(int(v)))
+                        except:
+                            y_months.append(f'"{v}"')
+                y_str = ','.join(y_months)
+                filters.append(f'indexof([{y_str}], month(datum.{y_field})) >= 0')
+            elif y_timeunit == 'year':
+                y_nums = ','.join([str(int(v)) for v in y_values])
+                filters.append(f'indexof([{y_nums}], year(datum.{y_field})) >= 0')
+            else:
+                # other timeUnit, use function name directly
+                y_str = ','.join([f'"{v}"' for v in y_values])
+                filters.append(f'indexof([{y_str}], {y_timeunit}(datum.{y_field})) >= 0')
+        else:
+            # no timeUnit, match field value directly
+            y_str = ','.join([f'"{v}"' for v in y_values])
+            filters.append(f'indexof([{y_str}], datum.{y_field}) >= 0')
+    
+    if filters:
+        new_state['transform'].append({
+            'filter': ' && '.join(filters)
+        })
+    
+    return {
+        'success': True,
+        'operation': 'select_submatrix',
+        'vega_state': new_state,
+        'message': f'Selected submatrix with {len(x_values) if x_values else "all"} cols, {len(y_values) if y_values else "all"} rows'
     }
 
 
 def highlight_region(
-    vega_spec: Dict,
+    state: Dict,
     x_values: Optional[List] = None,
     y_values: Optional[List] = None,
 ) -> Dict[str, Any]:
@@ -121,12 +231,12 @@ def highlight_region(
     - 仅 y_values：高亮整行（该 y 轴下的所有 x）
     - 两者都提供：高亮交叉区域
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    x_field = new_spec.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_spec.get('encoding', {}).get('y', {}).get('field')
-    x_timeunit = new_spec.get('encoding', {}).get('x', {}).get('timeUnit')
-    y_timeunit = new_spec.get('encoding', {}).get('y', {}).get('timeUnit')
+    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
+    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
+    x_timeunit = new_state.get('encoding', {}).get('x', {}).get('timeUnit')
+    y_timeunit = new_state.get('encoding', {}).get('y', {}).get('timeUnit')
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find x/y fields'}
@@ -202,10 +312,10 @@ def highlight_region(
         parts.append(f'indexof([{y_list}], {y_expr}) >= 0')
     test_expr = ' && '.join(parts)
     
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
     
-    new_spec['encoding']['opacity'] = {
+    new_state['encoding']['opacity'] = {
         'condition': {
             'test': test_expr,
             'value': 1.0
@@ -217,13 +327,13 @@ def highlight_region(
     return {
         'success': True,
         'operation': 'highlight_region',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': 'Highlighted specified region'
     }
 
 
 def highlight_region_by_value(
-    vega_spec: Dict,
+    state: Dict,
     min_value: Optional[float] = None,
     max_value: Optional[float] = None,
     outside_opacity: float = 0.12,
@@ -238,9 +348,9 @@ def highlight_region_by_value(
     if min_value is None and max_value is None:
         return {'success': False, 'error': 'Must provide at least one of min_value or max_value'}
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
-    color_enc = (new_spec.get('encoding', {}) or {}).get('color', {}) or {}
+    color_enc = (new_state.get('encoding', {}) or {}).get('color', {}) or {}
     color_field = color_enc.get('field')
     if not color_field:
         return {'success': False, 'error': 'Cannot find color field'}
@@ -263,9 +373,9 @@ def highlight_region_by_value(
         tests.append(f'{ref} <= {float(max_value)}')
     test_expr = ' && '.join(tests) if tests else 'true'
 
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
-    new_spec['encoding']['opacity'] = {
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
+    new_state['encoding']['opacity'] = {
         'condition': {
             'test': test_expr,
             'value': 1.0
@@ -276,13 +386,13 @@ def highlight_region_by_value(
     return {
         'success': True,
         'operation': 'highlight_region_by_value',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Highlighted cells by value (min={min_value}, max={max_value}); outside_opacity={outside_opacity}'
     }
 
 
 def filter_cells_by_region(
-    vega_spec: Dict,
+    state: Dict,
     x_value: Any = None,
     y_value: Any = None,
     x_values: Optional[List[Any]] = None,
@@ -299,12 +409,12 @@ def filter_cells_by_region(
     - 单格子：传 x_value + y_value
     - 多格子（笛卡尔积）：传 x_values + y_values
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
-    x_field = (new_spec.get('encoding', {}) or {}).get('x', {}).get('field')
-    y_field = (new_spec.get('encoding', {}) or {}).get('y', {}).get('field')
-    x_timeunit = (new_spec.get('encoding', {}) or {}).get('x', {}).get('timeUnit')
-    y_timeunit = (new_spec.get('encoding', {}) or {}).get('y', {}).get('timeUnit')
+    x_field = (new_state.get('encoding', {}) or {}).get('x', {}).get('field')
+    y_field = (new_state.get('encoding', {}) or {}).get('y', {}).get('field')
+    x_timeunit = (new_state.get('encoding', {}) or {}).get('x', {}).get('timeUnit')
+    y_timeunit = (new_state.get('encoding', {}) or {}).get('y', {}).get('timeUnit')
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find x/y fields'}
 
@@ -374,19 +484,19 @@ def filter_cells_by_region(
         exclude_parts.append(f'indexof([{y_list}], {y_expr}) >= 0')
     exclude_expr = ' && '.join(exclude_parts)
 
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
-    new_spec['transform'].append({'filter': f'!({exclude_expr})', '_avs_tag': 'filter_cells_by_region'})
+    if 'transform' not in new_state:
+        new_state['transform'] = []
+    new_state['transform'].append({'filter': f'!({exclude_expr})', '_avs_tag': 'filter_cells_by_region'})
 
     return {
         'success': True,
         'operation': 'filter_cells_by_region',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Filtered out selected region cells (x={x_values}, y={y_values})'
     }
 
 
-def cluster_rows_cols(vega_spec: Dict, cluster_rows: bool = True, 
+def cluster_rows_cols(state: Dict, cluster_rows: bool = True, 
                      cluster_cols: bool = True, method: str = "sum") -> Dict[str, Any]:
     """
     对热力图的行/列按数值聚合结果重新排序（实现逻辑与说明）
@@ -400,12 +510,12 @@ def cluster_rows_cols(vega_spec: Dict, cluster_rows: bool = True,
     
     说明：实现的是“按行/列聚合排序”，而非严格聚类算法；效果类似行列重排，使高值区域更集中。
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    if 'encoding' not in new_spec:
+    if 'encoding' not in new_state:
         return {'success': False, 'error': 'No encoding found'}
     
-    encoding = new_spec['encoding']
+    encoding = new_state['encoding']
     color_field = encoding.get('color', {}).get('field')
     
     if not color_field:
@@ -437,18 +547,18 @@ def cluster_rows_cols(vega_spec: Dict, cluster_rows: bool = True,
     return {
         'success': True,
         'operation': 'cluster_rows_cols',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Sorted rows={cluster_rows}, cols={cluster_cols} by {method}'
     }
 
 
-def select_submatrix(vega_spec: Dict, x_values: List = None, 
+def select_submatrix(state: Dict, x_values: List = None, 
                     y_values: List = None) -> Dict[str, Any]:
     """选择子矩阵"""
     if not x_values and not y_values:
         return {'success': False, 'error': 'Must specify x_values or y_values'}
     
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 月份名称到数字的映射 (Vega month 从 0 开始: 0=Jan, 11=Dec)
     MONTH_MAP = {
@@ -460,7 +570,7 @@ def select_submatrix(vega_spec: Dict, x_values: List = None,
         "September": 8, "October": 9, "November": 10, "December": 11
     }
     
-    encoding = new_spec.get('encoding', {})
+    encoding = new_state.get('encoding', {})
     x_encoding = encoding.get('x', {})
     y_encoding = encoding.get('y', {})
     
@@ -469,8 +579,8 @@ def select_submatrix(vega_spec: Dict, x_values: List = None,
     x_timeunit = x_encoding.get('timeUnit')
     y_timeunit = y_encoding.get('timeUnit')
     
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
     
     filters = []
     
@@ -540,31 +650,31 @@ def select_submatrix(vega_spec: Dict, x_values: List = None,
             filters.append(f'indexof([{y_str}], datum.{y_field}) >= 0')
     
     if filters:
-        new_spec['transform'].append({
+        new_state['transform'].append({
             'filter': ' && '.join(filters)
         })
     
     return {
         'success': True,
         'operation': 'select_submatrix',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Selected submatrix with {len(x_values) if x_values else "all"} cols, {len(y_values) if y_values else "all"} rows'
     }
 
 
-def find_extremes(vega_spec: Dict, top_n: int = 5, mode: str = "both") -> Dict[str, Any]:
+def find_extremes(state: Dict, top_n: int = 5, mode: str = "both") -> Dict[str, Any]:
     """
     标记极值点位置
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         top_n: 标记前N个极值
         mode: "max" | "min" | "both"
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 获取字段信息
-    encoding = new_spec.get('encoding', {})
+    encoding = new_state.get('encoding', {})
     x_field = encoding.get('x', {}).get('field')
     y_field = encoding.get('y', {}).get('field')
     color_field = encoding.get('color', {}).get('field')
@@ -573,7 +683,7 @@ def find_extremes(vega_spec: Dict, top_n: int = 5, mode: str = "both") -> Dict[s
         return {'success': False, 'error': 'Cannot find color field for finding extremes'}
     
     # 获取数据
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_data_values(new_state)
     if not data:
         return {'success': False, 'error': 'No data found'}
     
@@ -649,11 +759,11 @@ def find_extremes(vega_spec: Dict, top_n: int = 5, mode: str = "both") -> Dict[s
     
     test_expr = ' || '.join(extreme_conditions)
     # 使用 transparent 替代 null，避免 Vega 信号名问题
-    new_spec['encoding']['stroke'] = {
+    new_state['encoding']['stroke'] = {
         'condition': {'test': test_expr, 'value': 'red'},
         'value': 'transparent'
     }
-    new_spec['encoding']['strokeWidth'] = {
+    new_state['encoding']['strokeWidth'] = {
         'condition': {
             'test': test_expr,
             'value': 3
@@ -674,14 +784,14 @@ def find_extremes(vega_spec: Dict, top_n: int = 5, mode: str = "both") -> Dict[s
     return {
         'success': True,
         'operation': 'find_extremes',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'extremes': extreme_info,
         'message': f'Marked {len(extremes)} extreme points (mode: {mode})'
     }
 
 
 def threshold_mask(
-    vega_spec: Dict,
+    state: Dict,
     min_value: float,
     max_value: float,
     outside_opacity: float = 0.1,
@@ -690,14 +800,14 @@ def threshold_mask(
     对不在阈值范围内的单元格做“遮罩”（变淡），但不删除数据。
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         min_value: 下阈值（包含）
         max_value: 上阈值（包含）
         outside_opacity: 范围外的透明度
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
-    color_enc = new_spec.get('encoding', {}).get('color', {})
+    color_enc = new_state.get('encoding', {}).get('color', {})
     color_field = color_enc.get('field')
     if not color_field:
         return {'success': False, 'error': 'Cannot find color field'}
@@ -712,11 +822,11 @@ def threshold_mask(
         else:
             value_field = f'{str(agg).lower()}_{color_field}'
 
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
 
     ref = _datum_ref(value_field)
-    new_spec['encoding']['opacity'] = {
+    new_state['encoding']['opacity'] = {
         'condition': {
             'test': f'{ref} >= {min_value} && {ref} <= {max_value}',
             'value': 1.0
@@ -727,13 +837,13 @@ def threshold_mask(
     return {
         'success': True,
         'operation': 'threshold_mask',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Applied threshold mask on {value_field} in [{min_value}, {max_value}]'
     }
 
 
 def drilldown_time(
-    vega_spec: Dict,
+    state: Dict,
     level: str,
     value: Union[int, str],
     parent: Optional[Dict[str, Any]] = None,
@@ -746,14 +856,14 @@ def drilldown_time(
     - 初始建议 timeUnit='year'（若缺省，也可被记录并在 reset 时恢复）
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         level: 'year' | 'month' | 'date'
         value: 对应 level 的值（year=int；month=1-12；date=1-31）
         parent: 可选父级信息，如 {'year': 2012} 或 {'year':2012,'month':3}
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
-    encoding = new_spec.get('encoding', {})
+    encoding = new_state.get('encoding', {})
     x_enc = encoding.get('x', {})
     time_field = x_enc.get('field')
     x_type = x_enc.get('type')
@@ -764,19 +874,19 @@ def drilldown_time(
         return {'success': False, 'error': f'Expected encoding.x.type=temporal, got {x_type}'}
 
     # init state
-    state = new_spec.get('_heatmap_state')
+    state = new_state.get('_heatmap_state')
     if not isinstance(state, dict):
         state = {}
 
     if 'original_x_encoding' not in state:
         state['original_x_encoding'] = copy.deepcopy(x_enc)
 
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
 
     # remove existing drilldown filters (idempotent drilldown)
-    new_spec['transform'] = [
-        t for t in new_spec['transform']
+    new_state['transform'] = [
+        t for t in new_state['transform']
         if not (isinstance(t, dict) and t.get('_avs_tag') == 'heatmap_drilldown_time')
     ]
 
@@ -844,63 +954,63 @@ def drilldown_time(
         return {'success': False, 'error': f'Unsupported level: {level}. Use year|month|date'}
 
     # apply timeUnit on x
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
-    if 'x' not in new_spec['encoding']:
-        new_spec['encoding']['x'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
+    if 'x' not in new_state['encoding']:
+        new_state['encoding']['x'] = {}
     if next_timeunit:
-        new_spec['encoding']['x']['timeUnit'] = next_timeunit
-        new_spec['encoding']['x']['type'] = 'temporal'
-        new_spec['encoding']['x']['field'] = time_field
+        new_state['encoding']['x']['timeUnit'] = next_timeunit
+        new_state['encoding']['x']['type'] = 'temporal'
+        new_state['encoding']['x']['field'] = time_field
 
     # add filter transform
     if filters:
-        new_spec['transform'].append({
+        new_state['transform'].append({
             'filter': ' && '.join(filters),
             '_avs_tag': 'heatmap_drilldown_time'
         })
 
-    new_spec['_heatmap_state'] = state
+    new_state['_heatmap_state'] = state
 
     return {
         'success': True,
         'operation': 'drilldown_time',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Drilldown to {level}={value}',
         'state': state.get('parent')
     }
 
 
-def reset_drilldown(vega_spec: Dict) -> Dict[str, Any]:
+def reset_drilldown(state: Dict) -> Dict[str, Any]:
     """
     重置时间热力图下钻：移除 drilldown_time 添加的 filter，并恢复原始 x 编码（timeUnit 等）。
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
-    state = new_spec.get('_heatmap_state')
+    state = new_state.get('_heatmap_state')
     original_x = None
     if isinstance(state, dict):
         original_x = state.get('original_x_encoding')
 
-    if 'transform' in new_spec and isinstance(new_spec['transform'], list):
-        new_spec['transform'] = [
-            t for t in new_spec['transform']
+    if 'transform' in new_state and isinstance(new_state['transform'], list):
+        new_state['transform'] = [
+            t for t in new_state['transform']
             if not (isinstance(t, dict) and t.get('_avs_tag') == 'heatmap_drilldown_time')
         ]
 
     if original_x and isinstance(original_x, dict):
-        if 'encoding' not in new_spec:
-            new_spec['encoding'] = {}
-        new_spec['encoding']['x'] = copy.deepcopy(original_x)
+        if 'encoding' not in new_state:
+            new_state['encoding'] = {}
+        new_state['encoding']['x'] = copy.deepcopy(original_x)
 
     # clear state
-    if '_heatmap_state' in new_spec:
-        del new_spec['_heatmap_state']
+    if '_heatmap_state' in new_state:
+        del new_state['_heatmap_state']
 
     return {
         'success': True,
         'operation': 'reset_drilldown',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': 'Reset heatmap drilldown to original state'
     }
 
@@ -912,7 +1022,7 @@ def reset_drilldown(vega_spec: Dict) -> Dict[str, Any]:
 # ============================================================================
 
 def add_marginal_bars(
-    vega_spec: Dict,
+    state: Dict,
     op: str = "mean",
     show_top: bool = True,
     show_right: bool = True,
@@ -933,8 +1043,8 @@ def add_marginal_bars(
     if not show_top and not show_right:
         return {'success': False, 'error': 'At least one of show_top/show_right must be True'}
 
-    new_spec = copy.deepcopy(vega_spec)
-    encoding = new_spec.get("encoding", {}) or {}
+    new_state = copy.deepcopy(state)
+    encoding = new_state.get("encoding", {}) or {}
     x_enc = encoding.get("x", {}) or {}
     y_enc = encoding.get("y", {}) or {}
     c_enc = encoding.get("color", {}) or {}
@@ -950,7 +1060,7 @@ def add_marginal_bars(
     if agg not in allowed:
         return {'success': False, 'error': f'Unsupported op: {op}. Use one of {sorted(list(allowed))}'}
 
-    main = copy.deepcopy(new_spec)
+    main = copy.deepcopy(new_state)
     title = main.pop("title", None)
 
     default_w, default_h = 400, 300
@@ -1022,7 +1132,7 @@ def add_marginal_bars(
         "resolve": {"scale": {"y": "shared"}},
     }
     composed: Dict[str, Any] = {
-        "$schema": new_spec.get("$schema", "https://vega.github.io/schema/vega-lite/v5.json"),
+        "$schema": new_state.get("$schema", "https://vega.github.io/schema/vega-lite/v5.json"),
         "vconcat": ([] if not top_spec else [top_spec]) + [row],
         "resolve": {"scale": {"x": "shared"}},
     }
@@ -1043,12 +1153,12 @@ def add_marginal_bars(
     return {
         "success": True,
         "operation": "add_marginal_bars",
-        "vega_spec": composed,
+        "vega_state": composed,
         "message": f"Added marginal bars (op={agg}, top={show_top}, right={show_right})"
     }
 
 
-def transpose(vega_spec: Dict) -> Dict[str, Any]:
+def transpose(state: Dict) -> Dict[str, Any]:
     """
     热力图行列转置：交换 x 轴和 y 轴。
     
@@ -1057,14 +1167,14 @@ def transpose(vega_spec: Dict) -> Dict[str, Any]:
     - 比如把"按月看各地区"变成"按地区看各月"
     
     Args:
-        vega_spec: Vega-Lite 规范
+        state: Vega-Lite 规范
     
     Returns:
         转置后的规格
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    encoding = new_spec.get('encoding', {})
+    encoding = new_state.get('encoding', {})
     x_enc = encoding.get('x')
     y_enc = encoding.get('y')
     
@@ -1075,46 +1185,46 @@ def transpose(vega_spec: Dict) -> Dict[str, Any]:
         }
     
     # 交换 x 和 y 编码
-    new_spec['encoding']['x'] = copy.deepcopy(y_enc)
-    new_spec['encoding']['y'] = copy.deepcopy(x_enc)
+    new_state['encoding']['x'] = copy.deepcopy(y_enc)
+    new_state['encoding']['y'] = copy.deepcopy(x_enc)
     
     # 交换 width 和 height（如果定义）
-    width = new_spec.get('width')
-    height = new_spec.get('height')
+    width = new_state.get('width')
+    height = new_state.get('height')
     if width is not None and height is not None:
-        new_spec['width'] = height
-        new_spec['height'] = width
+        new_state['width'] = height
+        new_state['height'] = width
     
     # 记录转置状态（用于切换回来）
-    state = new_spec.get('_transpose_state', {'transposed': False})
+    state = new_state.get('_transpose_state', {'transposed': False})
     state['transposed'] = not state.get('transposed', False)
-    new_spec['_transpose_state'] = state
+    new_state['_transpose_state'] = state
     
     status = "transposed" if state['transposed'] else "restored"
     return {
         'success': True,
         'operation': 'transpose',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Heatmap {status}: x and y axes swapped'
     }
 
 
-def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]:
+def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
     """
     Modify the field mapping of the specified encoding channel
     
     Args:
-        vega_spec: Vega spec
+        state: Vega spec
         
         channel: encoding channel ("x", "y", "color", "size", "shape")
         field: new field name
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
 
 
     # 检查字段是否存在
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_data_values(new_state)
     if data and field not in data[0]:
         available_fields = list(data[0].keys()) if data else []
         return {
@@ -1133,29 +1243,37 @@ def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]
                 field_type = 'temporal'
     
     # 更新指定通道的 encoding
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
     
-    new_spec['encoding'][channel] = {
+    new_state['encoding'][channel] = {
         'field': field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_spec['encoding'][channel]['legend'] = {'title': field}
+        new_state['encoding'][channel]['legend'] = {'title': field}
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'scheme': 'viridis'}
+            new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'range': [50, 500]}
+            new_state['encoding'][channel]['scale'] = {'range': [50, 500]}
     
     return {
         'success': True,
         'operation': 'change_encoding',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
     }
+
+
+def _get_data_values(spec: Dict) -> List[Dict[str, Any]]:
+    data_obj = spec.get("data")
+    if isinstance(data_obj, dict) and isinstance(data_obj.get("values"), list):
+        return data_obj["values"]
+    values = DataStore.get_values()
+    return values if isinstance(values, list) else []
 
 
 __all__ = [
@@ -1174,3 +1292,8 @@ __all__ = [
     'transpose',
     'change_encoding',
 ]
+
+for _fn_name in __all__:
+    _fn = globals().get(_fn_name)
+    if callable(_fn):
+        globals()[_fn_name] = tool_output(_fn)

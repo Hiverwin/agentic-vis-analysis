@@ -20,14 +20,15 @@ def _datum_ref(field: str) -> str:
 import json
 import copy
 import pandas as pd
+from state_manager import DataStore, tool_output
 
-def sort_bars(vega_spec: dict, order: str = "descending", by_subcategory: str = None) -> dict:
+def sort_bars(state: dict, order: str = "descending", by_subcategory: str = None) -> dict:
     """
     针对带有聚合（如mean）和颜色分组的条形图进行排序的增强版函数。
     统一使用 Pandas 预计算 + 显式数组排序，兼容所有渲染环境。
     """
-    new_spec = copy.deepcopy(vega_spec)
-    enc = new_spec.get('encoding', {})
+    new_state = copy.deepcopy(state)
+    enc = new_state.get('encoding', {})
 
     # 1. 自动识别 X 和 Y 轴
     x_type = enc.get('x', {}).get('type', 'nominal')
@@ -49,7 +50,7 @@ def sort_bars(vega_spec: dict, order: str = "descending", by_subcategory: str = 
         return {'success': False, 'error': '无法识别分类或数值字段'}
 
     # 2. 统一加载数据到 Pandas DataFrame（所有场景都走这条路）
-    data_vals = new_spec.get('data', {}).get('values')
+    data_vals = _get_values_from_data_obj(new_state.get('data', {}) or {})
     if not data_vals:
         return {'success': False, 'error': 'Spec中未找到values数据，无法在后端计算排序'}
 
@@ -103,43 +104,43 @@ def sort_bars(vega_spec: dict, order: str = "descending", by_subcategory: str = 
     # 5. 统一使用显式数组赋值给 sort（最稳定的方式）
     enc[cat_channel]['sort'] = sorted_categories
 
-    return {'success': True, 'vega_spec': new_spec}
+    return {'success': True, 'vega_state': new_state}
 
 
 
 
-def filter_categories(vega_spec: Dict, categories: List[str]) -> Dict[str, Any]:
+def filter_categories(state: Dict, categories: List[str]) -> Dict[str, Any]:
     """Filter specific categories"""
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    x_field = new_spec.get('encoding', {}).get('x', {}).get('field')
+    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
     
     if not x_field:
         return {'success': False, 'error': 'Cannot find category field'}
     
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
     
     category_str = ','.join([f'"{c}"' for c in categories])
-    new_spec['transform'].append({
+    new_state['transform'].append({
         'filter': f'indexof([{category_str}], {_datum_ref(x_field)}) < 0'
     })
     
     return {
         'success': True,
         'operation': 'filter_categories',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Filtered to {len(categories)} categories'
     }
 
 
-def highlight_top_n(vega_spec: Dict, n: int = 5, order: str = "descending") -> Dict[str, Any]:
+def highlight_top_n(state: Dict, n: int = 5, order: str = "descending") -> Dict[str, Any]:
     """Highlight top N bars by aggregated value (supports stacked/grouped charts)"""
     from collections import defaultdict
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    data = new_spec.get('data', {}).get('values', [])
-    encoding = new_spec.get('encoding', {})
+    data = _get_values_from_data_obj(new_state.get('data', {}) or {})
+    encoding = new_state.get('encoding', {})
     y_enc = encoding.get('y', {})
     x_enc = encoding.get('x', {})
     y_field = y_enc.get('field')
@@ -172,10 +173,10 @@ def highlight_top_n(vega_spec: Dict, n: int = 5, order: str = "descending") -> D
         return f"'{v}'" if isinstance(v, str) else str(v)
     test_expr = ' || '.join([f"datum['{x_field}'] == {quote(c)}" for c in top_categories])
     
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
     
-    new_spec['encoding']['opacity'] = {
+    new_state['encoding']['opacity'] = {
         'condition': {
             'test': test_expr,
             'value': 1.0
@@ -186,14 +187,14 @@ def highlight_top_n(vega_spec: Dict, n: int = 5, order: str = "descending") -> D
     return {
         'success': True,
         'operation': 'highlight_top_n',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Highlighted top {n} categories: {top_categories}'
     }
 
 
 
 
-def expand_stack(vega_spec: Dict, category: str) -> Dict[str, Any]:
+def expand_stack(state: Dict, category: str) -> Dict[str, Any]:
     """
     Expand stacked bar chart of a specific category into a parallel bar chart.
     
@@ -201,14 +202,14 @@ def expand_stack(vega_spec: Dict, category: str) -> Dict[str, Any]:
     This is a "physical interaction necessity" tool - the baseline of the middle layer of the stacked chart is different, making it difficult to compare sizes directly.
     
     Parameters:
-        vega_spec: Vega spec
+        state: Vega spec
         category: x axis category name to expand (e.g. "East China")
     
     Returns:
         expanded parallel bar chart spec
     """
-    new_spec = copy.deepcopy(vega_spec)
-    encoding = new_spec.get('encoding', {})
+    new_state = copy.deepcopy(state)
+    encoding = new_state.get('encoding', {})
     
     # get x axis field and color field
     x_field = encoding.get('x', {}).get('field')
@@ -223,16 +224,16 @@ def expand_stack(vega_spec: Dict, category: str) -> Dict[str, Any]:
         return {'success': False, 'error': 'This is not a stacked bar chart (missing color encoding)'}
     
     # 1. add filter to only keep data for specified category (support spaces in field names)
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
     q = json.dumps(category)
-    new_spec['transform'].append({
+    new_state['transform'].append({
         'filter': f'{_datum_ref(x_field)} == {q}'
     })
     
     # 2. move original color field to x axis
     original_x_enc = encoding.get('x', {})
-    new_spec['encoding']['x'] = {
+    new_state['encoding']['x'] = {
         'field': color_field,
         'type': 'nominal',
         'title': color_enc.get('title', color_field),
@@ -240,11 +241,11 @@ def expand_stack(vega_spec: Dict, category: str) -> Dict[str, Any]:
     }
     # keep original x axis scale settings if any
     if 'scale' in color_enc:
-        new_spec['encoding']['x']['sort'] = color_enc['scale'].get('domain')
+        new_state['encoding']['x']['sort'] = color_enc['scale'].get('domain')
     
     # 3. remove y axis stack settings
     if 'stack' in y_enc:
-        del new_spec['encoding']['y']['stack']
+        del new_state['encoding']['y']['stack']
     
     # 4. keep color encoding to maintain visual consistency
     # color field remains the same, but now each bar is displayed independently
@@ -252,12 +253,12 @@ def expand_stack(vega_spec: Dict, category: str) -> Dict[str, Any]:
     return {
         'success': True,
         'operation': 'expand_stack',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Expanded stacked bars for category "{category}" into parallel bars'
     }
 
 
-def toggle_stack_mode(vega_spec: Dict, mode: str = "grouped") -> Dict[str, Any]:
+def toggle_stack_mode(state: Dict, mode: str = "grouped") -> Dict[str, Any]:
     """
     Toggle stacked/grouped display mode globally.
     
@@ -265,14 +266,14 @@ def toggle_stack_mode(vega_spec: Dict, mode: str = "grouped") -> Dict[str, Any]:
     - stacked: restore to stacked display
     
     Parameters:
-        vega_spec: Vega spec
+        state: Vega spec
         mode: "grouped" or "stacked"
     
     Returns:
         modified spec
     """
-    new_spec = copy.deepcopy(vega_spec)
-    encoding = new_spec.get('encoding', {})
+    new_state = copy.deepcopy(state)
+    encoding = new_state.get('encoding', {})
     
     color_enc = encoding.get('color', {})
     color_field = color_enc.get('field')
@@ -282,22 +283,22 @@ def toggle_stack_mode(vega_spec: Dict, mode: str = "grouped") -> Dict[str, Any]:
     
     if mode == "grouped":
         # add xOffset encoding to implement grouped bar chart
-        new_spec['encoding']['xOffset'] = {
+        new_state['encoding']['xOffset'] = {
             'field': color_field
         }
         # remove stack settings
         if 'stack' in encoding.get('y', {}):
-            del new_spec['encoding']['y']['stack']
+            del new_state['encoding']['y']['stack']
         
         message = 'Switched to grouped mode: all subcategories displayed side by side,便于跨类别对比'
         
     elif mode == "stacked":
         # remove xOffset, restore stacked
-        if 'xOffset' in new_spec['encoding']:
-            del new_spec['encoding']['xOffset']
+        if 'xOffset' in new_state['encoding']:
+            del new_state['encoding']['xOffset']
         # restore stack settings
-        if 'y' in new_spec['encoding']:
-            new_spec['encoding']['y']['stack'] = 'zero'
+        if 'y' in new_state['encoding']:
+            new_state['encoding']['y']['stack'] = 'zero'
         
         message = 'Switched to stacked mode: all subcategories displayed stacked,便于查看总量'
         
@@ -305,29 +306,29 @@ def toggle_stack_mode(vega_spec: Dict, mode: str = "grouped") -> Dict[str, Any]:
         return {'success': False, 'error': f'Invalid mode: {mode}, please use "grouped" or "stacked"'}
     
     # store mode state
-    new_spec['_stack_mode'] = mode
+    new_state['_stack_mode'] = mode
     
     return {
         'success': True,
         'operation': 'toggle_stack_mode',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': message
     }
 
 
-def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]:
+def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
     """
     Modify the field mapping of the specified encoding channel
     
     Args:
-        vega_spec: Vega spec
+        state: Vega spec
         channel: encoding channel ("x", "y", "color", "size", "shape")
         field: new field name
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 检查字段是否存在
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_values_from_data_obj(new_state.get('data', {}) or {})
     if data and field not in data[0]:
         available_fields = list(data[0].keys()) if data else []
         return {
@@ -346,27 +347,27 @@ def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]
                 field_type = 'temporal'
     
     # 更新指定通道的 encoding
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
     
-    new_spec['encoding'][channel] = {
+    new_state['encoding'][channel] = {
         'field': field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_spec['encoding'][channel]['legend'] = {'title': field}
+        new_state['encoding'][channel]['legend'] = {'title': field}
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'scheme': 'viridis'}
+            new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'range': [50, 500]}
+            new_state['encoding'][channel]['scale'] = {'range': [50, 500]}
     
     return {
         'success': True,
         'operation': 'change_encoding',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
     }
 
@@ -375,7 +376,7 @@ def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]
 # Bar visibility tools (interaction necessity)
 # - Add/remove whole bars by x category (stacked or grouped)
 # - Add/remove individual bar items by (x, sub) pair
-# - Optionally load missing data from vega_spec._metadata.full_data_path
+# - Optionally load missing data from state._metadata.full_data_path
 # ============================================================================
 
 _VIS_FILTER_TAG = "bar_visibility"
@@ -442,10 +443,11 @@ def _detect_sub_field(spec: Dict[str, Any], sub_field: Optional[str] = None) -> 
 
 
 def _get_values_from_data_obj(obj: Any) -> List[Dict[str, Any]]:
-    if not isinstance(obj, dict):
-        return []
-    if isinstance(obj.get("values"), list):
+    if isinstance(obj, dict) and isinstance(obj.get("values"), list):
         return obj["values"]
+    data = DataStore.get()
+    if isinstance(data, dict) and isinstance(data.get("values"), list):
+        return data["values"]
     return []
 
 
@@ -523,22 +525,22 @@ def _maybe_expand_data_from_full(spec: Dict[str, Any], predicate) -> Dict[str, A
     return {"loaded": True, "added": added}
 
 
-def add_bars(vega_spec: Dict, values: List[Any], x_field: Optional[str] = None) -> Dict[str, Any]:
+def add_bars(state: Dict, values: List[Any], x_field: Optional[str] = None) -> Dict[str, Any]:
     """
     Add whole bars (x categories). Works for stacked or grouped bars.
     If the requested category isn't present in current data, tries to load from _metadata.full_data_path.
     """
-    new_spec = copy.deepcopy(vega_spec)
-    field, channel = _detect_x_category_field(new_spec, x_field=x_field)
+    new_state = copy.deepcopy(state)
+    field, channel = _detect_x_category_field(new_state, x_field=x_field)
     if not field or not channel:
         return {"success": False, "error": "Cannot find category axis field (x/y)."}
 
-    data_values = _get_values_from_data_obj(new_spec.get("data", {}) or {})
+    data_values = _get_values_from_data_obj(new_state.get("data", {}) or {})
     requested = list(dict.fromkeys(values or []))
 
     # Base visible set should reflect current view BEFORE any full-data merge.
     existing_categories_before = {r.get(field) for r in data_values if isinstance(r, dict)}
-    state = new_spec.get("_bar_visibility_state") or {}
+    state = new_state.get("_bar_visibility_state") or {}
     visible = (
         set(state.get("visible_x", []))
         if state.get("mode") == "x" and state.get("x_field") == field
@@ -549,8 +551,8 @@ def add_bars(vega_spec: Dict, values: List[Any], x_field: Optional[str] = None) 
     missing = [v for v in requested if v not in existing_categories_before]
     load_info = {"loaded": False, "added": 0}
     if missing:
-        load_info = _maybe_expand_data_from_full(new_spec, lambda r: r.get(field) in set(missing))
-        data_values = _get_values_from_data_obj(new_spec.get("data", {}) or {})
+        load_info = _maybe_expand_data_from_full(new_state, lambda r: r.get(field) in set(missing))
+        data_values = _get_values_from_data_obj(new_state.get("data", {}) or {})
     existing_categories = {r.get(field) for r in data_values if isinstance(r, dict)}
 
     actually_added = []
@@ -564,11 +566,11 @@ def add_bars(vega_spec: Dict, values: List[Any], x_field: Optional[str] = None) 
             still_missing.append(v)
 
     # Update filter
-    filt = _find_or_create_visibility_filter_transform(new_spec)
+    filt = _find_or_create_visibility_filter_transform(new_state)
     category_str = ",".join([json.dumps(v, ensure_ascii=False) for v in sorted(visible, key=lambda x: str(x))])
     filt["filter"] = f"indexof([{category_str}], {_datum_ref(field)}) >= 0"
 
-    new_spec["_bar_visibility_state"] = {
+    new_state["_bar_visibility_state"] = {
         "mode": "x",
         "x_field": field,
         "visible_x": list(visible),
@@ -581,20 +583,20 @@ def add_bars(vega_spec: Dict, values: List[Any], x_field: Optional[str] = None) 
     if still_missing:
         msg += f"; missing categories not found: {still_missing}"
 
-    return {"success": True, "operation": "add_bars", "vega_spec": new_spec, "message": msg}
+    return {"success": True, "operation": "add_bars", "vega_state": new_state, "message": msg}
 
 
-def remove_bars(vega_spec: Dict, values: List[Any], x_field: Optional[str] = None) -> Dict[str, Any]:
+def remove_bars(state: Dict, values: List[Any], x_field: Optional[str] = None) -> Dict[str, Any]:
     """Remove whole bars (x categories) by hiding them via a single managed transform filter."""
-    new_spec = copy.deepcopy(vega_spec)
-    field, channel = _detect_x_category_field(new_spec, x_field=x_field)
+    new_state = copy.deepcopy(state)
+    field, channel = _detect_x_category_field(new_state, x_field=x_field)
     if not field or not channel:
         return {"success": False, "error": "Cannot find category axis field (x/y)."}
 
-    data_values = _get_values_from_data_obj(new_spec.get("data", {}) or {})
+    data_values = _get_values_from_data_obj(new_state.get("data", {}) or {})
     existing_categories = {r.get(field) for r in data_values if isinstance(r, dict)}
 
-    state = new_spec.get("_bar_visibility_state") or {}
+    state = new_state.get("_bar_visibility_state") or {}
     visible = set(state.get("visible_x", [])) if state.get("mode") == "x" and state.get("x_field") == field else set(existing_categories)
 
     requested = set(values or [])
@@ -604,11 +606,11 @@ def remove_bars(vega_spec: Dict, values: List[Any], x_field: Optional[str] = Non
             visible.remove(v)
             actually_removed.append(v)
 
-    filt = _find_or_create_visibility_filter_transform(new_spec)
+    filt = _find_or_create_visibility_filter_transform(new_state)
     category_str = ",".join([json.dumps(v, ensure_ascii=False) for v in sorted(visible, key=lambda x: str(x))])
     filt["filter"] = f"indexof([{category_str}], {_datum_ref(field)}) >= 0"
 
-    new_spec["_bar_visibility_state"] = {
+    new_state["_bar_visibility_state"] = {
         "mode": "x",
         "x_field": field,
         "visible_x": list(visible),
@@ -618,13 +620,13 @@ def remove_bars(vega_spec: Dict, values: List[Any], x_field: Optional[str] = Non
     return {
         "success": True,
         "operation": "remove_bars",
-        "vega_spec": new_spec,
+        "vega_state": new_state,
         "message": f"Removed {len(actually_removed)} bars on {field}"
     }
 
 
 def add_bar_items(
-    vega_spec: Dict,
+    state: Dict,
     items: List[Dict[str, Any]],
     x_field: Optional[str] = None,
     sub_field: Optional[str] = None,
@@ -633,15 +635,15 @@ def add_bar_items(
     Add individual bar items by (x, sub) pair. Works for stacked (color) and grouped (xOffset) bars.
     items: [{"x": <x_value>, "sub": <sub_value>}, ...]
     """
-    new_spec = copy.deepcopy(vega_spec)
-    x_f, _ = _detect_x_category_field(new_spec, x_field=x_field)
-    sub_f = _detect_sub_field(new_spec, sub_field=sub_field)
+    new_state = copy.deepcopy(state)
+    x_f, _ = _detect_x_category_field(new_state, x_field=x_field)
+    sub_f = _detect_sub_field(new_state, sub_field=sub_field)
     if not x_f:
         return {"success": False, "error": "Cannot find x category field."}
     if not sub_f:
         return {"success": False, "error": "Cannot find sub field (encoding.xOffset.field or encoding.color.field)."}
 
-    data_values = _get_values_from_data_obj(new_spec.get("data", {}) or {})
+    data_values = _get_values_from_data_obj(new_state.get("data", {}) or {})
     existing_pairs_before = {(r.get(x_f), r.get(sub_f)) for r in data_values if isinstance(r, dict)}
 
     requested = []
@@ -652,7 +654,7 @@ def add_bar_items(
     requested = list(dict.fromkeys(requested))
 
     # Base visible pairs should reflect current view BEFORE any full-data merge.
-    state = new_spec.get("_bar_visibility_state") or {}
+    state = new_state.get("_bar_visibility_state") or {}
     visible_pairs = (
         set(tuple(p) for p in state.get("visible_items", []))
         if state.get("mode") == "item" and state.get("x_field") == x_f and state.get("sub_field") == sub_f
@@ -664,10 +666,10 @@ def add_bar_items(
     if missing_pairs:
         missing_set = set(missing_pairs)
         load_info = _maybe_expand_data_from_full(
-            new_spec,
+            new_state,
             lambda r: (r.get(x_f), r.get(sub_f)) in missing_set
         )
-        data_values = _get_values_from_data_obj(new_spec.get("data", {}) or {})
+        data_values = _get_values_from_data_obj(new_state.get("data", {}) or {})
     existing_pairs = {(r.get(x_f), r.get(sub_f)) for r in data_values if isinstance(r, dict)}
 
     actually_added = []
@@ -681,13 +683,13 @@ def add_bar_items(
             still_missing.append(p)
 
     xr, sr = _datum_ref(x_f), _datum_ref(sub_f)
-    filt = _find_or_create_visibility_filter_transform(new_spec)
+    filt = _find_or_create_visibility_filter_transform(new_state)
     parts = []
     for xv, sv in sorted(visible_pairs, key=lambda t: (str(t[0]), str(t[1]))):
         parts.append(f"({xr} == {json.dumps(xv, ensure_ascii=False)} && {sr} == {json.dumps(sv, ensure_ascii=False)})")
     filt["filter"] = " || ".join(parts) if parts else "false"
 
-    new_spec["_bar_visibility_state"] = {
+    new_state["_bar_visibility_state"] = {
         "mode": "item",
         "x_field": x_f,
         "sub_field": sub_f,
@@ -701,28 +703,28 @@ def add_bar_items(
     if still_missing:
         msg += f"; missing items not found: {still_missing}"
 
-    return {"success": True, "operation": "add_bar_items", "vega_spec": new_spec, "message": msg}
+    return {"success": True, "operation": "add_bar_items", "vega_state": new_state, "message": msg}
 
 
 def remove_bar_items(
-    vega_spec: Dict,
+    state: Dict,
     items: List[Dict[str, Any]],
     x_field: Optional[str] = None,
     sub_field: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Remove individual bar items by (x, sub) pair by updating the managed filter."""
-    new_spec = copy.deepcopy(vega_spec)
-    x_f, _ = _detect_x_category_field(new_spec, x_field=x_field)
-    sub_f = _detect_sub_field(new_spec, sub_field=sub_field)
+    new_state = copy.deepcopy(state)
+    x_f, _ = _detect_x_category_field(new_state, x_field=x_field)
+    sub_f = _detect_sub_field(new_state, sub_field=sub_field)
     if not x_f:
         return {"success": False, "error": "Cannot find x category field."}
     if not sub_f:
         return {"success": False, "error": "Cannot find sub field (encoding.xOffset.field or encoding.color.field)."}
 
-    data_values = _get_values_from_data_obj(new_spec.get("data", {}) or {})
+    data_values = _get_values_from_data_obj(new_state.get("data", {}) or {})
     existing_pairs = {(r.get(x_f), r.get(sub_f)) for r in data_values if isinstance(r, dict)}
 
-    state = new_spec.get("_bar_visibility_state") or {}
+    state = new_state.get("_bar_visibility_state") or {}
     visible_pairs = (
         set(tuple(p) for p in state.get("visible_items", []))
         if state.get("mode") == "item" and state.get("x_field") == x_f and state.get("sub_field") == sub_f
@@ -743,13 +745,13 @@ def remove_bar_items(
             actually_removed.append(p)
 
     xr, sr = _datum_ref(x_f), _datum_ref(sub_f)
-    filt = _find_or_create_visibility_filter_transform(new_spec)
+    filt = _find_or_create_visibility_filter_transform(new_state)
     parts = []
     for xv, sv in sorted(visible_pairs, key=lambda t: (str(t[0]), str(t[1]))):
         parts.append(f"({xr} == {json.dumps(xv, ensure_ascii=False)} && {sr} == {json.dumps(sv, ensure_ascii=False)})")
     filt["filter"] = " || ".join(parts) if parts else "false"
 
-    new_spec["_bar_visibility_state"] = {
+    new_state["_bar_visibility_state"] = {
         "mode": "item",
         "x_field": x_f,
         "sub_field": sub_f,
@@ -760,12 +762,12 @@ def remove_bar_items(
     return {
         "success": True,
         "operation": "remove_bar_items",
-        "vega_spec": new_spec,
+        "vega_state": new_state,
         "message": f"Removed {len(actually_removed)} bar items by ({x_f}, {sub_f})"
     }
 
 
-def filter_subcategories(vega_spec: Dict, subcategories_to_remove: List[Any], sub_field: Optional[str] = None) -> Dict[str, Any]:
+def filter_subcategories(state: Dict, subcategories_to_remove: List[Any], sub_field: Optional[str] = None) -> Dict[str, Any]:
     """
     Filter subcategories (color or xOffset encoded categories) from bar charts.
     
@@ -773,17 +775,17 @@ def filter_subcategories(vega_spec: Dict, subcategories_to_remove: List[Any], su
     Automatically detects the subcategory field from xOffset.field or color.field.
     
     Parameters:
-        vega_spec: Vega-Lite specification
+        state: Vega-Lite specification
         subcategories_to_remove: List of subcategory values to remove (e.g., [1, 2] or ["Type1", "Type2"])
         sub_field: Subcategory field name (optional, auto-detected from xOffset.field or color.field)
     
     Returns:
-        Modified vega_spec with filtered subcategories
+        Modified state with filtered subcategories
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # Auto-detect subcategory field
-    sub_f = _detect_sub_field(new_spec, sub_field=sub_field)
+    sub_f = _detect_sub_field(new_state, sub_field=sub_field)
     
     if not sub_f:
         return {'success': False, 'error': 'Cannot find subcategory field (xOffset.field or color.field)'}
@@ -792,8 +794,8 @@ def filter_subcategories(vega_spec: Dict, subcategories_to_remove: List[Any], su
         return {'success': False, 'error': 'subcategories_to_remove cannot be empty'}
     
     # Add filter transform to exclude specified subcategories
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
     
     # Build filter expression: exclude subcategories in the removal list
     sub_ref = _datum_ref(sub_f)
@@ -802,12 +804,12 @@ def filter_subcategories(vega_spec: Dict, subcategories_to_remove: List[Any], su
         exclusion_parts.append(f"{sub_ref} != {json.dumps(sub_val, ensure_ascii=False)}")
     
     filter_expr = " && ".join(exclusion_parts) if exclusion_parts else "true"
-    new_spec['transform'].append({
+    new_state['transform'].append({
         'filter': filter_expr
     })
     
     # Update color.scale.domain if color encoding exists to maintain visual consistency
-    encoding = new_spec.get('encoding', {})
+    encoding = new_state.get('encoding', {})
     color_enc = encoding.get('color', {})
     if color_enc:
         scale_config = color_enc.get('scale', {})
@@ -815,18 +817,18 @@ def filter_subcategories(vega_spec: Dict, subcategories_to_remove: List[Any], su
             original_domain = scale_config['domain']
             if isinstance(original_domain, list):
                 filtered_domain = [d for d in original_domain if d not in subcategories_to_remove]
-                if 'encoding' not in new_spec:
-                    new_spec['encoding'] = {}
-                if 'color' not in new_spec['encoding']:
-                    new_spec['encoding']['color'] = {}
-                if 'scale' not in new_spec['encoding']['color']:
-                    new_spec['encoding']['color']['scale'] = {}
-                new_spec['encoding']['color']['scale']['domain'] = filtered_domain
+                if 'encoding' not in new_state:
+                    new_state['encoding'] = {}
+                if 'color' not in new_state['encoding']:
+                    new_state['encoding']['color'] = {}
+                if 'scale' not in new_state['encoding']['color']:
+                    new_state['encoding']['color']['scale'] = {}
+                new_state['encoding']['color']['scale']['domain'] = filtered_domain
     
     return {
         'success': True,
         'operation': 'filter_subcategories',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Filtered out {len(subcategories_to_remove)} subcategories: {subcategories_to_remove}'
     }
 
@@ -843,3 +845,8 @@ __all__ = [
     'remove_bar_items',
     'filter_subcategories',
 ]
+
+for _fn_name in __all__:
+    _fn = globals().get(_fn_name)
+    if callable(_fn):
+        globals()[_fn_name] = tool_output(_fn)

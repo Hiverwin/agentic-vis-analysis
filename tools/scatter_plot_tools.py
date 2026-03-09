@@ -8,6 +8,7 @@ import copy
 import json
 from sklearn.cluster import KMeans
 from scipy.stats import pearsonr, spearmanr
+from state_manager import DataStore, tool_output
 
 
 def _datum_ref(field: str) -> str:
@@ -19,17 +20,17 @@ def _datum_ref(field: str) -> str:
 
 
 
-def identify_clusters(vega_spec: Dict, n_clusters: int = 3, method: str = "kmeans") -> Dict[str, Any]:
+def identify_clusters(state: Dict, n_clusters: int = 3, method: str = "kmeans") -> Dict[str, Any]:
     """识别数据聚类"""
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    x_field = new_spec.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_spec.get('encoding', {}).get('y', {}).get('field')
+    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
+    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find required fields'}
     
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_data_values(new_state)
     
     points = []
     valid_indices = []
@@ -50,8 +51,8 @@ def identify_clusters(vega_spec: Dict, n_clusters: int = 3, method: str = "kmean
     for i, label in enumerate(labels):
         data[valid_indices[i]][cluster_field] = int(label)
     
-    new_spec['data']['values'] = data
-    new_spec['encoding']['color'] = {
+    new_state['data'] = {'values': data}
+    new_state['encoding']['color'] = {
         'field': cluster_field,
         'type': 'nominal',
         'scale': {'scheme': 'category10'},
@@ -70,29 +71,29 @@ def identify_clusters(vega_spec: Dict, n_clusters: int = 3, method: str = "kmean
     return {
         'success': True,
         'operation': 'identify_clusters',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'n_clusters': n_clusters,
         'cluster_statistics': cluster_stats,
         'message': f'Identified {n_clusters} clusters'
     }
 
 
-def calculate_correlation(vega_spec: Dict, method: str = "pearson") -> Dict[str, Any]:
+def calculate_correlation(state: Dict, method: str = "pearson") -> Dict[str, Any]:
     """计算相关系数
     
     如果之前使用了 select_region 或 brush_region 选中了区域，
     则只计算选中区域内的数据的相关系数。
     """
-    x_field = vega_spec.get('encoding', {}).get('x', {}).get('field')
-    y_field = vega_spec.get('encoding', {}).get('y', {}).get('field')
+    x_field = state.get('encoding', {}).get('x', {}).get('field')
+    y_field = state.get('encoding', {}).get('y', {}).get('field')
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find required fields'}
     
-    data = vega_spec.get('data', {}).get('values', [])
+    data = _get_data_values(state)
     
     # 检查是否有选中区域（来自 select_region 或 brush_region）
-    selected = vega_spec.get('_selected_region')
+    selected = state.get('_selected_region')
     region_info = ""
     if selected:
         x_min, x_max = selected['x_range']
@@ -136,30 +137,30 @@ def calculate_correlation(vega_spec: Dict, method: str = "pearson") -> Dict[str,
     }
 
 
-def zoom_dense_area(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> Dict[str, Any]:
+def zoom_dense_area(state: Dict, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> Dict[str, Any]:
     """Zooms the specified view to a particular area by filtering data and adjusting axis scales.
     
     This focuses the visualization on a specific rectangular region.
     
     Args:
-        vega_spec: The Vega-Lite specification
+        state: The Vega-Lite specification
         x_range: Tuple of (min, max) for x-axis range
         y_range: Tuple of (min, max) for y-axis range
         
     Returns:
-        Dict containing success status, filtered vega_spec, and statistics
+        Dict containing success status, filtered state, and statistics
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # Get field names
-    x_field = new_spec.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_spec.get('encoding', {}).get('y', {}).get('field')
+    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
+    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find required x or y fields'}
     
     # Get original data
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_data_values(new_state)
     if not data:
         return {'success': False, 'error': 'No data found in specification'}
     
@@ -185,23 +186,23 @@ def zoom_dense_area(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tupl
         }
     
     # Update data in spec
-    new_spec['data']['values'] = filtered_data
+    new_state['data'] = {'values': filtered_data}
     
     # Adjust axis scales to the specified range
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
     
     for axis, vals in [('x', x_range), ('y', y_range)]:
-        if axis not in new_spec['encoding']:
-            new_spec['encoding'][axis] = {}
-        if 'scale' not in new_spec['encoding'][axis]:
-            new_spec['encoding'][axis]['scale'] = {}
-        new_spec['encoding'][axis]['scale']['domain'] = [vals[0], vals[1]]
+        if axis not in new_state['encoding']:
+            new_state['encoding'][axis] = {}
+        if 'scale' not in new_state['encoding'][axis]:
+            new_state['encoding'][axis]['scale'] = {}
+        new_state['encoding'][axis]['scale']['domain'] = [vals[0], vals[1]]
     
     return {
         'success': True,
         'operation': 'zoom_dense_area',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'original_count': original_count,
         'filtered_count': filtered_count,
         'zoom_range': {
@@ -212,21 +213,21 @@ def zoom_dense_area(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tupl
     }
 
 
-def filter_categorical(vega_spec: Dict, categories_to_remove: List[str], field: str = None) -> Dict[str, Any]:
+def filter_categorical(state: Dict, categories_to_remove: List[str], field: str = None) -> Dict[str, Any]:
     """
     过滤掉指定类别的数据点
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         categories_to_remove: 要移除的类别列表
         field: 分类字段名（可选，自动探测 color 字段）
     """
     import json
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 自动探测分类字段
     if field is None:
-        encoding = new_spec.get('encoding', {})
+        encoding = new_state.get('encoding', {})
         color_enc = encoding.get('color', {})
         field = color_enc.get('field')
         
@@ -242,39 +243,39 @@ def filter_categorical(vega_spec: Dict, categories_to_remove: List[str], field: 
         }
     
     # 添加 filter transform
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
     
     categories_json = json.dumps(categories_to_remove)
-    new_spec['transform'].append({
+    new_state['transform'].append({
         'filter': f'indexof({categories_json}, {_datum_ref(field)}) < 0'
     })
     
     return {
         'success': True,
         'operation': 'filter_categorical',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Filtered out categories: {categories_to_remove} from field {field}'
     }
 
 
-def select_region(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> Dict[str, Any]:
+def select_region(state: Dict, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> Dict[str, Any]:
     """
     选中指定区域内的点，区域内高亮、区域外变淡。
     
     后续调用 calculate_correlation 将只计算选中区域内的数据。
     
     Args:
-        vega_spec: Vega-Lite 规范
+        state: Vega-Lite 规范
         x_range: X 轴范围 (min, max)
         y_range: Y 轴范围 (min, max)
     """
-    new_spec = copy.deepcopy(vega_spec)
-    x_field = new_spec.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_spec.get('encoding', {}).get('y', {}).get('field')
+    new_state = copy.deepcopy(state)
+    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
+    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find required fields'}
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_data_values(new_state)
     selected_count = sum(
         1 for row in data
         if row.get(x_field) is not None and row.get(y_field) is not None
@@ -282,7 +283,7 @@ def select_region(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tuple[
         and y_range[0] <= row[y_field] <= y_range[1]
     )
     xr, yr = _datum_ref(x_field), _datum_ref(y_field)
-    new_spec['encoding']['opacity'] = {
+    new_state['encoding']['opacity'] = {
         'condition': {
             'test': f'{xr} >= {x_range[0]} && {xr} <= {x_range[1]} && {yr} >= {y_range[0]} && {yr} <= {y_range[1]}',
             'value': 1.0
@@ -290,7 +291,7 @@ def select_region(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tuple[
         'value': 0.2
     }
     # 保存选中区域元数据，供后续 calculate_correlation 使用
-    new_spec['_selected_region'] = {
+    new_state['_selected_region'] = {
         'x_range': list(x_range),
         'y_range': list(y_range),
         'x_field': x_field,
@@ -299,33 +300,33 @@ def select_region(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tuple[
     return {
         'success': True,
         'operation': 'select_region',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'selected_count': selected_count,
         'message': f'Selected {selected_count} points'
     }
 
 
-def brush_region(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> Dict[str, Any]:
+def brush_region(state: Dict, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> Dict[str, Any]:
     """
     刷选特定区域，区域外数据点变淡
     
     后续调用 calculate_correlation 将只计算刷选区域内的数据。
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         x_range: X轴范围 (min, max)
         y_range: Y轴范围 (min, max)
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    x_field = new_spec.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_spec.get('encoding', {}).get('y', {}).get('field')
+    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
+    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find x or y fields'}
     
     # 统计刷选区域内的数据点数量
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_data_values(new_state)
     brushed_count = sum(
         1 for row in data
         if row.get(x_field) is not None and row.get(y_field) is not None
@@ -335,7 +336,7 @@ def brush_region(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tuple[f
     
     # 通过 opacity 条件编码实现刷选效果（支持含空格的字段名）
     xr, yr = _datum_ref(x_field), _datum_ref(y_field)
-    new_spec['encoding']['opacity'] = {
+    new_state['encoding']['opacity'] = {
         'condition': {
             'test': f'{xr} >= {x_range[0]} && {xr} <= {x_range[1]} && {yr} >= {y_range[0]} && {yr} <= {y_range[1]}',
             'value': 1.0
@@ -344,7 +345,7 @@ def brush_region(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tuple[f
     }
     
     # 保存刷选区域元数据，供后续 calculate_correlation 使用
-    new_spec['_selected_region'] = {
+    new_state['_selected_region'] = {
         'x_range': list(x_range),
         'y_range': list(y_range),
         'x_field': x_field,
@@ -354,25 +355,25 @@ def brush_region(vega_spec: Dict, x_range: Tuple[float, float], y_range: Tuple[f
     return {
         'success': True,
         'operation': 'brush_region',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'brushed_count': brushed_count,
         'message': f'Brushed region x:[{x_range[0]}, {x_range[1]}], y:[{y_range[0]}, {y_range[1]}] ({brushed_count} points)'
     }
 
 
-def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]:
+def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
     """
     Modify the field mapping of the specified encoding channel
     
     Args:
-        vega_spec: Vega spec
+        state: Vega spec
         channel: encoding channel ("x", "y", "color", "size", "shape")
         field: new field name
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 检查字段是否存在
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_data_values(new_state)
     if data and field not in data[0]:
         available_fields = list(data[0].keys()) if data else []
         return {
@@ -391,59 +392,59 @@ def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]
                 field_type = 'temporal'
     
     # 更新指定通道的 encoding
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
     
-    new_spec['encoding'][channel] = {
+    new_state['encoding'][channel] = {
         'field': field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_spec['encoding'][channel]['legend'] = {'title': field}
+        new_state['encoding'][channel]['legend'] = {'title': field}
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'scheme': 'viridis'}
+            new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'range': [50, 500]}
+            new_state['encoding'][channel]['scale'] = {'range': [50, 500]}
     
     return {
         'success': True,
         'operation': 'change_encoding',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
     }
 
 
-def show_regression(vega_spec: Dict, method: str = "linear") -> Dict[str, Any]:
+def show_regression(state: Dict, method: str = "linear") -> Dict[str, Any]:
     """
     叠加回归线
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         method: 回归方法 ("linear", "log", "exp", "poly", "quad")
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    x_field = new_spec.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_spec.get('encoding', {}).get('y', {}).get('field')
+    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
+    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find x or y fields'}
     
     # 如果原规范没有 layer，转换为 layer 结构
-    if 'layer' not in new_spec:
-        original_spec = copy.deepcopy(new_spec)
-        new_spec['layer'] = [{
+    if 'layer' not in new_state:
+        original_spec = copy.deepcopy(new_state)
+        new_state['layer'] = [{
             'mark': original_spec.get('mark', 'point'),
             'encoding': original_spec.get('encoding', {})
         }]
         # 移除顶层的 mark 和 encoding
-        if 'mark' in new_spec:
-            del new_spec['mark']
-        if 'encoding' in new_spec:
-            del new_spec['encoding']
+        if 'mark' in new_state:
+            del new_state['mark']
+        if 'encoding' in new_state:
+            del new_state['encoding']
     
     # 添加回归线图层
     regression_transform = {
@@ -463,7 +464,7 @@ def show_regression(vega_spec: Dict, method: str = "linear") -> Dict[str, Any]:
     else:
         regression_transform['method'] = 'linear'
     
-    new_spec['layer'].append({
+    new_state['layer'].append({
         'mark': {
             'type': 'line',
             'color': 'red',
@@ -479,7 +480,7 @@ def show_regression(vega_spec: Dict, method: str = "linear") -> Dict[str, Any]:
     return {
         'success': True,
         'operation': 'show_regression',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Added {method} regression line'
     }
 
@@ -505,6 +506,14 @@ def _infer_field_type(data: List[Dict], field: str) -> str:
     return 'nominal'
 
 
+def _get_data_values(spec: Dict) -> List[Dict[str, Any]]:
+    data_obj = spec.get("data")
+    if isinstance(data_obj, dict) and isinstance(data_obj.get("values"), list):
+        return data_obj["values"]
+    values = DataStore.get_values()
+    return values if isinstance(values, list) else []
+
+
 __all__ = [
     'identify_clusters',
     'calculate_correlation',
@@ -514,3 +523,8 @@ __all__ = [
     'change_encoding',
     'show_regression',
 ]
+
+for _fn_name in __all__:
+    _fn = globals().get(_fn_name)
+    if callable(_fn):
+        globals()[_fn_name] = tool_output(_fn)

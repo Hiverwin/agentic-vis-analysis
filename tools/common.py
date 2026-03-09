@@ -1,5 +1,5 @@
 """
-通用工具库（简化版 - 直接使用 vega_spec，无需 view_id）
+通用工具库（简化版 - 直接使用 state，无需 view_id）
 包含感知类API和行动类API，适用于所有图表类型
 """
 
@@ -9,6 +9,7 @@ import hashlib
 from typing import Dict, List, Any, Tuple, Optional
 import numpy as np
 from datetime import datetime
+from state_manager import DataStore, tool_output
 
 
 def _datum_ref(field: str) -> str:
@@ -21,12 +22,12 @@ def _datum_ref(field: str) -> str:
 
 # ==================== 感知类 API (Perception APIs) ====================
 
-def _get_primary_encoding(vega_spec: Dict[str, Any]) -> Dict[str, Any]:
+def _get_primary_encoding(state: Dict[str, Any]) -> Dict[str, Any]:
     """Prefer layer[0].encoding when present (common for line/scatter)."""
-    if isinstance(vega_spec.get('layer'), list) and len(vega_spec['layer']) > 0:
-        enc = vega_spec['layer'][0].get('encoding', {})
+    if isinstance(state.get('layer'), list) and len(state['layer']) > 0:
+        enc = state['layer'][0].get('encoding', {})
         return enc if isinstance(enc, dict) else {}
-    enc = vega_spec.get('encoding', {})
+    enc = state.get('encoding', {})
     return enc if isinstance(enc, dict) else {}
 
 
@@ -51,9 +52,9 @@ def _coerce_comparable(v: Any) -> Any:
     return v
 
 
-def _apply_selected_region(data: List[Dict[str, Any]], vega_spec: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _apply_selected_region(data: List[Dict[str, Any]], state: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Apply _selected_region (from scatter tools) if present."""
-    region = vega_spec.get('_selected_region')
+    region = state.get('_selected_region')
     if not isinstance(region, dict):
         return data
     x_field = region.get('x_field')
@@ -85,52 +86,52 @@ def _apply_selected_region(data: List[Dict[str, Any]], vega_spec: Dict[str, Any]
     return out
 
 
-def get_view_spec(vega_spec: Dict) -> Dict[str, Any]:
+def get_view_spec(state: Dict) -> Dict[str, Any]:
     """
     返回当前视图的结构化状态信息
     
     Args:
-        vega_spec: Vega-Lite/Vega 规范
+        state: Vega-Lite/Vega 规范
         
     Returns:
         视图状态的结构化描述
     """
     # 计算 spec hash
-    spec_str = json.dumps(vega_spec, sort_keys=True, default=str)
+    spec_str = json.dumps(state, sort_keys=True, default=str)
     spec_hash = hashlib.sha256(spec_str.encode()).hexdigest()[:16]
     
     # 检测图表类型
-    chart_type = _detect_chart_type(vega_spec)
+    chart_type = _detect_chart_type(state)
     
     # 提取数据信息
-    data = _get_spec_data(vega_spec)
+    data = _get_spec_data(state)
     data_count = len(data) if data else 0
     
     # 提取 encoding（支持 layer）
-    encoding = _get_primary_encoding(vega_spec)
+    encoding = _get_primary_encoding(state)
     
     # 提取 mark
-    mark = vega_spec.get('mark', {})
+    mark = state.get('mark', {})
     if isinstance(mark, str):
         mark = {'type': mark}
     
     # 提取可见域（从 scale 或 encoding 中，支持 layer）
-    visible_domain = _extract_visible_domain(vega_spec, data)
+    visible_domain = _extract_visible_domain(state, data)
     
     # 提取 transforms
-    transforms = vega_spec.get('transform', [])
+    transforms = state.get('transform', [])
     # 过滤掉内部标记的 transform
     transforms = [t for t in transforms if not t.get('_avs_tag')]
     
     # 提取 selections（从我们的内部状态中）
-    selections = vega_spec.get('_avs_selections', [])
+    selections = state.get('_avs_selections', [])
     
     return {
         'success': True,
         'spec_hash': f'sha256:{spec_hash}',
         'payload': {
             'chart_type': chart_type,
-            'title': vega_spec.get('title', ''),
+            'title': state.get('title', ''),
             'data_count': data_count,
             'mark': mark,
             'encoding': _simplify_encoding(encoding),
@@ -141,12 +142,12 @@ def get_view_spec(vega_spec: Dict) -> Dict[str, Any]:
     }
 
 
-def get_data(vega_spec: Dict, scope: str = 'all') -> Dict[str, Any]:
+def get_data(state: Dict, scope: str = 'all') -> Dict[str, Any]:
     """
     返回原始数据
     
     Args:
-        vega_spec: Vega-Lite/Vega 规范
+        state: Vega-Lite/Vega 规范
         scope: 数据范围
             - 'all': 全部原始数据
             - 'filter': 经过 transform filter 后的数据
@@ -156,7 +157,7 @@ def get_data(vega_spec: Dict, scope: str = 'all') -> Dict[str, Any]:
     Returns:
         数据列表
     """
-    data = _get_spec_data(vega_spec)
+    data = _get_spec_data(state)
     
     if not data:
         return {
@@ -167,7 +168,7 @@ def get_data(vega_spec: Dict, scope: str = 'all') -> Dict[str, Any]:
     total_count = len(data)
     fields = list(data[0].keys()) if data else []
     
-    transforms = vega_spec.get('transform', [])
+    transforms = state.get('transform', [])
 
     if scope == 'all':
         result_data = data
@@ -178,18 +179,18 @@ def get_data(vega_spec: Dict, scope: str = 'all') -> Dict[str, Any]:
     elif scope == 'visible':
         # visible = filter transforms + scale.domain + selection region (if any)
         result_data = _apply_filters(data, transforms)
-        result_data = _filter_by_domain(result_data, vega_spec)
-        result_data = _apply_selected_region(result_data, vega_spec)
-        selections = vega_spec.get('_avs_selections', [])
+        result_data = _filter_by_domain(result_data, state)
+        result_data = _apply_selected_region(result_data, state)
+        selections = state.get('_avs_selections', [])
         if selections:
             result_data = _apply_selections(result_data, selections)
 
     elif scope == 'selected':
         # Prefer _selected_region; fallback to _avs_selections.
         result_data = _apply_filters(data, transforms)
-        result_data = _apply_selected_region(result_data, vega_spec)
+        result_data = _apply_selected_region(result_data, state)
         if result_data == data:
-            selections = vega_spec.get('_avs_selections', [])
+            selections = state.get('_avs_selections', [])
             result_data = _apply_selections(result_data, selections) if selections else []
     else:
         return {
@@ -207,19 +208,19 @@ def get_data(vega_spec: Dict, scope: str = 'all') -> Dict[str, Any]:
     }
 
 
-def get_data_summary(vega_spec: Dict, scope: str = 'all') -> Dict[str, Any]:
+def get_data_summary(state: Dict, scope: str = 'all') -> Dict[str, Any]:
     """
     返回数据的统计摘要
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         scope: 'visible' 或 'all' - 返回可见数据或全部数据的统计
         
     Returns:
         统计摘要字典
     """
     # 与 get_data 使用同一套 scope 语义
-    data_result = get_data(vega_spec, scope=scope if scope else 'all')
+    data_result = get_data(state, scope=scope if scope else 'all')
     if not data_result.get('success'):
         return {'success': False, 'error': data_result.get('error', 'No data available')}
     data = data_result.get('data', [])
@@ -267,13 +268,13 @@ def get_data_summary(vega_spec: Dict, scope: str = 'all') -> Dict[str, Any]:
     }
 
 
-def get_tooltip_data(vega_spec: Dict, position: Tuple[float, float]) -> Dict[str, Any]:
+def get_tooltip_data(state: Dict, position: Tuple[float, float]) -> Dict[str, Any]:
     """获取指定位置的工具提示数据"""
-    data = vega_spec.get('data', {}).get('values', [])
+    data = _get_spec_data(state)
     
     x_pos, y_pos = position
-    x_field = _get_encoding_field(vega_spec, 'x')
-    y_field = _get_encoding_field(vega_spec, 'y')
+    x_field = _get_encoding_field(state, 'x')
+    y_field = _get_encoding_field(state, 'y')
     
     if not x_field or not y_field:
         return {'success': False, 'message': 'Cannot find x/y fields'}
@@ -296,19 +297,20 @@ def get_tooltip_data(vega_spec: Dict, position: Tuple[float, float]) -> Dict[str
     
     return {'success': False, 'message': 'No data point found'}
 
-def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]:
+def change_encoding(state: Dict, channel: str, field: str, type: Optional[str] = None) -> Dict[str, Any]:
     """
     Modify the field mapping of the specified encoding channel
-    
+
     Args:
-        vega_spec: Vega spec
+        state: Vega spec
         channel: encoding channel ("x", "y", "color", "size", "shape")
         field: new field name
+        type: optional Vega-Lite type ("quantitative", "nominal", "ordinal", "temporal"); inferred from data if omitted
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 检查字段是否存在
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_spec_data(new_state)
     if data and field not in data[0]:
         available_fields = list(data[0].keys()) if data else []
         return {
@@ -316,92 +318,108 @@ def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]
             'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
         }
     
-    # 推断字段类型
-    field_type = 'nominal'
-    if data:
-        sample_value = data[0].get(field)
-        if isinstance(sample_value, (int, float)):
-            field_type = 'quantitative'
-        elif isinstance(sample_value, str):
-            if any(sep in sample_value for sep in ['-', '/', ':']):
-                field_type = 'temporal'
+    # 使用传入的 type，或推断字段类型
+    valid_types = ('quantitative', 'nominal', 'ordinal', 'temporal')
+    if type and type in valid_types:
+        field_type = type
+    else:
+        field_type = 'nominal'
+        if data:
+            sample_value = data[0].get(field)
+            if isinstance(sample_value, (int, float)):
+                field_type = 'quantitative'
+            elif isinstance(sample_value, str):
+                if any(sep in sample_value for sep in ['-', '/', ':']):
+                    field_type = 'temporal'
     
     # 更新指定通道的 encoding
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
     
-    new_spec['encoding'][channel] = {
+    new_state['encoding'][channel] = {
         'field': field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_spec['encoding'][channel]['legend'] = {'title': field}
+        new_state['encoding'][channel]['legend'] = {'title': field}
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'scheme': 'viridis'}
+            new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'range': [50, 500]}
+            new_state['encoding'][channel]['scale'] = {'range': [50, 500]}
     
     return {
         'success': True,
         'operation': 'change_encoding',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
     }
 
 # ==================== 行动类 API (Action APIs) ====================
 
-def reset_view(vega_spec: Dict, original_spec: Optional[Dict] = None) -> Dict[str, Any]:
+def reset_view(
+    state: Dict,
+    original_spec: Optional[Dict] = None,
+    context: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """
     Reset view to original state.
     
-    Reads original_spec from vega_spec._original_spec metadata field.
+    Reads original_spec from state._original_spec metadata field.
     If original_spec parameter is provided (for backward compatibility), it takes precedence.
     
     Args:
-        vega_spec: Current view's vega_spec (contains metadata)
-        original_spec: Original view's vega_spec (optional, for backward compatibility)
+        state: Current view's state (contains metadata)
+        original_spec: Original view's state (optional, for backward compatibility)
         
     Returns:
-        Reset vega_spec
+        Reset state
     """
-    # Try parameter first (backward compatibility), then metadata
+    # Try parameter first (backward compatibility), then metadata, then context.
     if original_spec is None:
-        original_spec = vega_spec.get('_original_spec')
+        original_spec = state.get('_original_spec')
+    if original_spec is None and isinstance(context, dict):
+        original_spec = context.get('original_spec')
     
     if original_spec is None:
         return {
             'success': False,
-            'error': 'original_spec not found in vega_spec metadata'
+            'error': 'original_spec not found in state metadata or context'
         }
 
     return {
         'success': True,
         'operation': 'reset_view',
-        'vega_spec': copy.deepcopy(original_spec),
+        'vega_state': copy.deepcopy(original_spec),
         'message': '视图已重置到原始状态'
     }
 
 
-def undo_view(vega_spec: Dict, spec_history: Optional[List[Dict]] = None) -> Dict[str, Any]:
+def undo_view(
+    state: Dict,
+    spec_history: Optional[List[Dict]] = None,
+    context: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """
-    Undo previous view, return previous version of vega_spec.
+    Undo previous view, return previous version of state.
     
-    Reads spec_history from vega_spec._spec_history metadata field.
+    Reads spec_history from state._spec_history metadata field.
     If spec_history parameter is provided (for backward compatibility), it takes precedence.
     
     Args:
-        vega_spec: Current view's vega_spec (contains metadata)
+        state: Current view's state (contains metadata)
         spec_history: View history list (optional, for backward compatibility; will be modified using pop)
     """
-    # Try parameter first (backward compatibility), then metadata
+    # Try parameter first (backward compatibility), then metadata, then context.
     if spec_history is None:
-        spec_history = vega_spec.get('_spec_history')
+        spec_history = state.get('_spec_history')
+    if spec_history is None and isinstance(context, dict):
+        spec_history = context.get('spec_history')
     
     if spec_history is None:
-        return {'success': False, 'error': 'spec_history not found in vega_spec metadata'}
+        return {'success': False, 'error': 'spec_history not found in state metadata or context'}
 
     if not isinstance(spec_history, list):
         return {'success': False, 'error': 'spec_history must be a list'}
@@ -413,19 +431,19 @@ def undo_view(vega_spec: Dict, spec_history: Optional[List[Dict]] = None) -> Dic
     return {
         'success': True,
         'operation': 'undo_view',
-        'vega_spec': copy.deepcopy(prev_spec),
+        'vega_state': copy.deepcopy(prev_spec),
         'message': '已回到上一步视图'
     }
 
 
-def render_chart(vega_spec: Dict) -> Dict[str, Any]:
+def render_chart(state: Dict) -> Dict[str, Any]:
     """渲染图表"""
     from core.vega_service import get_vega_service
     from core.utils import app_logger
     
     try:
         vega_service = get_vega_service()
-        render_result = vega_service.render(vega_spec)
+        render_result = vega_service.render(state)
         
         if render_result.get("success"):
             return {
@@ -447,14 +465,14 @@ def render_chart(vega_spec: Dict) -> Dict[str, Any]:
 
 # ==================== 辅助函数 ====================
 
-def _get_encoding_field(vega_spec: Dict, channel: str) -> Optional[str]:
+def _get_encoding_field(state: Dict, channel: str) -> Optional[str]:
     """获取编码字段"""
-    return vega_spec.get('encoding', {}).get(channel, {}).get('field')
+    return state.get('encoding', {}).get(channel, {}).get('field')
 
 
-def _get_primary_category_field(vega_spec: Dict) -> str:
+def _get_primary_category_field(state: Dict) -> str:
     """获取主分类字段"""
-    encoding = vega_spec.get('encoding', {})
+    encoding = state.get('encoding', {})
     for channel in ['color', 'x', 'y']:
         if channel in encoding:
             field = encoding[channel].get('field')
@@ -464,9 +482,9 @@ def _get_primary_category_field(vega_spec: Dict) -> str:
     return 'category'
 
 
-def _infer_field_type(vega_spec: Dict, field_name: str) -> str:
+def _infer_field_type(state: Dict, field_name: str) -> str:
     """推断字段类型"""
-    data = vega_spec.get('data', {}).get('values', [])
+    data = _get_spec_data(state)
     if not data:
         return 'nominal'
     
@@ -482,12 +500,10 @@ def _infer_field_type(vega_spec: Dict, field_name: str) -> str:
     return 'nominal'
 
 
-def _get_spec_data(vega_spec: Dict) -> List[Dict]:
-    """获取 spec 中的数据 兼容 Vega-Lite 和 Vega支持顶层 "spec" 包装。"""
-    if isinstance(vega_spec.get("spec"), dict):
-        vega_spec = vega_spec["spec"]
+def _get_spec_data(state: Dict) -> List[Dict]:
+    """获取 spec 中的数据（兼容 Vega-Lite 和 Vega）"""
     # Vega-Lite 格式: data.values
-    data_obj = vega_spec.get('data', {})
+    data_obj = state.get('data', {})
     if isinstance(data_obj, dict) and 'values' in data_obj:
         return data_obj['values']
     
@@ -498,16 +514,25 @@ def _get_spec_data(vega_spec: Dict) -> List[Dict]:
             if isinstance(d, dict) and 'values' in d:
                 return d['values']
     
+    # Fallback to state-context data provider
+    store_data = DataStore.get()
+    if isinstance(store_data, dict) and isinstance(store_data.get("values"), list):
+        return store_data["values"]
+    if isinstance(store_data, list):
+        for d in store_data:
+            if isinstance(d, dict) and isinstance(d.get("values"), list):
+                return d["values"]
+
     return []
 
 
-def _detect_chart_type(vega_spec: Dict) -> str:
+def _detect_chart_type(state: Dict) -> str:
     """检测图表类型"""
     # 检查是否是 Vega（非 Vega-Lite）
-    schema = vega_spec.get('$schema', '')
+    schema = state.get('$schema', '')
     if 'vega.github.io/schema/vega/' in schema and 'vega-lite' not in schema:
         # 尝试从 marks 推断
-        marks = vega_spec.get('marks', [])
+        marks = state.get('marks', [])
         for mark in marks:
             mark_type = mark.get('type', '')
             if mark_type == 'rect' and 'group' in str(marks):
@@ -515,13 +540,13 @@ def _detect_chart_type(vega_spec: Dict) -> str:
         return 'vega_custom'
     
     # Vega-Lite: 从 mark 推断
-    mark = vega_spec.get('mark', {})
+    mark = state.get('mark', {})
     if isinstance(mark, str):
         mark_type = mark
     else:
         mark_type = mark.get('type', '')
     
-    encoding = vega_spec.get('encoding', {})
+    encoding = state.get('encoding', {})
     
     if mark_type == 'bar':
         return 'bar_chart'
@@ -559,10 +584,10 @@ def _simplify_encoding(encoding: Dict) -> Dict:
     return simplified
 
 
-def _extract_visible_domain(vega_spec: Dict, data: List[Dict]) -> Dict:
+def _extract_visible_domain(state: Dict, data: List[Dict]) -> Dict:
     """提取可见数据域"""
     domain = {}
-    encoding = _get_primary_encoding(vega_spec)
+    encoding = _get_primary_encoding(state)
     
     for channel in ['x', 'y']:
         if channel in encoding:
@@ -626,9 +651,9 @@ def _eval_filter_expr(data: List[Dict], expr: str) -> List[Dict]:
     return result
 
 
-def _filter_by_domain(data: List[Dict], vega_spec: Dict) -> List[Dict]:
+def _filter_by_domain(data: List[Dict], state: Dict) -> List[Dict]:
     """根据可见域过滤数据"""
-    encoding = _get_primary_encoding(vega_spec)
+    encoding = _get_primary_encoding(state)
     result = data
     
     for channel in ['x', 'y']:
@@ -712,3 +737,8 @@ __all__ = [
     'undo_view',
     'render_chart',
 ]
+
+for _fn_name in __all__:
+    _fn = globals().get(_fn_name)
+    if callable(_fn):
+        globals()[_fn_name] = tool_output(_fn)

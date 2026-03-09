@@ -1,10 +1,11 @@
 """
-折线图专用工具（简化版 - 使用 vega_spec）
+折线图专用工具（简化版 - 使用 state）
 """
 
 from typing import List, Dict, Any, Tuple, Optional
 import copy
 import json
+from state_manager import DataStore, tool_output
 
 
 def _datum_ref(field: str) -> str:
@@ -15,13 +16,13 @@ def _datum_ref(field: str) -> str:
     return f"datum['{s}']"
 
 
-def _get_time_field(vega_spec: Dict) -> Optional[str]:
+def _get_time_field(state: Dict) -> Optional[str]:
     """获取时间字段（支持 layer 结构）"""
     # 检查是否有 layer 结构
-    if 'layer' in vega_spec and len(vega_spec['layer']) > 0:
-        encoding = vega_spec['layer'][0].get('encoding', {})
+    if 'layer' in state and len(state['layer']) > 0:
+        encoding = state['layer'][0].get('encoding', {})
     else:
-        encoding = vega_spec.get('encoding', {})
+        encoding = state.get('encoding', {})
     
     # 时间字段通常在 x 轴，但也可能在 y 轴
     x_encoding = encoding.get('x', {})
@@ -36,12 +37,20 @@ def _get_time_field(vega_spec: Dict) -> Optional[str]:
     return x_encoding.get('field') or y_encoding.get('field')
 
 
-def zoom_time_range(vega_spec: Dict, start: str, end: str) -> Dict[str, Any]:
+def _get_data_values(spec: Dict) -> List[Dict[str, Any]]:
+    data_obj = spec.get("data")
+    if isinstance(data_obj, dict) and isinstance(data_obj.get("values"), list):
+        return data_obj["values"]
+    values = DataStore.get_values()
+    return values if isinstance(values, list) else []
+
+
+def zoom_time_range(state: Dict, start: str, end: str) -> Dict[str, Any]:
     """缩放时间范围 - 放大视图到特定时间段（不删除数据）"""
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 获取时间字段名（支持 layer 结构）
-    time_field = _get_time_field(new_spec)
+    time_field = _get_time_field(new_state)
     
     if not time_field:
         return {
@@ -50,65 +59,65 @@ def zoom_time_range(vega_spec: Dict, start: str, end: str) -> Dict[str, Any]:
         }
     
     # 确定时间字段在哪个轴上
-    if 'layer' in new_spec and len(new_spec['layer']) > 0:
-        encoding = new_spec['layer'][0].get('encoding', {})
+    if 'layer' in new_state and len(new_state['layer']) > 0:
+        encoding = new_state['layer'][0].get('encoding', {})
     else:
-        encoding = new_spec.get('encoding', {})
+        encoding = new_state.get('encoding', {})
     
     x_field = encoding.get('x', {}).get('field')
     time_axis = 'x' if x_field == time_field else 'y'
     
     # 直接使用VLM提供的日期格式，不做任何转换
     # VLM应该根据提示词观察原始数据格式并返回一致的格式
-    if 'layer' in new_spec and len(new_spec['layer']) > 0:
-        layer_encoding = new_spec['layer'][0].get('encoding', {})
+    if 'layer' in new_state and len(new_state['layer']) > 0:
+        layer_encoding = new_state['layer'][0].get('encoding', {})
         if time_axis not in layer_encoding:
             layer_encoding[time_axis] = {}
         if 'scale' not in layer_encoding[time_axis]:
             layer_encoding[time_axis]['scale'] = {}
         layer_encoding[time_axis]['scale']['domain'] = [start, end]
     else:
-        if 'encoding' not in new_spec:
-            new_spec['encoding'] = {}
-        if time_axis not in new_spec['encoding']:
-            new_spec['encoding'][time_axis] = {}
-        if 'scale' not in new_spec['encoding'][time_axis]:
-            new_spec['encoding'][time_axis]['scale'] = {}
-        new_spec['encoding'][time_axis]['scale']['domain'] = [start, end]
+        if 'encoding' not in new_state:
+            new_state['encoding'] = {}
+        if time_axis not in new_state['encoding']:
+            new_state['encoding'][time_axis] = {}
+        if 'scale' not in new_state['encoding'][time_axis]:
+            new_state['encoding'][time_axis]['scale'] = {}
+        new_state['encoding'][time_axis]['scale']['domain'] = [start, end]
     
     # 确保 mark 有 clip: true，裁剪超出范围的点
-    if 'layer' in new_spec:
-        for layer in new_spec['layer']:
+    if 'layer' in new_state:
+        for layer in new_state['layer']:
             if 'mark' in layer:
                 if isinstance(layer['mark'], dict):
                     layer['mark']['clip'] = True
                 else:
                     layer['mark'] = {'type': layer['mark'], 'clip': True}
     else:
-        if 'mark' in new_spec:
-            if isinstance(new_spec['mark'], dict):
-                new_spec['mark']['clip'] = True
+        if 'mark' in new_state:
+            if isinstance(new_state['mark'], dict):
+                new_state['mark']['clip'] = True
             else:
-                new_spec['mark'] = {'type': new_spec['mark'], 'clip': True}
+                new_state['mark'] = {'type': new_state['mark'], 'clip': True}
     
     return {
         'success': True,
         'operation': 'zoom_time_range',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Zoomed to time range: {start} to {end}',
         'details': [f'View zoomed to show time range between {start} and {end}']
     }
 
 
-def highlight_trend(vega_spec: Dict, trend_type: str = "increasing") -> Dict[str, Any]:
+def highlight_trend(state: Dict, trend_type: str = "increasing") -> Dict[str, Any]:
     """高亮趋势 - 添加回归趋势线"""
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 获取 x 和 y 字段
-    if 'layer' in new_spec and len(new_spec['layer']) > 0:
-        encoding = new_spec['layer'][0].get('encoding', {})
+    if 'layer' in new_state and len(new_state['layer']) > 0:
+        encoding = new_state['layer'][0].get('encoding', {})
     else:
-        encoding = new_spec.get('encoding', {})
+        encoding = new_state.get('encoding', {})
     
     y_field = encoding.get('y', {}).get('field')
     x_field = encoding.get('x', {}).get('field')
@@ -120,21 +129,21 @@ def highlight_trend(vega_spec: Dict, trend_type: str = "increasing") -> Dict[str
         }
     
     # 如果原规范没有 layer，转换为 layer 结构
-    if 'layer' not in new_spec:
-        original_layer = copy.deepcopy(new_spec)
+    if 'layer' not in new_state:
+        original_layer = copy.deepcopy(new_state)
         # 移除顶层的 mark 和 encoding，因为它们现在在 layer 中
         for key in ['mark', 'encoding']:
             if key in original_layer:
                 del original_layer[key]
         
-        new_spec = original_layer
-        new_spec['layer'] = [{
-            'mark': vega_spec.get('mark', 'line'),
-            'encoding': vega_spec.get('encoding', {})
+        new_state = original_layer
+        new_state['layer'] = [{
+            'mark': state.get('mark', 'line'),
+            'encoding': state.get('encoding', {})
         }]
     
     # 添加趋势线图层
-    new_spec['layer'].append({
+    new_state['layer'].append({
         'mark': {
             'type': 'line',
             'color': 'red',
@@ -154,24 +163,24 @@ def highlight_trend(vega_spec: Dict, trend_type: str = "increasing") -> Dict[str
     return {
         'success': True,
         'operation': 'highlight_trend',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Added {trend_type} regression trend line',
         'details': [f'Trend line shows overall {trend_type} pattern']
     }
 
 
 
-def detect_anomalies(vega_spec: Dict, threshold: float = 2.0) -> Dict[str, Any]:
+def detect_anomalies(state: Dict, threshold: float = 2.0) -> Dict[str, Any]:
     """检测异常点 - 检测并在视图中高亮标记异常数据点"""
     import numpy as np
     
-    data = vega_spec.get('data', {}).get('values', [])
+    data = _get_data_values(state)
     
     # 获取字段（支持 layer 结构）
-    if 'layer' in vega_spec and len(vega_spec['layer']) > 0:
-        encoding = vega_spec['layer'][0].get('encoding', {})
+    if 'layer' in state and len(state['layer']) > 0:
+        encoding = state['layer'][0].get('encoding', {})
     else:
-        encoding = vega_spec.get('encoding', {})
+        encoding = state.get('encoding', {})
     
     y_field = encoding.get('y', {}).get('field')
     x_field = encoding.get('x', {}).get('field')
@@ -195,25 +204,25 @@ def detect_anomalies(vega_spec: Dict, threshold: float = 2.0) -> Dict[str, Any]:
         if val is not None and abs(val - mean) > threshold * std:
             anomaly_data.append(row)
     
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 如果检测到异常点，在视图中标记
     if anomaly_data:
         # 转换为 layer 结构
-        if 'layer' not in new_spec:
-            original_layer = copy.deepcopy(new_spec)
+        if 'layer' not in new_state:
+            original_layer = copy.deepcopy(new_state)
             for key in ['mark', 'encoding']:
                 if key in original_layer:
                     del original_layer[key]
             
-            new_spec = original_layer
-            new_spec['layer'] = [{
-                'mark': vega_spec.get('mark', 'line'),
-                'encoding': vega_spec.get('encoding', {})
+            new_state = original_layer
+            new_state['layer'] = [{
+                'mark': state.get('mark', 'line'),
+                'encoding': state.get('encoding', {})
             }]
         
         # 添加异常点标记图层
-        new_spec['layer'].append({
+        new_state['layer'].append({
             'data': {'values': anomaly_data},
             'mark': {
                 'type': 'point',
@@ -234,7 +243,7 @@ def detect_anomalies(vega_spec: Dict, threshold: float = 2.0) -> Dict[str, Any]:
     return {
         'success': True,
         'operation': 'detect_anomalies',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'anomaly_count': len(anomaly_data),
         'anomalies': anomaly_data[:10],
         'message': f'Detected and highlighted {len(anomaly_data)} anomalies (threshold={threshold} std)',
@@ -246,24 +255,24 @@ def detect_anomalies(vega_spec: Dict, threshold: float = 2.0) -> Dict[str, Any]:
     }
 
 
-def bold_lines(vega_spec: Dict, line_names: List[str], line_field: str = None) -> Dict[str, Any]:
+def bold_lines(state: Dict, line_names: List[str], line_field: str = None) -> Dict[str, Any]:
     """
     加粗指定的折线
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         line_names: 要加粗的折线名称列表
         line_field: 折线分组字段名（可选，自动探测 color/detail 字段）
     """
     import json
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 自动探测分组字段（优先 color，其次 detail）
     if line_field is None:
-        if 'layer' in new_spec and len(new_spec['layer']) > 0:
-            encoding = new_spec['layer'][0].get('encoding', {})
+        if 'layer' in new_state and len(new_state['layer']) > 0:
+            encoding = new_state['layer'][0].get('encoding', {})
         else:
-            encoding = new_spec.get('encoding', {})
+            encoding = new_state.get('encoding', {})
         
         color_enc = encoding.get('color', {})
         line_field = color_enc.get('field')
@@ -290,44 +299,44 @@ def bold_lines(vega_spec: Dict, line_names: List[str], line_field: str = None) -
     }
     
     # 应用到 spec
-    if 'layer' in new_spec:
-        for layer in new_spec['layer']:
+    if 'layer' in new_state:
+        for layer in new_state['layer']:
             mark = layer.get('mark', {})
             if (isinstance(mark, dict) and mark.get('type') == 'line') or mark == 'line':
                 if 'encoding' not in layer:
                     layer['encoding'] = {}
                 layer['encoding']['strokeWidth'] = stroke_width_encoding
     else:
-        if 'encoding' not in new_spec:
-            new_spec['encoding'] = {}
-        new_spec['encoding']['strokeWidth'] = stroke_width_encoding
+        if 'encoding' not in new_state:
+            new_state['encoding'] = {}
+        new_state['encoding']['strokeWidth'] = stroke_width_encoding
     
     return {
         'success': True,
         'operation': 'bold_lines',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Bolded lines: {line_names}'
     }
 
 
-def filter_lines(vega_spec: Dict, lines_to_remove: List[str], line_field: str = None) -> Dict[str, Any]:
+def filter_lines(state: Dict, lines_to_remove: List[str], line_field: str = None) -> Dict[str, Any]:
     """
     过滤掉指定的折线
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         lines_to_remove: 要移除的折线名称列表
         line_field: 折线分组字段名（可选，自动探测 color/detail 字段）
     """
     import json
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 自动探测分组字段（优先 color，其次 detail）
     if line_field is None:
-        if 'layer' in new_spec and len(new_spec['layer']) > 0:
-            encoding = new_spec['layer'][0].get('encoding', {})
+        if 'layer' in new_state and len(new_state['layer']) > 0:
+            encoding = new_state['layer'][0].get('encoding', {})
         else:
-            encoding = new_spec.get('encoding', {})
+            encoding = new_state.get('encoding', {})
         
         color_enc = encoding.get('color', {})
         line_field = color_enc.get('field')
@@ -343,37 +352,37 @@ def filter_lines(vega_spec: Dict, lines_to_remove: List[str], line_field: str = 
         }
     
     # 添加 filter transform 排除指定系列
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
     
     lines_json = json.dumps(lines_to_remove)
-    new_spec['transform'].append({
+    new_state['transform'].append({
         'filter': f'indexof({lines_json}, {_datum_ref(line_field)}) < 0'
     })
     
     return {
         'success': True,
         'operation': 'filter_lines',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Filtered out lines: {lines_to_remove}'
     }
 
 
-def show_moving_average(vega_spec: Dict, window_size: int = 3) -> Dict[str, Any]:
+def show_moving_average(state: Dict, window_size: int = 3) -> Dict[str, Any]:
     """
     叠加移动平均线
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         window_size: 移动平均窗口大小
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 获取字段
-    if 'layer' in new_spec and len(new_spec['layer']) > 0:
-        encoding = new_spec['layer'][0].get('encoding', {})
+    if 'layer' in new_state and len(new_state['layer']) > 0:
+        encoding = new_state['layer'][0].get('encoding', {})
     else:
-        encoding = new_spec.get('encoding', {})
+        encoding = new_state.get('encoding', {})
     
     y_field = encoding.get('y', {}).get('field')
     x_field = encoding.get('x', {}).get('field')
@@ -385,16 +394,16 @@ def show_moving_average(vega_spec: Dict, window_size: int = 3) -> Dict[str, Any]
         }
     
     # 如果原规范没有 layer，转换为 layer 结构
-    if 'layer' not in new_spec:
-        original_layer = copy.deepcopy(new_spec)
+    if 'layer' not in new_state:
+        original_layer = copy.deepcopy(new_state)
         for key in ['mark', 'encoding']:
             if key in original_layer:
                 del original_layer[key]
         
-        new_spec = original_layer
-        new_spec['layer'] = [{
-            'mark': vega_spec.get('mark', 'line'),
-            'encoding': vega_spec.get('encoding', {})
+        new_state = original_layer
+        new_state['layer'] = [{
+            'mark': state.get('mark', 'line'),
+            'encoding': state.get('encoding', {})
         }]
     
     # 检测是否有分组字段（多条线的情况）
@@ -432,7 +441,7 @@ def show_moving_average(vega_spec: Dict, window_size: int = 3) -> Dict[str, Any]
     elif detail_field and isinstance(encoding.get('detail'), dict):
         ma_encoding['detail'] = copy.deepcopy(encoding.get('detail'))
     
-    new_spec['layer'].append({
+    new_state['layer'].append({
         'mark': {
             'type': 'line',
             'color': 'orange',
@@ -446,13 +455,13 @@ def show_moving_average(vega_spec: Dict, window_size: int = 3) -> Dict[str, Any]
     return {
         'success': True,
         'operation': 'show_moving_average',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Added {window_size}-period moving average line'
     }
 
 
 def focus_lines(
-    vega_spec: Dict,
+    state: Dict,
     lines: List[str],
     line_field: Optional[str] = None,
     mode: str = "dim",
@@ -462,7 +471,7 @@ def focus_lines(
     认知交互必要性：聚焦少数系列，其余变暗或隐藏。
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         lines: 需要聚焦的折线名称列表
         line_field: 折线分组字段名（可选，自动探测 color.field 或 detail.field）
         mode: 'dim'（其余变暗）
@@ -470,17 +479,17 @@ def focus_lines(
     """
     import json
 
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
 
     if not isinstance(lines, list) or not lines:
         return {'success': False, 'error': 'lines must be a non-empty list'}
 
     # 自动探测分组字段（优先 color，其次 detail）
     if line_field is None:
-        if 'layer' in new_spec and len(new_spec['layer']) > 0:
-            encoding = new_spec['layer'][0].get('encoding', {})
+        if 'layer' in new_state and len(new_state['layer']) > 0:
+            encoding = new_state['layer'][0].get('encoding', {})
         else:
-            encoding = new_spec.get('encoding', {})
+            encoding = new_state.get('encoding', {})
 
         line_field = (encoding.get('color', {}) or {}).get('field')
         if not line_field:
@@ -493,9 +502,9 @@ def focus_lines(
 
     ref = _datum_ref(line_field)
     if mode == "hide":
-        if 'transform' not in new_spec:
-            new_spec['transform'] = []
-        new_spec['transform'].append({
+        if 'transform' not in new_state:
+            new_state['transform'] = []
+        new_state['transform'].append({
             'filter': f'indexof({lines_json}, {ref}) >= 0',
             '_avs_tag': 'focus_lines'
         })
@@ -508,28 +517,28 @@ def focus_lines(
             'value': float(dim_opacity)
         }
 
-        if 'layer' in new_spec:
-            for layer in new_spec.get('layer', []):
+        if 'layer' in new_state:
+            for layer in new_state.get('layer', []):
                 mark = layer.get('mark', {})
                 if (isinstance(mark, dict) and mark.get('type') == 'line') or mark == 'line':
                     if 'encoding' not in layer:
                         layer['encoding'] = {}
                     layer['encoding']['opacity'] = opacity_encoding
         else:
-            if 'encoding' not in new_spec:
-                new_spec['encoding'] = {}
-            new_spec['encoding']['opacity'] = opacity_encoding
+            if 'encoding' not in new_state:
+                new_state['encoding'] = {}
+            new_state['encoding']['opacity'] = opacity_encoding
 
     return {
         'success': True,
         'operation': 'focus_lines',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Focused on lines: {lines} (mode={mode})'
     }
 
 
 def drilldown_line_time(
-    vega_spec: Dict,
+    state: Dict,
     level: str,
     value: int,
     parent: Optional[Dict[str, Any]] = None,
@@ -545,7 +554,7 @@ def drilldown_line_time(
     - 下钻到月份：显示该月的日度数据
     
     Args:
-        vega_spec: Vega-Lite 规范
+        state: Vega-Lite 规范
         level: 'year' | 'month' | 'date'
         value: 对应 level 的数值
                - year: 4位年份如 2023
@@ -556,18 +565,18 @@ def drilldown_line_time(
     Returns:
         下钻后的视图规格
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 初始化或获取下钻状态
-    state = new_spec.get('_line_drilldown_state')
+    state = new_state.get('_line_drilldown_state')
     if not isinstance(state, dict):
         state = {}
     
     # 首次下钻时保存原始 transform 和 encoding，以及检测字段名
     if 'original_transform' not in state:
-        state['original_transform'] = copy.deepcopy(new_spec.get('transform', []))
-        state['original_encoding'] = copy.deepcopy(new_spec.get('encoding', {}))
-        state['original_title'] = new_spec.get('title', '')
+        state['original_transform'] = copy.deepcopy(new_state.get('transform', []))
+        state['original_encoding'] = copy.deepcopy(new_state.get('encoding', {}))
+        state['original_title'] = new_state.get('title', '')
         
         # 动态检测原始时间字段
         # 优先从 transform 中的 timeUnit 获取原始字段
@@ -586,7 +595,7 @@ def drilldown_line_time(
                 # year_date, month_date 等 -> 可能原始字段是 date
                 possible_raw = raw_time_field.split('_')[-1]
                 # 检查数据中是否有这个字段
-                data = new_spec.get('data', {}).get('values', [])
+                data = _get_data_values(new_state)
                 if data and possible_raw in data[0]:
                     raw_time_field = possible_raw
         
@@ -609,7 +618,7 @@ def drilldown_line_time(
             # 如果是聚合后的字段（如 total_sales），尝试从数据中找原始字段
             if y_field.startswith('total_') or y_field.startswith('sum_'):
                 possible_raw = y_field.replace('total_', '').replace('sum_', '')
-                data = new_spec.get('data', {}).get('values', [])
+                data = _get_data_values(new_state)
                 if data and possible_raw in data[0]:
                     raw_value_field = possible_raw
             else:
@@ -683,7 +692,7 @@ def drilldown_line_time(
         title_suffix = f'{value}年月度趋势'
         
         # 更新 encoding
-        new_spec['encoding'] = {
+        new_state['encoding'] = {
             'x': {
                 'field': 'month_date',
                 'type': 'temporal',
@@ -738,7 +747,7 @@ def drilldown_line_time(
         title_suffix = f'{year_val}年{value}月日度趋势'
         
         # 更新 encoding
-        new_spec['encoding'] = {
+        new_state['encoding'] = {
             'x': {
                 'field': 'day_date',
                 'type': 'temporal',
@@ -761,93 +770,93 @@ def drilldown_line_time(
         return {'success': False, 'error': f'无效的 level: {level}，应为 year/month/date'}
     
     # 应用新的 transform（替换原有的聚合 transform）
-    new_spec['transform'] = new_transforms
+    new_state['transform'] = new_transforms
     
     # 更新标题
-    new_spec['title'] = title_suffix
+    new_state['title'] = title_suffix
     
     # 保留 tooltip
     if 'tooltip' in state['original_encoding']:
         # 简化 tooltip
         tooltip_list = [
-            {'field': new_spec['encoding']['x']['field'], 'type': 'temporal', 'title': '时间'},
+            {'field': new_state['encoding']['x']['field'], 'type': 'temporal', 'title': '时间'},
         ]
         if group_field:
             tooltip_list.append({'field': group_field, 'type': 'nominal', 'title': group_field})
         tooltip_list.append({'field': 'total_value', 'type': 'quantitative', 'title': raw_value_field, 'format': ',.0f'})
-        new_spec['encoding']['tooltip'] = tooltip_list
+        new_state['encoding']['tooltip'] = tooltip_list
     
     # 保存状态
-    new_spec['_line_drilldown_state'] = state
+    new_state['_line_drilldown_state'] = state
     
     return {
         'success': True,
         'operation': 'drilldown_line_time',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'下钻到 {title_suffix}',
         'current_level': level,
         'parent': state.get('parent', {})
     }
 
 
-def reset_line_drilldown(vega_spec: Dict) -> Dict[str, Any]:
+def reset_line_drilldown(state: Dict) -> Dict[str, Any]:
     """
     重置折线图时间下钻，恢复到初始年度视图。
     
     Args:
-        vega_spec: Vega-Lite 规范
+        state: Vega-Lite 规范
     
     Returns:
         恢复后的视图规格
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 获取下钻状态
-    state = new_spec.get('_line_drilldown_state')
+    state = new_state.get('_line_drilldown_state')
     if not isinstance(state, dict):
         return {
             'success': True,
             'operation': 'reset_line_drilldown',
-            'vega_spec': new_spec,
+            'vega_state': new_state,
             'message': '未进行过下钻，无需重置'
         }
     
     # 恢复原始 transform
     original_transform = state.get('original_transform')
     if original_transform is not None:
-        new_spec['transform'] = copy.deepcopy(original_transform)
+        new_state['transform'] = copy.deepcopy(original_transform)
     else:
         # 如果没有保存原始 transform，移除下钻相关的 transform
-        if 'transform' in new_spec:
-            new_spec['transform'] = [
-                t for t in new_spec['transform']
+        if 'transform' in new_state:
+            new_state['transform'] = [
+                t for t in new_state['transform']
                 if not (isinstance(t, dict) and t.get('_avs_tag') == 'line_drilldown_time')
             ]
     
     # 恢复原始 encoding
     original_encoding = state.get('original_encoding')
     if original_encoding:
-        new_spec['encoding'] = copy.deepcopy(original_encoding)
+        new_state['encoding'] = copy.deepcopy(original_encoding)
     
     # 恢复原始标题
     original_title = state.get('original_title')
     if original_title:
-        new_spec['title'] = original_title
+        new_state['title'] = original_title
     
     # 清除状态
-    if '_line_drilldown_state' in new_spec:
-        del new_spec['_line_drilldown_state']
+    if '_line_drilldown_state' in new_state:
+        del new_state['_line_drilldown_state']
     
     return {
         'success': True,
         'operation': 'reset_line_drilldown',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': '已重置到初始年度视图'
     }
 
 
 def resample_time(
-    vega_spec: Dict,
+    state: Dict,
     granularity: str,
     agg: str = "mean",
 ) -> Dict[str, Any]:
@@ -859,14 +868,14 @@ def resample_time(
     - 反之，年度数据需要下钻到月/日查看细节
     
     Args:
-        vega_spec: Vega-Lite 规范
+        state: Vega-Lite 规范
         granularity: 目标时间粒度 ("day" | "week" | "month" | "quarter" | "year")
         agg: 聚合方式 ("mean" | "sum" | "max" | "min" | "median")，默认 mean
     
     Returns:
         重采样后的规格
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 支持的粒度映射到 Vega-Lite timeUnit
     GRANULARITY_MAP = {
@@ -896,25 +905,25 @@ def resample_time(
         }
     
     # 获取时间字段
-    time_field = _get_time_field(new_spec)
+    time_field = _get_time_field(new_state)
     if not time_field:
         return {'success': False, 'error': 'Cannot find temporal field in encoding'}
     
     # 保存原始状态以便恢复
-    state = new_spec.get('_resample_state')
+    state = new_state.get('_resample_state')
     if not isinstance(state, dict):
         state = {}
     if 'original_encoding' not in state:
-        if 'layer' in new_spec and len(new_spec['layer']) > 0:
-            state['original_encoding'] = copy.deepcopy(new_spec['layer'][0].get('encoding', {}))
+        if 'layer' in new_state and len(new_state['layer']) > 0:
+            state['original_encoding'] = copy.deepcopy(new_state['layer'][0].get('encoding', {}))
         else:
-            state['original_encoding'] = copy.deepcopy(new_spec.get('encoding', {}))
+            state['original_encoding'] = copy.deepcopy(new_state.get('encoding', {}))
     
     # 确定时间轴和值轴
-    if 'layer' in new_spec and len(new_spec['layer']) > 0:
-        encoding = new_spec['layer'][0].get('encoding', {})
+    if 'layer' in new_state and len(new_state['layer']) > 0:
+        encoding = new_state['layer'][0].get('encoding', {})
     else:
-        encoding = new_spec.get('encoding', {})
+        encoding = new_state.get('encoding', {})
     
     x_enc = encoding.get('x', {})
     y_enc = encoding.get('y', {})
@@ -939,74 +948,74 @@ def resample_time(
             if value_field:
                 enc[value_axis]['aggregate'] = agg_lower
     
-    if 'layer' in new_spec:
-        for layer in new_spec['layer']:
+    if 'layer' in new_state:
+        for layer in new_state['layer']:
             if 'encoding' in layer:
                 _update_encoding(layer['encoding'])
     else:
-        if 'encoding' not in new_spec:
-            new_spec['encoding'] = {}
-        _update_encoding(new_spec['encoding'])
+        if 'encoding' not in new_state:
+            new_state['encoding'] = {}
+        _update_encoding(new_state['encoding'])
     
     # 保存状态
     state['current_granularity'] = granularity_lower
     state['current_agg'] = agg_lower
-    new_spec['_resample_state'] = state
+    new_state['_resample_state'] = state
     
     return {
         'success': True,
         'operation': 'resample_time',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Resampled time to {granularity} with {agg} aggregation'
     }
 
 
-def reset_resample(vega_spec: Dict) -> Dict[str, Any]:
+def reset_resample(state: Dict) -> Dict[str, Any]:
     """
     重置时间重采样，恢复到原始粒度。
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    state = new_spec.get('_resample_state')
+    state = new_state.get('_resample_state')
     if not isinstance(state, dict):
         return {
             'success': True,
             'operation': 'reset_resample',
-            'vega_spec': new_spec,
+            'vega_state': new_state,
             'message': 'No resample state to reset'
         }
     
     original_encoding = state.get('original_encoding')
     if original_encoding:
-        if 'layer' in new_spec and len(new_spec['layer']) > 0:
-            new_spec['layer'][0]['encoding'] = copy.deepcopy(original_encoding)
+        if 'layer' in new_state and len(new_state['layer']) > 0:
+            new_state['layer'][0]['encoding'] = copy.deepcopy(original_encoding)
         else:
-            new_spec['encoding'] = copy.deepcopy(original_encoding)
+            new_state['encoding'] = copy.deepcopy(original_encoding)
     
-    if '_resample_state' in new_spec:
-        del new_spec['_resample_state']
+    if '_resample_state' in new_state:
+        del new_state['_resample_state']
     
     return {
         'success': True,
         'operation': 'reset_resample',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': 'Reset to original time granularity'
     }
 
 
-def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]:
+def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
     """
     Modify the field mapping of the specified encoding channel
     
     Args:
-        vega_spec: Vega spec
+        state: Vega spec
         channel: encoding channel ("x", "y", "color", "size", "shape")
         field: new field name
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 检查字段是否存在
-    data = new_spec.get('data', {}).get('values', [])
+    data = _get_data_values(new_state)
     if data and field not in data[0]:
         available_fields = list(data[0].keys()) if data else []
         return {
@@ -1025,27 +1034,27 @@ def change_encoding(vega_spec: Dict, channel: str, field: str) -> Dict[str, Any]
                 field_type = 'temporal'
     
     # 更新指定通道的 encoding
-    if 'encoding' not in new_spec:
-        new_spec['encoding'] = {}
+    if 'encoding' not in new_state:
+        new_state['encoding'] = {}
     
-    new_spec['encoding'][channel] = {
+    new_state['encoding'][channel] = {
         'field': field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_spec['encoding'][channel]['legend'] = {'title': field}
+        new_state['encoding'][channel]['legend'] = {'title': field}
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'scheme': 'viridis'}
+            new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
         if field_type == 'quantitative':
-            new_spec['encoding'][channel]['scale'] = {'range': [50, 500]}
+            new_state['encoding'][channel]['scale'] = {'range': [50, 500]}
     
     return {
         'success': True,
         'operation': 'change_encoding',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
     }
 
@@ -1064,3 +1073,8 @@ __all__ = [
     'reset_resample',
     'change_encoding',
 ]
+
+for _fn_name in __all__:
+    _fn = globals().get(_fn_name)
+    if callable(_fn):
+        globals()[_fn_name] = tool_output(_fn)

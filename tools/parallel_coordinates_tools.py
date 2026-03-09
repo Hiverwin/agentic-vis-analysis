@@ -1,21 +1,22 @@
 """
-平行坐标图专用工具（简化版 - 使用 vega_spec）
+平行坐标图专用工具（简化版 - 使用 state）
 """
 
 from typing import Dict, Any, List, Union
 import copy
 import json
+from state_manager import tool_output
 
 
 
-def reorder_dimensions(vega_spec: Dict, dimension_order: List[str]) -> Dict[str, Any]:
+def reorder_dimensions(state: Dict, dimension_order: List[str]) -> Dict[str, Any]:
     """重新排序维度（支持 fold 格式和预归一化长格式）"""
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     # 方法1: 基于 fold transform
     fold_transform = None
     fold_index = -1
-    transforms = new_spec.get('transform', [])
+    transforms = new_state.get('transform', [])
     for i, transform in enumerate(transforms):
         if isinstance(transform, dict) and 'fold' in transform:
             fold_transform = transform
@@ -36,7 +37,7 @@ def reorder_dimensions(vega_spec: Dict, dimension_order: List[str]) -> Dict[str,
         if extra_dims:
             return {'success': False, 'error': f'Missing dimensions in dimension_order: {extra_dims}'}
         
-        new_spec['transform'][fold_index]['fold'] = dimension_order
+        new_state['transform'][fold_index]['fold'] = dimension_order
         
         # 更新 x 轴编码的 scale.domain
         def update_x_encoding_scale(obj):
@@ -53,7 +54,7 @@ def reorder_dimensions(vega_spec: Dict, dimension_order: List[str]) -> Dict[str,
                 for item in obj:
                     update_x_encoding_scale(item)
         
-        update_x_encoding_scale(new_spec)
+        update_x_encoding_scale(new_state)
     else:
         # 方法2: 预归一化长格式（无 fold，用 x.sort 或 x.scale.domain）
         def update_x_sort(obj):
@@ -71,27 +72,27 @@ def reorder_dimensions(vega_spec: Dict, dimension_order: List[str]) -> Dict[str,
                 for item in obj:
                     update_x_sort(item)
         
-        update_x_sort(new_spec)
+        update_x_sort(new_state)
     
     return {
         'success': True,
         'operation': 'reorder_dimensions',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Reordered dimensions to {dimension_order}'
     }
 
-def filter_dimension(vega_spec: Dict, dimension: str, range: List[float]) -> Dict[str, Any]:
+def filter_dimension(state: Dict, dimension: str, range: List[float]) -> Dict[str, Any]:
     """Filter by dimension"""
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     min_val, max_val = range
     
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
     
     # find fold operation position
     fold_index = -1
-    for i, transform in enumerate(new_spec['transform']):
+    for i, transform in enumerate(new_state['transform']):
         if isinstance(transform, dict) and 'fold' in transform:
             fold_index = i
             break
@@ -101,44 +102,44 @@ def filter_dimension(vega_spec: Dict, dimension: str, range: List[float]) -> Dic
     
     if fold_index >= 0:
         # insert filter before fold (using wide format)
-        new_spec['transform'].insert(fold_index, {
+        new_state['transform'].insert(fold_index, {
             'filter': filter_expr
         })
     else:
         # if no fold, insert at beginning of transform array
-        new_spec['transform'].insert(0, {
+        new_state['transform'].insert(0, {
             'filter': filter_expr
     })
     
     return {
         'success': True,
         'operation': 'filter_dimension',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Filtered {dimension} to [{min_val}, {max_val}]'
     }
 
 
 
-def filter_by_category(vega_spec: Dict, field: str, values: Union[str, List[str]]) -> Dict[str, Any]:
+def filter_by_category(state: Dict, field: str, values: Union[str, List[str]]) -> Dict[str, Any]:
     """
     按分类字段筛选（在 fold 之前，使用宽格式）
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         field: 分类字段名（如 "Species", "product", "region"）
         values: 要保留的值列表
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     if not isinstance(values, list):
         values = [values]
     
-    if 'transform' not in new_spec:
-        new_spec['transform'] = []
+    if 'transform' not in new_state:
+        new_state['transform'] = []
     
     # 找到 fold 操作的位置
     fold_index = -1
-    for i, transform in enumerate(new_spec['transform']):
+    for i, transform in enumerate(new_state['transform']):
         if isinstance(transform, dict) and 'fold' in transform:
             fold_index = i
             break
@@ -149,43 +150,43 @@ def filter_by_category(vega_spec: Dict, field: str, values: Union[str, List[str]
     
     if fold_index >= 0:
         # 在 fold 之前插入 filter（使用宽格式）
-        new_spec['transform'].insert(fold_index, {
+        new_state['transform'].insert(fold_index, {
             'filter': filter_expr
         })
     else:
         # 如果没有 fold，在 transform 数组开头插入
-        new_spec['transform'].insert(0, {
+        new_state['transform'].insert(0, {
             'filter': filter_expr
         })
     
     return {
         'success': True,
         'operation': 'filter_by_category',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Filtered {field} to: {values}'
     }
 
 
 
-def highlight_category(vega_spec: Dict, field: str, values: Union[str, List[str]]) -> Dict[str, Any]:
+def highlight_category(state: Dict, field: str, values: Union[str, List[str]]) -> Dict[str, Any]:
     """
     高亮指定类别，其他变暗
     
     Args:
-        vega_spec: Vega-Lite规范
+        state: Vega-Lite规范
         field: 分类字段名（如 "Species", "product", "region"）
         values: 要高亮的值列表
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     if not isinstance(values, list):
         values = [values]
     
     # 检测是否有 layer 结构
-    if 'layer' in new_spec and isinstance(new_spec['layer'], list):
+    if 'layer' in new_state and isinstance(new_state['layer'], list):
         # 找到包含 mark: "line" 的 layer
         line_layer_index = -1
-        for i, layer in enumerate(new_spec['layer']):
+        for i, layer in enumerate(new_state['layer']):
             if isinstance(layer, dict):
                 mark = layer.get('mark')
                 if (isinstance(mark, dict) and mark.get('type') == 'line') or mark == 'line':
@@ -194,7 +195,7 @@ def highlight_category(vega_spec: Dict, field: str, values: Union[str, List[str]
         
         if line_layer_index >= 0:
             # 在该 layer 的 encoding 中添加或更新 opacity
-            layer = new_spec['layer'][line_layer_index]
+            layer = new_state['layer'][line_layer_index]
             if 'encoding' not in layer:
                 layer['encoding'] = {}
             
@@ -210,15 +211,15 @@ def highlight_category(vega_spec: Dict, field: str, values: Union[str, List[str]
         else:
             return {
                 'success': False,
-                'error': 'No line layer found in vega_spec'
+                'error': 'No line layer found in state'
             }
     else:
         # 如果没有 layer，在顶层 encoding 中添加（向后兼容）
-        if 'encoding' not in new_spec:
-            new_spec['encoding'] = {}
+        if 'encoding' not in new_state:
+            new_state['encoding'] = {}
         
         values_json = json.dumps(values)
-        new_spec['encoding']['opacity'] = {
+        new_state['encoding']['opacity'] = {
             'condition': {
                 'test': f"indexof({values_json}, datum['{field}']) >= 0",
                 'value': 1.0
@@ -229,13 +230,13 @@ def highlight_category(vega_spec: Dict, field: str, values: Union[str, List[str]
     return {
         'success': True,
         'operation': 'highlight_category',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Highlighted {field}: {values}'
     }
 
 
 def hide_dimensions(
-    vega_spec: Dict,
+    state: Dict,
     dimensions: List[str],
     mode: str = "hide",
 ) -> Dict[str, Any]:
@@ -247,14 +248,14 @@ def hide_dimensions(
     - 可以按需恢复（show 模式）
     
     Args:
-        vega_spec: Vega-Lite 规范
+        state: Vega-Lite 规范
         dimensions: 要隐藏或显示的维度名称列表
         mode: "hide"（隐藏）或 "show"（显示），默认 hide
     
     Returns:
         修改后的规格
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
     mode_lower = str(mode).lower().strip()
     if mode_lower not in ("hide", "show"):
@@ -270,14 +271,14 @@ def hide_dimensions(
         }
     
     # 初始化或获取隐藏状态
-    state = new_spec.get('_pc_hidden_state')
+    state = new_state.get('_pc_hidden_state')
     if not isinstance(state, dict):
         state = {'hidden': [], 'all_dimensions': None}
     
     hidden_set = set(state.get('hidden', []))
     
     # 查找 transform 中的 fold 操作
-    transforms = new_spec.get('transform', [])
+    transforms = new_state.get('transform', [])
     fold_index = -1
     fold_transform = None
     
@@ -388,10 +389,10 @@ def hide_dimensions(
 
     if fold_index < 0 or fold_transform is None:
         # 长表结构：无 fold，基于 dimension 字段过滤
-        dim_field = _find_dimension_field(new_spec)
+        dim_field = _find_dimension_field(new_state)
         if not dim_field:
-            dim_field = _pick_dimension_field_from_data(new_spec)
-        all_dims = _find_all_dimensions(new_spec, dim_field) if dim_field else []
+            dim_field = _pick_dimension_field_from_data(new_state)
+        all_dims = _find_all_dimensions(new_state, dim_field) if dim_field else []
         if not dim_field or not all_dims:
             return {
                 'success': False,
@@ -427,76 +428,76 @@ def hide_dimensions(
     if fold_index >= 0 and fold_transform is not None:
         # 更新 fold transform
         fold_transform['fold'] = visible_dims
-        new_spec['transform'][fold_index] = fold_transform
+        new_state['transform'][fold_index] = fold_transform
     else:
         # 无 fold：更新 transform 过滤
-        if 'transform' not in new_spec:
-            new_spec['transform'] = []
+        if 'transform' not in new_state:
+            new_state['transform'] = []
         visible_json = json.dumps(visible_dims)
         ff = dim_field.replace("\\", "\\\\").replace("'", "\\'")
         filter_expr = f"indexof({visible_json}, datum['{ff}']) >= 0"
         updated = False
-        for t in new_spec['transform']:
+        for t in new_state['transform']:
             if isinstance(t, dict) and t.get('_pc_hide_dimensions'):
                 t['filter'] = filter_expr
                 updated = True
                 break
         if not updated:
-            new_spec['transform'].insert(0, {
+            new_state['transform'].insert(0, {
                 'filter': filter_expr,
                 '_pc_hide_dimensions': True
             })
-        _update_x_encodings(new_spec, dim_field, visible_dims)
-        _filter_layer_dimension_values(new_spec, dim_field, visible_dims)
+        _update_x_encodings(new_state, dim_field, visible_dims)
+        _filter_layer_dimension_values(new_state, dim_field, visible_dims)
     
     # 保存状态
     state['hidden'] = list(hidden_set)
-    new_spec['_pc_hidden_state'] = state
+    new_state['_pc_hidden_state'] = state
     
     action = "Hidden" if mode_lower == "hide" else "Shown"
     return {
         'success': True,
         'operation': 'hide_dimensions',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'hidden_dimensions': list(hidden_set),
         'visible_dimensions': visible_dims,
         'message': f'{action} dimensions: {dimensions}. Currently hidden: {list(hidden_set)}'
     }
 
 
-def reset_hidden_dimensions(vega_spec: Dict) -> Dict[str, Any]:
+def reset_hidden_dimensions(state: Dict) -> Dict[str, Any]:
     """
     重置所有隐藏的维度，恢复到全部可见状态。
     """
-    new_spec = copy.deepcopy(vega_spec)
+    new_state = copy.deepcopy(state)
     
-    state = new_spec.get('_pc_hidden_state')
+    state = new_state.get('_pc_hidden_state')
     if not isinstance(state, dict) or state.get('all_dimensions') is None:
         return {
             'success': True,
             'operation': 'reset_hidden_dimensions',
-            'vega_spec': new_spec,
+            'vega_state': new_state,
             'message': 'No hidden dimensions to reset'
         }
     
     all_dims = state['all_dimensions']
     
     # 查找 fold transform
-    transforms = new_spec.get('transform', [])
+    transforms = new_state.get('transform', [])
     for i, t in enumerate(transforms):
         if isinstance(t, dict) and 'fold' in t:
             t['fold'] = list(all_dims)
-            new_spec['transform'][i] = t
+            new_state['transform'][i] = t
             break
     
     # 清除状态
-    if '_pc_hidden_state' in new_spec:
-        del new_spec['_pc_hidden_state']
+    if '_pc_hidden_state' in new_state:
+        del new_state['_pc_hidden_state']
     
     return {
         'success': True,
         'operation': 'reset_hidden_dimensions',
-        'vega_spec': new_spec,
+        'vega_state': new_state,
         'message': f'Reset to show all {len(all_dims)} dimensions'
     }
 
@@ -509,3 +510,8 @@ __all__ = [
     'hide_dimensions',
     'reset_hidden_dimensions',
 ]
+
+for _fn_name in __all__:
+    _fn = globals().get(_fn_name)
+    if callable(_fn):
+        globals()[_fn_name] = tool_output(_fn)
