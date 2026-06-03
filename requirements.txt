@@ -1,0 +1,54 @@
+# Core Dependencies
+python-dotenv==1.0.0
+kaggle==1.6.0
+numpy==1.24.3
+scipy==1.10.1
+
+# Machine Learning & Data Analysis
+scikit-learn==1.3.0
+pandas==2.0.3
+
+# VLM API Clients
+openai>=1.0.0            # OpenRouter / OpenAI compatible client
+requests==2.31.0         # HTTP请求
+# dashscope==1.14.0      # 可选：如果需要兼容旧 DashScope 流程
+
+# Optional: 其他VLM客户端（按需安装）
+# openai>=1.0.0          # OpenAI GPT-4V
+# anthropic>=0.18.0      # Anthropic Claude
+# google-generativeai    # Google Gemini
+
+# Visualization & Chart Rendering
+altair==5.0.1            # Vega-Lite规范
+vega==4.0.0              # Vega渲染
+vl-convert-python>=1.0.0 # Python渲染（推荐，无需Node.js）
+
+# Image Processing
+Pillow==10.0.0
+
+# Utilities
+pydantic==2.3.0          # 数据验证
+
+# Testing (Optional)
+pytest==7.4.0
+pytest-cov==4.1.0
+
+# Evaluation (Optional - for semantic matching)
+bert-score>=0.3.13  # BERTScore for semantic answer matching
+# Note: bert-score requires torch and transformers
+
+# Code Quality (Optional, for development)
+# black==23.7.0
+# flake8==6.1.0
+# mypy==1.5.1
+
+# 安装说明：
+# 1. 基础安装：pip install -r requirements.txt
+# 2. 如需其他VLM支持，取消相应行的注释
+# 3. 如需图表渲染：
+#    - Python方式（推荐）：已包含 vl-convert-python
+#    - Node.js方式：npm install -g vega vega-lite vega-cli canvas
+streamlit>=1.28.0
+
+
+#Test push --Zixin 20260211 try2

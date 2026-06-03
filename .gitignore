@@ -1,0 +1,92 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+.venv*/
+venv*/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+**/.DS_Store
+
+# Environment Variables
+.env
+
+# Logs
+logs/
+*.log
+benchmark/results/
+benchmark/logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Database
+*.db
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS
+Thumbs.db
+
+#experiment results
+results/
+uploads/
+vis_demo.db
+frontend/dist/
+**/node_modules/
+**/__pycache__/
+packages/agent_widget_ui/dist/
+external_va_demo/frontend_next/.next/
+examples/artifacts/
+docs/*_latest.json
+docs/*.csv
+docs/*_summary_*.md
+docs/*_report_*.md
+
+#original data
+data/   
