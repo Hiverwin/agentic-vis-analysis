@@ -32,21 +32,24 @@ function formatAgentParams(params) {
 }
 
 function summarizeObserveStage(observe) {
-  const widgetCount = Array.isArray(observe?.observation?.widgets) ? observe.observation.widgets.length : 0
-  const focusedWidgetRef = observe?.observation?.focusedWidgetRef || observe?.loopContext?.view?.shared?.focusedWidget || null
-  if (!widgetCount && !focusedWidgetRef) return 'No observe payload'
-  return `${widgetCount || 0} widgets observed${focusedWidgetRef ? ` · focus ${focusedWidgetRef}` : ''}`
+  if (!observe || typeof observe !== 'object') return 'No observe payload'
+  const parts = [
+    observe?.focusWidgetRef ? `focus ${observe.focusWidgetRef}` : null,
+    observe?.state?.summary || null,
+    observe?.view?.summary || null,
+  ].filter(Boolean)
+  return parts.join(' · ') || 'Observe payload recorded.'
 }
 
 function summarizePlanStage(plan) {
-  const op = plan?.operation || null
-  if (!op) return 'No plan payload'
-  return `${op.kind || 'unknown'} · ${op.name || op.query?.kind || 'unnamed'}`
+  const step = plan?.step || null
+  if (!step) return 'No plan payload'
+  return `${step.kind || 'unknown'} · ${step.name || step.query?.kind || 'unnamed'}`
 }
 
 function summarizeReasonStage(reason) {
   if (!reason || typeof reason !== 'object') return 'No reason payload'
-  return reason.verificationSummary || reason.resultSummary || reason.answer || 'Reason recorded.'
+  return reason.answer || 'Reason recorded.'
 }
 
 export function AgentPanel() {
@@ -171,14 +174,14 @@ export function AgentPanel() {
             <div className="agent-step-header">
               <div>
                 <p className="eyebrow">Last Agent Step</p>
-                <h4>{agentLastStep?.traceStep?.summary || agentLastStep?.operation?.name || 'Agent update'}</h4>
+                <h4>{agentLastStep?.traceStep?.summary || agentLastStep?.act?.name || 'Agent update'}</h4>
               </div>
               <span className={`status-pill ${agentError ? 'error' : 'idle'}`}>
-                {agentLastStep?.operation?.kind || 'result'}
+                {agentLastStep?.act?.kind || 'result'}
               </span>
             </div>
             <div className="agent-token-row">
-              <span className="filter-chip active">{agentLastStep?.operation?.queryScope?.widgetRef || 'workspace scope'}</span>
+              <span className="filter-chip active">{agentLastStep?.act?.queryScope?.widgetRef || 'workspace scope'}</span>
               {agentLastStep?.traceStep?.verificationSummary ? (
                 <span className="filter-chip">verified</span>
               ) : null}
@@ -190,10 +193,10 @@ export function AgentPanel() {
               <p><strong>Objective</strong> {agentLastStep?.objective || 'None'}</p>
               <p><strong>Observe</strong> {summarizeObserveStage(agentLastStep?.observe)}</p>
               <p><strong>Plan</strong> {summarizePlanStage(agentLastStep?.plan)}</p>
-              <p><strong>Operation</strong> {agentLastStep?.operation?.name || 'None'}</p>
-              <p><strong>Params</strong> {formatAgentParams(agentLastStep?.operation?.params)}</p>
-              <p><strong>Runtime</strong> {summarizeStepResultPayload(agentLastStep?.result)}</p>
-              <p><strong>Verification</strong> {agentLastStep?.traceStep?.verificationSummary || summarizeStepResultPayload(agentLastStep?.verificationResult)}</p>
+              <p><strong>Act</strong> {agentLastStep?.act?.name || 'None'}</p>
+              <p><strong>Params</strong> {formatAgentParams(agentLastStep?.act?.params)}</p>
+              <p><strong>Runtime</strong> {summarizeStepResultPayload(agentLastStep?.act)}</p>
+              <p><strong>Verification</strong> {agentLastStep?.traceStep?.verificationSummary || summarizeStepResultPayload(agentLastStep?.verify)}</p>
               <p><strong>Reason</strong> {summarizeReasonStage(agentLastStep?.reason)}</p>
               <p><strong>Evidence</strong> {agentLastStep?.traceStep?.evidenceSummary || 'None recorded'}</p>
             </div>

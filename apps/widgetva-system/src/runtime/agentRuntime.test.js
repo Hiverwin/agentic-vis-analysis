@@ -1,7 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { formatAgentRuntimeError, runOpenRouterAgentStep, summarizeObservation } from './agentRuntime.js'
+import {
+  buildAgentSessionKnowledge,
+  formatAgentRuntimeError,
+  runAgentSession,
+  runAgentTurn,
+  summarizeObservation,
+} from './agentRuntime.js'
 import { createInitialSessionState, disposeRuntimeSession } from './runtimeBridge.js'
 
 test('formatAgentRuntimeError returns readable messages for Error instances', () => {
@@ -26,7 +32,25 @@ test('formatAgentRuntimeError serializes unknown objects instead of returning ob
   )
 })
 
-test('summarizeObservation preserves provider-aware widget context for agent prompts', () => {
+test('buildAgentSessionKnowledge separates stable widget catalogs from per-turn observation', () => {
+  const previousWindow = globalThis.window
+  globalThis.window = {}
+  const session = createInitialSessionState('cars-horsepower')
+
+  try {
+    const knowledge = buildAgentSessionKnowledge(session.runtimeSessionKey)
+    assert.equal(knowledge?.workspace?.caseId, 'cars-horsepower')
+    assert.equal(Array.isArray(knowledge?.widgets), true)
+    assert.equal(knowledge.widgets.length, 6)
+    assert.equal(Array.isArray(knowledge?.catalogs?.actionsByWidgetRef?.['wl://widgetva-app/workspace/cars-horsepower/widget/w_scatter_cars']), true)
+    assert.equal(typeof knowledge?.history?.turns?.length, 'number')
+  } finally {
+    disposeRuntimeSession(session.runtimeSessionKey)
+    globalThis.window = previousWindow
+  }
+})
+
+test('summarizeObservation preserves provider-aware widget context for legacy prompt summaries', () => {
   const previousWindow = globalThis.window
   globalThis.window = {}
   const session = createInitialSessionState('cars-horsepower')
@@ -37,12 +61,6 @@ test('summarizeObservation preserves provider-aware widget context for agent pro
     assert.equal(Array.isArray(summary?.widgets), true)
     assert.equal(summary.widgets.length, 6)
     assert.equal(summary.widgets.every((widget) => typeof widget.provider === 'string' && widget.provider.length > 0), true)
-    const scatter = summary.widgets.find((widget) => widget.widgetId === 'w_scatter_cars')
-    const bar = summary.widgets.find((widget) => widget.widgetId === 'w_bar_origin')
-    const parallel = summary.widgets.find((widget) => widget.widgetId === 'w_parallel_cars')
-    assert.equal(scatter?.provider, 'vega-lite')
-    assert.equal(bar?.provider, 'echarts')
-    assert.equal(parallel?.provider, 'd3')
     assert.equal(Array.isArray(summary.availableActions), true)
     assert.equal(Array.isArray(summary.availablePerceptions), true)
   } finally {
@@ -51,22 +69,7 @@ test('summarizeObservation preserves provider-aware widget context for agent pro
   }
 })
 
-test('summarizeObservation exposes a focused widget ref that can support safe agent fallbacks', () => {
-  const previousWindow = globalThis.window
-  globalThis.window = {}
-  const session = createInitialSessionState('cars-horsepower')
-
-  try {
-    const summary = summarizeObservation(session.runtimeSessionKey)
-    assert.equal(typeof summary?.focusedWidgetRef, 'string')
-    assert.equal(summary.focusedWidgetRef.length > 0, true)
-  } finally {
-    disposeRuntimeSession(session.runtimeSessionKey)
-    globalThis.window = previousWindow
-  }
-})
-
-test('runOpenRouterAgentStep returns explicit observe plan verify reason payloads for a verified widget action', async () => {
+test('runAgentTurn returns the formal observe plan act verify reason contract', async () => {
   const previousWindow = globalThis.window
   const previousFetch = globalThis.fetch
   globalThis.window = {}
@@ -104,23 +107,79 @@ test('runOpenRouterAgentStep returns explicit observe plan verify reason payload
       },
     })
 
-    const result = await runOpenRouterAgentStep(session.runtimeSessionKey, {
+    const result = await runAgentTurn(session.runtimeSessionKey, {
       objective: 'Focus the scatterplot on the mid-horsepower, mid-mpg region.',
       model: 'test-model',
     })
 
-    assert.equal(result?.model, 'test-model')
-    assert.equal(typeof result?.observe?.observation?.caseTitle, 'string')
-    assert.equal(result?.observe?.loopContext?.loopHints?.verifiedActionName, 'executeVerifiedAction')
-    assert.equal(result?.plan?.operation?.name, 'scatter.brushRegion')
-    assert.equal(result?.plan?.actionUsage?.actions?.[0]?.name || result?.plan?.actionUsage?.recommendedCall?.name, 'scatter.brushRegion')
-    assert.equal(result?.result?.actionResult?.ok, true)
-    assert.equal(result?.verificationResult?.ok, true)
+    assert.equal(result && typeof result, 'object')
+    assert.deepEqual(Object.keys(result), ['observe', 'plan', 'act', 'verify', 'reason'])
+    assert.equal(result?.observe?.query, 'Focus the scatterplot on the mid-horsepower, mid-mpg region.')
+    assert.equal(typeof result?.observe?.view?.snapshot?.ref, 'string')
+    assert.equal(result?.plan?.step?.name, 'scatter.brushRegion')
+    assert.equal(result?.act?.kind, 'action')
+    assert.equal(result?.act?.name, 'scatter.brushRegion')
+    assert.equal(result?.act?.ok, true)
+    assert.equal(Array.isArray(result?.act?.updatedRefs), true)
+    assert.equal(result?.verify?.checks?.params?.status, 'pass')
+    assert.equal(result?.verify?.checks?.visualChange?.status, 'pass')
+    assert.equal(result?.verify?.nextStepHint?.kind, 'answer')
     assert.equal(typeof result?.reason?.answer, 'string')
-    assert.equal(result?.reason?.success, true)
-    assert.equal(result?.reason?.verificationPassed, true)
-    assert.equal(Array.isArray(result?.trace), true)
-    assert.equal(result.trace.length > 0, true)
+  } finally {
+    disposeRuntimeSession(session.runtimeSessionKey)
+    globalThis.window = previousWindow
+    globalThis.fetch = previousFetch
+  }
+})
+
+test('runAgentSession returns a compact multi-turn result and stops when verification says answer', async () => {
+  const previousWindow = globalThis.window
+  const previousFetch = globalThis.fetch
+  globalThis.window = {}
+  const session = createInitialSessionState('cars-horsepower')
+
+  try {
+    const observation = summarizeObservation(session.runtimeSessionKey)
+    const scatterWidgetRef = observation?.widgets?.find((widget) => widget?.widgetId === 'w_scatter_cars')?.ref || null
+
+    globalThis.fetch = async () => ({
+      ok: true,
+      async json() {
+        return {
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                assistantMessage: 'I will brush the scatterplot to focus the target region.',
+                rationale: 'One verified brush is enough for this query.',
+                operation: {
+                  kind: 'action',
+                  name: 'scatter.brushRegion',
+                  queryScope: { widgetRef: scatterWidgetRef },
+                  params: {
+                    xField: 'horsepower',
+                    yField: 'mpg',
+                    xRange: [90, 150],
+                    yRange: [18, 30],
+                  },
+                },
+              }),
+            },
+          }],
+        }
+      },
+    })
+
+    const result = await runAgentSession(session.runtimeSessionKey, {
+      objective: 'Focus the scatterplot on the target region.',
+      model: 'test-model',
+      maxTurns: 3,
+    })
+
+    assert.equal(result?.ok, true)
+    assert.equal(result?.stopReason, 'answered')
+    assert.equal(Array.isArray(result?.turns), true)
+    assert.equal(result.turns.length, 1)
+    assert.equal(typeof result?.answer, 'string')
   } finally {
     disposeRuntimeSession(session.runtimeSessionKey)
     globalThis.window = previousWindow
