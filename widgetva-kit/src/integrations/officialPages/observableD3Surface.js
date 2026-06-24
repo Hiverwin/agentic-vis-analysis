@@ -40,6 +40,21 @@ function readBoundingBoxLike(node) {
   return { left: 0, top: 0, width: 0, height: 0 }
 }
 
+function unionRects(rects = []) {
+  const normalized = rects.filter((rect) => rect && rect.width > 0 && rect.height > 0)
+  if (normalized.length === 0) return null
+  const left = Math.min(...normalized.map((rect) => rect.left))
+  const top = Math.min(...normalized.map((rect) => rect.top))
+  const right = Math.max(...normalized.map((rect) => rect.left + rect.width))
+  const bottom = Math.max(...normalized.map((rect) => rect.top + rect.height))
+  return {
+    left,
+    top,
+    width: Math.max(right - left, 0),
+    height: Math.max(bottom - top, 0),
+  }
+}
+
 function computeArea(node) {
   const rect = readBoundingBoxLike(node)
   return rect.width * rect.height
@@ -162,6 +177,14 @@ function isPointLikePath(path) {
   return true
 }
 
+function isLineLikePath(path) {
+  if (!path) return false
+  if (isPointLikePath(path)) return false
+  const rect = readBoundingBoxLike(path)
+  if (rect.width <= 0 || rect.height <= 0) return false
+  return rect.width >= 20 || rect.height >= 20
+}
+
 function readPathCenter(path) {
   if (!isPointLikePath(path)) return null
   const rect = readBoundingBoxLike(path)
@@ -185,6 +208,117 @@ export function findObservableD3PointMarks(root = globalThis.window) {
   return paths
 }
 
+export function findObservableD3LinePaths(root = globalThis.window) {
+  const surface = findPrimaryObservableD3Surface(root)
+  if (!surface?.querySelectorAll) return []
+  return [...surface.querySelectorAll('path')].filter((path) => isLineLikePath(path))
+}
+
+function isBarLikeRect(rect) {
+  if (!rect) return false
+  if (rect.width <= 0 || rect.height <= 0) return false
+  if (rect.width < 2 && rect.height < 2) return false
+  if (rect.width > 2000 || rect.height > 2000) return false
+  return true
+}
+
+export function findObservableD3BarMarks(root = globalThis.window) {
+  const surface = findPrimaryObservableD3Surface(root)
+  if (!surface?.querySelectorAll) return []
+  return [...surface.querySelectorAll('rect')].filter((rect) => isBarLikeRect(readBoundingBoxLike(rect)))
+}
+
+function readAncestorChain(node, stopNode) {
+  const chain = []
+  let current = node
+  while (current) {
+    chain.push(current)
+    if (current === stopNode) break
+    current = current.parentNode || null
+  }
+  return chain
+}
+
+export function findObservableD3MarkContainer(root = globalThis.window) {
+  const surface = findPrimaryObservableD3Surface(root)
+  const marks = findObservableD3PointMarks(root)
+  if (!surface || marks.length === 0) return null
+
+  const firstChain = readAncestorChain(marks[0], surface)
+  if (firstChain.length === 0) return null
+
+  let deepestCommon = surface
+  for (const candidate of firstChain) {
+    const presentInAll = marks.every((mark) => readAncestorChain(mark, surface).includes(candidate))
+    if (presentInAll) {
+      deepestCommon = candidate
+      break
+    }
+  }
+
+  return deepestCommon === surface ? null : deepestCommon
+}
+
+function readLocalRectWithinSurface(surfaceRect, rect) {
+  if (!surfaceRect || !rect) return null
+  return {
+    left: rect.left - surfaceRect.left,
+    top: rect.top - surfaceRect.top,
+    width: rect.width,
+    height: rect.height,
+  }
+}
+
+export function findObservableD3PlotRegion(root = globalThis.window) {
+  const surface = findPrimaryObservableD3Surface(root)
+  if (!surface) return null
+
+  const surfaceRect = readBoundingBoxLike(surface)
+  const marks = findObservableD3PointMarks(root)
+  const markContainer = findObservableD3MarkContainer(root)
+
+  if (markContainer) {
+    const containerRect = readBoundingBoxLike(markContainer)
+    return {
+      source: 'mark-container',
+      targetTag: typeof markContainer.tagName === 'string' ? markContainer.tagName.toLowerCase() : null,
+      markCount: marks.length,
+      screenRect: containerRect,
+      localRect: readLocalRectWithinSurface(surfaceRect, containerRect),
+      surfaceRect,
+    }
+  }
+
+  if (marks.length > 0) {
+    const markRects = marks.map((mark) => readBoundingBoxLike(mark))
+    const marksUnionRect = unionRects(markRects)
+    if (marksUnionRect) {
+      return {
+        source: 'mark-bounds',
+        targetTag: 'marks-union',
+        markCount: marks.length,
+        screenRect: marksUnionRect,
+        localRect: readLocalRectWithinSurface(surfaceRect, marksUnionRect),
+        surfaceRect,
+      }
+    }
+  }
+
+  return {
+    source: 'surface',
+    targetTag: typeof surface.tagName === 'string' ? surface.tagName.toLowerCase() : null,
+    markCount: marks.length,
+    screenRect: surfaceRect,
+    localRect: {
+      left: 0,
+      top: 0,
+      width: surfaceRect.width,
+      height: surfaceRect.height,
+    },
+    surfaceRect,
+  }
+}
+
 export function readObservableD3ScatterRows(root = globalThis.window) {
   const marks = findObservableD3PointMarks(root)
   return marks
@@ -199,6 +333,142 @@ export function readObservableD3ScatterRows(root = globalThis.window) {
       }
     })
     .filter(Boolean)
+}
+
+function readTextNodes(surface) {
+  if (!surface?.querySelectorAll) return []
+  return [...surface.querySelectorAll('text')]
+    .map((node) => {
+      const text = typeof node?.textContent === 'string' ? node.textContent.trim() : ''
+      if (!text) return null
+      return {
+        node,
+        text,
+        rect: readBoundingBoxLike(node),
+      }
+    })
+    .filter(Boolean)
+}
+
+function isNumericOrDateLikeText(text) {
+  if (typeof text !== 'string' || text.length === 0) return false
+  return /^-?\d+([.,]\d+)?$/.test(text)
+    || /^\d{4}([/-]\d{1,2}([/-]\d{1,2})?)?$/.test(text)
+    || /^[A-Z][a-z]{2,8}\s+\d{4}$/.test(text)
+}
+
+function inferBarOrientation(barRects = []) {
+  if (!Array.isArray(barRects) || barRects.length === 0) return 'vertical'
+  const avgWidth = barRects.reduce((sum, rect) => sum + rect.width, 0) / barRects.length
+  const avgHeight = barRects.reduce((sum, rect) => sum + rect.height, 0) / barRects.length
+  return avgHeight >= avgWidth ? 'vertical' : 'horizontal'
+}
+
+function pickBarCategoryLabel({ rect, labels, orientation, plotRegion }) {
+  if (!Array.isArray(labels) || labels.length === 0) return null
+  const centerX = rect.left + (rect.width / 2)
+  const centerY = rect.top + (rect.height / 2)
+  const plotBottom = plotRegion?.screenRect?.top + plotRegion?.screenRect?.height
+  const plotLeft = plotRegion?.screenRect?.left
+
+  const scored = labels.map((label) => {
+    const labelCenterX = label.rect.left + (label.rect.width / 2)
+    const labelCenterY = label.rect.top + (label.rect.height / 2)
+    let penalty = 0
+    if (orientation === 'vertical') {
+      penalty += Math.abs(labelCenterX - centerX)
+      if (Number.isFinite(plotBottom) && labelCenterY < plotBottom - 8) penalty += 2000
+    } else {
+      penalty += Math.abs(labelCenterY - centerY)
+      if (Number.isFinite(plotLeft) && labelCenterX > plotLeft + 8) penalty += 2000
+    }
+    return { label, penalty }
+  })
+
+  scored.sort((left, right) => left.penalty - right.penalty)
+  return scored[0]?.label?.text || null
+}
+
+export function readObservableD3BarRows(root = globalThis.window) {
+  const surface = findPrimaryObservableD3Surface(root)
+  const marks = findObservableD3BarMarks(root)
+  const plotRegion = findObservableD3PlotRegion(root)
+  const labels = readTextNodes(surface)
+  const rects = marks.map((mark) => readBoundingBoxLike(mark))
+  const orientation = inferBarOrientation(rects)
+
+  return marks
+    .map((mark, index) => {
+      const rect = readBoundingBoxLike(mark)
+      const category = pickBarCategoryLabel({
+        rect,
+        labels,
+        orientation,
+        plotRegion,
+      }) || `Category ${index + 1}`
+      return {
+        id: `bar_${index + 1}`,
+        category,
+        __screenX: rect.left + (rect.width / 2),
+        __screenY: rect.top + (rect.height / 2),
+        __barLeft: rect.left,
+        __barTop: rect.top,
+        __barWidth: rect.width,
+        __barHeight: rect.height,
+      }
+    })
+    .filter(Boolean)
+}
+
+export function readObservableD3LineSeriesLabels(root = globalThis.window) {
+  const surface = findPrimaryObservableD3Surface(root)
+  const plotRegion = findObservableD3PlotRegion(root)
+  const labels = readTextNodes(surface)
+  const plotRight = plotRegion?.screenRect?.left + plotRegion?.screenRect?.width
+  const plotTop = plotRegion?.screenRect?.top || 0
+  const plotBottom = plotTop + (plotRegion?.screenRect?.height || 0)
+
+  return labels
+    .filter((label) => {
+      if (isNumericOrDateLikeText(label.text)) return false
+      const centerY = label.rect.top + (label.rect.height / 2)
+      return centerY >= plotTop && centerY <= plotBottom && label.rect.left >= (plotRight - 40)
+    })
+    .map((label) => label.text)
+}
+
+export function readObservableD3LineXAxisLabels(root = globalThis.window) {
+  const surface = findPrimaryObservableD3Surface(root)
+  const plotRegion = findObservableD3PlotRegion(root)
+  const labels = readTextNodes(surface)
+  const plotLeft = plotRegion?.screenRect?.left || 0
+  const plotRight = plotLeft + (plotRegion?.screenRect?.width || 0)
+  const plotBottom = plotRegion?.screenRect?.top + (plotRegion?.screenRect?.height || 0)
+
+  return labels
+    .filter((label) => {
+      const centerX = label.rect.left + (label.rect.width / 2)
+      const centerY = label.rect.top + (label.rect.height / 2)
+      if (centerX < plotLeft || centerX > plotRight) return false
+      if (centerY < plotBottom - 8) return false
+      return isNumericOrDateLikeText(label.text)
+    })
+    .map((label) => label.text)
+}
+
+export function readObservableD3LineRows(root = globalThis.window) {
+  const series = readObservableD3LineSeriesLabels(root)
+  const xValues = readObservableD3LineXAxisLabels(root)
+  const seriesValues = series.length > 0 ? series : ['Series 1']
+  const domainValues = xValues.length > 0 ? xValues : ['Point 1']
+
+  return seriesValues.flatMap((seriesName, seriesIndex) =>
+    domainValues.map((xValue, pointIndex) => ({
+      id: `line_${seriesIndex + 1}_${pointIndex + 1}`,
+      series: seriesName,
+      xValue,
+      __seriesIndex: seriesIndex + 1,
+    })))
 }
 
 export function summarizeObservableD3ScatterRows(rows = []) {
@@ -260,10 +530,12 @@ export function describeObservableD3Surface(root = globalThis.window, { notebook
   const normalizedRoot = normalizeRoot(root)
   const surface = findPrimaryObservableD3Surface(normalizedRoot)
   const summary = summarizeObservableD3Surface(surface)
+  const plotRegion = findObservableD3PlotRegion(normalizedRoot)
 
   return {
     surfaceTag: summary?.tagName || null,
     summary,
+    plotRegion,
     inferredKind: inferObservableD3WidgetKindFromSurface(summary || {}, notebook),
   }
 }

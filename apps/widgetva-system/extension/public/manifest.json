@@ -3,6 +3,16 @@
   "name": "WidgetVA Official Page Integration",
   "version": "0.1.0",
   "description": "Automatically injects WidgetVA into official Vega-Lite examples pages.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://openrouter.ai/*"
+  ],
+  "background": {
+    "service_worker": "backgroundServiceWorker.js",
+    "type": "module"
+  },
   "content_scripts": [
     {
       "matches": [

@@ -1,5 +1,6 @@
 import { installWebSocketBridge } from '../webSocketBridge.js'
 import { createWebSocketTransportClient } from '../webSocketClient.js'
+import { runPagePortAgentLoop } from '../../core/runtime/pagePortAgentLoop.js'
 
 const WEBSOCKET_CLIENT_OPTION_KEYS = new Set([
   'socket',
@@ -139,6 +140,12 @@ export async function describeAgentLoopFromWebSocket(options = {}, clientOptions
   return client.describeAgentLoop(requestOptions)
 }
 
+export async function readObservationFromWebSocket(options = {}, clientOptions = null) {
+  const { requestOptions, transportOptions } = splitWebSocketExampleOptions(options, clientOptions)
+  const client = createWebSocketTransportClient(transportOptions)
+  return client.readObservation(requestOptions)
+}
+
 export async function describeResponseRecorderFromWebSocket(options = {}, clientOptions = null) {
   const { transportOptions } = splitWebSocketExampleOptions(options, clientOptions)
   const client = createWebSocketTransportClient(transportOptions)
@@ -155,6 +162,12 @@ export async function listWidgetAdaptersFromWebSocket(options = {}, clientOption
   const { transportOptions } = splitWebSocketExampleOptions(options, clientOptions)
   const client = createWebSocketTransportClient(transportOptions)
   return client.listWidgetAdapters()
+}
+
+export async function readLatestCoordinationResultFromWebSocket(options = {}, clientOptions = null) {
+  const { transportOptions } = splitWebSocketExampleOptions(options, clientOptions)
+  const client = createWebSocketTransportClient(transportOptions)
+  return client.readLatestCoordinationResult()
 }
 
 export async function readViewFromWebSocket(options = {}, clientOptions = null) {
@@ -215,6 +228,12 @@ export async function runVerifiedActionFromWebSocket({ call, options = {}, ...cl
   const { transportOptions } = splitWebSocketExampleOptions(clientLikeOptions, clientOptions)
   const client = createWebSocketTransportClient(transportOptions)
   return client.runVerifiedAction(call, options)
+}
+
+export async function runAgentLoopFromWebSocket(options = {}, clientOptions = null) {
+  const { requestOptions, transportOptions } = splitWebSocketExampleOptions(options, clientOptions)
+  const client = createWebSocketTransportClient(transportOptions)
+  return runPagePortAgentLoop(client, requestOptions)
 }
 
 export async function readInteractionTraceFromWebSocket(options = {}, clientOptions = null) {

@@ -1,6 +1,7 @@
 import { createProviderFamilyAdapter } from '../../adapters/widgetFamilies/index.js'
 import { applySelectionToSpec } from '../../core/runtime/materializers/widgetStateBuilders.js'
 import { installBrowserExtensionBridge } from '../../transports/browserExtensionBridge.js'
+import { runPagePortAgentLoop } from '../../core/runtime/pagePortAgentLoop.js'
 import { createWidgetInstance } from '../../widgets/widgetInstance.js'
 import { installVegaEmbedCapture, readLatestVegaEmbedCapture } from './vegaEmbedCapture.js'
 
@@ -191,6 +192,16 @@ function createMutableViewProxy(viewRef) {
     proxy[methodName] = (...args) => viewRef.current?.[methodName]?.(...args)
   }
   return proxy
+}
+
+function createOfficialPageAgentLoopRunner(root) {
+  return async function runOfficialPageAgentLoop(options = {}) {
+    const port = root?.__widgetVA || null
+    if (!port || typeof port.describeWorkspace !== 'function' || typeof port.describeAgentLoop !== 'function') {
+      throw new Error('WidgetVA page port is not ready for official-page agent-loop execution.')
+    }
+    return runPagePortAgentLoop(port, options)
+  }
 }
 
 function createOfficialPageMaterializer({
@@ -437,6 +448,7 @@ export async function attachWidgetVAToVegaLiteExample({
     ...integrationInput,
     widget,
     widgetAdapter,
+    runAgentLoop: createOfficialPageAgentLoopRunner(root),
     getCurrentSpec() {
       return clone(currentSpecRef.current)
     },
@@ -553,6 +565,7 @@ export async function bootstrapCurrentVegaLiteExamplePage({
   return {
     ...controller,
     pagePort: root?.__widgetVA || null,
+    runAgentLoop: createOfficialPageAgentLoopRunner(root),
     dispose() {
       try {
         disposeBridge?.()

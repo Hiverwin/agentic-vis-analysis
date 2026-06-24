@@ -1,3 +1,5 @@
+import { installOfficialPageAgentBridge } from './installOfficialPageAgentBridge.js'
+
 const PAGE_SCRIPT_ID = 'widgetva-observable-d3-page-script'
 const PAGE_SCRIPT_PATH = 'observableD3PageScript.js'
 let hasInjected = false
@@ -35,6 +37,7 @@ function injectPageScript() {
   hasInjected = true
 }
 
+installOfficialPageAgentBridge(window)
 injectPageScript()
 
 if (!hasInjected) {

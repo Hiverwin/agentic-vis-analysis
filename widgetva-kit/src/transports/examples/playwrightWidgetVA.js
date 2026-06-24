@@ -1,4 +1,5 @@
 import { evaluatePagePortAlias } from '../pagePortBridge.js'
+import { runPagePortAgentLoop } from '../../core/runtime/pagePortAgentLoop.js'
 
 export async function describePagePortFromPage(page) {
   return evaluatePagePortAlias(page, 'page_port_describe')
@@ -80,12 +81,20 @@ export async function describeAgentLoopFromPage(page, options = {}) {
   return evaluatePagePortAlias(page, 'agent_loop_describe', [options])
 }
 
+export async function readObservationFromPage(page, options = {}) {
+  return evaluatePagePortAlias(page, 'observation_read', [options])
+}
+
 export async function listWidgetAdaptersFromPage(page) {
   return evaluatePagePortAlias(page, 'widget_adapter_list')
 }
 
 export async function readViewFromPage(page, options = {}) {
   return evaluatePagePortAlias(page, 'view_read', [options])
+}
+
+export async function readLatestCoordinationResultFromPage(page) {
+  return evaluatePagePortAlias(page, 'latest_coordination_result_read')
 }
 
 export async function readSnapshotFromPage(page, options = {}) {
@@ -150,6 +159,27 @@ export async function readWorkspaceSnapshotFromPage(page, options = {}) {
 
 export async function recordAgentResponseOnPage(page, record = {}) {
   return evaluatePagePortAlias(page, 'agent_response_record', [record])
+}
+
+function createPageAgentLoopClient(page) {
+  return {
+    describeWorkspace: (options = {}) => describeWorkspaceFromPage(page, options),
+    describeAgentLoop: (options = {}) => describeAgentLoopFromPage(page, options),
+    readObservation: (options = {}) => readObservationFromPage(page, options),
+    planWorkspace: (options = {}) => planWorkspaceFromPage(page, options),
+    describeActionUsage: (options = {}) => describeActionUsageFromPage(page, options),
+    executeAction: (call = {}) => runActionOnPage(page, call),
+    runAction: (call = {}) => runActionOnPage(page, call),
+    runVerifiedAction: (call, options = {}) => runVerifiedActionOnPage(page, call, options),
+    queryPerception: (call = {}) => queryPerceptionOnPage(page, call),
+    runDataQuery: (call = {}) => queryDataOnPage(page, call),
+    queryData: (call = {}) => queryDataOnPage(page, call),
+    readLatestCoordinationResult: () => readLatestCoordinationResultFromPage(page),
+  }
+}
+
+export async function runAgentLoopOnPage(page, options = {}) {
+  return runPagePortAgentLoop(createPageAgentLoopClient(page), options)
 }
 
 export function buildScatterBrushCall({

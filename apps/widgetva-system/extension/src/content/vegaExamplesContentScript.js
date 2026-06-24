@@ -1,3 +1,5 @@
+import { installOfficialPageAgentBridge } from './installOfficialPageAgentBridge.js'
+
 const PAGE_SCRIPT_ID = 'widgetva-vega-examples-page-script'
 const PAGE_SCRIPT_PATH = 'vegaExamplesPageScript.js'
 
@@ -30,4 +32,5 @@ function injectPageScript() {
   target.prepend(script)
 }
 
+installOfficialPageAgentBridge(window)
 injectPageScript()

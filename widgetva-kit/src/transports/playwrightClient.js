@@ -68,6 +68,8 @@ import {
   planWorkspaceFromPage,
   queryDataOnPage,
   queryPerceptionOnPage,
+  readObservationFromPage,
+  readLatestCoordinationResultFromPage,
   readSnapshotFromPage,
   readStateHistoryFromPage,
   readInteractionTraceFromPage,
@@ -194,8 +196,16 @@ export class WidgetVAPlaywrightClient {
     return describeAgentLoopFromPage(this.page, options)
   }
 
+  async readObservation(options = {}) {
+    return readObservationFromPage(this.page, options)
+  }
+
   async listWidgetAdapters() {
     return listWidgetAdaptersFromPage(this.page)
+  }
+
+  async readLatestCoordinationResult() {
+    return readLatestCoordinationResultFromPage(this.page)
   }
 
   async readView(options = {}) {

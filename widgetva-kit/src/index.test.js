@@ -56,6 +56,7 @@ test('widgetva sub-entries expose core, adapter, widget, workspace, provider, an
 
   assert.equal(typeof widgetvaCore.createWidgetVARuntime, 'function')
   assert.equal(typeof widgetvaCore.installWidgetVAPagePort, 'function')
+  assert.equal(typeof widgetvaCore.runPagePortAgentLoop, 'function')
   assert.equal(typeof widgetvaCore.createWidgetVAHostBridge, 'function')
   assert.equal(typeof widgetvaCore.applyWidgetRuntimeState, 'function')
   assert.equal(typeof widgetvaCore.attachWidgetRendererBridge, 'function')

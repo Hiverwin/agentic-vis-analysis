@@ -31,6 +31,24 @@ function formatAgentParams(params) {
     .join(' · ')
 }
 
+function summarizeObserveStage(observe) {
+  const widgetCount = Array.isArray(observe?.observation?.widgets) ? observe.observation.widgets.length : 0
+  const focusedWidgetRef = observe?.observation?.focusedWidgetRef || observe?.loopContext?.view?.shared?.focusedWidget || null
+  if (!widgetCount && !focusedWidgetRef) return 'No observe payload'
+  return `${widgetCount || 0} widgets observed${focusedWidgetRef ? ` · focus ${focusedWidgetRef}` : ''}`
+}
+
+function summarizePlanStage(plan) {
+  const op = plan?.operation || null
+  if (!op) return 'No plan payload'
+  return `${op.kind || 'unknown'} · ${op.name || op.query?.kind || 'unnamed'}`
+}
+
+function summarizeReasonStage(reason) {
+  if (!reason || typeof reason !== 'object') return 'No reason payload'
+  return reason.verificationSummary || reason.resultSummary || reason.answer || 'Reason recorded.'
+}
+
 export function AgentPanel() {
   const mode = useAppStore((state) => state.mode)
   const workspaceProviderEnvironment = useAppStore((state) => state.workspaceProviderEnvironment)
@@ -170,10 +188,13 @@ export function AgentPanel() {
             </div>
             <div className="agent-step-grid">
               <p><strong>Objective</strong> {agentLastStep?.objective || 'None'}</p>
+              <p><strong>Observe</strong> {summarizeObserveStage(agentLastStep?.observe)}</p>
+              <p><strong>Plan</strong> {summarizePlanStage(agentLastStep?.plan)}</p>
               <p><strong>Operation</strong> {agentLastStep?.operation?.name || 'None'}</p>
               <p><strong>Params</strong> {formatAgentParams(agentLastStep?.operation?.params)}</p>
               <p><strong>Runtime</strong> {summarizeStepResultPayload(agentLastStep?.result)}</p>
               <p><strong>Verification</strong> {agentLastStep?.traceStep?.verificationSummary || summarizeStepResultPayload(agentLastStep?.verificationResult)}</p>
+              <p><strong>Reason</strong> {summarizeReasonStage(agentLastStep?.reason)}</p>
               <p><strong>Evidence</strong> {agentLastStep?.traceStep?.evidenceSummary || 'None recorded'}</p>
             </div>
             {agentLastStep?.error ? (

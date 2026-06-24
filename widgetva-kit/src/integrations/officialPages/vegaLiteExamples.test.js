@@ -1076,6 +1076,7 @@ test('bootstrapCurrentVegaLiteExamplePage returns the page port and optional ext
 
     assert.equal(controller.kind, 'scatter')
     assert.equal(typeof controller.pagePort?.describeWorkspace, 'function')
+    assert.equal(typeof controller.runAgentLoop, 'function')
     controller.dispose()
   } finally {
     globalThis.window = previousWindow

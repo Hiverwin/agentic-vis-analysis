@@ -193,9 +193,17 @@ export function createWidgetWorkspaceTransportClient(delegate) {
     readWorkspaceState(options = {}) {
       return readWorkspaceStateViaTransport(delegate, options)
     },
-    readObservation(options = {}) {
-      return readWorkspaceObservationViaTransport(delegate, options)
-    },
+    ...(typeof delegate?.readObservation === 'function'
+      ? {
+          readObservation(...args) {
+            return delegate.readObservation(...args)
+          },
+        }
+      : {
+          readObservation(options = {}) {
+            return readWorkspaceObservationViaTransport(delegate, options)
+          },
+        }),
     readCoordinationState() {
       return readWorkspaceCoordinationStateViaTransport(delegate)
     },
@@ -239,6 +247,10 @@ export function createWidgetWorkspaceTransportClient(delegate) {
 }
 
 export function attachWidgetWorkspaceTransportSurface(client) {
+  const nativeReadObservation = typeof client?.readObservation === 'function'
+    ? client.readObservation.bind(client)
+    : null
+
   return Object.assign(client, {
     describeWidget(options = {}) {
       return describeWidgetViaTransport(client, options)
@@ -261,9 +273,17 @@ export function attachWidgetWorkspaceTransportSurface(client) {
     readWorkspaceState(options = {}) {
       return readWorkspaceStateViaTransport(client, options)
     },
-    readObservation(options = {}) {
-      return readWorkspaceObservationViaTransport(client, options)
-    },
+    ...(typeof nativeReadObservation === 'function'
+      ? {
+          readObservation(...args) {
+            return nativeReadObservation(...args)
+          },
+        }
+      : {
+          readObservation(options = {}) {
+            return readWorkspaceObservationViaTransport(client, options)
+          },
+        }),
     readCoordinationState() {
       return readWorkspaceCoordinationStateViaTransport(client)
     },

@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 
 import {
   describeObservableD3Surface,
+  findObservableD3MarkContainer,
   findObservableD3PointMarks,
+  findObservableD3PlotRegion,
   findPrimaryObservableD3Surface,
   inferObservableD3WidgetKindFromSurface,
   readObservableD3ScatterRows,
@@ -41,6 +43,16 @@ function makePointPath({ left, top, width = 6, height = 6 }) {
     tagName: 'PATH',
     getBoundingClientRect() {
       return { left, top, width, height }
+    },
+  }
+}
+
+function makeNode(tagName, rect, parentNode = null) {
+  return {
+    tagName: tagName.toUpperCase(),
+    parentNode,
+    getBoundingClientRect() {
+      return rect
     },
   }
 }
@@ -167,6 +179,29 @@ test('describeObservableD3Surface summarizes the visible worker-frame chart surf
         height: 480,
         area: 345600,
       },
+      plotRegion: {
+        source: 'surface',
+        targetTag: 'svg',
+        markCount: 18,
+        screenRect: {
+          left: 0,
+          top: 0,
+          width: 720,
+          height: 480,
+        },
+        localRect: {
+          left: 0,
+          top: 0,
+          width: 720,
+          height: 480,
+        },
+        surfaceRect: {
+          left: 0,
+          top: 0,
+          width: 720,
+          height: 480,
+        },
+      },
       inferredKind: 'scatter',
     },
   )
@@ -199,4 +234,77 @@ test('findObservableD3PointMarks falls back to small path marks when the scatter
     { id: 'pt_1', __screenX: 13, __screenY: 23 },
     { id: 'pt_2', __screenX: 33, __screenY: 43 },
   ])
+})
+
+test('findObservableD3MarkContainer returns the deepest shared mark ancestor below the surface', () => {
+  const surface = makeNode('svg', { left: 10, top: 20, width: 600, height: 400 })
+  const markLayer = makeNode('g', { left: 110, top: 120, width: 220, height: 160 }, surface)
+  const pointA = makeNode('circle', { left: 120, top: 130, width: 8, height: 8 }, markLayer)
+  const pointB = makeNode('circle', { left: 300, top: 240, width: 8, height: 8 }, markLayer)
+  surface.querySelectorAll = (selector) => {
+    if (selector === 'circle') return [pointA, pointB]
+    if (selector === 'path') return []
+    return []
+  }
+
+  const root = {
+    document: makeDoc({
+      svgs: [surface],
+    }),
+  }
+
+  assert.equal(findObservableD3MarkContainer(root), markLayer)
+})
+
+test('findObservableD3PlotRegion prefers the shared mark container when available', () => {
+  const surface = makeNode('svg', { left: 10, top: 20, width: 600, height: 400 })
+  const markLayer = makeNode('g', { left: 110, top: 120, width: 220, height: 160 }, surface)
+  const pointA = makeNode('circle', { left: 120, top: 130, width: 8, height: 8 }, markLayer)
+  const pointB = makeNode('circle', { left: 300, top: 240, width: 8, height: 8 }, markLayer)
+  surface.querySelectorAll = (selector) => {
+    if (selector === 'circle') return [pointA, pointB]
+    if (selector === 'path') return []
+    return []
+  }
+
+  const root = {
+    document: makeDoc({
+      svgs: [surface],
+    }),
+  }
+
+  assert.deepEqual(findObservableD3PlotRegion(root), {
+    source: 'mark-container',
+    targetTag: 'g',
+    markCount: 2,
+    screenRect: { left: 110, top: 120, width: 220, height: 160 },
+    localRect: { left: 100, top: 100, width: 220, height: 160 },
+    surfaceRect: { left: 10, top: 20, width: 600, height: 400 },
+  })
+})
+
+test('findObservableD3PlotRegion falls back to unioned mark bounds when marks have no shared container below the surface', () => {
+  const surface = makeNode('svg', { left: 10, top: 20, width: 600, height: 400 })
+  const pointA = makeNode('circle', { left: 120, top: 130, width: 8, height: 8 }, surface)
+  const pointB = makeNode('circle', { left: 300, top: 240, width: 10, height: 12 }, surface)
+  surface.querySelectorAll = (selector) => {
+    if (selector === 'circle') return [pointA, pointB]
+    if (selector === 'path') return []
+    return []
+  }
+
+  const root = {
+    document: makeDoc({
+      svgs: [surface],
+    }),
+  }
+
+  assert.deepEqual(findObservableD3PlotRegion(root), {
+    source: 'mark-bounds',
+    targetTag: 'marks-union',
+    markCount: 2,
+    screenRect: { left: 120, top: 130, width: 190, height: 122 },
+    localRect: { left: 110, top: 110, width: 190, height: 122 },
+    surfaceRect: { left: 10, top: 20, width: 600, height: 400 },
+  })
 })

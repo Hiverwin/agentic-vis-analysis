@@ -213,6 +213,17 @@ export function readObservation(caseId, options = {}) {
   return readRuntimeObservation(caseId, options)
 }
 
+export function readRuntimeView(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  const runtimeView = session?.runtime?.readView?.(options)
+  if (runtimeView) return clone(runtimeView)
+  return clone(session?.workspace?.readView?.(options) || null)
+}
+
+export function readView(caseId, options = {}) {
+  return readRuntimeView(caseId, options)
+}
+
 export function listRuntimeAvailableActions(caseId) {
   const session = getRuntimeSession(caseId)
   return clone(session?.runtime?.listAvailableActions?.() || [])
@@ -624,6 +635,14 @@ export async function executeAction(caseId, call = {}) {
   return session.runtime.executeAction(call)
 }
 
+export async function executeVerifiedAction(caseId, call = {}, options = {}) {
+  const session = getRuntimeSession(caseId)
+  if (!session?.runtime || !call || typeof call !== 'object') {
+    throw new Error('executeVerifiedAction requires an active runtime session and a valid action call object.')
+  }
+  return session.runtime.executeVerifiedAction(call, options)
+}
+
 export async function queryRuntimePerception(caseId, call = {}) {
   const session = getRuntimeSession(caseId)
   if (!session?.runtime || !call || typeof call !== 'object') {
@@ -656,17 +675,50 @@ export async function replay(caseId, stateIdOrOptions) {
   return replayRuntimeState(caseId, stateIdOrOptions)
 }
 
+export async function describeAgentLoop(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  if (!session?.runtime) {
+    throw new Error('describeAgentLoop requires an active runtime session.')
+  }
+  const describeLoop =
+    session.runtime.describeAgentLoop
+    || session.runtime.agentLoopRuntime?.describeStepContext?.bind(session.runtime.agentLoopRuntime)
+  if (typeof describeLoop !== 'function') {
+    throw new Error('describeAgentLoop is not available on the active runtime session.')
+  }
+  return clone(await describeLoop(options))
+}
+
+export async function describeActionUsage(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  if (!session?.runtime) {
+    throw new Error('describeActionUsage requires an active runtime session.')
+  }
+  const describeUsage =
+    session.runtime.describeActionUsage
+    || session.runtime.actionExecutor?.describeActionUsage?.bind(session.runtime.actionExecutor)
+  if (typeof describeUsage !== 'function') {
+    throw new Error('describeActionUsage is not available on the active runtime session.')
+  }
+  return clone(await describeUsage(options))
+}
+
 export function createAgentRuntimeContract(caseId) {
   return {
     caseId,
     describeWorkspace: (options = {}) => describeWorkspace(caseId, options),
     readObservation: (options = {}) => readObservation(caseId, options),
+    readView: (options = {}) => readView(caseId, options),
     readCoordinationState: () => readCoordinationState(caseId),
     readPropagationSummary: () => readPropagationSummary(caseId),
+    readLatestCoordinationResult: () => readLatestCoordinationResult(caseId),
     listAvailableActions: () => listAvailableActions(caseId),
     listAvailablePerceptions: () => listAvailablePerceptions(caseId),
     listAvailableDataQueries: () => listAvailableDataQueries(caseId),
+    describeAgentLoop: (options = {}) => describeAgentLoop(caseId, options),
+    describeActionUsage: (options = {}) => describeActionUsage(caseId, options),
     executeAction: (call = {}) => executeAgentWorkspaceAction(caseId, call),
+    executeVerifiedAction: (call = {}, options = {}) => executeVerifiedAction(caseId, call, options),
     queryPerception: (call = {}) => queryPerception(caseId, call),
     runDataQuery: (call = {}) => runDataQuery(caseId, call),
     readTrace: (options = {}) => readTrace(caseId, options),

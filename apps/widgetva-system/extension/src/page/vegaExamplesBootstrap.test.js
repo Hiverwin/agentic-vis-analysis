@@ -9,10 +9,99 @@ import {
 } from './vegaExamplesBootstrap.js'
 
 function createRoot(url = 'https://vega.github.io/vega-lite/examples/scatter_plot.html') {
+  const listeners = new Set()
+  const postedMessages = []
   return {
+    postedMessages,
     location: {
       href: url,
       pathname: new URL(url).pathname,
+    },
+    addEventListener(type, listener) {
+      if (type === 'message') listeners.add(listener)
+    },
+    removeEventListener(type, listener) {
+      if (type === 'message') listeners.delete(listener)
+    },
+    postMessage(message) {
+      postedMessages.push(message)
+      if (message?.method === 'chat') {
+        for (const listener of listeners) {
+          queueMicrotask(() => {
+            listener({
+              source: this,
+              data: {
+                source: 'widgetva-official-page-agent-content',
+                type: 'widgetva:official-page-agent-response',
+                id: message.id,
+                ok: true,
+                result: {
+                  model: 'test-model',
+                  content: JSON.stringify({
+                    assistantMessage: 'I will brush the visible scatter region.',
+                    rationale: 'A visible brush is easy to verify.',
+                    operation: {
+                      kind: 'action',
+                      name: 'scatter.brushRegion',
+                      queryScope: {
+                        widgetRef: 'scatter-ref',
+                      },
+                      params: {
+                        xField: 'Horsepower',
+                        yField: 'Miles_per_Gallon',
+                        xRange: [80, 140],
+                        yRange: [18, 30],
+                      },
+                    },
+                  }),
+                },
+              },
+            })
+          })
+        }
+      }
+      if (message?.method === 'configure') {
+        for (const listener of listeners) {
+          queueMicrotask(() => {
+            listener({
+              source: this,
+              data: {
+                source: 'widgetva-official-page-agent-content',
+                type: 'widgetva:official-page-agent-response',
+                id: message.id,
+                ok: true,
+                result: {
+                  apiKeyConfigured: true,
+                  model: message.params?.model || 'test-model',
+                  siteUrl: null,
+                  appName: 'WidgetVA Official Page Integration',
+                },
+              },
+            })
+          })
+        }
+      }
+      if (message?.method === 'readConfig') {
+        for (const listener of listeners) {
+          queueMicrotask(() => {
+            listener({
+              source: this,
+              data: {
+                source: 'widgetva-official-page-agent-content',
+                type: 'widgetva:official-page-agent-response',
+                id: message.id,
+                ok: true,
+                result: {
+                  apiKeyConfigured: true,
+                  model: 'test-model',
+                  siteUrl: null,
+                  appName: 'WidgetVA Official Page Integration',
+                },
+              },
+            })
+          })
+        }
+      }
     },
   }
 }
@@ -47,6 +136,7 @@ test('ensureVegaExamplesPageBootstrap installs capture, bootstraps once, and rec
   const root = createRoot()
   let installed = 0
   let bootstrapped = 0
+  let runAgentLoopCalls = 0
 
   const entry = await ensureVegaExamplesPageBootstrap({
     root,
@@ -59,8 +149,54 @@ test('ensureVegaExamplesPageBootstrap installs capture, bootstraps once, and rec
       bootstrapped += 1
       assert.equal(sessionId, 'official-vega-lite-scatter_plot')
       assert.equal(enableExtensionBridge, true)
-      root.__widgetVA = { describeWorkspace() {} }
-      return { pagePort: root.__widgetVA }
+      root.__widgetVA = {
+        async describeWorkspace() {
+          return {
+            widgets: [{
+              ref: 'scatter-ref',
+              widgetId: 'scatter',
+              kind: 'scatter',
+            }],
+          }
+        },
+        async describeAgentLoop() {
+          return {
+            loopHints: {
+              verifiedActionName: 'executeVerifiedAction',
+            },
+          }
+        },
+        async readObservation() {
+          return {
+            focusedWidgetRef: 'scatter-ref',
+          }
+        },
+        async describeActionUsage() {
+          return {
+            actions: [{ name: 'scatter.brushRegion' }],
+          }
+        },
+        async executeVerifiedAction(call) {
+          return {
+            actionResult: {
+              ok: true,
+              stateId: 'main:s2',
+              updatedRefs: [call.queryScope?.widgetRef].filter(Boolean),
+            },
+            verification: {
+              ok: true,
+              summary: 'Verified.',
+            },
+          }
+        },
+      }
+      return {
+        pagePort: root.__widgetVA,
+        async runAgentLoop(options = {}) {
+          runAgentLoopCalls += 1
+          return { ok: true, options }
+        },
+      }
     },
   })
 
@@ -68,6 +204,34 @@ test('ensureVegaExamplesPageBootstrap installs capture, bootstraps once, and rec
   assert.equal(bootstrapped, 1)
   assert.equal(entry.status, 'ready')
   assert.equal(entry.pagePort, root.__widgetVA)
+  assert.equal(typeof entry.runAgentLoop, 'function')
+  assert.equal(typeof entry.runNaturalLanguageAgentLoop, 'function')
+  assert.equal(typeof entry.configureAgent, 'function')
+  assert.equal(typeof entry.readAgentConfig, 'function')
+  assert.equal(typeof root.__widgetVAOfficialPageRunAgentLoop, 'function')
+  assert.equal(typeof root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop, 'function')
+  assert.equal(typeof root.__widgetVAOfficialPageConfigureAgent, 'function')
+  assert.equal(typeof root.__widgetVAOfficialPageReadAgentConfig, 'function')
+  assert.deepEqual(await root.__widgetVAOfficialPageRunAgentLoop({ objective: 'test' }), {
+    ok: true,
+    options: { objective: 'test' },
+  })
+  assert.deepEqual(await root.__widgetVAOfficialPageConfigureAgent({ apiKey: 'test-key', model: 'test-model' }), {
+    apiKeyConfigured: true,
+    model: 'test-model',
+    siteUrl: null,
+    appName: 'WidgetVA Official Page Integration',
+  })
+  assert.deepEqual(await root.__widgetVAOfficialPageReadAgentConfig(), {
+    apiKeyConfigured: true,
+    model: 'test-model',
+    siteUrl: null,
+    appName: 'WidgetVA Official Page Integration',
+  })
+  const naturalLanguageResult = await root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop('Brush the visible scatter region.')
+  assert.equal(naturalLanguageResult.plan.operation.name, 'scatter.brushRegion')
+  assert.equal(naturalLanguageResult.result.actionResult.ok, true)
+  assert.equal(runAgentLoopCalls, 1)
 
   const again = await ensureVegaExamplesPageBootstrap({
     root,
@@ -104,4 +268,6 @@ test('ensureVegaExamplesPageBootstrap records bootstrap failures on the shared p
   const entry = root[VEGA_EXAMPLES_BOOTSTRAP_KEY][VEGA_EXAMPLES_BOOTSTRAP_ENTRY]
   assert.equal(entry.status, 'error')
   assert.equal(entry.error?.message, 'capture timed out')
+  assert.equal(root.__widgetVAOfficialPageRunAgentLoop, undefined)
+  assert.equal(root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop, undefined)
 })

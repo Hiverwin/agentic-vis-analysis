@@ -1,5 +1,6 @@
 import { createBrowserExtensionTransportClient } from '../browserExtensionClient.js'
 import { installBrowserExtensionBridge } from '../browserExtensionBridge.js'
+import { runPagePortAgentLoop } from '../../core/runtime/pagePortAgentLoop.js'
 
 const EXTENSION_CLIENT_OPTION_KEYS = new Set([
   'targetWindow',
@@ -138,6 +139,12 @@ export async function describeAgentLoopFromExtension(options = {}, clientOptions
   return client.describeAgentLoop(requestOptions)
 }
 
+export async function readObservationFromExtension(options = {}, clientOptions = null) {
+  const { requestOptions, transportOptions } = splitBrowserExtensionExampleOptions(options, clientOptions)
+  const client = createWidgetVABrowserExtensionClient(transportOptions)
+  return client.readObservation(requestOptions)
+}
+
 export async function describeResponseRecorderFromExtension(options = {}, clientOptions = null) {
   const { transportOptions } = splitBrowserExtensionExampleOptions(options, clientOptions)
   const client = createWidgetVABrowserExtensionClient(transportOptions)
@@ -154,6 +161,12 @@ export async function listWidgetAdaptersFromExtension(options = {}, clientOption
   const { transportOptions } = splitBrowserExtensionExampleOptions(options, clientOptions)
   const client = createWidgetVABrowserExtensionClient(transportOptions)
   return client.listWidgetAdapters()
+}
+
+export async function readLatestCoordinationResultFromExtension(options = {}, clientOptions = null) {
+  const { transportOptions } = splitBrowserExtensionExampleOptions(options, clientOptions)
+  const client = createWidgetVABrowserExtensionClient(transportOptions)
+  return client.readLatestCoordinationResult()
 }
 
 export async function readViewFromExtension(options = {}, clientOptions = null) {
@@ -220,6 +233,12 @@ export async function runVerifiedActionFromExtension({ call, options = {}, ...cl
   const { transportOptions } = splitBrowserExtensionExampleOptions(clientLikeOptions, clientOptions)
   const client = createWidgetVABrowserExtensionClient(transportOptions)
   return client.runVerifiedAction(call, options)
+}
+
+export async function runAgentLoopFromExtension(options = {}, clientOptions = null) {
+  const { requestOptions, transportOptions } = splitBrowserExtensionExampleOptions(options, clientOptions)
+  const client = createWidgetVABrowserExtensionClient(transportOptions)
+  return runPagePortAgentLoop(client, requestOptions)
 }
 
 export async function readInteractionTraceFromExtension(options = {}, clientOptions = null) {

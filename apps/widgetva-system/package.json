@@ -6,13 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:extension": "npm run build:extension:early-capture && npm run build:extension:content && npm run build:extension:content:observable-d3 && npm run build:extension:content:observable-d3-worker && npm run build:extension:page && npm run build:extension:page:observable-d3 && cp extension/public/manifest.json extension/dist/manifest.json",
+    "build:extension": "npm run build:extension:early-capture && npm run build:extension:content && npm run build:extension:content:observable-d3 && npm run build:extension:content:observable-d3-worker && npm run build:extension:page && npm run build:extension:page:observable-d3 && npm run build:extension:background && cp extension/public/manifest.json extension/dist/manifest.json",
     "build:extension:early-capture": "vite build --config extension/vite.config.js --mode extension-early-capture",
     "build:extension:content": "vite build --config extension/vite.config.js --mode extension-content",
     "build:extension:content:observable-d3": "vite build --config extension/vite.config.js --mode extension-content-observable-d3",
     "build:extension:content:observable-d3-worker": "vite build --config extension/vite.config.js --mode extension-content-observable-d3-worker",
     "build:extension:page": "vite build --config extension/vite.config.js --mode extension-page",
     "build:extension:page:observable-d3": "vite build --config extension/vite.config.js --mode extension-page-observable-d3",
+    "build:extension:background": "vite build --config extension/vite.config.js --mode extension-background",
     "preview": "vite preview"
   },
   "dependencies": {

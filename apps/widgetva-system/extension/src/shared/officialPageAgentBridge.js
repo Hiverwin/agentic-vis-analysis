@@ -1,0 +1,5 @@
+export const WIDGETVA_AGENT_BRIDGE_SOURCE_PAGE = 'widgetva-official-page-agent-page'
+export const WIDGETVA_AGENT_BRIDGE_SOURCE_CONTENT = 'widgetva-official-page-agent-content'
+export const WIDGETVA_AGENT_BRIDGE_REQUEST = 'widgetva:official-page-agent-request'
+export const WIDGETVA_AGENT_BRIDGE_RESPONSE = 'widgetva:official-page-agent-response'
+export const WIDGETVA_AGENT_BRIDGE_RUNTIME = 'widgetva:official-page-agent-runtime'

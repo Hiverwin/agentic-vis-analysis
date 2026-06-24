@@ -135,8 +135,14 @@ export function createBrowserExtensionTransportClient({
     describeAgentLoop(options = {}) {
       return invoke('agent_loop_describe', [options])
     },
+    readObservation(options = {}) {
+      return invoke('observation_read', [options])
+    },
     listWidgetAdapters() {
       return invoke('widget_adapter_list')
+    },
+    readLatestCoordinationResult() {
+      return invoke('latest_coordination_result_read')
     },
     readView(options = {}) {
       return invoke('view_read', [options])

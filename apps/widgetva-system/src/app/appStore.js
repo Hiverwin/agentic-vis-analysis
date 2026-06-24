@@ -35,7 +35,7 @@ import {
   syncWorkspacePrimarySelectionResult,
   syncWorkspaceGlobalFilters,
 } from '../runtime/runtimeBridge.js'
-import { DEFAULT_OPENROUTER_VLM, formatAgentRuntimeError, runOpenRouterAgentStep } from '../runtime/agentRuntime.js'
+import { DEFAULT_OPENROUTER_VLM, formatAgentRuntimeError, runAgentTurn } from '../runtime/agentRuntime.js'
 import {
   clampHorsepowerRange,
   clearAnalysisFilters,
@@ -1301,7 +1301,7 @@ export const useAppStore = create((set, get) => ({
       : state.agentObjective
     set({ agentStatus: 'running', agentError: null })
     try {
-      const result = await runOpenRouterAgentStep(sessionKey, {
+      const result = await runAgentTurn(sessionKey, {
         objective,
         model: state.agentModel,
       })
@@ -1309,31 +1309,34 @@ export const useAppStore = create((set, get) => ({
         const interactionPatch = buildWorkspaceInteractionStatePatch(current, sessionKey) || {}
         const scopedWidgetId = resolveWidgetIdFromAgentScope(
           sessionKey,
-          result?.operation?.queryScope?.widgetRef || null,
+          result?.act?.queryScope?.widgetRef || null,
           current.selectedWidgetId,
         )
         const focusedWidgetId = typeof scopedWidgetId === 'string' && scopedWidgetId.length > 0
           ? setFocusedWidgetId(sessionKey, scopedWidgetId) || null
           : null
         const nextOverrides = { ...(current.widgetActionOverrides || {}) }
-        if (result?.operation?.kind === 'action' && scopedWidgetId) {
-          const derivedOverride = deriveWidgetActionOverride(result.operation.name, result.operation.params || {})
+        if (result?.act?.kind === 'action' && scopedWidgetId) {
+          const derivedOverride = deriveWidgetActionOverride(result.act.name, result.act.params || {})
           if (derivedOverride) {
             nextOverrides[scopedWidgetId] = derivedOverride
           }
         }
+        const nextTrace = readRuntimeTrace(sessionKey)
+        const traceStep = Array.isArray(nextTrace) && nextTrace.length > 0 ? nextTrace.at(-1) : null
       return {
           agentStatus: 'idle',
           agentError: null,
           agentObjective: objective,
           agentLastStep: {
             objective,
-            model: result?.model || current.agentModel,
-            operation: result?.operation || null,
-            planning: result?.planning || null,
-            result: result?.result || null,
-            verificationResult: result?.verificationResult || null,
-            traceStep: result?.traceStep || null,
+            model: current.agentModel,
+            observe: result?.observe || null,
+            plan: result?.plan || null,
+            act: result?.act || null,
+            verify: result?.verify || null,
+            reason: result?.reason || null,
+            traceStep,
             recordedAt: Date.now(),
           },
           coordinationVersion: current.coordinationVersion + 1,
@@ -1341,8 +1344,8 @@ export const useAppStore = create((set, get) => ({
           ...interactionPatch,
           widgetActionOverrides: nextOverrides,
           selectedWidgetId: focusedWidgetId || interactionPatch.selectedWidgetId || current.selectedWidgetId,
-          trace: result.trace,
-          selectedTraceStepId: result.traceStep?.id || current.selectedTraceStepId,
+          trace: nextTrace,
+          selectedTraceStepId: traceStep?.id || current.selectedTraceStepId,
           agentMessages: readAgentMessages(sessionKey),
         }
       })
@@ -1365,10 +1368,11 @@ export const useAppStore = create((set, get) => ({
         agentLastStep: {
           objective,
           model: state.agentModel,
-          operation: null,
-          planning: null,
-          result: null,
-          verificationResult: null,
+          observe: null,
+          plan: null,
+          act: null,
+          verify: null,
+          reason: null,
           traceStep: failureStep || null,
           error: errorText,
           recordedAt: Date.now(),
