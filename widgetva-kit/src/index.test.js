@@ -1,0 +1,190 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+
+import * as widgetva from './index.js'
+import * as widgetvaCore from './core.js'
+import * as widgetvaCoreCompose from './coreCompose.js'
+import * as widgetvaCoreInspect from './coreInspect.js'
+import * as widgetvaCoreRuntime from './coreRuntime.js'
+import * as widgetvaCoreExamples from './coreExamples.js'
+import * as widgetvaCapabilities from './capabilities.js'
+import * as widgetvaAdapters from './adapters.js'
+import * as widgetvaTransport from './transport.js'
+import * as widgetvaTransports from './transports.js'
+import * as widgetvaTransportExecute from './transportExecute.js'
+import * as widgetvaTransportInspect from './transportInspect.js'
+import * as widgetvaTransportRuntime from './transportRuntime.js'
+import * as widgetvaTransportExamples from './transportExamples.js'
+import * as widgetvaPageIntegrations from './pageIntegrations.js'
+import * as widgetvaWidgets from './widgets.js'
+import * as widgetvaWorkspace from './workspace.js'
+
+test('widgetva index exports the stable kit surface', () => {
+  assert.deepEqual(widgetva.SUPPORTED_WIDGET_TYPES, [
+    'bar',
+    'line',
+    'scatter',
+    'parallelCoordinates',
+    'sankey',
+    'heatmap',
+  ])
+  assert.equal(typeof widgetva.WidgetInstance, 'function')
+  assert.equal(typeof widgetva.createWidgetInstance, 'function')
+  assert.equal(typeof widgetva.createBarWidget, 'function')
+  assert.equal(typeof widgetva.createLineWidget, 'function')
+  assert.equal(typeof widgetva.createScatterWidget, 'function')
+  assert.equal(typeof widgetva.createParallelCoordinatesWidget, 'function')
+  assert.equal(typeof widgetva.createSankeyWidget, 'function')
+  assert.equal(typeof widgetva.createHeatmapWidget, 'function')
+  assert.equal(typeof widgetva.WidgetWorkspace, 'function')
+  assert.equal(typeof widgetva.createWidgetWorkspace, 'function')
+})
+
+test('widgetva package exports only the intended public entrypoints', () => {
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+  assert.deepEqual(
+    Object.keys(pkg.exports),
+    ['.', './capabilities', './core', './core-compose', './core-inspect', './core-runtime', './core-examples', './adapters', './transport', './transports', './transport-execute', './transport-inspect', './transport-runtime', './transport-examples', './page-integrations', './widgets', './workspace'],
+  )
+})
+
+test('widgetva sub-entries expose core, adapter, widget, workspace, provider, and transport details outside the stable top-level kit surface', () => {
+  assert.equal(typeof widgetvaCapabilities.listSemanticCapabilities, 'function')
+  assert.equal(typeof widgetvaCapabilities.getSemanticCapability, 'function')
+  assert.equal(typeof widgetvaCapabilities.describeWidgetSemanticSurface, 'function')
+
+  assert.equal(typeof widgetvaCore.createWidgetVARuntime, 'function')
+  assert.equal(typeof widgetvaCore.installWidgetVAPagePort, 'function')
+  assert.equal(typeof widgetvaCore.createWidgetVAHostBridge, 'function')
+  assert.equal(typeof widgetvaCore.applyWidgetRuntimeState, 'function')
+  assert.equal(typeof widgetvaCore.attachWidgetRendererBridge, 'function')
+
+  assert.equal(typeof widgetvaCoreCompose.buildSingleWidgetWorkspace, 'function')
+  assert.equal(typeof widgetvaCoreInspect.readWorkspaceStateFromStore, 'function')
+  assert.equal(typeof widgetvaCoreInspect.summarizeWorkspaceState, 'function')
+  assert.equal(typeof widgetvaCoreInspect.PAGE_PORT_ALIASES, 'object')
+  assert.equal(typeof widgetvaCoreInspect.makeCurrentViewDataRef, 'function')
+  assert.equal(typeof widgetvaCoreRuntime.LinkEngine, 'function')
+  assert.equal(typeof widgetvaCoreRuntime.createWidgetVARuntime, 'function')
+  assert.equal(typeof widgetvaCoreRuntime.installWidgetVAPagePort, 'function')
+  assert.equal(typeof widgetvaCoreRuntime.readWorkspaceStateFromStore, 'undefined')
+  assert.equal(typeof widgetvaCoreRuntime.summarizeWorkspaceState, 'undefined')
+  assert.equal(typeof widgetvaCoreRuntime.PAGE_PORT_ALIASES, 'undefined')
+  assert.equal(typeof widgetvaCoreRuntime.buildSingleWidgetWorkspace, 'undefined')
+  assert.equal('runWidgetVAAgentLoopExample' in widgetvaCoreRuntime, false)
+
+  assert.equal(typeof widgetvaCoreExamples.runWidgetVAAgentLoopExample, 'function')
+
+  assert.equal(typeof widgetvaAdapters.createWidgetAdapterContract, 'function')
+  assert.equal(typeof widgetvaAdapters.instantiateWidgetAdapter, 'function')
+  assert.equal(typeof widgetvaAdapters.RuntimeProviderWidgetAdapter, 'function')
+  assert.equal(typeof widgetvaAdapters.installWidgetVAOnView, 'function')
+  assert.equal(typeof widgetvaAdapters.installWidgetVAOnVegaLiteView, 'function')
+  assert.equal(typeof widgetvaAdapters.createVegaLiteWidgetAdapter, 'function')
+  assert.equal(typeof widgetvaAdapters.ScatterWidgetAdapter, 'function')
+  assert.equal(typeof widgetvaAdapters.BarWidgetAdapter, 'function')
+  assert.equal(typeof widgetvaAdapters.HeatmapWidgetAdapter, 'function')
+  assert.equal(typeof widgetvaAdapters.LineWidgetAdapter, 'function')
+  assert.equal(typeof widgetvaAdapters.ParallelCoordinatesWidgetAdapter, 'function')
+  assert.equal(typeof widgetvaAdapters.SankeyWidgetAdapter, 'function')
+
+  assert.equal(typeof widgetvaTransport.createPlaywrightTransportClient, 'function')
+  assert.equal(typeof widgetvaTransport.createWebSocketTransportClient, 'function')
+  assert.equal(typeof widgetvaTransport.createBrowserExtensionTransportClient, 'function')
+  assert.equal(typeof widgetvaTransport.describeWidget, 'function')
+  assert.equal(typeof widgetvaTransport.readWorkspaceState, 'function')
+  assert.equal(typeof widgetvaTransport.executeWidgetAction, 'function')
+  assert.equal('agentLoopDescribe' in widgetvaTransport, false)
+  assert.equal('listAgentResponses' in widgetvaTransport, false)
+  assert.equal('recordAgentResponse' in widgetvaTransport, false)
+  assert.equal(typeof widgetvaTransports.queryWorkspacePerception, 'function')
+  assert.equal(typeof widgetvaTransports.readWidgetTrace, 'function')
+  assert.equal(typeof widgetvaTransports.replayWorkspace, 'function')
+  assert.equal(typeof widgetvaTransportExecute.agentLoopDescribe, 'function')
+  assert.equal(typeof widgetvaTransportExecute.verifiedActionRun, 'function')
+  assert.equal(typeof widgetvaTransportExecute.perceptionQuery, 'function')
+  assert.equal(typeof widgetvaTransportExecute.dataQuery, 'function')
+  assert.equal(typeof widgetvaTransportInspect.describePagePort, 'function')
+  assert.equal(typeof widgetvaTransportInspect.workspaceDescribe, 'function')
+  assert.equal(typeof widgetvaTransportInspect.runtimeCoreDescribe, 'function')
+  assert.equal(typeof widgetvaTransportInspect.traceGraphRead, 'function')
+  assert.equal(typeof widgetvaTransportRuntime.WidgetVAPlaywrightClient, 'function')
+  assert.equal(typeof widgetvaTransportRuntime.createWebSocketTransportClient, 'function')
+  assert.equal(typeof widgetvaTransportRuntime.createBrowserExtensionTransportClient, 'function')
+  assert.equal(typeof widgetvaTransportRuntime.workspaceDescribe, 'undefined')
+  assert.equal(typeof widgetvaTransportRuntime.perceptionQuery, 'undefined')
+  assert.equal(typeof widgetvaTransportRuntime.traceGraphRead, 'undefined')
+  assert.equal('describeWorkspaceFromPage' in widgetvaTransportRuntime, false)
+  assert.equal('readViewFromWebSocket' in widgetvaTransportRuntime, false)
+  assert.equal('queryPerceptionFromExtension' in widgetvaTransportRuntime, false)
+  assert.equal(typeof widgetvaTransportExamples.describeWorkspaceFromPage, 'function')
+  assert.equal(typeof widgetvaTransportExamples.readViewFromWebSocket, 'function')
+  assert.equal(typeof widgetvaTransportExamples.queryPerceptionFromExtension, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.isVegaLiteExamplesPage, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.readVegaLiteExampleIntegrationInput, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.normalizeVegaLiteExampleSpec, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.attachWidgetVAToVegaLiteExample, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.attachWidgetVAToCapturedVegaLiteExample, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.attachWidgetVAToCurrentVegaLiteExamplePage, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.bootstrapCurrentVegaLiteExamplePage, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.waitForCapturedVegaLiteExample, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.installVegaEmbedCapture, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.readLatestVegaEmbedCapture, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.isObservableD3NotebookPage, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.parseObservableNotebookIdentity, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.findObservableWorkerFrame, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.waitForObservableWorkerFrame, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.describeObservableD3PageShape, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.findPrimaryObservableD3Surface, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.summarizeObservableD3Surface, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.inferObservableD3WidgetKindFromSurface, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.waitForObservableD3Surface, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.describeObservableD3Surface, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.attachWidgetVAToObservableD3ScatterPage, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.bootstrapObservableD3ScatterPage, 'function')
+  assert.equal(typeof widgetvaPageIntegrations.createObservableScatterSurfaceWrapper, 'function')
+
+  assert.equal(typeof widgetvaWidgets.WidgetInstance, 'function')
+  assert.equal(typeof widgetvaWidgets.createWidgetInstance, 'function')
+  assert.equal(typeof widgetvaWidgets.createBarWidget, 'function')
+  assert.equal(typeof widgetvaWidgets.createLineWidget, 'function')
+  assert.equal(typeof widgetvaWidgets.createScatterWidget, 'function')
+  assert.equal(typeof widgetvaWidgets.createParallelCoordinatesWidget, 'function')
+  assert.equal(typeof widgetvaWidgets.createSankeyWidget, 'function')
+  assert.equal(typeof widgetvaWidgets.createHeatmapWidget, 'function')
+  assert.equal(typeof widgetvaWorkspace.WidgetWorkspace, 'function')
+  assert.equal(typeof widgetvaWorkspace.createWidgetWorkspace, 'function')
+})
+
+test('widgetva index no longer exposes runtime-first, adapter-first, or transport-first internals on the mainline export', () => {
+  assert.equal('createWidgetVARuntime' in widgetva, false)
+  assert.equal('createRuntimeStore' in widgetva, false)
+  assert.equal('createWidgetVAHostBridge' in widgetva, false)
+  assert.equal('applyWidgetRuntimeState' in widgetva, false)
+  assert.equal('attachWidgetRendererBridge' in widgetva, false)
+  assert.equal('summarizeWorkspaceState' in widgetva, false)
+  assert.equal('readWorkspaceStateFromStore' in widgetva, false)
+  assert.equal('PAGE_PORT_ALIASES' in widgetva, false)
+  assert.equal('ActionExecutor' in widgetva, false)
+  assert.equal('LinkEngine' in widgetva, false)
+  assert.equal('WidgetVARuntimeStore' in widgetva, false)
+  assert.equal('createWidgetAdapterContract' in widgetva, false)
+  assert.equal('createVegaLiteWidgetAdapter' in widgetva, false)
+  assert.equal('getWidgetFamilyAdapter' in widgetva, false)
+  assert.equal('registerWidgetFamilyAdapters' in widgetva, false)
+  assert.equal('WidgetVAPlaywrightClient' in widgetva, false)
+  assert.equal('createWebSocketTransportClient' in widgetva, false)
+  assert.equal('createBrowserExtensionTransportClient' in widgetva, false)
+  assert.equal('describeWidget' in widgetva, false)
+  assert.equal('executeWidgetAction' in widgetva, false)
+  assert.equal('queryWorkspacePerception' in widgetva, false)
+  assert.equal('describeWorkspaceFromPage' in widgetva, false)
+  assert.equal('queryPerceptionFromExtension' in widgetva, false)
+  assert.equal('RuntimeEvaluation' in widgetva, false)
+  assert.equal('BenchmarkRuntimeAdapter' in widgetva, false)
+  assert.equal('installWidgetVAEvaluationPort' in widgetva, false)
+  assert.equal('protocol' in widgetva, false)
+  assert.equal('runtime' in widgetva, false)
+  assert.equal('rendering' in widgetva, false)
+})
