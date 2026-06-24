@@ -39,10 +39,11 @@ test('buildAgentSessionKnowledge separates stable widget catalogs from per-turn 
 
   try {
     const knowledge = buildAgentSessionKnowledge(session.runtimeSessionKey)
+    const scatterWidgetRef = knowledge?.widgets?.find((widget) => widget.widgetId === 'w_scatter_cars')?.ref || null
     assert.equal(knowledge?.workspace?.caseId, 'cars-horsepower')
     assert.equal(Array.isArray(knowledge?.widgets), true)
     assert.equal(knowledge.widgets.length, 6)
-    assert.equal(Array.isArray(knowledge?.catalogs?.actionsByWidgetRef?.['wl://widgetva-app/workspace/cars-horsepower/widget/w_scatter_cars']), true)
+    assert.equal(Array.isArray(knowledge?.catalogs?.actionsByWidgetRef?.[scatterWidgetRef]), true)
     assert.equal(typeof knowledge?.history?.turns?.length, 'number')
   } finally {
     disposeRuntimeSession(session.runtimeSessionKey)

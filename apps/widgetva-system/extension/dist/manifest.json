@@ -1,0 +1,69 @@
+{
+  "manifest_version": 3,
+  "name": "WidgetVA Official Page Integration",
+  "version": "0.1.0",
+  "description": "Automatically injects WidgetVA into official Vega-Lite examples pages.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://openrouter.ai/*"
+  ],
+  "background": {
+    "service_worker": "backgroundServiceWorker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://vega.github.io/vega-lite/examples/*"
+      ],
+      "js": [
+        "vegaExamplesEarlyCaptureContentScript.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://vega.github.io/vega-lite/examples/*"
+      ],
+      "js": [
+        "vegaExamplesContentScript.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://observablehq.com/@d3/*"
+      ],
+      "js": [
+        "observableD3ContentScript.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://*.observableusercontent.com/*"
+      ],
+      "js": [
+        "observableD3WorkerContentScript.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "vegaExamplesEarlyCaptureContentScript.js",
+        "vegaExamplesPageScript.js",
+        "observableD3PageScript.js"
+      ],
+      "matches": [
+        "https://vega.github.io/*",
+        "https://observablehq.com/*"
+      ]
+    }
+  ]
+}

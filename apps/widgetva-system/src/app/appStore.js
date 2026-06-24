@@ -1324,7 +1324,7 @@ export const useAppStore = create((set, get) => ({
         }
         const nextTrace = readRuntimeTrace(sessionKey)
         const traceStep = Array.isArray(nextTrace) && nextTrace.length > 0 ? nextTrace.at(-1) : null
-      return {
+        return {
           agentStatus: 'idle',
           agentError: null,
           agentObjective: objective,

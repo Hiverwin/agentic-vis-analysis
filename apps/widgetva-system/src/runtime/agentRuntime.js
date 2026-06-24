@@ -131,7 +131,6 @@ export function buildAgentSessionKnowledge(caseId, {
 
   const description = readRuntimeWorkspaceDescription(caseId) || {}
   const caseDef = getWorkspaceCase(caseId)
-  const loopContext = session?.runtime?.describeAgentLoop?.() || null
   const providerByWidgetRef = buildWidgetProviderIndex(description)
   const actions = listRuntimeAvailableActions(caseId)
   const perceptions = listRuntimeAvailablePerceptions(caseId)
@@ -159,7 +158,7 @@ export function buildAgentSessionKnowledge(caseId, {
       perceptionsByWidgetRef: buildPerceptionCatalog(perceptions),
       dataQueriesByDataRef: buildDataQueryCatalog(description),
     },
-    loopHints: clone(loopContext?.loopHints || null),
+    loopHints: null,
     history: {
       turns: history,
     },
@@ -508,8 +507,8 @@ function summarizeResult(result) {
 }
 
 function deriveExecutionOk(result = {}) {
-  if (typeof result?.ok === 'boolean') return result.ok
   if (typeof result?.actionResult?.ok === 'boolean') return result.actionResult.ok
+  if (typeof result?.ok === 'boolean') return result.ok
   if (typeof result?.success === 'boolean') return result.success
   return true
 }
