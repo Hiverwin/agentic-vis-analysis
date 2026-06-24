@@ -26,6 +26,7 @@ function createMessageHost() {
 function makeRpcFrame(rows = []) {
   const appliedSelections = []
   const messageHost = createMessageHost()
+  let describeSurfaceCallCount = 0
   const frame = {
     src: 'https://d3.static.observableusercontent.com/next/worker-test.html',
     getAttribute(name) {
@@ -35,6 +36,7 @@ function makeRpcFrame(rows = []) {
       postMessage(message) {
         let response = null
         if (message.method === 'describeSurface') {
+          describeSurfaceCallCount += 1
           response = {
             source: 'widgetva-observable-d3-worker',
             type: 'widgetva:observable-d3-worker-response',
@@ -114,7 +116,124 @@ function makeRpcFrame(rows = []) {
   return {
     frame,
     appliedSelections,
+    getDescribeSurfaceCallCount() {
+      return describeSurfaceCallCount
+    },
     messageHost,
+  }
+}
+
+function makeScatterBecomesReadyRpcFrame() {
+  const appliedSelections = []
+  const messageHost = createMessageHost()
+  let describeSurfaceCallCount = 0
+  let readScatterRowsCallCount = 0
+  const readyRows = Array.from({ length: 10 }, (_, index) => ({
+    id: `pt_${index + 1}`,
+    __screenX: 20 + (index * 10),
+    __screenY: 30 + (index * 10),
+  }))
+
+  const frame = {
+    src: 'https://d3.static.observableusercontent.com/next/worker-test.html',
+    getAttribute(name) {
+      return name === 'src' ? this.src : null
+    },
+    contentWindow: {
+      postMessage(message) {
+        let response = null
+        if (message.method === 'describeSurface') {
+          describeSurfaceCallCount += 1
+          const ready = describeSurfaceCallCount >= 2
+          response = {
+            source: 'widgetva-observable-d3-worker',
+            type: 'widgetva:observable-d3-worker-response',
+            id: message.id,
+            ok: true,
+            result: {
+              surfaceTag: 'svg',
+              inferredKind: ready ? 'scatter' : 'custom',
+            },
+          }
+        } else if (message.method === 'readScatterRows') {
+          readScatterRowsCallCount += 1
+          const ready = readScatterRowsCallCount >= 2
+          response = {
+            source: 'widgetva-observable-d3-worker',
+            type: 'widgetva:observable-d3-worker-response',
+            id: message.id,
+            ok: true,
+            result: {
+              rows: ready ? readyRows : [],
+            },
+          }
+        } else if (message.method === 'applyScatterSelection') {
+          appliedSelections.push(message.params?.selection || null)
+          response = {
+            source: 'widgetva-observable-d3-worker',
+            type: 'widgetva:observable-d3-worker-response',
+            id: message.id,
+            ok: true,
+            result: {
+              selectedCount: readyRows.length,
+              totalCount: readyRows.length,
+            },
+          }
+        } else if (message.method === 'readDebugSnapshot') {
+          response = {
+            source: 'widgetva-observable-d3-worker',
+            type: 'widgetva:observable-d3-worker-response',
+            id: message.id,
+            ok: true,
+            result: {
+              route: 'worker',
+              surface: {
+                surfaceTag: 'svg',
+                inferredKind: 'scatter',
+              },
+              markCount: readyRows.length,
+              rowSummary: {
+                count: readyRows.length,
+                xMin: Math.min(...readyRows.map((row) => row.__screenX)),
+                xMax: Math.max(...readyRows.map((row) => row.__screenX)),
+                yMin: Math.min(...readyRows.map((row) => row.__screenY)),
+                yMax: Math.max(...readyRows.map((row) => row.__screenY)),
+                sample: readyRows.slice(0, 5),
+              },
+            },
+          }
+        } else {
+          response = {
+            source: 'widgetva-observable-d3-worker',
+            type: 'widgetva:observable-d3-worker-response',
+            id: message.id,
+            ok: false,
+            error: {
+              message: `Unsupported worker method: ${message.method}`,
+            },
+          }
+        }
+
+        setTimeout(() => {
+          messageHost.dispatchMessage({
+            data: response,
+          })
+        }, 0)
+      },
+    },
+  }
+
+  return {
+    frame,
+    appliedSelections,
+    messageHost,
+    readyRows,
+    getDescribeSurfaceCallCount() {
+      return describeSurfaceCallCount
+    },
+    getReadScatterRowsCallCount() {
+      return readScatterRowsCallCount
+    },
   }
 }
 
@@ -206,6 +325,48 @@ test('attachWidgetVAToObservableD3ScatterPage mounts WidgetVA over an Observable
       xDomain: [15, 55],
       yDomain: [25, 65],
     })
+    controller.dispose()
+  } finally {
+    globalThis.window = previousWindow
+  }
+})
+
+test('attachWidgetVAToObservableD3ScatterPage waits until the Observable worker scatter surface is actually ready', async () => {
+  const previousWindow = globalThis.window
+  try {
+    const { frame, messageHost, readyRows, getDescribeSurfaceCallCount, getReadScatterRowsCallCount } = makeScatterBecomesReadyRpcFrame()
+    const root = {
+      ...messageHost,
+      location: {
+        href: 'https://observablehq.com/@d3/scatterplot',
+      },
+      document: {
+        documentElement: {
+          dataset: {},
+        },
+        body: {
+          innerText: 'D3 scatterplot',
+        },
+        querySelectorAll(selector) {
+          if (selector === 'iframe') return [frame]
+          return []
+        },
+      },
+    }
+    globalThis.window = root
+
+    const controller = await attachWidgetVAToObservableD3ScatterPage({
+      root,
+      timeoutMs: 500,
+      pollMs: 5,
+    })
+
+    const snapshot = await controller.readDebugSnapshot()
+
+    assert.equal(snapshot.route, 'worker')
+    assert.equal(snapshot.rowSummary.count, readyRows.length)
+    assert.equal(getDescribeSurfaceCallCount() >= 2, true)
+    assert.equal(getReadScatterRowsCallCount() >= 2, true)
     controller.dispose()
   } finally {
     globalThis.window = previousWindow

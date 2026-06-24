@@ -312,7 +312,9 @@ window.addEventListener('message', (event) => {
   try {
     let result = null
     if (message.method === 'describeSurface') {
-      result = describeObservableD3Surface(window)
+      result = describeObservableD3Surface(window, {
+        notebook: message.params?.notebook || null,
+      })
     } else if (message.method === 'readScatterRows') {
       result = {
         rows: readObservableD3ScatterRows(window),

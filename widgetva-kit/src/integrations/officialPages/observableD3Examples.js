@@ -122,18 +122,41 @@ async function invokeObservableWorker(frame, method, params = null, { timeoutMs 
   })
 }
 
-async function waitForObservableWorkerSurface(frame, { timeoutMs = 5000, pollMs = 25 } = {}) {
+async function waitForObservableWorkerScatterSurface(frame, {
+  timeoutMs = 5000,
+  pollMs = 25,
+  notebook = null,
+} = {}) {
   const startedAt = Date.now()
+  let lastSurface = null
+  let lastRowCount = 0
+
   while ((Date.now() - startedAt) <= timeoutMs) {
     try {
-      const surface = await invokeObservableWorker(frame, 'describeSurface', null, { timeoutMs: Math.min(timeoutMs, 1000) })
-      if (surface?.inferredKind) {
-        return surface
+      const surface = await invokeObservableWorker(frame, 'describeSurface', {
+        notebook,
+      }, { timeoutMs: Math.min(timeoutMs, 1000) })
+      const workerRows = await invokeObservableWorker(frame, 'readScatterRows', null, {
+        timeoutMs: Math.min(timeoutMs, 1000),
+      })
+      const rows = Array.isArray(workerRows?.rows) ? workerRows.rows : []
+
+      lastSurface = surface || null
+      lastRowCount = rows.length
+
+      if (surface?.inferredKind === 'scatter' && rows.length > 0) {
+        return {
+          surface,
+          rows,
+        }
       }
     } catch {}
     await new Promise((resolve) => setTimeout(resolve, pollMs))
   }
-  throw new Error(`Timed out waiting for an Observable D3 chart surface after ${timeoutMs}ms.`)
+
+  throw new Error(
+    `Timed out waiting for a ready Observable D3 scatter surface after ${timeoutMs}ms (last inferred kind: ${lastSurface?.inferredKind || 'unknown'}, last row count: ${lastRowCount}).`,
+  )
 }
 
 export function createObservableScatterSurfaceWrapper({ frame }) {
@@ -187,19 +210,18 @@ export async function attachWidgetVAToObservableD3ScatterPage({
     timeoutMs,
     pollMs,
   })
-  const surfaceDescription = await waitForObservableWorkerSurface(workerFrame, {
+  const scatterSurface = await waitForObservableWorkerScatterSurface(workerFrame, {
     timeoutMs,
     pollMs,
+    notebook: pageShape?.notebook || null,
   })
+  const surfaceDescription = scatterSurface?.surface || null
 
   if (surfaceDescription?.inferredKind !== 'scatter') {
     throw new Error(`Observable D3 page is not yet supported for WidgetVA runtime attachment: inferred kind ${surfaceDescription?.inferredKind || 'unknown'}.`)
   }
 
-  const workerRows = await invokeObservableWorker(workerFrame, 'readScatterRows', null, {
-    timeoutMs,
-  })
-  const rows = Array.isArray(workerRows?.rows) ? workerRows.rows : []
+  const rows = Array.isArray(scatterSurface?.rows) ? scatterSurface.rows : []
   const wrapper = createObservableScatterSurfaceWrapper({ frame: workerFrame })
 
   if (rows.length === 0) {
