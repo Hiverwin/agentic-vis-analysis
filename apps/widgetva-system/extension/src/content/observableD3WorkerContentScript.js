@@ -21,13 +21,21 @@ const WIDGETVA_BRUSH_OVERLAY_ATTR = 'data-widgetva-brush-overlay'
 const WIDGETVA_SURFACE_PROBE_ATTR = 'data-widgetva-surface-probe'
 const WIDGETVA_VIEWBOX_CACHE_ATTR = 'data-widgetva-original-viewbox'
 const WIDGETVA_LINE_SLICE_ATTR = 'data-widgetva-line-slice-overlay'
+const WIDGETVA_LINE_SELECTION_ATTR = 'data-widgetva-line-selection-overlay'
 const WIDGETVA_LINE_TREND_ATTR = 'data-widgetva-line-trend-overlay'
 const WIDGETVA_LINE_MA_ATTR = 'data-widgetva-line-ma-overlay'
 const WIDGETVA_LINE_DRILLDOWN_ATTR = 'data-widgetva-line-drilldown-overlay'
 const WIDGETVA_SCATTER_REGRESSION_ATTR = 'data-widgetva-scatter-regression-overlay'
+const WIDGETVA_ZOOM_OVERLAY_ATTR = 'data-widgetva-zoom-overlay'
 const originalMarkState = new WeakMap()
+const originalSurfaceState = new WeakMap()
 let currentViewport = null
 let currentLineViewport = null
+let lastBarSelection = null
+let lastLineOverlayResult = null
+let lastLineViewportResult = null
+let lastLineAnnotationResult = null
+let lineScreenOverlayLifecycle = null
 
 function readSurfaceAndMarks() {
   const surface = findPrimaryObservableD3Surface(window)
@@ -67,6 +75,52 @@ function readRectLike(node) {
   return { left: 0, top: 0, width: 0, height: 0 }
 }
 
+function markUsesSvgLocalCoordinates(mark) {
+  if (typeof mark?.tagName !== 'string' || mark.tagName.toLowerCase() !== 'circle') {
+    return false
+  }
+
+  const attrCx = readNumber(mark.getAttribute?.('cx'))
+  const attrCy = readNumber(mark.getAttribute?.('cy'))
+  if (attrCx != null && attrCy != null) return true
+
+  const baseCx = readNumber(mark.cx?.baseVal?.value)
+  const baseCy = readNumber(mark.cy?.baseVal?.value)
+  return baseCx != null && baseCy != null
+}
+
+function inferScatterCoordinateSpace(marks = []) {
+  return marks.some((mark) => markUsesSvgLocalCoordinates(mark))
+    ? 'svg-local'
+    : 'viewport'
+}
+
+function viewportPointToSvg(surface, x, y) {
+  if (
+    surface
+    && typeof surface.createSVGPoint === 'function'
+    && typeof surface.getScreenCTM === 'function'
+  ) {
+    try {
+      const matrix = surface.getScreenCTM()
+      const inverse = matrix?.inverse?.()
+      if (inverse) {
+        const point = surface.createSVGPoint()
+        point.x = x
+        point.y = y
+        const transformed = point.matrixTransform(inverse)
+        return { x: transformed.x, y: transformed.y }
+      }
+    } catch {}
+  }
+
+  const rect = readRectLike(surface)
+  return {
+    x: x - rect.left,
+    y: y - rect.top,
+  }
+}
+
 function removeBrushOverlay(surface) {
   surface?.querySelector?.(`[${WIDGETVA_BRUSH_OVERLAY_ATTR}="true"]`)?.remove?.()
 }
@@ -76,8 +130,28 @@ function removeSurfaceProbe(surface) {
   doc?.querySelector?.(`[${WIDGETVA_SURFACE_PROBE_ATTR}="true"]`)?.remove?.()
 }
 
+function removeZoomOverlay(surface) {
+  surface?.querySelector?.(`[${WIDGETVA_ZOOM_OVERLAY_ATTR}="true"]`)?.remove?.()
+}
+
 function removeLineSliceOverlay(surface) {
   surface?.ownerDocument?.querySelector?.(`[${WIDGETVA_LINE_SLICE_ATTR}="true"]`)?.remove?.()
+}
+
+function removeLineSelectionOverlay(surface) {
+  const doc = surface?.ownerDocument || window.document
+  if (lineScreenOverlayLifecycle) {
+    try {
+      lineScreenOverlayLifecycle.observer?.disconnect?.()
+    } catch {}
+    lineScreenOverlayLifecycle.listeners?.forEach(({ target, type, handler, options }) => {
+      try {
+        target?.removeEventListener?.(type, handler, options)
+      } catch {}
+    })
+    lineScreenOverlayLifecycle = null
+  }
+  doc?.querySelectorAll?.(`[${WIDGETVA_LINE_SELECTION_ATTR}="true"]`)?.forEach((node) => node.remove?.())
 }
 
 function removeLineTrendOverlay(surface) {
@@ -94,6 +168,46 @@ function removeLineDrilldownOverlay(surface) {
 
 function removeScatterRegressionOverlay(surface) {
   surface?.querySelector?.(`[${WIDGETVA_SCATTER_REGRESSION_ATTR}="true"]`)?.remove?.()
+}
+
+function readSvgBox(surface) {
+  const viewBox = surface?.getAttribute?.('viewBox')
+  if (typeof viewBox === 'string' && viewBox.trim().length > 0) {
+    const [x, y, width, height] = viewBox
+      .trim()
+      .split(/[\s,]+/)
+      .map(readNumber)
+    if ([x, y, width, height].every((value) => value != null) && width > 0 && height > 0) {
+      return { x, y, width, height }
+    }
+  }
+
+  const attrWidth = readNumber(surface?.getAttribute?.('width'))
+  const attrHeight = readNumber(surface?.getAttribute?.('height'))
+  if (attrWidth != null && attrHeight != null && attrWidth > 0 && attrHeight > 0) {
+    return { x: 0, y: 0, width: attrWidth, height: attrHeight }
+  }
+
+  const rect = readRectLike(surface)
+  return { x: 0, y: 0, width: rect.width, height: rect.height }
+}
+
+function rememberSurfaceState(surface) {
+  if (!surface || originalSurfaceState.has(surface)) return
+  originalSurfaceState.set(surface, {
+    viewBox: surface.getAttribute?.('viewBox') ?? null,
+    preserveAspectRatio: surface.getAttribute?.('preserveAspectRatio') ?? null,
+  })
+}
+
+function restoreSurfaceState(surface) {
+  if (!surface) return
+  const original = originalSurfaceState.get(surface) || {}
+  if (original.viewBox == null) surface.removeAttribute?.('viewBox')
+  else surface.setAttribute?.('viewBox', original.viewBox)
+  if (original.preserveAspectRatio == null) surface.removeAttribute?.('preserveAspectRatio')
+  else surface.setAttribute?.('preserveAspectRatio', original.preserveAspectRatio)
+  removeZoomOverlay(surface)
 }
 
 function renderSurfaceProbe(surface, plotRegion = null) {
@@ -154,7 +268,7 @@ function renderSurfaceProbe(surface, plotRegion = null) {
   }
 }
 
-function renderBrushOverlay(surface, selection) {
+function renderBrushOverlay(surface, selection, { coordinateSpace = 'viewport' } = {}) {
   if (!surface || typeof surface?.tagName !== 'string' || surface.tagName.toLowerCase() !== 'svg') {
     return
   }
@@ -166,11 +280,16 @@ function renderBrushOverlay(surface, selection) {
     return
   }
 
-  const rect = readRectLike(surface)
-  const x = Math.min(xDomain[0], xDomain[1]) - rect.left
-  const y = Math.min(yDomain[0], yDomain[1]) - rect.top
-  const width = Math.abs(xDomain[1] - xDomain[0])
-  const height = Math.abs(yDomain[1] - yDomain[0])
+  const firstCorner = coordinateSpace === 'svg-local'
+    ? { x: xDomain[0], y: yDomain[0] }
+    : viewportPointToSvg(surface, xDomain[0], yDomain[0])
+  const secondCorner = coordinateSpace === 'svg-local'
+    ? { x: xDomain[1], y: yDomain[1] }
+    : viewportPointToSvg(surface, xDomain[1], yDomain[1])
+  const x = Math.min(firstCorner.x, secondCorner.x)
+  const y = Math.min(firstCorner.y, secondCorner.y)
+  const width = Math.abs(secondCorner.x - firstCorner.x)
+  const height = Math.abs(secondCorner.y - firstCorner.y)
 
   const doc = surface.ownerDocument || window.document
   const overlay = surface.querySelector?.(`[${WIDGETVA_BRUSH_OVERLAY_ATTR}="true"]`)
@@ -197,6 +316,7 @@ function renderBrushOverlay(surface, selection) {
 }
 
 function clearMarkFeedback(mark) {
+  if (!originalMarkState.has(mark)) return
   const original = originalMarkState.get(mark) || {}
 
   if (original.opacity == null) mark.removeAttribute?.('opacity')
@@ -283,6 +403,9 @@ function applyLinePathFocusFeedback(path, focused, dimOpacity = 0.08) {
     })
   }
 
+  path.setAttribute?.('fill', 'none')
+  path.style.fill = 'none'
+
   if (focused) {
     path.setAttribute?.('opacity', '1')
     path.setAttribute?.('stroke-width', '3')
@@ -297,6 +420,37 @@ function applyLinePathFocusFeedback(path, focused, dimOpacity = 0.08) {
   path.style.opacity = String(dimOpacity)
   path.style.strokeWidth = '1px'
   path.style.filter = ''
+}
+
+function applyLinePathSelectionFeedback(path, selected) {
+  if (!originalMarkState.has(path)) {
+    originalMarkState.set(path, {
+      opacity: path.getAttribute?.('opacity') ?? null,
+      stroke: path.getAttribute?.('stroke') ?? null,
+      strokeWidth: path.getAttribute?.('stroke-width') ?? null,
+      fill: path.getAttribute?.('fill') ?? null,
+      fillOpacity: path.getAttribute?.('fill-opacity') ?? null,
+      radius: path.getAttribute?.('r') ?? null,
+      styleOpacity: path.style.opacity || '',
+      styleStroke: path.style.stroke || '',
+      styleStrokeWidth: path.style.strokeWidth || '',
+      styleFillOpacity: path.style.fillOpacity || '',
+      styleFill: path.style.fill || '',
+      styleFilter: path.style.filter || '',
+    })
+  }
+
+  path.setAttribute?.('fill', 'none')
+  path.removeAttribute?.('fill-opacity')
+  path.setAttribute?.('opacity', selected ? '1' : '0.12')
+  path.setAttribute?.('stroke', selected ? '#dc2626' : '#cbd5e1')
+  path.setAttribute?.('stroke-width', selected ? '3' : '1')
+  path.style.fill = 'none'
+  path.style.fillOpacity = ''
+  path.style.opacity = selected ? '1' : '0.12'
+  path.style.stroke = selected ? '#dc2626' : '#cbd5e1'
+  path.style.strokeWidth = selected ? '3px' : '1px'
+  path.style.filter = selected ? 'drop-shadow(0 0 6px rgba(220, 38, 38, 0.45))' : ''
 }
 
 function computeLinearRegression(points = []) {
@@ -320,6 +474,347 @@ function createSvgLineNode(surface) {
 
 function createSvgGroupNode(surface) {
   return surface?.ownerDocument?.createElementNS?.('http://www.w3.org/2000/svg', 'g') || null
+}
+
+function clonePathForLineOverlay(path, {
+  stroke = '#dc2626',
+  strokeWidth = '3',
+  opacity = '0.95',
+  dasharray = null,
+} = {}) {
+  const clone = path?.cloneNode?.(true)
+  if (!clone) return null
+  clone.removeAttribute?.('id')
+  clone.removeAttribute?.('class')
+  clone.removeAttribute?.('data-testid')
+  clone.removeAttribute?.('style')
+  clone.setAttribute('fill', 'none')
+  clone.setAttribute('stroke', stroke)
+  clone.setAttribute('stroke-width', strokeWidth)
+  clone.setAttribute('opacity', opacity)
+  clone.setAttribute('pointer-events', 'none')
+  clone.setAttribute('vector-effect', 'non-scaling-stroke')
+  if (dasharray) clone.setAttribute('stroke-dasharray', dasharray)
+  clone.style.fill = 'none'
+  clone.style.stroke = stroke
+  clone.style.strokeWidth = `${strokeWidth}px`
+  clone.style.opacity = opacity
+  clone.style.pointerEvents = 'none'
+  return clone
+}
+
+function renderLinePathOverlay(surface, entries = [], {
+  attrName = WIDGETVA_LINE_SELECTION_ATTR,
+  stroke = '#dc2626',
+  strokeWidth = '3',
+  opacity = '0.95',
+  dasharray = null,
+  dimOriginal = false,
+} = {}) {
+  surface?.querySelector?.(`[${attrName}="true"]`)?.remove?.()
+  if (!surface || typeof surface?.tagName !== 'string' || surface.tagName.toLowerCase() !== 'svg') {
+    return { applied: false, overlayCount: 0 }
+  }
+  const normalizedEntries = Array.isArray(entries) ? entries.filter((entry) => entry?.path) : []
+  if (normalizedEntries.length === 0) {
+    return { applied: false, overlayCount: 0 }
+  }
+
+  const overlayGroup = createSvgGroupNode(surface)
+  if (!overlayGroup) return { applied: false, overlayCount: 0 }
+  overlayGroup.setAttribute(attrName, 'true')
+  overlayGroup.setAttribute('pointer-events', 'none')
+
+  if (dimOriginal) {
+    const plotRegion = findObservableD3PlotRegion(window)
+    const localRect = plotRegion?.localRect || {
+      left: 0,
+      top: 0,
+      width: readSvgBox(surface).width,
+      height: readSvgBox(surface).height,
+    }
+    const veil = surface.ownerDocument?.createElementNS?.('http://www.w3.org/2000/svg', 'rect')
+    if (veil) {
+      veil.setAttribute('x', String(localRect.left))
+      veil.setAttribute('y', String(localRect.top))
+      veil.setAttribute('width', String(localRect.width))
+      veil.setAttribute('height', String(localRect.height))
+      veil.setAttribute('fill', 'rgba(255, 255, 255, 0.68)')
+      veil.setAttribute('pointer-events', 'none')
+      overlayGroup.appendChild(veil)
+    }
+  }
+
+  normalizedEntries.forEach(({ path }) => {
+    const clone = clonePathForLineOverlay(path, {
+      stroke,
+      strokeWidth,
+      opacity,
+      dasharray,
+    })
+    if (clone) overlayGroup.appendChild(clone)
+  })
+
+  surface.appendChild(overlayGroup)
+  return {
+    applied: true,
+    overlayCount: normalizedEntries.length,
+  }
+}
+
+function sampleLinePathScreenPoints(path, sampleCount = 96) {
+  if (!path || typeof path.getTotalLength !== 'function' || typeof path.getPointAtLength !== 'function') {
+    return []
+  }
+  let matrix = null
+  try {
+    matrix = typeof path.getScreenCTM === 'function' ? path.getScreenCTM() : null
+  } catch {}
+  if (!matrix) return []
+
+  let totalLength = 0
+  try {
+    totalLength = path.getTotalLength()
+  } catch {
+    return []
+  }
+  if (!Number.isFinite(totalLength) || totalLength <= 0) return []
+
+  const ownerSvg = path.ownerSVGElement
+  const createPoint = ownerSvg && typeof ownerSvg.createSVGPoint === 'function'
+    ? () => ownerSvg.createSVGPoint()
+    : null
+  if (!createPoint) return []
+
+  const steps = Math.max(2, sampleCount)
+  const points = []
+  for (let index = 0; index < steps; index += 1) {
+    const distance = (totalLength * index) / (steps - 1)
+    let localPoint = null
+    try {
+      localPoint = path.getPointAtLength(distance)
+    } catch {
+      continue
+    }
+    const svgPoint = createPoint()
+    svgPoint.x = localPoint.x
+    svgPoint.y = localPoint.y
+    const screenPoint = svgPoint.matrixTransform(matrix)
+    points.push({
+      x: screenPoint.x,
+      y: screenPoint.y,
+    })
+  }
+  return points
+}
+
+function sampleLinePathLocalPoints(path, sampleCount = 180) {
+  if (!path || typeof path.getTotalLength !== 'function' || typeof path.getPointAtLength !== 'function') {
+    return []
+  }
+
+  let totalLength = 0
+  try {
+    totalLength = path.getTotalLength()
+  } catch {
+    return []
+  }
+  if (!Number.isFinite(totalLength) || totalLength <= 0) return []
+
+  const steps = Math.max(8, sampleCount)
+  const points = []
+  for (let index = 0; index < steps; index += 1) {
+    const distance = (totalLength * index) / (steps - 1)
+    try {
+      const point = path.getPointAtLength(distance)
+      const x = readNumber(point?.x)
+      const y = readNumber(point?.y)
+      if (x != null && y != null) {
+        points.push({ x, y })
+      }
+    } catch {}
+  }
+  return points
+}
+
+function smoothLinePathPoints(points = [], windowSize = 9) {
+  const safePoints = Array.isArray(points)
+    ? points.filter((point) => Number.isFinite(point?.x) && Number.isFinite(point?.y))
+    : []
+  if (safePoints.length < 3) return safePoints
+
+  const width = Math.max(3, Math.min(safePoints.length, Math.round(windowSize)))
+  const radius = Math.floor(width / 2)
+  return safePoints.map((point, index) => {
+    const from = Math.max(0, index - radius)
+    const to = Math.min(safePoints.length - 1, index + radius)
+    const slice = safePoints.slice(from, to + 1)
+    const y = slice.reduce((sum, item) => sum + item.y, 0) / slice.length
+    return {
+      x: point.x,
+      y,
+    }
+  })
+}
+
+function updateLineScreenOverlay(lifecycle) {
+  if (!lifecycle?.overlay || !Array.isArray(lifecycle.entries)) return
+  const doc = lifecycle.doc || window.document
+  const width = window.innerWidth || doc.documentElement?.clientWidth || 1200
+  const height = window.innerHeight || doc.documentElement?.clientHeight || 800
+  lifecycle.overlay.setAttribute('width', String(width))
+  lifecycle.overlay.setAttribute('height', String(height))
+  lifecycle.overlay.setAttribute('viewBox', `0 0 ${width} ${height}`)
+
+  if (lifecycle.veil) {
+    const plotRegion = findObservableD3PlotRegion(window)
+    const rect = plotRegion?.screenRect || readRectLike(lifecycle.surface)
+    lifecycle.veil.setAttribute('x', String(rect.left))
+    lifecycle.veil.setAttribute('y', String(rect.top))
+    lifecycle.veil.setAttribute('width', String(rect.width))
+    lifecycle.veil.setAttribute('height', String(rect.height))
+  }
+
+  let overlayCount = 0
+  lifecycle.entries.forEach(({ path, polyline }) => {
+    if (!path?.isConnected || !polyline) {
+      if (polyline) polyline.style.display = 'none'
+      return
+    }
+    const points = sampleLinePathScreenPoints(path)
+    if (points.length < 2) {
+      polyline.style.display = 'none'
+      return
+    }
+    polyline.style.display = ''
+    polyline.setAttribute('points', points.map((point) => `${point.x},${point.y}`).join(' '))
+    overlayCount += 1
+  })
+
+  lifecycle.overlayCount = overlayCount
+  if (lastLineOverlayResult && lifecycle === lineScreenOverlayLifecycle) {
+    lastLineOverlayResult = {
+      ...lastLineOverlayResult,
+      applied: overlayCount > 0,
+      overlayCount,
+      dynamic: true,
+    }
+  }
+}
+
+function scheduleLineScreenOverlayUpdate(lifecycle = lineScreenOverlayLifecycle) {
+  if (!lifecycle || lifecycle.rafId != null) return
+  lifecycle.rafId = window.requestAnimationFrame?.(() => {
+    lifecycle.rafId = null
+    updateLineScreenOverlay(lifecycle)
+  })
+}
+
+function renderLineScreenPathOverlay(surface, entries = [], {
+  attrName = WIDGETVA_LINE_SELECTION_ATTR,
+  stroke = '#dc2626',
+  strokeWidth = '4',
+  opacity = '0.98',
+  dimOriginal = false,
+} = {}) {
+  const doc = surface?.ownerDocument || window.document
+  removeLineSelectionOverlay(surface)
+  const host = doc?.body || doc?.documentElement
+  const normalizedEntries = Array.isArray(entries) ? entries.filter((entry) => entry?.path) : []
+  if (!host || normalizedEntries.length === 0) {
+    return { applied: false, overlayCount: 0 }
+  }
+
+  const overlay = doc.createElementNS?.('http://www.w3.org/2000/svg', 'svg')
+  if (!overlay) return { applied: false, overlayCount: 0 }
+  overlay.setAttribute(attrName, 'true')
+  overlay.setAttribute('width', String(window.innerWidth || doc.documentElement?.clientWidth || 1200))
+  overlay.setAttribute('height', String(window.innerHeight || doc.documentElement?.clientHeight || 800))
+  overlay.setAttribute('viewBox', `0 0 ${window.innerWidth || doc.documentElement?.clientWidth || 1200} ${window.innerHeight || doc.documentElement?.clientHeight || 800}`)
+  overlay.style.position = 'fixed'
+  overlay.style.left = '0'
+  overlay.style.top = '0'
+  overlay.style.width = '100vw'
+  overlay.style.height = '100vh'
+  overlay.style.pointerEvents = 'none'
+  overlay.style.zIndex = '2147483646'
+  overlay.style.overflow = 'visible'
+
+  let veil = null
+  if (dimOriginal) {
+    const plotRegion = findObservableD3PlotRegion(window)
+    const rect = plotRegion?.screenRect || readRectLike(surface)
+    veil = doc.createElementNS('http://www.w3.org/2000/svg', 'rect')
+    veil.setAttribute('x', String(rect.left))
+    veil.setAttribute('y', String(rect.top))
+    veil.setAttribute('width', String(rect.width))
+    veil.setAttribute('height', String(rect.height))
+    veil.setAttribute('fill', 'rgba(255, 255, 255, 0.45)')
+    overlay.appendChild(veil)
+  }
+
+  const overlayEntries = []
+  normalizedEntries.forEach(({ path, series }) => {
+    const polyline = doc.createElementNS('http://www.w3.org/2000/svg', 'polyline')
+    polyline.setAttribute('fill', 'none')
+    polyline.setAttribute('stroke', stroke)
+    polyline.setAttribute('stroke-width', strokeWidth)
+    polyline.setAttribute('stroke-linejoin', 'round')
+    polyline.setAttribute('stroke-linecap', 'round')
+    polyline.setAttribute('opacity', opacity)
+    polyline.setAttribute('vector-effect', 'non-scaling-stroke')
+    polyline.style.filter = 'drop-shadow(0 0 5px rgba(220, 38, 38, 0.65))'
+    overlay.appendChild(polyline)
+    overlayEntries.push({ path, series, polyline })
+  })
+
+  host.appendChild(overlay)
+  const lifecycle = {
+    attrName,
+    doc,
+    surface,
+    overlay,
+    veil,
+    entries: overlayEntries,
+    overlayCount: 0,
+    rafId: null,
+    listeners: [],
+    observer: null,
+  }
+  const schedule = () => scheduleLineScreenOverlayUpdate(lifecycle)
+  const listenerOptions = { passive: true }
+  ;[
+    { target: window, type: 'mousemove' },
+    { target: window, type: 'scroll' },
+    { target: window, type: 'resize' },
+    { target: doc, type: 'mousemove' },
+    { target: doc, type: 'scroll' },
+  ].forEach(({ target, type }) => {
+    target?.addEventListener?.(type, schedule, listenerOptions)
+    lifecycle.listeners.push({ target, type, handler: schedule, options: listenerOptions })
+  })
+  if (typeof MutationObserver === 'function' && surface) {
+    lifecycle.observer = new MutationObserver(schedule)
+    try {
+      lifecycle.observer.observe(surface, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ['d', 'transform', 'style', 'display', 'opacity'],
+      })
+    } catch {}
+  }
+  lineScreenOverlayLifecycle = lifecycle
+  updateLineScreenOverlay(lifecycle)
+
+  if (lifecycle.overlayCount === 0) {
+    removeLineSelectionOverlay(surface)
+    return { applied: false, overlayCount: 0, dynamic: true }
+  }
+  return {
+    applied: true,
+    overlayCount: lifecycle.overlayCount,
+    dynamic: true,
+  }
 }
 
 function renderScatterRegressionOverlay(surface, points = []) {
@@ -382,7 +877,7 @@ function renderLineTrendOverlay(surface, trend = null) {
   }
 }
 
-function renderLineMovingAverageOverlay(surface, paths = []) {
+function renderLineMovingAverageOverlay(surface, paths = [], movingAverage = null) {
   removeLineMovingAverageOverlay(surface)
   if (!surface || typeof surface?.tagName !== 'string' || surface.tagName.toLowerCase() !== 'svg' || paths.length === 0) return { applied: false }
   const overlayGroup = createSvgGroupNode(surface)
@@ -390,25 +885,39 @@ function renderLineMovingAverageOverlay(surface, paths = []) {
   overlayGroup.setAttribute(WIDGETVA_LINE_MA_ATTR, 'true')
   overlayGroup.setAttribute('pointer-events', 'none')
 
+  const requestedWindow = Number(movingAverage?.windowSize)
+  const effectiveWindow = Number.isFinite(requestedWindow) && requestedWindow > 0
+    ? Math.max(7, Math.round(requestedWindow) * 7)
+    : 21
+  let overlayCount = 0
   paths.forEach((path) => {
-    const clone = path.cloneNode?.(true)
-    if (!clone) return
-    clone.removeAttribute?.('data-testid')
-    clone.setAttribute('stroke', '#f59e0b')
-    clone.setAttribute('stroke-width', '3')
-    clone.setAttribute('opacity', '0.85')
-    clone.setAttribute('fill', 'none')
-    clone.style.stroke = '#f59e0b'
-    clone.style.strokeWidth = '3px'
-    clone.style.opacity = '0.85'
-    clone.style.filter = 'drop-shadow(0 0 4px rgba(245, 158, 11, 0.35))'
-    overlayGroup.appendChild(clone)
+    const points = smoothLinePathPoints(sampleLinePathLocalPoints(path), effectiveWindow)
+    if (points.length < 2) return
+    const polyline = surface.ownerDocument?.createElementNS?.('http://www.w3.org/2000/svg', 'polyline')
+    if (!polyline) return
+    polyline.setAttribute('points', points.map((point) => `${point.x},${point.y}`).join(' '))
+    polyline.setAttribute('stroke', '#f59e0b')
+    polyline.setAttribute('stroke-width', '3.25')
+    polyline.setAttribute('opacity', '0.78')
+    polyline.setAttribute('fill', 'none')
+    polyline.setAttribute('stroke-dasharray', '10 5')
+    polyline.setAttribute('stroke-linejoin', 'round')
+    polyline.setAttribute('stroke-linecap', 'round')
+    polyline.setAttribute('vector-effect', 'non-scaling-stroke')
+    polyline.style.stroke = '#f59e0b'
+    polyline.style.strokeWidth = '3.25px'
+    polyline.style.opacity = '0.78'
+    polyline.style.filter = 'drop-shadow(0 0 4px rgba(245, 158, 11, 0.42))'
+    overlayGroup.appendChild(polyline)
+    overlayCount += 1
   })
 
+  if (overlayCount === 0) return { applied: false, overlayCount: 0 }
   surface.appendChild(overlayGroup)
   return {
     applied: true,
-    overlayCount: paths.length,
+    overlayCount,
+    smoothingWindow: effectiveWindow,
   }
 }
 
@@ -434,10 +943,10 @@ function renderLineDrilldownOverlay(surface, drilldown = null) {
   removeLineDrilldownOverlay(surface)
   if (!surface || !drilldown) return { applied: false }
 
-  const values = inferDrilldownValues(drilldown, readObservableD3LineXAxisLabels(window))
-  if (values.length > 0) {
-    renderLineSliceOverlay(surface, values)
-  }
+  const inferredValues = inferDrilldownValues(drilldown, readObservableD3LineXAxisLabels(window))
+  const fallbackValues = Number.isFinite(drilldown.value) ? [String(drilldown.value)] : []
+  const values = inferredValues.length > 0 ? inferredValues : fallbackValues
+  const sliceResult = values.length > 0 ? renderLineSliceOverlay(surface, values) : null
 
   const plotRegion = findObservableD3PlotRegion(window)
   const targetRect = plotRegion?.screenRect || readRectLike(surface)
@@ -465,6 +974,7 @@ function renderLineDrilldownOverlay(surface, drilldown = null) {
   return {
     applied: true,
     highlightedValues: values,
+    slice: sliceResult,
   }
 }
 
@@ -523,10 +1033,11 @@ function pointInsideInterval(point, selection) {
 function applyScatterSelection(selection = null) {
   const { surface, marks } = readSurfaceAndMarks()
   const rows = readObservableD3ScatterRows(window)
+  const coordinateSpace = inferScatterCoordinateSpace(marks)
   if (!selection) {
     removeBrushOverlay(surface)
   } else {
-    renderBrushOverlay(surface, selection)
+    renderBrushOverlay(surface, selection, { coordinateSpace })
   }
   let selectedCount = 0
   marks.forEach((circle, index) => {
@@ -549,18 +1060,30 @@ function applyScatterSelection(selection = null) {
 function applyBarSelection(selection = null) {
   const { marks } = readSurfaceAndBarMarks()
   const rows = readObservableD3BarRows(window)
-  const values = Array.isArray(selection?.values) ? selection.values : []
-  const selectedSet = new Set(values)
+  const values = Array.isArray(selection?.values)
+    ? selection.values
+    : Array.isArray(selection?.categories)
+      ? selection.categories
+      : []
+  const normalizedSelection = values.length > 0
+    ? {
+        field: typeof selection?.field === 'string' ? selection.field : 'category',
+        values: values.map((value) => String(value)),
+      }
+    : null
+  const selectedSet = new Set(normalizedSelection?.values || [])
   let selectedCount = 0
+
+  lastBarSelection = normalizedSelection
 
   marks.forEach((mark, index) => {
     const row = rows[index] || null
-    if (!selection) {
+    if (!normalizedSelection) {
       clearMarkFeedback(mark)
       mark.style.display = ''
       return
     }
-    const selected = !!row && selectedSet.has(row.category)
+    const selected = !!row && selectedSet.has(String(row.category))
     if (selected) selectedCount += 1
     applyMarkFeedback(mark, selected)
     mark.style.display = ''
@@ -577,25 +1100,40 @@ function applyBarFilter(filter = null) {
   const rows = readObservableD3BarRows(window)
   const values = Array.isArray(filter?.categories) ? filter.categories : []
   const visibleSet = new Set(values)
+  const selectedSet = new Set(lastBarSelection?.values || [])
   let visibleCount = 0
+  let selectedCount = 0
 
   marks.forEach((mark, index) => {
     const row = rows[index] || null
     if (!filter) {
       mark.style.display = ''
-      clearMarkFeedback(mark)
+      if (lastBarSelection) {
+        const selected = !!row && selectedSet.has(String(row.category))
+        if (selected) selectedCount += 1
+        applyMarkFeedback(mark, selected)
+      } else {
+        clearMarkFeedback(mark)
+      }
       return
     }
     const visible = !!row && visibleSet.has(row.category)
     if (visible) visibleCount += 1
     mark.style.display = visible ? '' : 'none'
     if (visible) {
-      clearMarkFeedback(mark)
+      if (lastBarSelection) {
+        const selected = selectedSet.has(String(row.category))
+        if (selected) selectedCount += 1
+        applyMarkFeedback(mark, selected)
+      } else {
+        clearMarkFeedback(mark)
+      }
     }
   })
 
   return {
     visibleCount,
+    selectedCount,
     totalCount: rows.length,
   }
 }
@@ -659,6 +1197,65 @@ function readLineXAxisLabelEntries(surface) {
   return readLineTextNodes(surface).filter((entry) => labels.has(entry.text))
 }
 
+function readYearLikeValue(value) {
+  if (value == null) return null
+  const text = String(value).trim()
+  if (!text) return null
+  const directYear = Number(text)
+  if (Number.isFinite(directYear) && directYear >= 1900 && directYear <= 2100) return directYear
+  const parsed = Date.parse(text)
+  if (!Number.isFinite(parsed)) return null
+  return new Date(parsed).getFullYear()
+}
+
+function inferLineSliceXFromValue({ value, surface, plotRegion, xLabels = [] }) {
+  const requestedYear = readYearLikeValue(value)
+  if (!Number.isFinite(requestedYear)) return null
+  const plotRect = plotRegion?.screenRect || readRectLike(surface)
+  if (!Number.isFinite(plotRect.left) || !Number.isFinite(plotRect.width) || plotRect.width <= 0) return null
+
+  const years = xLabels
+    .map((entry) => readYearLikeValue(entry.text))
+    .filter((year) => Number.isFinite(year))
+  const minYear = years.length > 0 ? Math.min(...years) : 2013
+  const maxYear = years.length > 0 ? Math.max(...years) : 2018
+  if (maxYear <= minYear) return null
+
+  const clampedYear = Math.max(minYear, Math.min(maxYear, requestedYear))
+  const fraction = (clampedYear - minYear) / (maxYear - minYear)
+  return plotRect.left + (plotRect.width * fraction)
+}
+
+function inferLineViewportBoundsFromYears({ xDomain, surface, plotRegion, xLabels = [] }) {
+  if (!Array.isArray(xDomain) || xDomain.length < 2) return null
+  const startYear = readYearLikeValue(xDomain[0])
+  const endYear = readYearLikeValue(xDomain[1])
+  if (!Number.isFinite(startYear) || !Number.isFinite(endYear)) return null
+
+  const years = xLabels
+    .map((entry) => readYearLikeValue(entry.text))
+    .filter((year) => Number.isFinite(year))
+  const minYear = years.length > 0 ? Math.min(...years) : 2013
+  const maxYear = years.length > 0 ? Math.max(...years) : 2018
+  if (maxYear <= minYear) return null
+
+  const plotRect = plotRegion?.screenRect || readRectLike(surface)
+  if (!Number.isFinite(plotRect.left) || !Number.isFinite(plotRect.width) || plotRect.width <= 0) return null
+
+  const lowYear = Math.max(minYear, Math.min(maxYear, Math.min(startYear, endYear)))
+  const highYear = Math.max(minYear, Math.min(maxYear, Math.max(startYear, endYear)))
+  const lowFraction = (lowYear - minYear) / (maxYear - minYear)
+  const highFraction = (highYear - minYear) / (maxYear - minYear)
+  return {
+    leftPx: plotRect.left + (plotRect.width * lowFraction),
+    rightPx: plotRect.left + (plotRect.width * highFraction),
+    minYear,
+    maxYear,
+    lowYear,
+    highYear,
+  }
+}
+
 function parseComparableAxisValue(value) {
   if (value == null) return null
   if (typeof value === 'number' && Number.isFinite(value)) return value
@@ -676,8 +1273,145 @@ function compareComparableAxisValue(left, right) {
   return String(left).localeCompare(String(right))
 }
 
+function readLinePathSeriesFromDatum(path) {
+  const datum = path?.__data__
+  if (!datum || typeof datum !== 'object') return null
+  const candidates = [
+    datum.key,
+    datum.series,
+    datum.Series,
+    datum.symbol,
+    datum.Symbol,
+    datum.name,
+    datum.id,
+  ]
+  for (const candidate of candidates) {
+    if (candidate == null) continue
+    const value = String(candidate).trim()
+    if (value) return value
+  }
+  if (Array.isArray(datum) && datum.length > 0) {
+    const first = datum[0]
+    const nested = first && typeof first === 'object'
+      ? (first.series || first.Series || first.symbol || first.Symbol || first.name)
+      : null
+    if (nested != null && String(nested).trim()) return String(nested).trim()
+  }
+  return null
+}
+
+function normalizeSvgColor(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
+
+function readLinePathStroke(path) {
+  return normalizeSvgColor(path?.getAttribute?.('stroke') || path?.style?.stroke || '')
+}
+
+function normalizeLineSeriesValue(value) {
+  const token = String(value ?? '').trim()
+  if (!token) return ''
+  const upper = token.toUpperCase()
+  const aliases = new Map([
+    ['A', 'AAPL'],
+    ['APPLE', 'AAPL'],
+    ['AAPL', 'AAPL'],
+    ['AMAZON', 'AMZN'],
+    ['AMZN', 'AMZN'],
+    ['GOOGLE', 'GOOG'],
+    ['GOOG', 'GOOG'],
+    ['MICROSOFT', 'MSFT'],
+    ['MSFT', 'MSFT'],
+    ['IBM', 'IBM'],
+  ])
+  return aliases.get(upper) || upper
+}
+
+function lineSeriesMatches(series, selectedSet) {
+  if (series == null || !selectedSet || selectedSet.size === 0) return false
+  return selectedSet.has(normalizeLineSeriesValue(series))
+}
+
+function readIndexChartSeriesFromStroke(path) {
+  const stroke = readLinePathStroke(path)
+  const seriesByStroke = new Map([
+    ['#2ca02c', 'AMZN'],
+    ['#d62728', 'GOOG'],
+    ['#9467bd', 'IBM'],
+    ['#8c564b', 'MSFT'],
+    ['#ff7f0e', 'AAPL'],
+  ])
+  return seriesByStroke.get(stroke) || null
+}
+
+function readLinePathEndpoint(path) {
+  if (!path || typeof path.getTotalLength !== 'function' || typeof path.getPointAtLength !== 'function') {
+    const rect = readRectLike(path)
+    return {
+      x: rect.left + rect.width,
+      y: rect.top + (rect.height / 2),
+    }
+  }
+  try {
+    const point = path.getPointAtLength(path.getTotalLength())
+    return {
+      x: Number(point?.x) || 0,
+      y: Number(point?.y) || 0,
+    }
+  } catch {
+    const rect = readRectLike(path)
+    return {
+      x: rect.left + rect.width,
+      y: rect.top + (rect.height / 2),
+    }
+  }
+}
+
+function fallbackLineEntriesByKnownIndexSeries(paths, selectedSet) {
+  const requested = [...selectedSet].map((value) => normalizeLineSeriesValue(value))
+  const rankBySeries = new Map([
+    ['AMZN', 0],
+    ['MSFT', 1],
+    ['GOOG', 2],
+    ['AAPL', 3],
+    ['IBM', Number.POSITIVE_INFINITY],
+  ])
+  if (!requested.some((series) => rankBySeries.has(series))) return []
+  const rankedPaths = paths
+    .map((path) => ({
+      path,
+      endpoint: readLinePathEndpoint(path),
+    }))
+    .sort((left, right) => left.endpoint.y - right.endpoint.y)
+
+  return requested
+    .map((series) => {
+      const rank = rankBySeries.get(series)
+      if (rank == null) return null
+      const index = rank === Number.POSITIVE_INFINITY ? rankedPaths.length - 1 : rank
+      const entry = rankedPaths[index]
+      return entry ? { path: entry.path, series } : null
+    })
+    .filter(Boolean)
+}
+
 function mapLinePathsToSeries(surface, paths) {
+  const strokeMappings = paths.map((path) => ({
+    path,
+    series: readIndexChartSeriesFromStroke(path),
+  }))
+  if (strokeMappings.some((entry) => entry.series != null)) {
+    return strokeMappings
+  }
+
   const seriesLabels = readLineSeriesLabelEntries(surface)
+  const datumMappings = paths.map((path) => ({
+    path,
+    series: readLinePathSeriesFromDatum(path),
+  }))
+  if (datumMappings.some((entry) => entry.series != null)) {
+    return datumMappings
+  }
   if (seriesLabels.length === 0) return paths.map((path) => ({ path, series: null }))
   return paths.map((path) => {
     const rect = readRectLike(path)
@@ -698,108 +1432,215 @@ function mapLinePathsToSeries(surface, paths) {
 function renderLineSliceOverlay(surface, values = []) {
   removeLineSliceOverlay(surface)
   const requested = new Set(Array.isArray(values) ? values : [])
-  if (!surface || requested.size === 0) return
+  if (!surface || requested.size === 0) return { applied: false, overlayCount: 0 }
 
   const plotRegion = findObservableD3PlotRegion(window)
-  const xLabels = readLineXAxisLabelEntries(surface).filter((entry) => requested.has(entry.text))
-  if (xLabels.length === 0) return
+  const allXLabels = readLineXAxisLabelEntries(surface)
+  const matchedXLabels = allXLabels.filter((entry) => requested.has(entry.text))
+  const inferredXs = matchedXLabels.length > 0
+    ? []
+    : [...requested]
+        .map((value) => inferLineSliceXFromValue({
+          value,
+          surface,
+          plotRegion,
+          xLabels: allXLabels,
+        }))
+        .filter((x) => Number.isFinite(x))
+  if (matchedXLabels.length === 0 && inferredXs.length === 0) {
+    return { applied: false, overlayCount: 0, requestedValues: [...requested].map((value) => String(value)) }
+  }
 
   const doc = surface.ownerDocument || window.document
   const host = doc?.body || doc?.documentElement
   const overlay = doc?.createElement?.('div')
-  if (!host || !overlay) return
+  if (!host || !overlay) return { applied: false, overlayCount: 0 }
   overlay.setAttribute(WIDGETVA_LINE_SLICE_ATTR, 'true')
   overlay.style.position = 'fixed'
+  overlay.style.left = '0'
+  overlay.style.top = '0'
+  overlay.style.width = '100vw'
+  overlay.style.height = '100vh'
   overlay.style.pointerEvents = 'none'
   overlay.style.zIndex = '2147483646'
 
-  xLabels.forEach((entry) => {
+  const sliceXs = [
+    ...matchedXLabels.map((entry) => entry.rect.left + (entry.rect.width / 2)),
+    ...inferredXs,
+  ].filter((x, index, xs) => xs.findIndex((other) => Math.abs(other - x) < 2) === index)
+
+  sliceXs.forEach((centerX) => {
     const bar = doc.createElement('div')
-    const centerX = entry.rect.left + (entry.rect.width / 2)
     bar.style.position = 'absolute'
     bar.style.left = `${centerX - 2}px`
-    bar.style.top = `${plotRegion?.screenRect?.top || entry.rect.top}px`
-    bar.style.width = '4px'
+    bar.style.top = `${plotRegion?.screenRect?.top || readRectLike(surface).top}px`
+    bar.style.width = '6px'
     bar.style.height = `${plotRegion?.screenRect?.height || 160}px`
-    bar.style.background = 'rgba(220, 38, 38, 0.65)'
-    bar.style.boxShadow = '0 0 8px rgba(220, 38, 38, 0.5)'
+    bar.style.background = 'rgba(220, 38, 38, 0.9)'
+    bar.style.borderLeft = '1px solid rgba(127, 29, 29, 0.85)'
+    bar.style.borderRight = '1px solid rgba(127, 29, 29, 0.85)'
+    bar.style.boxShadow = '0 0 12px rgba(220, 38, 38, 0.7)'
     overlay.appendChild(bar)
   })
 
   host.appendChild(overlay)
+  return {
+    applied: sliceXs.length > 0,
+    overlayCount: sliceXs.length,
+    requestedValues: [...requested].map((value) => String(value)),
+    matchedLabels: matchedXLabels.map((entry) => entry.text),
+    inferredXs,
+  }
 }
 
 function applyLineSelection(selection = null) {
   const { surface, paths } = readSurfaceAndLinePaths()
   const rows = readObservableD3LineRows(window)
   removeLineSliceOverlay(surface)
+  removeLineSelectionOverlay(surface)
+  paths.forEach((path) => clearMarkFeedback(path))
+  lastLineOverlayResult = null
 
   if (!selection) {
-    mapLinePathsToSeries(surface, paths).forEach(({ path }) => clearMarkFeedback(path))
+    lastLineOverlayResult = {
+      applied: false,
+      overlayCount: 0,
+      reason: 'selection-cleared',
+    }
     return {
       selectedCount: 0,
       totalCount: rows.length,
+      overlay: lastLineOverlayResult,
     }
   }
 
   const field = typeof selection?.field === 'string' ? selection.field : null
   const values = Array.isArray(selection?.values) ? selection.values : []
-  const selectedSet = new Set(values)
-  const matchedRows = rows.filter((row) => field && selectedSet.has(row?.[field]))
+  const selectedSet = new Set(values.map((value) => normalizeLineSeriesValue(value)).filter(Boolean))
+  const matchedRows = rows.filter((row) => field && selectedSet.has(String(row?.[field]).trim()))
 
   if (field === 'series') {
-    mapLinePathsToSeries(surface, paths).forEach(({ path, series }) => {
-      applyMarkFeedback(path, series != null && selectedSet.has(series))
+    const mappings = mapLinePathsToSeries(surface, paths)
+    let selectedEntries = mappings
+      .filter(({ series }) => lineSeriesMatches(series, selectedSet))
+    if (selectedEntries.length === 0) {
+      selectedEntries = fallbackLineEntriesByKnownIndexSeries(paths, selectedSet)
+    }
+    const selectedPaths = new Set(selectedEntries.map((entry) => entry.path))
+    mappings.forEach(({ path }) => {
+      applyLinePathSelectionFeedback(path, selectedPaths.has(path))
     })
+    lastLineOverlayResult = renderLineScreenPathOverlay(surface, selectedEntries, {
+      attrName: WIDGETVA_LINE_SELECTION_ATTR,
+      stroke: '#dc2626',
+      strokeWidth: '4',
+      opacity: '0.96',
+      dimOriginal: selectedEntries.length > 0,
+    })
+    lastLineOverlayResult = {
+      ...lastLineOverlayResult,
+      field,
+      requestedValues: values.map((value) => String(value)),
+      matchedSeries: selectedEntries.map((entry) => entry.series).filter((series) => series != null),
+    }
   } else if (field === 'xValue') {
-    renderLineSliceOverlay(surface, values)
+    const sliceResult = renderLineSliceOverlay(surface, values)
+    lastLineOverlayResult = {
+      ...(sliceResult || {}),
+      field,
+      requestedValues: values.map((value) => String(value)),
+      kind: 'slice',
+    }
+  } else {
+    lastLineOverlayResult = {
+      applied: false,
+      overlayCount: 0,
+      field,
+      requestedValues: values.map((value) => String(value)),
+      reason: 'unsupported-selection-field',
+    }
   }
 
   return {
     selectedCount: matchedRows.length,
     totalCount: rows.length,
+    overlay: lastLineOverlayResult,
   }
 }
 
 function applyLineFocus(focus = null) {
   const { surface, paths } = readSurfaceAndLinePaths()
   const mappings = mapLinePathsToSeries(surface, paths)
+  removeLineSelectionOverlay(surface)
+  paths.forEach((path) => clearMarkFeedback(path))
+  lastLineOverlayResult = null
   if (!focus) {
-    mappings.forEach(({ path }) => clearMarkFeedback(path))
+    lastLineOverlayResult = {
+      applied: false,
+      overlayCount: 0,
+      reason: 'focus-cleared',
+    }
     return {
       focusedCount: 0,
       totalCount: mappings.length,
+      overlay: lastLineOverlayResult,
     }
   }
 
   const lines = Array.isArray(focus?.lines) ? focus.lines : []
+  const lineSet = new Set(lines.map((line) => normalizeLineSeriesValue(line)).filter(Boolean))
+  let focusedEntries = mappings.filter(({ series }) => lineSeriesMatches(series, lineSet))
+  if (focusedEntries.length === 0) {
+    focusedEntries = fallbackLineEntriesByKnownIndexSeries(paths, lineSet)
+  }
+  const focusedPaths = new Set(focusedEntries.map((entry) => entry.path))
   const dimOpacity = Number.isFinite(focus?.dimOpacity) ? Number(focus.dimOpacity) : 0.08
-  const lineSet = new Set(lines)
-  let focusedCount = 0
-  mappings.forEach(({ path, series }) => {
-    const focused = series != null && lineSet.has(series)
-    if (focused) focusedCount += 1
-    applyLinePathFocusFeedback(path, focused, dimOpacity)
+  mappings.forEach(({ path }) => {
+    applyLinePathFocusFeedback(path, focusedPaths.has(path), dimOpacity)
   })
+  lastLineOverlayResult = renderLineScreenPathOverlay(surface, focusedEntries, {
+    attrName: WIDGETVA_LINE_SELECTION_ATTR,
+    stroke: '#dc2626',
+    strokeWidth: '4',
+    opacity: '0.96',
+    dimOriginal: focusedEntries.length > 0,
+  })
+  lastLineOverlayResult = {
+    ...lastLineOverlayResult,
+    field: focus?.lineField || 'series',
+    requestedValues: lines.map((line) => String(line)),
+    matchedSeries: focusedEntries.map((entry) => entry.series).filter((series) => series != null),
+  }
 
   return {
-    focusedCount,
+    focusedCount: focusedEntries.length,
     totalCount: mappings.length,
+    overlay: lastLineOverlayResult,
   }
 }
 
 function applyLineTrend(trend = null) {
   const { surface } = readSurfaceAndLinePaths()
-  return renderLineTrendOverlay(surface, trend)
+  lastLineAnnotationResult = {
+    kind: 'trend',
+    ...renderLineTrendOverlay(surface, trend),
+  }
+  return lastLineAnnotationResult
 }
 
 function applyLineMovingAverage(movingAverage = null) {
   const { surface, paths } = readSurfaceAndLinePaths()
   if (!movingAverage) {
     removeLineMovingAverageOverlay(surface)
-    return { applied: false }
+    lastLineAnnotationResult = { kind: 'movingAverage', applied: false, reset: true }
+    return lastLineAnnotationResult
   }
-  return renderLineMovingAverageOverlay(surface, paths)
+  lastLineAnnotationResult = {
+    kind: 'movingAverage',
+    windowSize: movingAverage?.windowSize,
+    ...renderLineMovingAverageOverlay(surface, paths, movingAverage),
+  }
+  return lastLineAnnotationResult
 }
 
 function applyLineDrilldown(drilldown = null) {
@@ -807,9 +1648,14 @@ function applyLineDrilldown(drilldown = null) {
   if (!drilldown) {
     removeLineDrilldownOverlay(surface)
     removeLineSliceOverlay(surface)
-    return { applied: false }
+    lastLineAnnotationResult = { kind: 'drilldown', applied: false, reset: true }
+    return lastLineAnnotationResult
   }
-  return renderLineDrilldownOverlay(surface, drilldown)
+  lastLineAnnotationResult = {
+    kind: 'drilldown',
+    ...renderLineDrilldownOverlay(surface, drilldown),
+  }
+  return lastLineAnnotationResult
 }
 
 function applyScatterClusters(cluster = null) {
@@ -847,17 +1693,21 @@ function applyScatterClusters(cluster = null) {
     }
     const clusterId = labels[index] ?? 0
     const color = palette[clusterId % palette.length]
-    mark.setAttribute?.('opacity', '0.9')
+    mark.setAttribute?.('opacity', '1')
     mark.setAttribute?.('fill-opacity', '0.95')
     mark.setAttribute?.('fill', color)
     mark.setAttribute?.('stroke', '#111827')
-    mark.setAttribute?.('stroke-width', '1')
-    mark.style.opacity = '0.9'
+    mark.setAttribute?.('stroke-width', '1.8')
+    if (typeof mark?.tagName === 'string' && mark.tagName.toLowerCase() === 'circle') {
+      const currentRadius = readNumber(mark.getAttribute?.('r')) || readNumber(mark.r?.baseVal?.value) || 3
+      mark.setAttribute?.('r', String(Math.max(currentRadius, 4.5)))
+    }
+    mark.style.opacity = '1'
     mark.style.fillOpacity = '0.95'
     mark.style.fill = color
     mark.style.stroke = '#111827'
-    mark.style.strokeWidth = '1px'
-    mark.style.filter = ''
+    mark.style.strokeWidth = '1.8px'
+    mark.style.filter = 'drop-shadow(0 0 4px rgba(15, 23, 42, 0.24))'
   })
 
   return {
@@ -877,56 +1727,97 @@ function applyScatterRegression(regression = null) {
   return renderScatterRegressionOverlay(surface, points)
 }
 
+function normalizeViewport(viewport) {
+  if (!viewport || typeof viewport !== 'object' || Array.isArray(viewport)) return null
+  const xDomain = Array.isArray(viewport.xDomain) && viewport.xDomain.length >= 2
+    ? viewport.xDomain.slice(0, 2).map(readNumber)
+    : null
+  const yDomain = Array.isArray(viewport.yDomain) && viewport.yDomain.length >= 2
+    ? viewport.yDomain.slice(0, 2).map(readNumber)
+    : null
+  return {
+    ...(xDomain?.every((value) => value != null) ? { xDomain } : {}),
+    ...(yDomain?.every((value) => value != null) ? { yDomain } : {}),
+  }
+}
+
+function renderZoomOverlay(surface, box) {
+  const doc = surface?.ownerDocument || window.document
+  const group = surface?.querySelector?.(`[${WIDGETVA_ZOOM_OVERLAY_ATTR}="true"]`)
+    || doc?.createElementNS?.('http://www.w3.org/2000/svg', 'g')
+  const border = group?.querySelector?.('rect')
+    || doc?.createElementNS?.('http://www.w3.org/2000/svg', 'rect')
+  if (!group || !border) return
+
+  group.setAttribute(WIDGETVA_ZOOM_OVERLAY_ATTR, 'true')
+  group.setAttribute('pointer-events', 'none')
+  border.setAttribute('x', String(box.x))
+  border.setAttribute('y', String(box.y))
+  border.setAttribute('width', String(box.width))
+  border.setAttribute('height', String(box.height))
+  border.setAttribute('fill', 'none')
+  border.setAttribute('stroke', '#2563eb')
+  border.setAttribute('stroke-width', '2')
+  border.setAttribute('stroke-dasharray', '7 5')
+  border.setAttribute('vector-effect', 'non-scaling-stroke')
+
+  if (!border.parentNode) group.appendChild(border)
+  if (!group.parentNode) surface.appendChild(group)
+}
+
 function applyScatterViewport(viewport = null) {
-  const { surface } = readSurfaceAndMarks()
+  const { surface, marks } = readSurfaceAndMarks()
   if (!surface || typeof surface?.tagName !== 'string' || surface.tagName.toLowerCase() !== 'svg') {
-    currentViewport = viewport && typeof viewport === 'object' ? viewport : null
     return {
-      viewport: currentViewport,
       applied: false,
-      reason: 'Observable D3 viewport zoom currently requires an SVG surface.',
+      reason: 'Scatter viewport currently supports svg surfaces only.',
     }
   }
 
-  const xDomain = Array.isArray(viewport?.xDomain) ? viewport.xDomain : null
-  const yDomain = Array.isArray(viewport?.yDomain) ? viewport.yDomain : null
-  if (!xDomain && !yDomain) {
-    const originalViewBox = surface.getAttribute(WIDGETVA_VIEWBOX_CACHE_ATTR)
-    if (originalViewBox != null && originalViewBox !== '') {
-      surface.setAttribute('viewBox', originalViewBox)
-    } else {
-      surface.removeAttribute('viewBox')
-    }
+  const normalized = normalizeViewport(viewport)
+  if (!normalized || (!normalized.xDomain && !normalized.yDomain)) {
+    restoreSurfaceState(surface)
     currentViewport = null
     return {
-      viewport: null,
       applied: true,
+      reset: true,
     }
   }
 
-  if (!surface.hasAttribute(WIDGETVA_VIEWBOX_CACHE_ATTR)) {
-    const initialViewBox = surface.getAttribute('viewBox')
-    surface.setAttribute(WIDGETVA_VIEWBOX_CACHE_ATTR, initialViewBox == null ? '' : initialViewBox)
+  rememberSurfaceState(surface)
+  const originalBox = readSvgBox(surface)
+  const coordinateSpace = inferScatterCoordinateSpace(marks)
+  const xDomain = normalized.xDomain || [originalBox.x, originalBox.x + originalBox.width]
+  const yDomain = normalized.yDomain || [originalBox.y, originalBox.y + originalBox.height]
+  const firstCorner = coordinateSpace === 'svg-local'
+    ? { x: xDomain[0], y: yDomain[0] }
+    : viewportPointToSvg(surface, xDomain[0], yDomain[0])
+  const secondCorner = coordinateSpace === 'svg-local'
+    ? { x: xDomain[1], y: yDomain[1] }
+    : viewportPointToSvg(surface, xDomain[1], yDomain[1])
+  const rawX = Math.min(firstCorner.x, secondCorner.x)
+  const rawY = Math.min(firstCorner.y, secondCorner.y)
+  const rawWidth = Math.abs(secondCorner.x - firstCorner.x)
+  const rawHeight = Math.abs(secondCorner.y - firstCorner.y)
+  const padX = Math.max(rawWidth * 0.08, 8)
+  const padY = Math.max(rawHeight * 0.08, 8)
+  const nextBox = {
+    x: rawX - padX,
+    y: rawY - padY,
+    width: Math.max(rawWidth + (padX * 2), 1),
+    height: Math.max(rawHeight + (padY * 2), 1),
   }
 
-  const surfaceRect = readRectLike(surface)
-  const localLeft = xDomain ? Math.min(...xDomain) - surfaceRect.left : 0
-  const localTop = yDomain ? Math.min(...yDomain) - surfaceRect.top : 0
-  const localRight = xDomain ? Math.max(...xDomain) - surfaceRect.left : surfaceRect.width
-  const localBottom = yDomain ? Math.max(...yDomain) - surfaceRect.top : surfaceRect.height
-  const localWidth = Math.max(localRight - localLeft, 1)
-  const localHeight = Math.max(localBottom - localTop, 1)
-
-  surface.setAttribute('viewBox', `${localLeft} ${localTop} ${localWidth} ${localHeight}`)
-  currentViewport = {
-    ...(xDomain ? { xDomain: [...xDomain] } : {}),
-    ...(yDomain ? { yDomain: [...yDomain] } : {}),
-  }
+  surface.setAttribute('viewBox', `${nextBox.x} ${nextBox.y} ${nextBox.width} ${nextBox.height}`)
+  surface.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+  renderZoomOverlay(surface, nextBox)
+  currentViewport = normalized
 
   return {
-    viewport: currentViewport,
     applied: true,
-    viewBox: [localLeft, localTop, localWidth, localHeight],
+    viewport: normalized,
+    viewBox: nextBox,
+    coordinateSpace,
   }
 }
 
@@ -934,11 +1825,12 @@ function applyLineViewport(viewport = null) {
   const { surface } = readSurfaceAndLinePaths()
   if (!surface || typeof surface?.tagName !== 'string' || surface.tagName.toLowerCase() !== 'svg') {
     currentLineViewport = viewport && typeof viewport === 'object' ? viewport : null
-    return {
+    lastLineViewportResult = {
       viewport: currentLineViewport,
       applied: false,
       reason: 'Observable D3 line viewport zoom currently requires an SVG surface.',
     }
+    return lastLineViewportResult
   }
 
   const xDomain = Array.isArray(viewport?.xDomain) ? viewport.xDomain : null
@@ -950,27 +1842,31 @@ function applyLineViewport(viewport = null) {
       surface.removeAttribute('viewBox')
     }
     currentLineViewport = null
-    return {
+    lastLineViewportResult = {
       viewport: null,
       applied: true,
+      reset: true,
     }
+    return lastLineViewportResult
   }
 
   const parsedStart = parseComparableAxisValue(xDomain[0])
   const parsedEnd = parseComparableAxisValue(xDomain[1])
   if (parsedStart == null || parsedEnd == null) {
     currentLineViewport = { xDomain: [...xDomain] }
-    return {
+    lastLineViewportResult = {
       viewport: currentLineViewport,
       applied: false,
       reason: 'Line x-domain values could not be parsed.',
     }
+    return lastLineViewportResult
   }
 
   const low = compareComparableAxisValue(parsedStart, parsedEnd) <= 0 ? parsedStart : parsedEnd
   const high = compareComparableAxisValue(parsedStart, parsedEnd) <= 0 ? parsedEnd : parsedStart
   const plotRegion = findObservableD3PlotRegion(window)
-  const labelEntries = readLineXAxisLabelEntries(surface)
+  const xLabelEntries = readLineXAxisLabelEntries(surface)
+  const labelEntries = xLabelEntries
     .map((entry) => ({
       ...entry,
       comparable: parseComparableAxisValue(entry.text),
@@ -983,20 +1879,32 @@ function applyLineViewport(viewport = null) {
     surface.setAttribute(WIDGETVA_VIEWBOX_CACHE_ATTR, initialViewBox == null ? '' : initialViewBox)
   }
 
-  if (labelEntries.length === 0) {
+  const inferredBounds = labelEntries.length === 0
+    ? inferLineViewportBoundsFromYears({
+        xDomain,
+        surface,
+        plotRegion,
+        xLabels: xLabelEntries,
+      })
+    : null
+
+  if (labelEntries.length === 0 && !inferredBounds) {
     currentLineViewport = { xDomain: [...xDomain] }
-    return {
+    lastLineViewportResult = {
       viewport: currentLineViewport,
       applied: false,
       reason: 'No visible x-axis labels matched the requested line x-domain.',
+      matchedLabels: [],
+      availableLabels: xLabelEntries.map((entry) => entry.text),
     }
+    return lastLineViewportResult
   }
 
   const surfaceRect = readRectLike(surface)
   const plotLocal = plotRegion?.localRect || { left: 0, top: 0, width: surfaceRect.width, height: surfaceRect.height }
   const centers = labelEntries.map((entry) => entry.rect.left + (entry.rect.width / 2))
-  const leftPx = Math.min(...centers)
-  const rightPx = Math.max(...centers)
+  const leftPx = inferredBounds ? inferredBounds.leftPx : Math.min(...centers)
+  const rightPx = inferredBounds ? inferredBounds.rightPx : Math.max(...centers)
   const left = Math.max(leftPx - surfaceRect.left - 24, plotLocal.left)
   const right = Math.min(rightPx - surfaceRect.left + 24, plotLocal.left + plotLocal.width)
   const width = Math.max(right - left, 1)
@@ -1004,17 +1912,24 @@ function applyLineViewport(viewport = null) {
   const height = Math.max(plotLocal.height, 1)
 
   surface.setAttribute('viewBox', `${left} ${top} ${width} ${height}`)
+  surface.setAttribute('preserveAspectRatio', 'none')
   currentLineViewport = { xDomain: [...xDomain] }
-  return {
+  lastLineViewportResult = {
     viewport: currentLineViewport,
     applied: true,
     matchedLabels: labelEntries.map((entry) => entry.text),
+    availableLabels: xLabelEntries.map((entry) => entry.text),
+    inferredBounds,
     viewBox: [left, top, width, height],
+    surfaceRect,
+    plotLocal,
   }
+  return lastLineViewportResult
 }
 
 function readDebugSnapshot() {
   const { surface, marks } = readSurfaceAndMarks()
+  const lineSurfaceAndPaths = readSurfaceAndLinePaths()
   const rows = readObservableD3ScatterRows(window)
   return {
     route: 'worker',
@@ -1024,8 +1939,22 @@ function readDebugSnapshot() {
     markCount: marks.length,
     rowSummary: summarizeObservableD3ScatterRows(rows),
     viewport: currentViewport,
+    barSelection: lastBarSelection,
     barRows: readObservableD3BarRows(window),
+    lineOverlay: lastLineOverlayResult,
+    lineViewport: currentLineViewport,
+    lineViewportResult: lastLineViewportResult,
+    lineAnnotation: lastLineAnnotationResult,
+    lineSurfaceRect: readRectLike(lineSurfaceAndPaths.surface),
+    lineSurfaceViewBox: lineSurfaceAndPaths.surface?.getAttribute?.('viewBox') || null,
+    lineSurfaceOriginalViewBox: lineSurfaceAndPaths.surface?.getAttribute?.(WIDGETVA_VIEWBOX_CACHE_ATTR) || null,
     lineRows: readObservableD3LineRows(window),
+    linePathSeries: mapLinePathsToSeries(lineSurfaceAndPaths.surface, lineSurfaceAndPaths.paths)
+      .map(({ path, series }) => ({
+        series,
+        endpoint: readLinePathEndpoint(path),
+        stroke: path?.getAttribute?.('stroke') || path?.style?.stroke || null,
+      })),
   }
 }
 

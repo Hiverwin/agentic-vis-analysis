@@ -150,6 +150,111 @@ function createPostActionSyncProxy(target, syncAfterAction) {
   })
 }
 
+function buildScatterBrushSelectionFromActionCall(actionCall) {
+  const params = actionCall?.params || {}
+  const xRange = Array.isArray(params.xRange) ? params.xRange : null
+  const yRange = Array.isArray(params.yRange) ? params.yRange : null
+  if (!xRange || !yRange || xRange.length < 2 || yRange.length < 2) return null
+  return {
+    kind: 'interval',
+    fields: [
+      typeof params.xField === 'string' ? params.xField : '__screenX',
+      typeof params.yField === 'string' ? params.yField : '__screenY',
+    ],
+    domain: {
+      xDomain: clone(xRange.slice(0, 2)),
+      yDomain: clone(yRange.slice(0, 2)),
+    },
+  }
+}
+
+function buildBarSelectionFromActionCall(actionCall) {
+  const params = actionCall?.params || {}
+  const values = Array.isArray(params.values)
+    ? params.values
+    : Array.isArray(params.categories)
+      ? params.categories
+      : params.value != null
+        ? [params.value]
+        : []
+  if (values.length === 0) return null
+  const field = typeof params.field === 'string' ? params.field : 'category'
+  return {
+    kind: 'category',
+    field,
+    values: clone(values),
+    summary: `${field}: ${values.join(', ')}`,
+    predicates: [{ field, op: 'in', value: clone(values) }],
+  }
+}
+
+function buildBarFilterFromActionCall(actionCall) {
+  const params = actionCall?.params || {}
+  const categories = Array.isArray(params.categories)
+    ? params.categories
+    : Array.isArray(params.values)
+      ? params.values
+      : []
+  if (categories.length === 0) return null
+  return {
+    field: typeof params.field === 'string' ? params.field : 'category',
+    categories: clone(categories),
+  }
+}
+
+function buildLineSelectionFromActionCall(actionCall) {
+  const params = actionCall?.params || {}
+  const values = Array.isArray(params.values)
+    ? params.values
+    : params.value != null
+      ? [params.value]
+      : params.xValue != null
+        ? [params.xValue]
+        : []
+  if (values.length === 0) return null
+  return {
+    kind: 'category',
+    field: typeof params.field === 'string' ? params.field : 'series',
+    values: clone(values),
+  }
+}
+
+function buildLineFocusFromActionCall(actionCall) {
+  const params = actionCall?.params || {}
+  const lines = Array.isArray(params.lines)
+    ? params.lines
+    : Array.isArray(params.values)
+      ? params.values
+      : params.line != null
+        ? [params.line]
+        : []
+  if (lines.length === 0) return null
+  return {
+    lines: clone(lines),
+    lineField: typeof params.lineField === 'string'
+      ? params.lineField
+      : typeof params.field === 'string'
+        ? params.field
+        : 'series',
+    ...(Number.isFinite(params.dimOpacity) ? { dimOpacity: Number(params.dimOpacity) } : {}),
+  }
+}
+
+function buildLineViewportFromActionCall(actionCall) {
+  const params = actionCall?.params || {}
+  const xDomain = Array.isArray(params.xDomain)
+    ? params.xDomain
+    : Array.isArray(params.xRange)
+      ? params.xRange
+      : params.start != null && params.end != null
+        ? [params.start, params.end]
+      : null
+  if (!xDomain || xDomain.length < 2) return null
+  return {
+    xDomain: clone(xDomain.slice(0, 2)),
+  }
+}
+
 const OBSERVABLE_D3_WORKER_REQUEST = 'widgetva:observable-d3-worker-request'
 const OBSERVABLE_D3_WORKER_RESPONSE = 'widgetva:observable-d3-worker-response'
 const OBSERVABLE_D3_TOP_SOURCE = 'widgetva-observable-d3-top'
@@ -444,8 +549,34 @@ export function createObservableBarSurfaceWrapper({ frame, currentSpecRef = null
   let currentFilter = null
   let currentSort = null
 
+  function normalizeSelection(selection = null) {
+    if (!selection || typeof selection !== 'object') return null
+    const values = Array.isArray(selection.values)
+      ? selection.values
+      : Array.isArray(selection.categories)
+        ? selection.categories
+        : selection.value != null
+          ? [selection.value]
+          : []
+    if (values.length === 0) return null
+    const field = typeof selection.field === 'string' ? selection.field : 'category'
+    const normalizedSelection = {
+      ...clone(selection),
+      kind: typeof selection.kind === 'string' ? selection.kind : 'category',
+      field,
+      values: clone(values),
+    }
+    if (typeof selection.summary === 'string') {
+      normalizedSelection.summary = selection.summary
+    }
+    if (Array.isArray(selection.predicates)) {
+      normalizedSelection.predicates = clone(selection.predicates)
+    }
+    return normalizedSelection
+  }
+
   async function applySelection(selection = null) {
-    currentSelection = selection && typeof selection === 'object' ? clone(selection) : null
+    currentSelection = normalizeSelection(selection)
     await invokeObservableWorker(frame, 'applyBarSelection', {
       selection: currentSelection,
     })
@@ -546,12 +677,17 @@ export function createObservableBarSurfaceWrapper({ frame, currentSpecRef = null
     },
     async renderFromState(widgetState = {}) {
       const selection = Object.values(widgetState?.selections || {}).find((entry) => Array.isArray(entry?.values)) || null
-      await applySelection(selection)
+      if (selection) {
+        await applySelection(selection)
+      }
       await applyFilter(readFilterFromWidgetState(widgetState) || readFilterFromSpec())
       await applySort(readSortFromWidgetState(widgetState))
     },
     async setSelection(selection) {
       return applySelection(selection)
+    },
+    async setFilter(filter) {
+      return applyFilter(filter)
     },
     async syncCurrentSpec() {
       return applyFilter(readFilterFromSpec())
@@ -753,6 +889,21 @@ export function createObservableLineSurfaceWrapper({ frame, currentSpecRef = nul
     async setSelection(selection) {
       return applySelection(selection)
     },
+    async setFocus(focus) {
+      return applyFocus(focus)
+    },
+    async setTrend(trend) {
+      return applyTrend(trend)
+    },
+    async setMovingAverage(movingAverage) {
+      return applyMovingAverage(movingAverage)
+    },
+    async setDrilldown(drilldown) {
+      return applyDrilldown(drilldown)
+    },
+    async setViewport(viewport) {
+      return applyViewport(viewport)
+    },
     async readDebugSnapshot() {
       return invokeObservableWorker(frame, 'readDebugSnapshot', null)
     },
@@ -828,6 +979,13 @@ export async function attachWidgetVAToObservableD3ScatterPage({
     const actionCall = actionContext?.args?.[0]
     const actionResult = actionContext?.result
     if (!actionCall || typeof actionCall !== 'object') return
+
+    if (actionCall.name === 'scatter.brushRegion' && actionResult?.ok !== false) {
+      const selection = buildScatterBrushSelectionFromActionCall(actionCall)
+      if (selection) {
+        await wrapper.setBrush?.(selection)
+      }
+    }
 
     if (actionCall.name === 'scatter.identifyClusters' && actionResult?.ok !== false) {
       const nClusters = actionResult?.result?.nClusters || actionCall?.params?.nClusters || 3
@@ -966,13 +1124,31 @@ export async function attachWidgetVAToObservableD3BarPage({
     spec,
   })
 
-  const syncSpecDrivenState = async () => {
+  const syncSpecDrivenState = async (actionContext = null) => {
     const widgetState = typeof widget.readState === 'function' ? widget.readState() : null
     if (widgetState && typeof wrapper.renderFromState === 'function') {
       await wrapper.renderFromState(widgetState)
+    } else {
+      await wrapper.syncCurrentSpec?.()
+    }
+
+    const actionCall = actionContext?.args?.[0]
+    const actionResult = actionContext?.result
+    if (!actionCall || typeof actionCall !== 'object' || actionResult?.ok === false) {
       return
     }
-    await wrapper.syncCurrentSpec?.()
+
+    if (actionCall.name === 'bar.selectCategory') {
+      const selection = buildBarSelectionFromActionCall(actionCall)
+      if (selection) await wrapper.setSelection?.(selection)
+      return
+    }
+
+    if (actionCall.name === 'bar.filterCategories') {
+      const filter = buildBarFilterFromActionCall(actionCall)
+      if (filter) await wrapper.setFilter?.(filter)
+      return
+    }
   }
 
   const widgetApi = createPostActionSyncProxy(widget, syncSpecDrivenState)
@@ -1080,10 +1256,87 @@ export async function attachWidgetVAToObservableD3LinePage({
     spec,
   })
 
-  const syncState = async () => {
+  const syncState = async (actionContext = null) => {
     const widgetState = typeof widget.readState === 'function' ? widget.readState() : null
     if (widgetState && typeof wrapper.renderFromState === 'function') {
       await wrapper.renderFromState(widgetState)
+    }
+
+    const actionCall = actionContext?.args?.[0]
+    const actionResult = actionContext?.result
+    if (!actionCall || typeof actionCall !== 'object' || actionResult?.ok === false) {
+      return
+    }
+
+    if (actionCall.name === 'line.selectSeries') {
+      const selection = buildLineSelectionFromActionCall(actionCall)
+      if (selection) await wrapper.setSelection?.(selection)
+      return
+    }
+
+    if (actionCall.name === 'line.selectXValue') {
+      const selection = buildLineSelectionFromActionCall({
+        ...actionCall,
+        params: {
+          ...(actionCall.params || {}),
+          field: actionCall.params?.field || 'xValue',
+        },
+      })
+      if (selection) await wrapper.setSelection?.(selection)
+      return
+    }
+
+    if (actionCall.name === 'line.focusLines') {
+      const focus = buildLineFocusFromActionCall(actionCall)
+      if (focus) await wrapper.setFocus?.(focus)
+      return
+    }
+
+    if (actionCall.name === 'line.highlightTrend') {
+      await wrapper.setTrend?.({
+        trendType: typeof actionCall.params?.trendType === 'string'
+          ? actionCall.params.trendType
+          : 'regression',
+      })
+      return
+    }
+
+    if (actionCall.name === 'line.showMovingAverage') {
+      await wrapper.setMovingAverage?.({
+        windowSize: Number.isFinite(actionCall.params?.windowSize)
+          ? Number(actionCall.params.windowSize)
+          : 3,
+      })
+      return
+    }
+
+    if (actionCall.name === 'line.drillDownXAxis') {
+      const drillValue = Number(actionCall.params?.value)
+      const parent = actionCall.params?.parent && typeof actionCall.params.parent === 'object'
+        ? clone(actionCall.params.parent)
+        : {}
+      await wrapper.setDrilldown?.({
+        level: actionCall.params?.level || 'drilldown',
+        ...(Number.isFinite(drillValue) ? { value: drillValue } : {}),
+        parent,
+        title: typeof actionCall.params?.title === 'string'
+          ? actionCall.params.title
+          : Number.isFinite(drillValue)
+            ? `${drillValue} monthly trend`
+            : '',
+      })
+      return
+    }
+
+    if (actionCall.name === 'line.resetDrilldownXAxis') {
+      await wrapper.setDrilldown?.(null)
+      return
+    }
+
+    if (actionCall.name === 'line.zoomXRegion') {
+      const viewport = buildLineViewportFromActionCall(actionCall)
+      if (viewport) await wrapper.setViewport?.(viewport)
+      return
     }
   }
 

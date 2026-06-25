@@ -180,6 +180,11 @@ function isPointLikePath(path) {
 function isLineLikePath(path) {
   if (!path) return false
   if (isPointLikePath(path)) return false
+  if (typeof path.closest === 'function' && path.closest('[data-widgetva-line-selection-overlay="true"], [data-widgetva-line-ma-overlay="true"], [data-widgetva-line-trend-overlay="true"], [data-widgetva-line-drilldown-overlay="true"]')) return false
+  const d = typeof path.getAttribute === 'function' ? path.getAttribute('d') : ''
+  if (typeof d === 'string' && /z\s*$/i.test(d.trim())) return false
+  const fill = typeof path.getAttribute === 'function' ? path.getAttribute('fill') : null
+  if (typeof fill === 'string' && fill.trim() && !['none', 'transparent'].includes(fill.trim().toLowerCase())) return false
   const rect = readBoundingBoxLike(path)
   if (rect.width <= 0 || rect.height <= 0) return false
   return rect.width >= 20 || rect.height >= 20

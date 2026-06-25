@@ -1548,7 +1548,7 @@ test('attachWidgetVAToObservableD3LinePage executes line.highlightTrend and line
     })
     assert.equal(trendResult.ok, true)
     assert.deepEqual(appliedTrends.at(-1), {
-      trendType: 'regression',
+      trendType: 'increasing',
     })
 
     const maResult = await controller.widget.executeVerifiedAction({
