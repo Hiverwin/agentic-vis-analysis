@@ -1,0 +1,63 @@
+{
+  "benchmark_id": "66_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What is the name of the smoking_status × alcohol_consumption cell that is highlighted as extreme and what broader pattern can be described across the grid?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "(a) With find_extremes(top_n=1, mode=both) on mean vitamin_c_percent_rda, the tool highlights two cells: the global maximum mean is Former × Moderate (≈ 90.9 % RDA aggregated in the spec), and the global minimum mean is Never × Moderate (≈ 85.3 % RDA). (b) Broader pattern: mean vitamin C % RDA across smoking_status × alcohol_consumption stays in a narrow band (~85–91 on aggregate); Moderate alcohol appears at both highlighted extremes, while other alcohol levels show mid-range means—no steep gradient from “none” to “heavy” on this color scale alone."
+        },
+        "key_insights": [
+          "Extremes (min/max mean vitamin C) both fall in the Moderate alcohol column—Former vs Never smoking.",
+          "Overall grid contrast is modest: cell means cluster within a few percentage points of RDA."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "quickly highlights the most significant data points. This allows us to identify broad patterns without a specific hypothesis"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "66_vitamin_deficiency_disease_dataset_heatmap",
+    "dataset_path": "datasets/66_vitamin_deficiency_disease_dataset_heatmap.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

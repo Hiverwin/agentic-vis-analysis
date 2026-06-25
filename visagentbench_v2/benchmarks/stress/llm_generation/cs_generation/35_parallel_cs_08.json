@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "35_parallel_cs_08",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_08",
+      "question": "Use highlight_category in order to know Use highlight_category with field equal to fuelType, values equal to Electric to highlight electric vehicles. Which dimension shows the highest normalized value for Electric vehicles?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "mpg",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight electric vehicles to identify which dimension shows the highest normalized value"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field,values",
+                "values": [
+                  "fuelType",
+                  "Electric"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "35_bmw_parallel",
+    "dataset_path": "datasets/35_bmw_parallel.json",
+    "row_count": 43124,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/35_bmw_parallel.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

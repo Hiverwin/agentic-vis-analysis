@@ -1,0 +1,84 @@
+{
+  "benchmark_id": "85_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "02_bar_cm_01：Use filter_categories with categories equal to [East, North] to exclude those regions, then use toggle_stack_mode with mode equal to stacked to compare total sales. Which region has higher total sales: West or South?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Unknown",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter categories to analyze product types separately"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "Toggle stack mode to compare total prices across demographics"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Product type"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "true"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "stacked"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "85_supply_chain_data_bar",
+    "dataset_path": "datasets/85_supply_chain_data_bar.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/85_supply_chain_data_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

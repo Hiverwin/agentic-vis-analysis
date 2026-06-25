@@ -1,0 +1,96 @@
+{
+  "benchmark_id": "93_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "What are the difference patterns of the Bank App Push before and after applying the filter?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The out flow to insurance is filtered and other remained the same almost"
+        },
+        "key_insights": [
+          "The out flow to insurance is filtered and other remained the same almost"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "Keeps only high-volume flows so the comparison is about meaningful ticket sizes."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlights everything touching Enterprise Payroll so downstream splits are easy to read."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 4796
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Enterprise Payroll"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Alipay/WeChat Entry",
+                "Bank App Push",
+                "Short Video Feed Ads",
+                "Offline Branch/Field Sales",
+                "Enterprise Payroll",
+                "Consumer Credit",
+                "Wealth Products",
+                "Payment",
+                "Insurance",
+                "Credit Card Installment"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "93_sankey_financial",
+    "dataset_path": "datasets/93_sankey_financial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

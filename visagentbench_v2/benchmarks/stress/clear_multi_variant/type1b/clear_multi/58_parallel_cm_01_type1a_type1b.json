@@ -1,0 +1,115 @@
+{
+  "benchmark_id": "58_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_by_category and hide_dimensions, which product importance group (low or medium) shows the stronger correlation between cost and prior purchases?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "medium",
+          "alternatives": []
+        },
+        "key_insights": [
+          "There exists a positive correlation: high cost associates with high prior purchase."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to keep only low and medium importance products for comparison."
+          },
+          {
+            "iteration": 2,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide other dimensions to focus on Cost_of_the_Product and Prior_purchases for visual correlation comparison."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Product_importance",
+                "values": [
+                  "high"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "Customer_rating",
+                  "Customer_care_calls",
+                  "Discount_offered"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          },
+          "view": {
+            "xDomain": [
+              "Cost_of_the_Product",
+              "Prior_purchases"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"high\"], datum['Product_importance']) < 0"
+              }
+            ],
+            "dimensions": {
+              "hidden_fields": [
+                "Customer_rating",
+                "Customer_care_calls",
+                "Discount_offered"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "58_Train_parallel",
+    "dataset_path": "datasets/58_Train_parallel.json",
+    "row_count": 54995,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/58_Train_parallel.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

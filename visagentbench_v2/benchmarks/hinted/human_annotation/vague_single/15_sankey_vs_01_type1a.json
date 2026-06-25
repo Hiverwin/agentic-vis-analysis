@@ -1,0 +1,119 @@
+{
+  "benchmark_id": "15_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use collapse_nodes with aggregate_name equal to public services, nodes_to_collapse with values Equipment Purch, Infrastructure, and Salaries to compare the overall fiscal expenditure inclination towards public services and capital investment.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Public services."
+        },
+        "key_insights": [
+          "Public services is the mainly part in the expense type."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.node.collapse",
+            "rationale": "Aggregate public service nodes using tools."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.node.collapse"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "aggregate_name": "public services",
+                "nodes_to_collapse": [
+                  "Equipment Purch",
+                  "Infrastructure",
+                  "Salaries"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Personal Income Tax",
+                "Corporate Tax",
+                "Bond Issuance",
+                "Fees & Fines",
+                "Defense",
+                "Education",
+                "Healthcare",
+                "Transport",
+                "Social Welfare",
+                "Military Operations",
+                "Defense R&D",
+                "Veterans Affairs",
+                "K-12 Funding",
+                "Higher Education",
+                "Research Grants",
+                "Medicare Subsidy",
+                "Hospital Funding",
+                "Pharma Programs",
+                "Highway Projects",
+                "Rail Projects",
+                "Aviation Safety",
+                "Pension Payments",
+                "Unemployment Aid",
+                "Housing Subsidy",
+                "Defense Corp A",
+                "Defense Corp B",
+                "Research Inst",
+                "Personnel Costs",
+                "Healthcare Prov",
+                "Pharma Co",
+                "School Districts",
+                "Textbook Publ",
+                "State Univ",
+                "Equipment Vendor",
+                "Construct Co A",
+                "Construct Co B",
+                "Aviation Corp",
+                "Direct Transfer",
+                "Equipment Purch",
+                "Infrastructure",
+                "R&D Expense",
+                "Salaries",
+                "Operations",
+                "Citizen Benefit"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "15_sankey_government",
+    "dataset_path": "datasets/15_sankey_government.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

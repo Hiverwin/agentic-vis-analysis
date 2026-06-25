@@ -1,0 +1,611 @@
+{
+  "dataset_count": 101,
+  "datasets": [
+    {
+      "dataset_id": "01_scatter_cars",
+      "dataset_path": "datasets/01_scatter_cars.json",
+      "row_count": 392,
+      "source_path": "benchmark_annotation_system/backend/specs/01_scatter_cars.json"
+    },
+    {
+      "dataset_id": "02_bar_sales",
+      "dataset_path": "datasets/02_bar_sales.json",
+      "row_count": 8,
+      "source_path": "benchmark_annotation_system/backend/specs/02_bar_sales.json"
+    },
+    {
+      "dataset_id": "03_line_stocks",
+      "dataset_path": "datasets/03_line_stocks.json",
+      "row_count": 12,
+      "source_path": "benchmark_annotation_system/backend/specs/03_line_stocks.json"
+    },
+    {
+      "dataset_id": "04_heatmap_temp",
+      "dataset_path": "datasets/04_heatmap_temp.json",
+      "row_count": 18,
+      "source_path": "benchmark_annotation_system/backend/specs/04_heatmap_temp.json"
+    },
+    {
+      "dataset_id": "06_parallel_penguins",
+      "dataset_path": "datasets/06_parallel_penguins.json",
+      "row_count": 30,
+      "source_path": "benchmark_annotation_system/backend/specs/06_parallel_penguins.json"
+    },
+    {
+      "dataset_id": "07_bar_synthetic_mental_health",
+      "dataset_path": "datasets/07_bar_synthetic_mental_health.json",
+      "row_count": 2000,
+      "source_path": "benchmark_annotation_system/backend/specs/07_bar_synthetic_mental_health.json"
+    },
+    {
+      "dataset_id": "08_heatmap_synthetic_mental_health",
+      "dataset_path": "datasets/08_heatmap_synthetic_mental_health.json",
+      "row_count": 2000,
+      "source_path": "benchmark_annotation_system/backend/specs/08_heatmap_synthetic_mental_health.json"
+    },
+    {
+      "dataset_id": "09_museum_visitors_line",
+      "dataset_path": "datasets/09_museum_visitors_line.json",
+      "row_count": 59,
+      "source_path": "benchmark_annotation_system/backend/specs/09_museum_visitors_line.json"
+    },
+    {
+      "dataset_id": "104_gender_gap_in_life_line",
+      "dataset_path": "datasets/104_gender_gap_in_life_line.json",
+      "row_count": 538,
+      "source_path": "benchmark_annotation_system/backend/specs/104_gender_gap_in_life_line.json"
+    },
+    {
+      "dataset_id": "105_gini_filter_line",
+      "dataset_path": "datasets/105_gini_filter_line.json",
+      "row_count": 705,
+      "source_path": "benchmark_annotation_system/backend/specs/105_gini_filter_line.json"
+    },
+    {
+      "dataset_id": "106_life expectancey_line",
+      "dataset_path": "datasets/106_life expectancey_line.json",
+      "row_count": 592,
+      "source_path": "benchmark_annotation_system/backend/specs/106_life expectancey_line.json"
+    },
+    {
+      "dataset_id": "107_survive_to_65_line",
+      "dataset_path": "datasets/107_survive_to_65_line.json",
+      "row_count": 496,
+      "source_path": "benchmark_annotation_system/backend/specs/107_survive_to_65_line.json"
+    },
+    {
+      "dataset_id": "10_scatter_synthetic_mental_health",
+      "dataset_path": "datasets/10_scatter_synthetic_mental_health.json",
+      "row_count": 2000,
+      "source_path": "benchmark_annotation_system/backend/specs/10_scatter_synthetic_mental_health.json"
+    },
+    {
+      "dataset_id": "111_heatmap_tmp",
+      "dataset_path": "datasets/111_heatmap_tmp.json",
+      "row_count": 240,
+      "source_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json"
+    },
+    {
+      "dataset_id": "112_anmie_filter_bar",
+      "dataset_path": "datasets/112_anmie_filter_bar.json",
+      "row_count": 20,
+      "source_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json"
+    },
+    {
+      "dataset_id": "113_nime_less_parallel",
+      "dataset_path": "datasets/113_nime_less_parallel.json",
+      "row_count": 2076,
+      "source_path": "benchmark_annotation_system/backend/specs/113_nime_less_parallel.json"
+    },
+    {
+      "dataset_id": "114_sport_life_parallel",
+      "dataset_path": "datasets/114_sport_life_parallel.json",
+      "row_count": 36354,
+      "source_path": "benchmark_annotation_system/backend/specs/114_sport_life_parallel.json"
+    },
+    {
+      "dataset_id": "115_sport_life_bar",
+      "dataset_path": "datasets/115_sport_life_bar.json",
+      "row_count": 6059,
+      "source_path": "benchmark_annotation_system/backend/specs/115_sport_life_bar.json"
+    },
+    {
+      "dataset_id": "116_startup_funding_dataset_bar",
+      "dataset_path": "datasets/116_startup_funding_dataset_bar.json",
+      "row_count": 2000,
+      "source_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json"
+    },
+    {
+      "dataset_id": "117_startup_funding_dataset_parallel",
+      "dataset_path": "datasets/117_startup_funding_dataset_parallel.json",
+      "row_count": 4000,
+      "source_path": "benchmark_annotation_system/backend/specs/117_startup_funding_dataset_parallel.json"
+    },
+    {
+      "dataset_id": "11_apple_time_line",
+      "dataset_path": "datasets/11_apple_time_line.json",
+      "row_count": 133,
+      "source_path": "benchmark_annotation_system/backend/specs/11_apple_time_line.json"
+    },
+    {
+      "dataset_id": "13_supply_chain_data_heatmap",
+      "dataset_path": "datasets/13_supply_chain_data_heatmap.json",
+      "row_count": 100,
+      "source_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json"
+    },
+    {
+      "dataset_id": "14_museum_visitors_line_multi",
+      "dataset_path": "datasets/14_museum_visitors_line_multi.json",
+      "row_count": 236,
+      "source_path": "benchmark_annotation_system/backend/specs/14_museum_visitors_line_multi.json"
+    },
+    {
+      "dataset_id": "16_bar_Chocolate Sales",
+      "dataset_path": "datasets/16_bar_Chocolate Sales.json",
+      "row_count": 3282,
+      "source_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json"
+    },
+    {
+      "dataset_id": "17_Heart_Disease_Prediction_bar",
+      "dataset_path": "datasets/17_Heart_Disease_Prediction_bar.json",
+      "row_count": 270,
+      "source_path": "benchmark_annotation_system/backend/specs/17_Heart_Disease_Prediction_bar.json"
+    },
+    {
+      "dataset_id": "18_Heart_Disease_Prediction_parallel",
+      "dataset_path": "datasets/18_Heart_Disease_Prediction_parallel.json",
+      "row_count": 1620,
+      "source_path": "benchmark_annotation_system/backend/specs/18_Heart_Disease_Prediction_parallel.json"
+    },
+    {
+      "dataset_id": "19_Heart_Disease_Prediction_scatter",
+      "dataset_path": "datasets/19_Heart_Disease_Prediction_scatter.json",
+      "row_count": 270,
+      "source_path": "benchmark_annotation_system/backend/specs/19_Heart_Disease_Prediction_scatter.json"
+    },
+    {
+      "dataset_id": "20_ign_scores_bar",
+      "dataset_path": "datasets/20_ign_scores_bar.json",
+      "row_count": 21,
+      "source_path": "benchmark_annotation_system/backend/specs/20_ign_scores_bar.json"
+    },
+    {
+      "dataset_id": "21_Number of trees sold over Yea_line",
+      "dataset_path": "datasets/21_Number of trees sold over Yea_line.json",
+      "row_count": 14,
+      "source_path": "benchmark_annotation_system/backend/specs/21_Number of trees sold over Yea_line.json"
+    },
+    {
+      "dataset_id": "22_Employee_Attrition_DataSet_scatter",
+      "dataset_path": "datasets/22_Employee_Attrition_DataSet_scatter.json",
+      "row_count": 10000,
+      "source_path": "benchmark_annotation_system/backend/specs/22_Employee_Attrition_DataSet_scatter.json"
+    },
+    {
+      "dataset_id": "23_Mobiles Dataset (2025)_bar",
+      "dataset_path": "datasets/23_Mobiles Dataset (2025)_bar.json",
+      "row_count": 847,
+      "source_path": "benchmark_annotation_system/backend/specs/23_Mobiles Dataset (2025)_bar.json"
+    },
+    {
+      "dataset_id": "24_vitamin_deficiency_disease_dataset_20260123_parallel (3)",
+      "dataset_path": "datasets/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json",
+      "row_count": 20000,
+      "source_path": "benchmark_annotation_system/backend/specs/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json"
+    },
+    {
+      "dataset_id": "25_gym_members_exercise_tracking_bar",
+      "dataset_path": "datasets/25_gym_members_exercise_tracking_bar.json",
+      "row_count": 973,
+      "source_path": "benchmark_annotation_system/backend/specs/25_gym_members_exercise_tracking_bar.json"
+    },
+    {
+      "dataset_id": "26_China_centra_death_rate_line",
+      "dataset_path": "datasets/26_China_centra_death_rate_line.json",
+      "row_count": 432,
+      "source_path": "benchmark_annotation_system/backend/specs/26_China_centra_death_rate_line.json"
+    },
+    {
+      "dataset_id": "27_coffee_sales_data_bar",
+      "dataset_path": "datasets/27_coffee_sales_data_bar.json",
+      "row_count": 3547,
+      "source_path": "benchmark_annotation_system/backend/specs/27_coffee_sales_data_bar.json"
+    },
+    {
+      "dataset_id": "28_silver_prices_data_line",
+      "dataset_path": "datasets/28_silver_prices_data_line.json",
+      "row_count": 2513,
+      "source_path": "benchmark_annotation_system/backend/specs/28_silver_prices_data_line.json"
+    },
+    {
+      "dataset_id": "29_students_ai_usage_parallel",
+      "dataset_path": "datasets/29_students_ai_usage_parallel.json",
+      "row_count": 400,
+      "source_path": "benchmark_annotation_system/backend/specs/29_students_ai_usage_parallel.json"
+    },
+    {
+      "dataset_id": "30_vitamin_deficiency_disease_dataset_20260123_bar",
+      "dataset_path": "datasets/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+      "row_count": 4000,
+      "source_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json"
+    },
+    {
+      "dataset_id": "31_TSLA_Stock_line",
+      "dataset_path": "datasets/31_TSLA_Stock_line.json",
+      "row_count": 254,
+      "source_path": "benchmark_annotation_system/backend/specs/31_TSLA_Stock_line.json"
+    },
+    {
+      "dataset_id": "32_insurance_scatter",
+      "dataset_path": "datasets/32_insurance_scatter.json",
+      "row_count": 1338,
+      "source_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json"
+    },
+    {
+      "dataset_id": "33_bmw_bar",
+      "dataset_path": "datasets/33_bmw_bar.json",
+      "row_count": 10781,
+      "source_path": "benchmark_annotation_system/backend/specs/33_bmw_bar.json"
+    },
+    {
+      "dataset_id": "34_bmw_scatter",
+      "dataset_path": "datasets/34_bmw_scatter.json",
+      "row_count": 10781,
+      "source_path": "benchmark_annotation_system/backend/specs/34_bmw_scatter.json"
+    },
+    {
+      "dataset_id": "35_bmw_parallel",
+      "dataset_path": "datasets/35_bmw_parallel.json",
+      "row_count": 43124,
+      "source_path": "benchmark_annotation_system/backend/specs/35_bmw_parallel.json"
+    },
+    {
+      "dataset_id": "36_cancer_scatter",
+      "dataset_path": "datasets/36_cancer_scatter.json",
+      "row_count": 569,
+      "source_path": "benchmark_annotation_system/backend/specs/36_cancer_scatter.json"
+    },
+    {
+      "dataset_id": "37_cancer_parallel ",
+      "dataset_path": "datasets/37_cancer_parallel .json",
+      "row_count": 2845,
+      "source_path": "benchmark_annotation_system/backend/specs/37_cancer_parallel .json"
+    },
+    {
+      "dataset_id": "38_cancer_scatter",
+      "dataset_path": "datasets/38_cancer_scatter.json",
+      "row_count": 569,
+      "source_path": "benchmark_annotation_system/backend/specs/38_cancer_scatter.json"
+    },
+    {
+      "dataset_id": "39_insurance_parallel",
+      "dataset_path": "datasets/39_insurance_parallel.json",
+      "row_count": 5352,
+      "source_path": "benchmark_annotation_system/backend/specs/39_insurance_parallel.json"
+    },
+    {
+      "dataset_id": "40_insurance_heatmap",
+      "dataset_path": "datasets/40_insurance_heatmap.json",
+      "row_count": 1338,
+      "source_path": "benchmark_annotation_system/backend/specs/40_insurance_heatmap.json"
+    },
+    {
+      "dataset_id": "41_museum_visitors_scatter",
+      "dataset_path": "datasets/41_museum_visitors_scatter.json",
+      "row_count": 59,
+      "source_path": "benchmark_annotation_system/backend/specs/41_museum_visitors_scatter.json"
+    },
+    {
+      "dataset_id": "42_pokemon_stats_2025_bar",
+      "dataset_path": "datasets/42_pokemon_stats_2025_bar.json",
+      "row_count": 250,
+      "source_path": "benchmark_annotation_system/backend/specs/42_pokemon_stats_2025_bar.json"
+    },
+    {
+      "dataset_id": "43_iris_parallel",
+      "dataset_path": "datasets/43_iris_parallel.json",
+      "row_count": 600,
+      "source_path": "benchmark_annotation_system/backend/specs/43_iris_parallel.json"
+    },
+    {
+      "dataset_id": "44_Sensitivity_Soil_Nutrient_Pools new_heatmap",
+      "dataset_path": "datasets/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+      "row_count": 1006,
+      "source_path": "benchmark_annotation_system/backend/specs/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json"
+    },
+    {
+      "dataset_id": "45_ ign_scores_parallel",
+      "dataset_path": "datasets/45_ ign_scores_parallel.json",
+      "row_count": 105,
+      "source_path": "benchmark_annotation_system/backend/specs/45_ ign_scores_parallel.json"
+    },
+    {
+      "dataset_id": "46_mxmh_survey_results_heatmap",
+      "dataset_path": "datasets/46_mxmh_survey_results_heatmap.json",
+      "row_count": 727,
+      "source_path": "benchmark_annotation_system/backend/specs/46_mxmh_survey_results_heatmap.json"
+    },
+    {
+      "dataset_id": "47_candy_scatter",
+      "dataset_path": "datasets/47_candy_scatter.json",
+      "row_count": 83,
+      "source_path": "benchmark_annotation_system/backend/specs/47_candy_scatter.json"
+    },
+    {
+      "dataset_id": "48_candy_parallel ",
+      "dataset_path": "datasets/48_candy_parallel .json",
+      "row_count": 249,
+      "source_path": "benchmark_annotation_system/backend/specs/48_candy_parallel .json"
+    },
+    {
+      "dataset_id": "49_coffee_sales_heatmap",
+      "dataset_path": "datasets/49_coffee_sales_heatmap.json",
+      "row_count": 3547,
+      "source_path": "benchmark_annotation_system/backend/specs/49_coffee_sales_heatmap.json"
+    },
+    {
+      "dataset_id": "50_supply_chain_data_parallel",
+      "dataset_path": "datasets/50_supply_chain_data_parallel.json",
+      "row_count": 400,
+      "source_path": "benchmark_annotation_system/backend/specs/50_supply_chain_data_parallel.json"
+    },
+    {
+      "dataset_id": "51_Train_scatter",
+      "dataset_path": "datasets/51_Train_scatter.json",
+      "row_count": 10999,
+      "source_path": "benchmark_annotation_system/backend/specs/51_Train_scatter.json"
+    },
+    {
+      "dataset_id": "52_years of economic new_line",
+      "dataset_path": "datasets/52_years of economic new_line.json",
+      "row_count": 23,
+      "source_path": "benchmark_annotation_system/backend/specs/52_years of economic new_line.json"
+    },
+    {
+      "dataset_id": "53_Housing_scatter",
+      "dataset_path": "datasets/53_Housing_scatter.json",
+      "row_count": 21613,
+      "source_path": "benchmark_annotation_system/backend/specs/53_Housing_scatter.json"
+    },
+    {
+      "dataset_id": "54_Ecommerce_Delivery_Analytics_New_bar",
+      "dataset_path": "datasets/54_Ecommerce_Delivery_Analytics_New_bar.json",
+      "row_count": 100000,
+      "source_path": "benchmark_annotation_system/backend/specs/54_Ecommerce_Delivery_Analytics_New_bar.json"
+    },
+    {
+      "dataset_id": "55_Ecommerce_Delivery_Analytics_New_scatter",
+      "dataset_path": "datasets/55_Ecommerce_Delivery_Analytics_New_scatter.json",
+      "row_count": 100000,
+      "source_path": "benchmark_annotation_system/backend/specs/55_Ecommerce_Delivery_Analytics_New_scatter.json"
+    },
+    {
+      "dataset_id": "56_Ecommerce_Delivery_Analytics_New_heatmap",
+      "dataset_path": "datasets/56_Ecommerce_Delivery_Analytics_New_heatmap.json",
+      "row_count": 100000,
+      "source_path": "benchmark_annotation_system/backend/specs/56_Ecommerce_Delivery_Analytics_New_heatmap.json"
+    },
+    {
+      "dataset_id": "56_sport_life_heatmap",
+      "dataset_path": "datasets/56_sport_life_heatmap.json",
+      "row_count": 12,
+      "source_path": "benchmark_annotation_system/backend/specs/56_sport_life_heatmap.json"
+    },
+    {
+      "dataset_id": "57_health care diabetes_scatter",
+      "dataset_path": "datasets/57_health care diabetes_scatter.json",
+      "row_count": 768,
+      "source_path": "benchmark_annotation_system/backend/specs/57_health care diabetes_scatter.json"
+    },
+    {
+      "dataset_id": "58_Train_parallel",
+      "dataset_path": "datasets/58_Train_parallel.json",
+      "row_count": 54995,
+      "source_path": "benchmark_annotation_system/backend/specs/58_Train_parallel.json"
+    },
+    {
+      "dataset_id": "59_health care diabetes_heatmap",
+      "dataset_path": "datasets/59_health care diabetes_heatmap.json",
+      "row_count": 768,
+      "source_path": "benchmark_annotation_system/backend/specs/59_health care diabetes_heatmap.json"
+    },
+    {
+      "dataset_id": "60_Berlin_crimes_bar",
+      "dataset_path": "datasets/60_Berlin_crimes_bar.json",
+      "row_count": 1200,
+      "source_path": "benchmark_annotation_system/backend/specs/60_Berlin_crimes_bar.json"
+    },
+    {
+      "dataset_id": "61_Berlin_crimes_scatter",
+      "dataset_path": "datasets/61_Berlin_crimes_scatter.json",
+      "row_count": 1200,
+      "source_path": "benchmark_annotation_system/backend/specs/61_Berlin_crimes_scatter.json"
+    },
+    {
+      "dataset_id": "62_Berlin_crimes_parallel",
+      "dataset_path": "datasets/62_Berlin_crimes_parallel.json",
+      "row_count": 7200,
+      "source_path": "benchmark_annotation_system/backend/specs/62_Berlin_crimes_parallel.json"
+    },
+    {
+      "dataset_id": "63_Berlin_crimes_heatmap",
+      "dataset_path": "datasets/63_Berlin_crimes_heatmap.json",
+      "row_count": 1200,
+      "source_path": "benchmark_annotation_system/backend/specs/63_Berlin_crimes_heatmap.json"
+    },
+    {
+      "dataset_id": "64_US Christmas Tree Sales _heatmap",
+      "dataset_path": "datasets/64_US Christmas Tree Sales _heatmap.json",
+      "row_count": 14,
+      "source_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json"
+    },
+    {
+      "dataset_id": "65_vitamin_deficiency_disease_dataset_bar",
+      "dataset_path": "datasets/65_vitamin_deficiency_disease_dataset_bar.json",
+      "row_count": 4000,
+      "source_path": "benchmark_annotation_system/backend/specs/65_vitamin_deficiency_disease_dataset_bar.json"
+    },
+    {
+      "dataset_id": "66_vitamin_deficiency_disease_dataset_heatmap",
+      "dataset_path": "datasets/66_vitamin_deficiency_disease_dataset_heatmap.json",
+      "row_count": 4000,
+      "source_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json"
+    },
+    {
+      "dataset_id": "67_vitamin_deficiency_disease_dataset_scatter",
+      "dataset_path": "datasets/67_vitamin_deficiency_disease_dataset_scatter.json",
+      "row_count": 4000,
+      "source_path": "benchmark_annotation_system/backend/specs/67_vitamin_deficiency_disease_dataset_scatter.json"
+    },
+    {
+      "dataset_id": "68_supply_chain_data_parallel",
+      "dataset_path": "datasets/68_supply_chain_data_parallel.json",
+      "row_count": 400,
+      "source_path": "benchmark_annotation_system/backend/specs/68_supply_chain_data_parallel.json"
+    },
+    {
+      "dataset_id": "69_top_100_linkedin_companies_2026_bar",
+      "dataset_path": "datasets/69_top_100_linkedin_companies_2026_bar.json",
+      "row_count": 20,
+      "source_path": "benchmark_annotation_system/backend/specs/69_top_100_linkedin_companies_2026_bar.json"
+    },
+    {
+      "dataset_id": "70_one_person_ai_work_and_burnout_line",
+      "dataset_path": "datasets/70_one_person_ai_work_and_burnout_line.json",
+      "row_count": 180,
+      "source_path": "benchmark_annotation_system/backend/specs/70_one_person_ai_work_and_burnout_line.json"
+    },
+    {
+      "dataset_id": "71_one_person_ai_work_and_burnout_parallel",
+      "dataset_path": "datasets/71_one_person_ai_work_and_burnout_parallel.json",
+      "row_count": 900,
+      "source_path": "benchmark_annotation_system/backend/specs/71_one_person_ai_work_and_burnout_parallel.json"
+    },
+    {
+      "dataset_id": "72_StudentsPerformance_heatmap",
+      "dataset_path": "datasets/72_StudentsPerformance_heatmap.json",
+      "row_count": 1000,
+      "source_path": "benchmark_annotation_system/backend/specs/72_StudentsPerformance_heatmap.json"
+    },
+    {
+      "dataset_id": "73_StudentsPerformance_scatter",
+      "dataset_path": "datasets/73_StudentsPerformance_scatter.json",
+      "row_count": 1000,
+      "source_path": "benchmark_annotation_system/backend/specs/73_StudentsPerformance_scatter.json"
+    },
+    {
+      "dataset_id": "74_StudentsPerformance_bar",
+      "dataset_path": "datasets/74_StudentsPerformance_bar.json",
+      "row_count": 1000,
+      "source_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json"
+    },
+    {
+      "dataset_id": "75_Refined_Employment_Telecom_Services_2024_bar",
+      "dataset_path": "datasets/75_Refined_Employment_Telecom_Services_2024_bar.json",
+      "row_count": 63,
+      "source_path": "benchmark_annotation_system/backend/specs/75_Refined_Employment_Telecom_Services_2024_bar.json"
+    },
+    {
+      "dataset_id": "76_Refined_Employment_Telecom_Services_NA_line",
+      "dataset_path": "datasets/76_Refined_Employment_Telecom_Services_NA_line.json",
+      "row_count": 113,
+      "source_path": "benchmark_annotation_system/backend/specs/76_Refined_Employment_Telecom_Services_NA_line.json"
+    },
+    {
+      "dataset_id": "77_gym_bar_sum",
+      "dataset_path": "datasets/77_gym_bar_sum.json",
+      "row_count": 973,
+      "source_path": "benchmark_annotation_system/backend/specs/77_gym_bar_sum.json"
+    },
+    {
+      "dataset_id": "78_ai_job_dataset_heatmap",
+      "dataset_path": "datasets/78_ai_job_dataset_heatmap.json",
+      "row_count": 80,
+      "source_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json"
+    },
+    {
+      "dataset_id": "79_ign_scores_bar",
+      "dataset_path": "datasets/79_ign_scores_bar.json",
+      "row_count": 21,
+      "source_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json"
+    },
+    {
+      "dataset_id": "80_gym_members_exercise_tracking_scatter",
+      "dataset_path": "datasets/80_gym_members_exercise_tracking_scatter.json",
+      "row_count": 973,
+      "source_path": "benchmark_annotation_system/backend/specs/80_gym_members_exercise_tracking_scatter.json"
+    },
+    {
+      "dataset_id": "81_gym_members_exercise_tracking_parallel",
+      "dataset_path": "datasets/81_gym_members_exercise_tracking_parallel.json",
+      "row_count": 4865,
+      "source_path": "benchmark_annotation_system/backend/specs/81_gym_members_exercise_tracking_parallel.json"
+    },
+    {
+      "dataset_id": "82_Online Sales Data_line",
+      "dataset_path": "datasets/82_Online Sales Data_line.json",
+      "row_count": 240,
+      "source_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json"
+    },
+    {
+      "dataset_id": "83_global-data-on-sustainable-energy-filtered_line",
+      "dataset_path": "datasets/83_global-data-on-sustainable-energy-filtered_line.json",
+      "row_count": 189,
+      "source_path": "benchmark_annotation_system/backend/specs/83_global-data-on-sustainable-energy-filtered_line.json"
+    },
+    {
+      "dataset_id": "84_starbucks_scatter",
+      "dataset_path": "datasets/84_starbucks_scatter.json",
+      "row_count": 242,
+      "source_path": "benchmark_annotation_system/backend/specs/84_starbucks_scatter.json"
+    },
+    {
+      "dataset_id": "85_supply_chain_data_bar",
+      "dataset_path": "datasets/85_supply_chain_data_bar.json",
+      "row_count": 100,
+      "source_path": "benchmark_annotation_system/backend/specs/85_supply_chain_data_bar.json"
+    },
+    {
+      "dataset_id": "86_starbucks_bar",
+      "dataset_path": "datasets/86_starbucks_bar.json",
+      "row_count": 242,
+      "source_path": "benchmark_annotation_system/backend/specs/86_starbucks_bar.json"
+    },
+    {
+      "dataset_id": "87_museum_visitors_parallel",
+      "dataset_path": "datasets/87_museum_visitors_parallel.json",
+      "row_count": 236,
+      "source_path": "benchmark_annotation_system/backend/specs/87_museum_visitors_parallel.json"
+    },
+    {
+      "dataset_id": "88_patient_churn_dataset_heatmap",
+      "dataset_path": "datasets/88_patient_churn_dataset_heatmap.json",
+      "row_count": 500,
+      "source_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json"
+    },
+    {
+      "dataset_id": "89_Sleep_health_and_lifestyle_dataset_heatmap",
+      "dataset_path": "datasets/89_Sleep_health_and_lifestyle_dataset_heatmap.json",
+      "row_count": 20,
+      "source_path": "benchmark_annotation_system/backend/specs/89_Sleep_health_and_lifestyle_dataset_heatmap.json"
+    },
+    {
+      "dataset_id": "90_Train_bar",
+      "dataset_path": "datasets/90_Train_bar.json",
+      "row_count": 10999,
+      "source_path": "benchmark_annotation_system/backend/specs/90_Train_bar.json"
+    },
+    {
+      "dataset_id": "91_supply_chain_data_scatter",
+      "dataset_path": "datasets/91_supply_chain_data_scatter.json",
+      "row_count": 100,
+      "source_path": "benchmark_annotation_system/backend/specs/91_supply_chain_data_scatter.json"
+    },
+    {
+      "dataset_id": "98_gym_members_exercise_tracking_heatmap",
+      "dataset_path": "datasets/98_gym_members_exercise_tracking_heatmap.json",
+      "row_count": 973,
+      "source_path": "benchmark_annotation_system/backend/specs/98_gym_members_exercise_tracking_heatmap.json"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "36_scatter_vm_07",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/36_cancer_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_07",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans and use show_regression with method equal to linear in order to know How do Radius and Texture measurements relate to each other in breast cancer diagnosis, and what patterns distinguish benign from malignant tumors?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is a positive correlation between Radius and Texture measurements in breast cancer data. Benign tumors (357 cases) typically show smaller Radius values averaging 12.15 (range 6.98-17.85) and Texture averaging 17.91 (range 9.71-33.81). Malignant tumors (212 cases) demonstrate significantly larger Radius values averaging 17.46 (range 10.95-28.11) and higher Texture averaging 21.60 (range 10.38-39.28). The data shows that malignant tumors tend to cluster in the upper-right region of the scatter plot with both higher Radius and Texture values, while benign tumors cluster in the lower-left region. This pattern suggests that larger tumor radius combined with higher texture roughness are indicative of malignancy.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Malignant tumors show significantly higher average Radius (17.46) compared to benign (12.15)",
+          "Texture values are higher in malignant tumors (21.60) than benign (17.91)",
+          "Positive correlation exists between Radius and Texture measurements",
+          "Malignant tumors cluster in upper-right region with high values in both dimensions",
+          "Benign tumors cluster in lower-left region with lower values in both dimensions"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation to measure the strength of relationship between Radius and Texture"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Use identify_clusters to discover natural groupings in the data based on diagnosis"
+          },
+          {
+            "iteration": 3,
+            "tool": "show_regression",
+            "reasoning": "Use show_regression to visualize the linear relationship and trend between the two variables"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            },
+            {
+              "tool": "show_regression",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "linear"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Radius (mean)",
+            "y": "Texture (mean)"
+          }
+        }
+      }
+    }
+  ]
+}

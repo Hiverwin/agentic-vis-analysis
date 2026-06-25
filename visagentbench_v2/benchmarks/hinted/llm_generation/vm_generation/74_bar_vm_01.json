@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "74_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know What patterns can you observe in math scores across different race/ethnicity groups and parental education levels?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Math scores increase consistently by race/ethnicity group from group A (61.6) to group E (73.8), 2) Parental education level also strongly correlates with math scores, with master's degree (69.7) and bachelor's degree (69.4) having the highest scores, while high school (62.1) has the lowest, 3) The pattern of increasing scores by parental education is consistent across all race groups, 4) Group E with parents holding bachelor's or master's degrees has the highest math scores overall.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Math scores increase from group A to group E",
+          "Parental education correlates with math scores",
+          "Master's and bachelor's degrees have highest scores",
+          "High school has lowest scores",
+          "Consistent pattern across all race groups"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to see clear ordering of scores"
+          },
+          {
+            "iteration": 2,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top N to emphasize highest performing groups"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "race/ethnicity",
+            "y": "math score",
+            "color": "parental level of education"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "74_StudentsPerformance_bar",
+    "dataset_path": "datasets/74_StudentsPerformance_bar.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

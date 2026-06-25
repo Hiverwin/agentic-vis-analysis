@@ -1,0 +1,71 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "75_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/75_Refined_Employment_Telecom_Services_2024_bar.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know What patterns can you observe in telecom services employment across different countries and continents?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) The United States has by far the highest telecom employment at 1,044.7K, more than double the next country (India at 521.3K), 2) Other top countries include Brazil (487.0K), Mexico (274.8K), and Germany (215.9K), 3) North America has the highest average employment by continent (227.5K), driven primarily by the US and Mexico, 4) Europe has the most countries represented (32) but a moderate average of 38.8K, 5) The smallest employment is found in Seychelles (0.1K), Iceland (1.0K), and Bhutan (1.3K).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "United States has highest employment (1",
+          "044.7K)",
+          "India second (521.3K)",
+          "Brazil third (487.0K)",
+          "North America highest average by continent",
+          "Europe has most countries"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to see clear ordering by employment"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top N to emphasize highest performing countries"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Country",
+            "y": "Employment_Thousands",
+            "color": "Continent"
+          }
+        }
+      }
+    }
+  ]
+}

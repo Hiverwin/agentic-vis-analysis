@@ -1,0 +1,92 @@
+{
+  "benchmark_id": "28_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using zoom_x_region and drill_down_x_axis, what is the characterization of the monthly price fluctuation pattern in 2023 within this core trend?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The 2023 monthly pattern confirms no abnormal fluctuations."
+        },
+        "key_insights": [
+          "monthly price fluctuations between 28 and 35, with a mild upward trend and low volatility.",
+          "The 2023 monthly pattern shows no extreme spikes/drops,"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "drilldown line time then breaks down the 2023 sub-period into monthly granularity to explore fine-grained fluctuations"
+          },
+          {
+            "iteration": 2,
+            "capability": "axis.x.drilldown",
+            "rationale": "drilldown line time then breaks down the 2023 sub-period into monthly granularity to explore fine-grained fluctuations"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "axis.x.drilldown"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2023/1/3",
+                "end": "2023/12/29"
+              }
+            }
+          },
+          {
+            "capability": "axis.x.drilldown",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "parent": "{“Year”：2023}",
+                "level": "year",
+                "value": "2023"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "year(datum.Date) == 2023",
+                "_avs_tag": "line_drilldown_axis"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "28_silver_prices_data_line",
+    "dataset_path": "datasets/28_silver_prices_data_line.json",
+    "row_count": 2513,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/28_silver_prices_data_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

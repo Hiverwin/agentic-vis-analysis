@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "55_scatter_cs_02",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_02",
+      "question": "Use calculate_correlation with method equal to pearson to compute the correlation between Delivery Time (Minutes) and Order Value (INR). What is the Pearson correlation coefficient (rounded to 3 decimals) between Delivery Time (Minutes) and Order Value (INR)?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "0.007",
+          "tolerance": 0.005
+        },
+        "key_insights": [
+          "The scatter plot displays Delivery Time (Minutes) on x-axis and Order Value (INR) on y-axis.",
+          "There is a very weak (near zero) correlation between the two variables.",
+          "The Pearson correlation coefficient is approximately 0.007."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Use calculate_correlation with pearson method to compute the correlation coefficient between x and y."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Delivery Time (Minutes)",
+            "y": "Order Value (INR)",
+            "color": "Service Rating"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "55_Ecommerce_Delivery_Analytics_New_scatter",
+    "dataset_path": "datasets/55_Ecommerce_Delivery_Analytics_New_scatter.json",
+    "row_count": 100000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/55_Ecommerce_Delivery_Analytics_New_scatter.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

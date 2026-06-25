@@ -1,0 +1,117 @@
+{
+  "benchmark_id": "24_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use highlight_category with field equal to alcohol_consumption and values equal to No alcohol, reorder_dimensions with dimension_order equal to vitamin_c_percent_rda, symptoms_count, bmi, vitamin_a_percent_rda, vitamin_d_percent_rda to assess whether there are samples where vitamin_c_percent_rda is higher than the average but symptoms_count is also higher than the average.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "YES"
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "filter the group of non-alcohol"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "reduce the interrupt"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "alcohol_consumption",
+                "values": [
+                  "No alcohol"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "vitamin_c_percent_rda",
+                  "symptoms_count",
+                  "bmi",
+                  "vitamin_a_percent_rda",
+                  "vitamin_d_percent_rda"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            },
+            "axis_order": {
+              "dimension_order": [
+                "vitamin_c_percent_rda",
+                "symptoms_count",
+                "bmi",
+                "vitamin_a_percent_rda",
+                "vitamin_d_percent_rda"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order",
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "24_vitamin_deficiency_disease_dataset_20260123_parallel (3)",
+    "dataset_path": "datasets/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json",
+    "row_count": 20000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

@@ -1,0 +1,97 @@
+{
+  "benchmark_id": "13_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use filter_cells_by_region with y_value equal to Unknown to characterize the prices of female's products compared to those of male's products.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Compared to men, the prices of cosmetics for women are higher, while the prices of skincare products for women are lower."
+        },
+        "key_insights": [
+          "The non-binary data has been excluded.",
+          "The unknown data has been excluded."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Use tools to eliminate non-binary data."
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Use tools to eliminate unknown data."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "heatmap.cells.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Non-binary"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Unknown"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "!(indexof([\"Non-binary\"], datum['Customer demographics']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              },
+              {
+                "filter": "!(indexof([\"Non-binary\"], datum['Customer demographics']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              },
+              {
+                "filter": "!(indexof([\"Unknown\"], datum['Customer demographics']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "13_supply_chain_data_heatmap",
+    "dataset_path": "datasets/13_supply_chain_data_heatmap.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

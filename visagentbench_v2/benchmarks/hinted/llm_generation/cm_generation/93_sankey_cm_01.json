@@ -1,0 +1,76 @@
+{
+  "benchmark_id": "93_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "93_sankey_cm_01：Use filter_flow with min_value equal to 500 to remove small flows, then use trace_node with node_name equal to Wealth Products. Which node contributes the least inflow to Wealth Products?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Consumer Credit",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "Filter flows to focus on significant values"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace the node with highest flow to confirm"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 6000.0
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Consumer Credit"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "93_sankey_financial",
+    "dataset_path": "datasets/93_sankey_financial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

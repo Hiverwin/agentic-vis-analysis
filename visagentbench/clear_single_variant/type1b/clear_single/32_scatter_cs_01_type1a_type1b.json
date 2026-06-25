@@ -1,0 +1,74 @@
+{
+  "task_type": "clear_single",
+  "task_id": "32_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using zoom_2d_region, which children number type has the second highest charges in this region?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Children number 4",
+          "alternatives": [
+            "Children 4",
+            "4 children"
+          ]
+        },
+        "key_insights": [
+          "The children number 5 has the highest charges in this region."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "The change encoding tool has successfully identified the problem answers, so there is no need to continue investigating with additional tools."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "categorical",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    25.1,
+                    30.2
+                  ],
+                  "y_range": [
+                    4553.2,
+                    14518.5
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "bmi",
+            "y": "charges",
+            "color": "region"
+          }
+        },
+        "visible_domain": {
+          "x": [
+            25.1,
+            30.2
+          ],
+          "y": [
+            4553.2,
+            14518.5
+          ]
+        },
+        "state_check_fields": [
+          "encoding",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

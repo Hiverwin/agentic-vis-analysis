@@ -1,0 +1,94 @@
+{
+  "benchmark_id": "66_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_cells_by_region and find_extremes, which category has the lowest average vitamin C percent RDA data?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Never and moderate",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filter the data of the Heavy alcohol consumption group."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find the category with the lowest average vitamin C percent RDA data."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Heavy"
+              }
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "min",
+                "top_n": 1
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "smoking_status",
+            "y": "alcohol_consumption",
+            "color": "vitamin_c_percent_rda"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "!(indexof([\"Heavy\"], datum['alcohol_consumption']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "66_vitamin_deficiency_disease_dataset_heatmap",
+    "dataset_path": "datasets/66_vitamin_deficiency_disease_dataset_heatmap.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

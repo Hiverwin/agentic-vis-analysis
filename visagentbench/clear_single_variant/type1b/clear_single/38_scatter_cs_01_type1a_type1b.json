@@ -1,0 +1,52 @@
+{
+  "task_type": "clear_single",
+  "task_id": "38_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/38_cancer_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using calculate_correlation, what is the correlation coefficient between Smoothness (mean) and Compactness (mean)?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "0.659",
+          "tolerance": 0.05
+        },
+        "key_insights": [
+          "The Pearson correlation coefficient between Smoothness (mean) and Compactness (mean) is approximately 0.659.",
+          "This indicates a moderate positive relationship between the two variables.",
+          "The correlation suggests that smoother tumor boundaries tend to be associated with higher compactness values."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "The question asks for the correlation coefficient, so you need to use the calculate_correlation tool to compute the Pearson correlation between Smoothness (mean) and Compactness (mean)."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Smoothness (mean)",
+            "y": "Compactness (mean)",
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

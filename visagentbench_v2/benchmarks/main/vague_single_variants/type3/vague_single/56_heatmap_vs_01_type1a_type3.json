@@ -1,0 +1,76 @@
+{
+  "benchmark_id": "56_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What is the price difference between online and retail store channels based on the heatmap's color contrast?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the heatmap, the brand 'New Balance' appears to have the biggest price difference between online and retail store, with online being much lighter (lower price) and retail store being much darker (higher price)."
+        },
+        "key_insights": [
+          "Via using this tool,we can more clearly observe the difference in final prices of the New Balance brand between online and retail stores."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.region.highlight",
+            "rationale": "By highlighting, for example, the online row and then the retail store row, we can see for which brand the color change is most dramatic. This visual inspection leads to a subjective conclusion."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.region.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_values": [
+                  "New Balance"
+                ],
+                "y_values": [
+                  "Retail Store",
+                  "Online"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "56_sport_life_heatmap",
+    "dataset_path": "datasets/56_sport_life_heatmap.json",
+    "row_count": 12,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/56_sport_life_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

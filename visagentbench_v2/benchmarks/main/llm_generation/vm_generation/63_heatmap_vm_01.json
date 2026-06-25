@@ -1,0 +1,94 @@
+{
+  "benchmark_id": "63_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use add_marginal_bars with show_top equal to True, show_right equal to True in order to know What patterns can be observed in drug-related incidents across Berlin districts over time? Analyze the spatial and temporal distribution to identify trends and hotspots.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Drug-related incidents show clear spatial and temporal patterns across Berlin. Friedrichshain-Kreuzberg stands out dramatically with an average of 440.0 incidents, nearly 1.5 times higher than the second-ranked Mitte (300.5). These two districts form a clear drug activity hotspot in central Berlin. There is a consistent upward trend over time, with average incidents increasing from 77.9 in 2012 to 122.2 in 2019, representing a 57% increase. The top 5 district-year combinations are all from Friedrichshain-Kreuzberg, peaking at 619.0 incidents in 2015. In contrast, Treptow-Kopenick maintains the lowest drug activity (21.6 average), followed by Lichtenberg (31.5) and Pankow (35.5), forming a low-activity cluster in the eastern suburbs. The heatmap reveals that drug activity is heavily concentrated in the central, entertainment-oriented districts, while residential and suburban areas maintain consistently low levels.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Friedrichshain-Kreuzberg has highest drug incidents (440.0 avg)",
+          "57% increase in drug incidents from 2012 to 2019",
+          "Top 5 district-year combinations all from Friedrichshain-Kreuzberg",
+          "Treptow-Kopenick has lowest drug activity (21.6 avg)",
+          "Drug activity concentrated in central entertainment districts",
+          "Eastern suburban districts maintain low drug activity"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find extreme values to identify hotspots and coldspots"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.marginals.add",
+            "rationale": "Add marginal bars to see overall district and year patterns"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find",
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "op": "mean",
+                "show_top": true,
+                "show_right": true,
+                "bar_size": 70,
+                "bar_color": "#666666"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "District",
+            "color": "Drugs"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "63_Berlin_crimes_heatmap",
+    "dataset_path": "datasets/63_Berlin_crimes_heatmap.json",
+    "row_count": 1200,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/63_Berlin_crimes_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

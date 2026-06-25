@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "31_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "How can the persistent behavioral patterns be characterized when clarifying the underlying trend direction?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Applying a 30-day moving average reveals TSLA exhibits asymmetric volatility with gradual 3-4 week climbs followed by sharp 3-5 day reversals, indicating retail accumulation and institutional profit-taking cycles."
+        },
+        "key_insights": [
+          "The smoothed line shows four major trend changes in the two-year period, not the apparent dozen visible in raw data, proving most fluctuations are noise around stable regimes"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.movingAverage.show",
+            "rationale": "Applying a moving average is essential because raw price lines contain high-frequency noise that creates phantom trend changes and obscures genuine underlying momentum."
+          }
+        ],
+        "required_capabilities": [
+          "line.movingAverage.show"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.movingAverage.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "window_size": 30
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "has_type": "line"
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "31_TSLA_Stock_line",
+    "dataset_path": "datasets/31_TSLA_Stock_line.json",
+    "row_count": 254,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/31_TSLA_Stock_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

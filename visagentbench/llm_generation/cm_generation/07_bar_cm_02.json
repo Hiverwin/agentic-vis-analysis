@@ -1,0 +1,73 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "07_bar_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/07_bar_synthetic_mental_health.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "07_bar_cm_01：Use filter_categories with categories equal to [A, B, C] to exclude those categories, then use sort_bars with sort_order equal to descending to sort the bars by value. Which category has the highest value after filtering?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "poor",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "Filter to include all diet quality categories"
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars by sleep hours to identify the highest"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "average",
+                    "good",
+                    "poor"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "poor",
+              "good",
+              "average"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

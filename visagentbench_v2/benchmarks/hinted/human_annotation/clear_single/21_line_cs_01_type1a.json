@@ -1,0 +1,76 @@
+{
+  "benchmark_id": "21_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use detect_anomalies to compute the count of abnormal number of tree sold values.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "0",
+          "tolerance": 0.05
+        },
+        "key_insights": [
+          "The view shows no highlighted changes, indicating no outliers in number of tree sold values within two standard deviations."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "Using the detect anomalies function reveals no number of tree sold outliers within the two-standard-deviation offset range, so the answer is 0. No further tool invocation is required."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.anomalies.detect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "numeric",
+              "param": "threshold",
+              "target": 2,
+              "tolerance": 0.1
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Number of trees sold",
+            "color": "Type of tree"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "anomaly_markers": {
+              "has_markers": true,
+              "marker_type": "point"
+            }
+          }
+        },
+        "state_check_fields": [
+          "anomaly_markers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "21_Number of trees sold over Yea_line",
+    "dataset_path": "datasets/21_Number of trees sold over Yea_line.json",
+    "row_count": 14,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/21_Number of trees sold over Yea_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

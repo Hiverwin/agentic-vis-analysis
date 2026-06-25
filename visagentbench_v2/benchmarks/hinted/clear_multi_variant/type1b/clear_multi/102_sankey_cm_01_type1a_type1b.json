@@ -1,0 +1,84 @@
+{
+  "benchmark_id": "102_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using trace_node and calculate_conversion_rate, what are the connected flows and the conversion rate from Upgraded (Pro) to Renewed?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "93.6%",
+          "alternatives": [
+            "93.6"
+          ]
+        },
+        "key_insights": [
+          "Tracing the \"Upgraded (Pro)\" node reveals it is fed primarily by users from Referral and Organic channels who were \"Active (High)\" in Month 1.",
+          "All outgoing flows from \"Upgraded (Pro)\" lead to \"Loyal\" in Month 6, with no users from this state churning before Month 6.",
+          "The conversion rate from \"Upgraded (Pro)\" to \"Renewed\" is approximately 93.6%, meaning nearly all users who upgrade to Pro in Month 3 renew their subscription at Year 1."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "This step sets a clear context for quantifying the conversion rate to Year 1 renewal."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "We care about the conversion rate"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Upgraded (Pro)"
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Upgraded (Pro)"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "102_sankey_saas",
+    "dataset_path": "datasets/102_sankey_saas.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/102_sankey_saas.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

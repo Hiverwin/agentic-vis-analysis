@@ -1,0 +1,69 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "25_bar_cm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/25_gym_members_exercise_tracking_bar.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "42_bar_cm_01：Use change_encoding and filter_categories to analyze bar chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "HIIT",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to focus on fat percentage"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categories",
+            "reasoning": "Filter by HIIT workout type"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "channel",
+                  "field": "y"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "HIIT"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Workout_Type",
+            "y": "Fat_Percentage",
+            "color": "Experience_Level"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

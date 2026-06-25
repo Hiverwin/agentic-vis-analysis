@@ -1,0 +1,53 @@
+{
+  "task_type": "vague_single",
+  "task_id": "21_line_vs_05",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/21_Number of trees sold over Yea_line.json",
+  "questions": [
+    {
+      "qid": "vs_05",
+      "question": "Use highlight_trend in order to know What is the growth trend of fake tree sales compared to real tree sales from 2010 to 2016?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Fake tree sales showed significant growth of 126.83% from 2010 to 2016, while real tree sales remained relatively stable with only 1.48% growth. The fake tree sales increased from 8.2 million in 2010 to 18.6 million in 2016, showing a consistent upward trend despite minor fluctuations in 2014-2015.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Fake tree sales grew by 126.83% from 2010 to 2016",
+          "Real tree sales remained stable with only 1.48% growth",
+          "Fake tree sales increased from 8.2M to 18.6M over the period"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight the growth trend of fake tree sales compared to real tree sales"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "regression_line": true
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

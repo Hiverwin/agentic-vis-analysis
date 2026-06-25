@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "45_parallel_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use filter_by_category to compare the performance of different kinds of games on PC and Nintendo 3DS.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Action and Fighting",
+          "alternatives": [
+            "Action and Fighting"
+          ]
+        },
+        "key_insights": [
+          "Action and Fighting perform better on PC compared to Nintendo 3DS"
+        ],
+        "reasoning_trace": [],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "categorical",
+              "param": "field",
+              "target": "Platform"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Game Boy Advance\",\"Dreamcast\",\"Game Boy Color\",\"GameCube\",\"Nintendo 64\",\"Nintendo DS\",\"Nintendo DSi\",\"PlayStation\",\"PlayStation 2\",\"PlayStation 3\",\"PlayStation 4\",\"PlayStation Portable\",\"PlayStation Vita\",\"Wii\",\"Wireless\",\"Xbox\",\"Xbox 360\",\"Xbox One\",\"iPhone\"], datum['Platform']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 1,
+              "types": [
+                "line"
+              ]
+            }
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "45_ign_scores_parallel",
+    "dataset_path": "datasets/45_ign_scores_parallel.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/45_ign_scores_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

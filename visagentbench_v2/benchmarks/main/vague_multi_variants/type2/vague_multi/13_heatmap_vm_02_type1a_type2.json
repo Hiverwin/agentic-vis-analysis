@@ -1,0 +1,82 @@
+{
+  "benchmark_id": "13_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How does the hotspot/coldspot structure, row-column contrasts, and local anomalies in the updated heatmap compare to the original view?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Male consumers have a higher average product price compared to female consumers."
+        },
+        "key_insights": [
+          "Female consumers show significantly higher prices for cosmetics products compared to males,",
+          "while male consumers exhibit higher prices for skincare.",
+          "Haircare prices are similar between the two genders.",
+          "The average product price for males is higher than that for females."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Keep only female and male customer demographics to enable a direct comparison between the two segments."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_values": [
+                  "Non-binary",
+                  "Unknown"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "show_top": true,
+                "show_right": true,
+                "op": "mean"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "13_supply_chain_data_heatmap",
+    "dataset_path": "datasets/13_supply_chain_data_heatmap.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,95 @@
+{
+  "benchmark_id": "03_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use detect_anomalies, resample_x_axis to assess whether there are any unusual price movements in either company’s stock and then compare their volatility across different time intervals.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "TechCorp’s largest price jump occurred between August and September, which is a natural part of its upward trend, not an anomaly.\nQuarterly resampling makes the divergence in their growth rates more visually striking.\nThe absence of anomalies confirms RetailInc’s price movement is consistently stable throughout the period.\nRetailInc’s quarterly price growth remains nearly identical across all four quarters, showing extremely low volatility.\n"
+        },
+        "key_insights": [
+          "No extreme outliers or sudden abnormal spikes/drops are detected in either company’s price series.",
+          "TechCorp’s quarterly price growth accelerated in the second half of the year, while RetailInc’s quarterly growth remained constant."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "Starting with anomaly detection ensures we rule out irregular events before analyzing volatility."
+          },
+          {
+            "iteration": 2,
+            "capability": "axis.x.resample",
+            "rationale": "Resampling to quarterly intervals simplifies comparing volatility across periods, as it reduces noise and highlights broader trends. The two tools together provide a robust way to explore the vague question of unusual movements and volatility."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.anomalies.detect",
+          "axis.x.resample"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "numeric",
+              "param": "threshold",
+              "target": 2,
+              "tolerance": 0.1
+            }
+          },
+          {
+            "capability": "axis.x.resample",
+            "param_eval": {
+              "type": "categorical",
+              "param": "granularity",
+              "target": "quarter"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "date",
+            "y": "price",
+            "color": "company"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "anomaly_markers": {
+              "has_markers": true,
+              "marker_type": "point"
+            },
+            "time_unit": {
+              "has_time_unit": true,
+              "unit": "quarter"
+            }
+          }
+        },
+        "state_check_fields": [
+          "anomaly_markers",
+          "time_unit"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "03_line_stocks",
+    "dataset_path": "datasets/03_line_stocks.json",
+    "row_count": 12,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/03_line_stocks.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

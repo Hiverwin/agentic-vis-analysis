@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "89_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use highlight_region_by_value with min_value equal to 7.0 and use change_encoding with field equal to BMI Category in order to know How does the relationship between stress levels and BMI categories affect sleep duration patterns?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The heatmap reveals a clear inverse relationship between stress levels and sleep duration: as stress increases from level 3 to 8, average sleep duration decreases from 8.23h to 6.05h. BMI category also influences sleep, with Normal weight individuals averaging 7.39h of sleep compared to Overweight individuals at only 6.77h. The combination of high stress (level 8) and Obese BMI results in the lowest sleep duration (5.90h), while low stress (level 3) with Normal BMI yields the highest (8.37h). This suggests both stress and BMI independently and cumulatively impact sleep quality.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Clear inverse relationship: higher stress correlates with shorter sleep duration",
+          "Normal BMI individuals sleep longest (7.39h avg)",
+          "Overweight shortest (6.77h avg)",
+          "Stress level 3 averages 8.23h sleep vs level 8 at only 6.05h",
+          "Combined high stress and Obese BMI yields lowest sleep (5.90h)"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Highlight regions with sleep duration below 7 hours to identify high-stress and high-BMI combinations"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to swap x and y axes for a different perspective on the stress-BMI relationship"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.region.highlight",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 7.0,
+                "outside_opacity": 0.12
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "BMI Category"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Stress Level",
+            "y": "BMI Category",
+            "color": "Sleep Duration"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "89_Sleep_health_and_lifestyle_dataset_heatmap",
+    "dataset_path": "datasets/89_Sleep_health_and_lifestyle_dataset_heatmap.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/89_Sleep_health_and_lifestyle_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

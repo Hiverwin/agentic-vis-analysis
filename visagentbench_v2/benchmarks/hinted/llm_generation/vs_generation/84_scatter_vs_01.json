@@ -1,0 +1,64 @@
+{
+  "benchmark_id": "84_scatter_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use calculate_correlation in order to know What is the relationship between sugar content and calorie count in Starbucks beverages?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is a strong positive correlation between sugar content and calorie count in Starbucks beverages. As sugar content increases, calorie count tends to increase as well, with some variation across different beverage categories",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Strong positive correlation between sugar and calories",
+          "Different beverage categories show varying levels of sugar and calories",
+          "Smoothies and Frappuccinos tend to have higher sugar and calorie content"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between sugar content and calorie count to determine their relationship"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "84_starbucks_scatter",
+    "dataset_path": "datasets/84_starbucks_scatter.json",
+    "row_count": 242,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/84_starbucks_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

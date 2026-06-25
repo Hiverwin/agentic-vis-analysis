@@ -1,0 +1,49 @@
+{
+  "task_type": "clear_single",
+  "task_id": "101_sankey_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/101_sankey_credit.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use calculate_conversion_rate with node_name equal to AAA Y1. What is the largest inflow value for AAA Y1?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "420",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Use calculate_conversion_rate with node_name equal to AAA Y1. The upstream list gives inflow values from each source; the largest is 420."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "AAA Y1"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

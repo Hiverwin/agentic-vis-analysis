@@ -1,0 +1,71 @@
+{
+  "benchmark_id": "07_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use change_encoding with field equal to weather, channel equal to x to evaluate whether weather has a significant impact on people's average sleep duration.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "boolean",
+          "value": "No"
+        },
+        "key_insights": [
+          "People tend to sleep longer on rainy days.",
+          "However, the difference in sleep duration across different weather conditions is not substantial."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "By moving weather to the x-axis, the relationship between weather and sleep duration can be observed"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "weather",
+                "channel": "x"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "weather",
+            "y": "sleep_hours",
+            "color": "weather"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "07_bar_synthetic_mental_health",
+    "dataset_path": "datasets/07_bar_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/07_bar_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

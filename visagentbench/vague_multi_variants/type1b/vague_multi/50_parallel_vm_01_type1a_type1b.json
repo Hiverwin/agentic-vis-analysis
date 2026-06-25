@@ -1,0 +1,104 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "50_parallel_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/50_supply_chain_data_parallel.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Using hide_dimensions and filter_by_category, is there a reliable trade-off between speed and quality?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The haircare polylines cross freely—Pearson correlation between normalized lead time and defect rate is only about 0.03—so faster runs are not systematically cleaner or dirtier in this slice. You get a tangle of paths rather than a diagonal band, which means you should not infer a strong speed–quality trade-off from these two axes alone."
+        },
+        "key_insights": [
+          "Lead time and defect rate do not line up as a simple inverse relationship here.",
+          "After the category filter, every line is haircare, yet the spread across the two axes stays wide."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "hide_dimensions",
+            "reasoning": "Strips extra axes so lead time and defects can be compared directly."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_by_category",
+            "reasoning": "Keeps haircare lines to avoid mixing unrelated product physics."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "hide_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "hide",
+                  "dimensions": [
+                    "Manufacturing costs",
+                    "Production volumes"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Product type",
+                  "values": [
+                    "skincare",
+                    "cosmetics"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "Manufacturing lead time",
+              "Defect rates"
+            ],
+            "y": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Manufacturing lead time\", \"Defect rates\"], datum['dimension']) >= 0",
+              "_pc_hide_dimensions": true
+            },
+            {
+              "filter": "indexof([\"skincare\",\"cosmetics\"], datum['Product type']) < 0"
+            }
+          ],
+          "layers": {
+            "count": 5,
+            "types": [
+              "rule",
+              "line",
+              null,
+              null,
+              null
+            ]
+          },
+          "dimensions": {
+            "hidden_fields": [
+              "Manufacturing costs",
+              "Production volumes"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "dimensions"
+        ]
+      }
+    }
+  ]
+}

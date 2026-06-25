@@ -1,0 +1,533 @@
+{
+  "rawLinks": [
+    {
+      "source": "Engineering",
+      "target": "Computer Sci",
+      "value": 280
+    },
+    {
+      "source": "Engineering",
+      "target": "Mechanical Eng",
+      "value": 200
+    },
+    {
+      "source": "Engineering",
+      "target": "Electrical Eng",
+      "value": 120
+    },
+    {
+      "source": "Business",
+      "target": "Accounting",
+      "value": 180
+    },
+    {
+      "source": "Business",
+      "target": "Finance Major",
+      "value": 220
+    },
+    {
+      "source": "Business",
+      "target": "Marketing Major",
+      "value": 100
+    },
+    {
+      "source": "Liberal Arts",
+      "target": "English",
+      "value": 130
+    },
+    {
+      "source": "Liberal Arts",
+      "target": "Psychology",
+      "value": 150
+    },
+    {
+      "source": "Liberal Arts",
+      "target": "History",
+      "value": 70
+    },
+    {
+      "source": "Sciences",
+      "target": "Biology",
+      "value": 160
+    },
+    {
+      "source": "Sciences",
+      "target": "Chemistry",
+      "value": 90
+    },
+    {
+      "source": "Computer Sci",
+      "target": "On-Time Grad",
+      "value": 230
+    },
+    {
+      "source": "Computer Sci",
+      "target": "Delayed Grad",
+      "value": 35
+    },
+    {
+      "source": "Computer Sci",
+      "target": "Dropped Out",
+      "value": 15
+    },
+    {
+      "source": "Mechanical Eng",
+      "target": "On-Time Grad",
+      "value": 155
+    },
+    {
+      "source": "Mechanical Eng",
+      "target": "Delayed Grad",
+      "value": 30
+    },
+    {
+      "source": "Mechanical Eng",
+      "target": "Dropped Out",
+      "value": 15
+    },
+    {
+      "source": "Electrical Eng",
+      "target": "On-Time Grad",
+      "value": 90
+    },
+    {
+      "source": "Electrical Eng",
+      "target": "Delayed Grad",
+      "value": 20
+    },
+    {
+      "source": "Electrical Eng",
+      "target": "Dropped Out",
+      "value": 10
+    },
+    {
+      "source": "Accounting",
+      "target": "On-Time Grad",
+      "value": 155
+    },
+    {
+      "source": "Accounting",
+      "target": "Delayed Grad",
+      "value": 20
+    },
+    {
+      "source": "Accounting",
+      "target": "Dropped Out",
+      "value": 5
+    },
+    {
+      "source": "Finance Major",
+      "target": "On-Time Grad",
+      "value": 180
+    },
+    {
+      "source": "Finance Major",
+      "target": "Delayed Grad",
+      "value": 30
+    },
+    {
+      "source": "Finance Major",
+      "target": "Dropped Out",
+      "value": 10
+    },
+    {
+      "source": "Marketing Major",
+      "target": "On-Time Grad",
+      "value": 80
+    },
+    {
+      "source": "Marketing Major",
+      "target": "Delayed Grad",
+      "value": 15
+    },
+    {
+      "source": "Marketing Major",
+      "target": "Dropped Out",
+      "value": 5
+    },
+    {
+      "source": "English",
+      "target": "On-Time Grad",
+      "value": 100
+    },
+    {
+      "source": "English",
+      "target": "Delayed Grad",
+      "value": 22
+    },
+    {
+      "source": "English",
+      "target": "Dropped Out",
+      "value": 8
+    },
+    {
+      "source": "Psychology",
+      "target": "On-Time Grad",
+      "value": 115
+    },
+    {
+      "source": "Psychology",
+      "target": "Delayed Grad",
+      "value": 25
+    },
+    {
+      "source": "Psychology",
+      "target": "Dropped Out",
+      "value": 10
+    },
+    {
+      "source": "History",
+      "target": "On-Time Grad",
+      "value": 50
+    },
+    {
+      "source": "History",
+      "target": "Delayed Grad",
+      "value": 15
+    },
+    {
+      "source": "History",
+      "target": "Dropped Out",
+      "value": 5
+    },
+    {
+      "source": "Biology",
+      "target": "On-Time Grad",
+      "value": 125
+    },
+    {
+      "source": "Biology",
+      "target": "Delayed Grad",
+      "value": 25
+    },
+    {
+      "source": "Biology",
+      "target": "Dropped Out",
+      "value": 10
+    },
+    {
+      "source": "Chemistry",
+      "target": "On-Time Grad",
+      "value": 65
+    },
+    {
+      "source": "Chemistry",
+      "target": "Delayed Grad",
+      "value": 18
+    },
+    {
+      "source": "Chemistry",
+      "target": "Dropped Out",
+      "value": 7
+    },
+    {
+      "source": "On-Time Grad",
+      "target": "Tech/Internet",
+      "value": 400
+    },
+    {
+      "source": "On-Time Grad",
+      "target": "Manufacturing",
+      "value": 190
+    },
+    {
+      "source": "On-Time Grad",
+      "target": "Finance Ind",
+      "value": 270
+    },
+    {
+      "source": "On-Time Grad",
+      "target": "Education",
+      "value": 150
+    },
+    {
+      "source": "On-Time Grad",
+      "target": "Healthcare",
+      "value": 130
+    },
+    {
+      "source": "On-Time Grad",
+      "target": "Other Industry",
+      "value": 205
+    },
+    {
+      "source": "Delayed Grad",
+      "target": "Tech/Internet",
+      "value": 65
+    },
+    {
+      "source": "Delayed Grad",
+      "target": "Manufacturing",
+      "value": 40
+    },
+    {
+      "source": "Delayed Grad",
+      "target": "Finance Ind",
+      "value": 45
+    },
+    {
+      "source": "Delayed Grad",
+      "target": "Education",
+      "value": 35
+    },
+    {
+      "source": "Delayed Grad",
+      "target": "Healthcare",
+      "value": 25
+    },
+    {
+      "source": "Delayed Grad",
+      "target": "Other Industry",
+      "value": 45
+    },
+    {
+      "source": "Tech/Internet",
+      "target": ">20K/mo",
+      "value": 210
+    },
+    {
+      "source": "Tech/Internet",
+      "target": "10-20K/mo",
+      "value": 190
+    },
+    {
+      "source": "Tech/Internet",
+      "target": "<10K/mo",
+      "value": 65
+    },
+    {
+      "source": "Manufacturing",
+      "target": ">20K/mo",
+      "value": 35
+    },
+    {
+      "source": "Manufacturing",
+      "target": "10-20K/mo",
+      "value": 120
+    },
+    {
+      "source": "Manufacturing",
+      "target": "<10K/mo",
+      "value": 75
+    },
+    {
+      "source": "Finance Ind",
+      "target": ">20K/mo",
+      "value": 145
+    },
+    {
+      "source": "Finance Ind",
+      "target": "10-20K/mo",
+      "value": 120
+    },
+    {
+      "source": "Finance Ind",
+      "target": "<10K/mo",
+      "value": 50
+    },
+    {
+      "source": "Education",
+      "target": ">20K/mo",
+      "value": 20
+    },
+    {
+      "source": "Education",
+      "target": "10-20K/mo",
+      "value": 80
+    },
+    {
+      "source": "Education",
+      "target": "<10K/mo",
+      "value": 85
+    },
+    {
+      "source": "Healthcare",
+      "target": ">20K/mo",
+      "value": 30
+    },
+    {
+      "source": "Healthcare",
+      "target": "10-20K/mo",
+      "value": 75
+    },
+    {
+      "source": "Healthcare",
+      "target": "<10K/mo",
+      "value": 50
+    },
+    {
+      "source": "Other Industry",
+      "target": ">20K/mo",
+      "value": 40
+    },
+    {
+      "source": "Other Industry",
+      "target": "10-20K/mo",
+      "value": 110
+    },
+    {
+      "source": "Other Industry",
+      "target": "<10K/mo",
+      "value": 100
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Engineering",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Business",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Liberal Arts",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Sciences",
+      "depth": 0,
+      "order": 3
+    },
+    {
+      "name": "Computer Sci",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Mechanical Eng",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Electrical Eng",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "Accounting",
+      "depth": 1,
+      "order": 3
+    },
+    {
+      "name": "Finance Major",
+      "depth": 1,
+      "order": 4
+    },
+    {
+      "name": "Marketing Major",
+      "depth": 1,
+      "order": 5
+    },
+    {
+      "name": "English",
+      "depth": 1,
+      "order": 6
+    },
+    {
+      "name": "Psychology",
+      "depth": 1,
+      "order": 7
+    },
+    {
+      "name": "History",
+      "depth": 1,
+      "order": 8
+    },
+    {
+      "name": "Biology",
+      "depth": 1,
+      "order": 9
+    },
+    {
+      "name": "Chemistry",
+      "depth": 1,
+      "order": 10
+    },
+    {
+      "name": "On-Time Grad",
+      "depth": 2,
+      "order": 0
+    },
+    {
+      "name": "Delayed Grad",
+      "depth": 2,
+      "order": 1
+    },
+    {
+      "name": "Dropped Out",
+      "depth": 2,
+      "order": 2
+    },
+    {
+      "name": "Tech/Internet",
+      "depth": 3,
+      "order": 0
+    },
+    {
+      "name": "Manufacturing",
+      "depth": 3,
+      "order": 1
+    },
+    {
+      "name": "Finance Ind",
+      "depth": 3,
+      "order": 2
+    },
+    {
+      "name": "Education",
+      "depth": 3,
+      "order": 3
+    },
+    {
+      "name": "Healthcare",
+      "depth": 3,
+      "order": 4
+    },
+    {
+      "name": "Other Industry",
+      "depth": 3,
+      "order": 5
+    },
+    {
+      "name": ">20K/mo",
+      "depth": 4,
+      "order": 0
+    },
+    {
+      "name": "10-20K/mo",
+      "depth": 4,
+      "order": 1
+    },
+    {
+      "name": "<10K/mo",
+      "depth": 4,
+      "order": 2
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "College"
+    },
+    {
+      "depth": 1,
+      "label": "Major"
+    },
+    {
+      "depth": 2,
+      "label": "Graduation Status"
+    },
+    {
+      "depth": 3,
+      "label": "Industry"
+    },
+    {
+      "depth": 4,
+      "label": "Starting Salary"
+    }
+  ]
+}

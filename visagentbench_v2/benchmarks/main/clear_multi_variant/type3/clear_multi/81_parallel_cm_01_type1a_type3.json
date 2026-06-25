@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "81_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "What is the typical calorie burn for different workout types with the same weights?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Strength",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "filter the categories of HIIT, Cardio and hide dimension except for weights and Calories_Burned"
+          },
+          {
+            "iteration": 2,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "hide dimension except for weights and Calories_Burned"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Workout_Type",
+                "values": [
+                  "HIIT",
+                  "Cardio"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "Workout_Type",
+                  "Session_Duration (hours)",
+                  "Experience_Level"
+                ],
+                "mode": "hide"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Session_Duration (hours)",
+            "y": "Calories_Burned",
+            "color": "Workout_Type"
+          },
+          "view": {
+            "xDomain": [
+              "weight(kg)",
+              "Calories_Burned"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"HIIT\", \"Cardio\"], datum['Workout_Type']) < 0"
+              }
+            ],
+            "hidden_dimensions": [
+              "Workout_Type",
+              "Session_Duration (hours)",
+              "Experience_Level"
+            ]
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "81_gym_members_exercise_tracking_parallel",
+    "dataset_path": "datasets/81_gym_members_exercise_tracking_parallel.json",
+    "row_count": 4865,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/81_gym_members_exercise_tracking_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,166 @@
+{
+  "benchmark_id": "67_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_05",
+      "question": "Using change_encoding and filter_categorical, what is the relationship pattern (direction/strength), subgroup overlap versus separation, and what becomes clearer after interaction compared with the original chart?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "we can find that the data of male and female are equal, so it can say that the content of va have no related to gender"
+        },
+        "key_insights": [
+          "it seem that a little bit different",
+          "mean: 91.7468",
+          "min: 10",
+          "max: 213.6",
+          "mean:91.7468",
+          "min:10",
+          "max: 213.6"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "get the chart of gender and va"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "get data of male"
+          },
+          {
+            "iteration": 3,
+            "capability": "data.visible.summarize",
+            "rationale": "get data"
+          },
+          {
+            "iteration": 4,
+            "capability": "data.filter.categorical",
+            "rationale": "get female line"
+          },
+          {
+            "iteration": 5,
+            "capability": "data.visible.summarize",
+            "rationale": "get female data"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.categorical",
+          "data.visible.summarize",
+          "view.reset",
+          "view.encoding.change",
+          "data.filter.categorical",
+          "data.visible.summarize"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "y",
+                "field": "gender"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "Female"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "filter"
+              }
+            }
+          },
+          {
+            "capability": "view.reset",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "y",
+                "field": "gender"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "Male"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "filter"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "vitamin_a_percent_rda",
+            "y": "vitamin_e_percent_rda",
+            "color": "gender"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "data_filtered",
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "67_vitamin_deficiency_disease_dataset_scatter",
+    "dataset_path": "datasets/67_vitamin_deficiency_disease_dataset_scatter.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/67_vitamin_deficiency_disease_dataset_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

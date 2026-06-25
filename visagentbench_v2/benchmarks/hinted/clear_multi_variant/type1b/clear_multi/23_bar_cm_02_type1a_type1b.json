@@ -1,0 +1,112 @@
+{
+  "benchmark_id": "23_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Using filter_subcategories and filter_categories, which brand has the highest average battery capacity in 2022?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Oppo."
+        },
+        "key_insights": [
+          "The average data for Oppo in 2022 was 4787, while for Openplus it was 4642. Therefore, the answer is \"Oppo.\""
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter out the data from other years except for 2022 to focus on the data for 2022."
+          },
+          {
+            "iteration": 3,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter out the data from other brands to focus on the data for Oppo and Openplus."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Year 2024",
+                  "Year 2023",
+                  "Year 2021",
+                  "Year 2020",
+                  "Year 2025"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "Realme",
+                  "Vivo",
+                  "Xiaomi",
+                  "Samsung",
+                  "Apple",
+                  "Huawei",
+                  "Lenovo",
+                  "Asus",
+                  "Dell"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Company Name",
+            "y": "Battery Capacity(mAh)",
+            "color": "Launched Year"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Oppo\", \"Openplus\"], datum['Company Name']) < 0"
+              },
+              {
+                "filter": "datum['Launched Year'] != \"Year 2024\" && datum['Launched Year'] != \"Year 2023\" && datum['Launched Year'] != \"Year 2021\" && datum['Launched Year'] != \"Year 2020\" && datum['Launched Year'] != \"Year 2025\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "23_Mobiles Dataset (2025)_bar",
+    "dataset_path": "datasets/23_Mobiles Dataset (2025)_bar.json",
+    "row_count": 847,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/23_Mobiles Dataset (2025)_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

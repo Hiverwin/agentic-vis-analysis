@@ -1,0 +1,74 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "29_parallel_cm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/29_students_ai_usage_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "29_parallel_cm_01：Use reorder_dimensions with dimension_order equal to Age, Income, Education, Debt, then use calculate_correlation with method equal to pearson to analyze relationships between variables. What is the correlation between Income and Education?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "grades_after_ai",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to better compare AI usage effects"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between AI usage and grades"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "grades_after_ai",
+                    "grades_before_ai",
+                    "study_hours_per_day",
+                    "daily_screen_time_hours"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "axis_order": {
+            "dimension_order": [
+              "grades_after_ai",
+              "grades_before_ai",
+              "study_hours_per_day",
+              "daily_screen_time_hours"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

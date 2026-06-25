@@ -1,0 +1,68 @@
+{
+  "benchmark_id": "50_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What is the computed correlation between Sleep_Duration and Stress_Level using the Pearson method?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "-0.81",
+          "tolerance": 0.05
+        },
+        "key_insights": [
+          "The correlation is about -0.81,it shows a strong negative relationship."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "The problem mentions correlation."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Stress Level",
+            "y": "Sleep Duration",
+            "color": "Gender"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "50_Sleep_health_and_lifestyle_dataset_scatter",
+    "dataset_path": "datasets/50_Sleep_health_and_lifestyle_dataset_scatter.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/50_Sleep_health_and_lifestyle_dataset_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

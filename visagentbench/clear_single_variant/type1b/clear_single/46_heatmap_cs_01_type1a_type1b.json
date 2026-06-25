@@ -1,0 +1,52 @@
+{
+  "task_type": "clear_single",
+  "task_id": "46_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/46_mxmh_survey_results_heatmap.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using change_encoding, what is the relationship between Foreign Language scores and the Instrumentalist combination's Anxiety level?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Foreign Language Yes and Instrumentalist No",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Use this tool to change the encoding of the Foreign Language and Instrumentalist columns to see the combination with the highest Anxiety level."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Foreign Language",
+                  "channel": "y"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Instrumentalist",
+            "y": "Foreign Language",
+            "color": "Anxiety"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

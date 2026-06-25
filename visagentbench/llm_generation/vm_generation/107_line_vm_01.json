@@ -1,0 +1,68 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "107_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/107_survive_to_65_line.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use highlight_trend with trend_type equal to increasing and use zoom_x_region with start equal to 1970, end equal to 2010 in order to know First use highlight_trend to highlight increasing trends, then use zoom_x_region for a specific time period. Analyze how male survival-to-65 rates evolve by country, including ranking stability, gap dynamics, and whether there is catch-up or overtaking. Cite visible evidence anchors (country names and trend/rank changes over time).",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Male survival-to-65 rates generally show an upward trend across most countries over time. There are variations in growth rates, with some countries experiencing more rapid improvements than others. While overall rankings remain relatively stable, there are periods where certain countries show accelerated progress relative to others.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Most countries show increasing trends in male survival-to-65 rates",
+          "There are variations in growth rates across different countries",
+          "Overall country rankings remain relatively stable with subtle shifts"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight increasing trends to see overall patterns"
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom into a specific time period to analyze detailed changes"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            },
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "1970",
+                  "end": "2010"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Survival to age 65, male (% of cohort)",
+            "color": "Entity"
+          }
+        }
+      }
+    }
+  ]
+}

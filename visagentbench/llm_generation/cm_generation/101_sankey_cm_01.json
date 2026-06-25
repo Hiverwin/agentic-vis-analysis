@@ -1,0 +1,61 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "101_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/101_sankey_credit.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "15_sankey_cm_01：Use highlight_path with path equal to [Personal Income Tax, Education, K-12 Funding], then use calculate_conversion_rate with node_name equal to K-12 Funding. Which node provides the largest inflow to K-12 Funding?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "420",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_path",
+            "reasoning": "Use highlight_path to trace the specific path from AAA Orig to AAA Y1 to visualize the flow"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Use calculate_conversion_rate to analyze AAA Orig node and verify its outflow distribution to AAA Y1"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "AAA Orig",
+                    "AAA Y1"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "AAA Orig"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

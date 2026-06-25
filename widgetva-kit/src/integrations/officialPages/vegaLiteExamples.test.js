@@ -115,9 +115,23 @@ test('inferWidgetKindFromVegaLiteSpec maps common Vega-Lite examples onto existi
 test('attachWidgetVAToVegaLiteExample mounts a WidgetInstance over an official Vega-Lite example view', async () => {
   const previousWindow = globalThis.window
   try {
+    const fetchCalls = []
     globalThis.window = {
       addEventListener() {},
       removeEventListener() {},
+      async fetch(url) {
+        fetchCalls.push(url)
+        return {
+          ok: true,
+          async json() {
+            return [
+              { Horsepower: 70, Miles_per_Gallon: 30 },
+              { Horsepower: 90, Miles_per_Gallon: 24 },
+              { Horsepower: 150, Miles_per_Gallon: 14 },
+            ]
+          },
+        }
+      },
     }
 
     const signalCalls = []
@@ -161,7 +175,80 @@ test('attachWidgetVAToVegaLiteExample mounts a WidgetInstance over an official V
     assert.equal(controller.spec.data.url, 'https://vega.github.io/vega-lite/examples/data/cars.json')
     assert.equal(controller.describeAgentContract().widget.kind, 'scatter')
     assert.equal(controller.getCurrentSpec().mark, 'point')
+    assert.equal(controller.getCurrentSpec().data.url, 'https://vega.github.io/vega-lite/examples/data/cars.json')
+    assert.equal(fetchCalls[0], 'https://vega.github.io/vega-lite/examples/data/cars.json')
+    assert.equal(controller.widget.readState()?.data?.visibleCount, 3)
     assert.equal(signalCalls.some(([name]) => name === 'widgetva_selectedCount'), true)
+    controller.dispose()
+  } finally {
+    globalThis.window = previousWindow
+  }
+})
+
+test('attachWidgetVAToVegaLiteExample hydrates url-backed rows into runtime perception queries', async () => {
+  const previousWindow = globalThis.window
+  try {
+    globalThis.window = {
+      addEventListener() {},
+      removeEventListener() {},
+      async fetch() {
+        return {
+          ok: true,
+          async json() {
+            return [
+              { Horsepower: 70, Miles_per_Gallon: 30 },
+              { Horsepower: 90, Miles_per_Gallon: 24 },
+              { Horsepower: 150, Miles_per_Gallon: 14 },
+              { Horsepower: 180, Miles_per_Gallon: 12 },
+            ]
+          },
+        }
+      },
+    }
+
+    const view = {
+      signal() { return view },
+      async runAsync() {},
+      addSignalListener() {},
+      removeSignalListener() {},
+      addEventListener() {},
+      removeEventListener() {},
+      finalize() {},
+    }
+
+    const controller = await attachWidgetVAToVegaLiteExample({
+      html: `
+        <pre><code>{
+          "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+          "data": {"url": "data/cars.json"},
+          "mark": "point",
+          "encoding": {
+            "x": {"field": "Horsepower", "type": "quantitative"},
+            "y": {"field": "Miles_per_Gallon", "type": "quantitative"}
+          }
+        }</code></pre>
+      `,
+      pageUrl: 'https://vega.github.io/vega-lite/examples/point_2d.html',
+      view,
+      sessionId: 'vega-example-perception-test',
+    })
+
+    const widgetRef = controller.describeAgentContract().widget.ref
+    const perceptionResult = await controller.widget.queryPerception({
+      callId: 'official_vega_compute_correlation',
+      actor: 'agent',
+      name: 'perception.computeCorrelation',
+      queryScope: { widgetRef },
+      params: {
+        xField: 'Horsepower',
+        yField: 'Miles_per_Gallon',
+      },
+    })
+
+    assert.equal(perceptionResult.ok, true)
+    assert.equal(perceptionResult.result.sampleSize, 4)
+    assert.equal(typeof perceptionResult.result.correlation, 'number')
+    assert.equal(controller.widget.readState()?.data?.visibleCount, 4)
     controller.dispose()
   } finally {
     globalThis.window = previousWindow

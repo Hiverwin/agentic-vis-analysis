@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "112_bar_cs_05",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_05",
+      "question": "Use sort_bars in order to know Use sort_bars with order equal to ascending to rank titles by popularity and return the title positioned first.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Kusuriya no Hitorigoto",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars in ascending order to identify the title with lowest popularity rank (most popular)"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "ascending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Kusuriya no Hitorigoto",
+                "Hajime no Ippo",
+                "Fruits Basket: The Final",
+                "Kizumonogatari III: Reiketsu-hen",
+                "3-gatsu no Lion 2nd Season",
+                "Owarimonogatari 2nd Season",
+                "Takopii no Genzai",
+                "Gintama. Shirogane no Tamashii-hen - Kouhan-sen",
+                "Juuou Mujin no Fafnir",
+                "One Piece Fan Letter",
+                "RahXephon",
+                "Zuihou de Zhaohuan Shi",
+                "R.O.D: Read or Die",
+                "Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack",
+                "Maken-Ki! OVA",
+                "Ayashi no Ceres",
+                "Doupo Cangqiong 3rd Season",
+                "Makasete Iruka!",
+                "Warau Salesman Special Program",
+                "Aware! Meisaku-kun"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "112_anmie_filter_bar",
+    "dataset_path": "datasets/112_anmie_filter_bar.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,92 @@
+{
+  "benchmark_id": "113_parallel_vm_05",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_05",
+      "question": "Use hide_dimensions with dimensions equal to hide, mode equal to hide and use highlight_category with field equal to dimensions, values equal to score, episodes in order to know First use hide_dimensions to hide some dimensions, then use highlight_category to highlight specific anime types. Analyze how different anime types compare across the visible dimensions: which types show consistent patterns, which dimensions show the most variation between types, and what characteristics distinguish each type across the remaining dimensions.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Different anime types show distinct patterns across the visible dimensions. Some types demonstrate consistent high scores across multiple dimensions, while others show more variation. The popularity and members dimensions tend to correlate strongly, with high-scoring types also showing higher membership numbers. Episode counts vary significantly between types, with some types having consistently longer series while others are shorter. The visible dimensions reveal clear differentiation between anime types, with each type showing characteristic profiles across the measured attributes.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Different anime types show distinct patterns",
+          "Popularity and members dimensions correlate strongly",
+          "Episode counts vary significantly between types",
+          "Each type shows characteristic profiles"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide dimensions to focus on specific attributes"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight categories to compare anime types"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide",
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "hide"
+                ],
+                "mode": "hide"
+              }
+            }
+          },
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "dimensions",
+                "values": [
+                  "score",
+                  "episodes"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "113_nime_less_parallel",
+    "dataset_path": "datasets/113_nime_less_parallel.json",
+    "row_count": 2076,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/113_nime_less_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

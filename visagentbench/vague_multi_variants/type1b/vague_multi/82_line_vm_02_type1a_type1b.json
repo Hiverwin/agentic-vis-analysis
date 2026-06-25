@@ -1,0 +1,81 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "82_line_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Using zoom_x_region and filter_lines, how do Sports and Books compare in revenue level and day-to-day jitter over Q1?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Sports runs an order of magnitude above Books on revenue in that quarter—roughly a four-hundred-ish mean daily ticket versus mid-sixties for Books—so the Sports line rides much higher on the y-axis. Both still wiggle day to day, but Books stays in a narrower band while Sports shows wider swings, including occasional spikes toward the upper hundreds or nearly two thousand on strong days."
+        },
+        "key_insights": [
+          "Sports dominates Books on absolute revenue throughout Q1.",
+          "Sports carries almost all of the visible volatility; Books looks comparatively flat."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Locks the window to January–March 2024 for an apples-to-apples seasonal read."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_lines",
+            "reasoning": "Removes other product families so Sports and Books are directly comparable."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2024-01-01",
+                  "end": "2024-03-31"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Electronics",
+                    "Home Appliances",
+                    "Clothing",
+                    "Beauty Products"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "2024-01-01",
+              "2024-03-31"
+            ]
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Electronics\", \"Home Appliances\", \"Clothing\", \"Beauty Products\"], datum['Product Category']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

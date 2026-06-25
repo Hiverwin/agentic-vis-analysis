@@ -1,0 +1,96 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "58_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/58_Train_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_by_category and hide_dimensions, which product importance group (low or medium) shows the stronger correlation between cost and prior purchases?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "medium",
+          "alternatives": []
+        },
+        "key_insights": [
+          "There exists a positive correlation: high cost associates with high prior purchase."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Filter to keep only low and medium importance products for comparison."
+          },
+          {
+            "iteration": 2,
+            "tool": "hide_dimensions",
+            "reasoning": "Hide other dimensions to focus on Cost_of_the_Product and Prior_purchases for visual correlation comparison."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Product_importance",
+                  "values": [
+                    "high"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "hide_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "hide",
+                  "dimensions": [
+                    "Customer_rating",
+                    "Customer_care_calls",
+                    "Discount_offered"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "Cost_of_the_Product",
+              "Prior_purchases"
+            ],
+            "y": null
+          },
+          "encoding": {
+            "x": "dimension",
+            "y": null,
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"high\"], datum['Product_importance']) < 0"
+            }
+          ],
+          "dimensions": {
+            "hidden_fields": [
+              "Customer_rating",
+              "Customer_care_calls",
+              "Discount_offered"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "dimensions"
+        ]
+      }
+    }
+  ]
+}

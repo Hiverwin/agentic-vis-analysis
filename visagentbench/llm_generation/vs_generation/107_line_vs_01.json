@@ -1,0 +1,59 @@
+{
+  "task_type": "vague_single",
+  "task_id": "107_line_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/107_survive_to_65_line.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use focus_lines in order to know Which country shows the most dramatic improvement in male survival rate to age 65 from 1960 to 2021?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "China demonstrates the most dramatic improvement with a total increase of 66.38% from 15.89% in 1960 to 82.27% in 2021, representing an average annual increase of 1.09%",
+          "alternatives": []
+        },
+        "key_insights": [
+          "China had the lowest starting survival rate in 1960 at 15.89%",
+          "China achieved the highest total increase of 66.38%",
+          "China shows the fastest average annual growth rate of 1.09% per year"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "focus_lines",
+            "reasoning": "Use focus_lines to highlight China and observe its dramatic improvement in male survival rate to age 65 over 61-year period"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "focus_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines": [
+                    "highlight",
+                    "China"
+                  ],
+                  "line_field": "mode,lines",
+                  "mode": "dim",
+                  "dim_opacity": 0.08
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

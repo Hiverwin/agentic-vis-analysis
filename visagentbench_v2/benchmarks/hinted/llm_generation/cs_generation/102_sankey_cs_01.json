@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "102_sankey_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use highlight_path in order to know Use highlight_path with path equal to Google Ads, Active (High), Upgraded (Pro), Loyal, Renewed to observe which product line receives the largest amount from Loyal.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Renewed",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use highlight_path to trace the path from Google Ads to Renewed and identify the largest flow from Loyal"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Google Ads",
+                  "Active (High)",
+                  "Upgraded (Pro)",
+                  "Loyal",
+                  "Renewed"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "102_sankey_saas",
+    "dataset_path": "datasets/102_sankey_saas.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/102_sankey_saas.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

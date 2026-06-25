@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "11_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_03",
+      "question": "Use zoom_x_region with start equal to 2022, end equal to 2025, change_encoding with field equal to Product, channel equal to x to characterize the overall audience of Apple products and the regular audience excluding the specific year group.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "It is very clear to see that, overall, the MacBook is the most popular while the iPad is the least popular. However, after excluding the special 2022 model, it can be observed that the sales volume of the MacBook is far lower than that of the iPhone and other flagship products."
+        },
+        "key_insights": [
+          "find macbook have the most revenue and ipad the least"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "get the charts of revenue and product"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "get the chats in 2027 to 2021"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.domain.zoom",
+            "rationale": "get the data in 2023 to 2025"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "view.domain.zoom",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Product",
+                "channel": "x"
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2007",
+                "end": "2021"
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2022",
+                "end": "2025"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Revenue_Billions",
+            "color": "Product"
+          },
+          "view": {
+            "xDomain": [
+              "2007",
+              "2021"
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "11_apple_time_line",
+    "dataset_path": "datasets/11_apple_time_line.json",
+    "row_count": 133,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/11_apple_time_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

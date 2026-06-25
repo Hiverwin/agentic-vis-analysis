@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "07_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "How does diet quality relate to weather types in terms of the longest mean of sleep hours?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "It's rainy under average diet quality and cloudy under good diet quality, while it's a sunny day under poor diet quality.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "By changing the view to grouped, you can see that it's rainy under average diet quality and cloudy under good diet quality, while it's a sunny day under poor diet quality.",
+          "The average sleep duration under poor diet quality and cloudy weather is the shortest."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stackMode.set",
+            "rationale": "Use toggle stack mode to switch the view to grouped in order to see the comparison of sleep hours."
+          }
+        ],
+        "required_capabilities": [
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "categorical",
+              "param": "mode",
+              "target": "grouped"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "diet_quality",
+            "y": "sleep_hours",
+            "color": "weather"
+          },
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "07_bar_synthetic_mental_health",
+    "dataset_path": "datasets/07_bar_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/07_bar_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

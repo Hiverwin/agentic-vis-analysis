@@ -1,0 +1,84 @@
+{
+  "benchmark_id": "02_bar_cm_07",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_07",
+      "question": "02_bar_cm_01：Use filter_categories with categories equal to [East, North] to exclude those regions, then use toggle_stack_mode with mode equal to stacked to compare total sales. Which region has higher total sales: West or South?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "4550",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only Electronics products by removing Clothing category"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "Toggle stack mode to grouped to view the sales clearly for each region"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Clothing"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "02_bar_sales",
+    "dataset_path": "datasets/02_bar_sales.json",
+    "row_count": 8,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/02_bar_sales.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

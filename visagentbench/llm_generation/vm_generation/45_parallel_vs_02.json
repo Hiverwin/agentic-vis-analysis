@@ -1,0 +1,58 @@
+{
+  "task_type": "vague_single",
+  "task_id": "45_parallel_vs_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/45_ ign_scores_parallel.json",
+  "questions": [
+    {
+      "qid": "vs_02",
+      "question": "Use filter_by_category with field equal to field, values equal to Platform, PlayStation 4 in order to know How do different gaming platforms perform across various game genre dimensions (Action, Adventure, Fighting, Platformer), and which platforms show the strongest performance in specific genres?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The parallel coordinates analysis reveals significant performance variations across 21 gaming platforms across 5 game genre dimensions. PlayStation 4 demonstrates exceptional performance with normalized values of 0.9150 (Action), 0.7568 (Adventure), 0.7514 (Action, Adventure), and 0.9197 (Platformer), making it one of the top-performing platforms across multiple genres. Xbox One shows perfect performance in Action (1.0000) with strong Adventure (0.7081) and Action, Adventure (0.6056) scores. PlayStation Vita achieves perfect scores in Adventure (1.0000) and Platformer (1.0000), though it shows 0.0000 in Action, Adventure dimension. Nintendo DSi shows perfect performance in Action, Adventure (1.0000) with strong scores in other dimensions. Nintendo 64 performs exceptionally well in Action, Adventure (0.8944) and Platformer (0.2422). The data suggests that modern platforms like PlayStation 4 and Xbox One generally show stronger performance across multiple genres compared to older platforms like Game Boy Color and Nintendo DS which show 0.0000 values in several dimensions.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "PlayStation 4 shows strong performance across all genres with 0.9150 in Action and 0.9197 in Platformer",
+          "Xbox One achieves perfect score (1.0000) in Action dimension",
+          "PlayStation Vita shows perfect scores in Adventure and Platformer dimensions",
+          "Nintendo DSi achieves perfect score (1.0000) in Action",
+          "Adventure dimension",
+          "Modern platforms generally outperform older platforms across multiple genres",
+          "Some platforms show 0.0000 values in certain dimensions indicating no data or poor performance"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Use filter_by_category to analyze specific platforms across all dimensions"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": [
+                    "Platform",
+                    "PlayStation 4"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension"
+          }
+        }
+      }
+    }
+  ]
+}

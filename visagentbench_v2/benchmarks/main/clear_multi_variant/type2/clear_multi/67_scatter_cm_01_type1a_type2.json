@@ -1,0 +1,97 @@
+{
+  "benchmark_id": "67_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "What is the Pearson correlation coefficient (rounded to 3 decimals) between vitamin_a_percent_rda and vitamin_e_percent_rda for females after removing males from the gender field?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.423",
+          "tolerance": 0.005
+        },
+        "key_insights": [
+          "The correlation is about 0.423."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Remove Male to focus on Female data."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Compute Pearson correlation for vitamin A vs E in females."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "gender",
+                "categories_to_remove": [
+                  "Male"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "vitamin_a_percent_rda",
+            "y": "vitamin_e_percent_rda",
+            "color": "gender"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Male\"], datum['gender']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "67_vitamin_deficiency_disease_dataset_scatter",
+    "dataset_path": "datasets/67_vitamin_deficiency_disease_dataset_scatter.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/67_vitamin_deficiency_disease_dataset_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

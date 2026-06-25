@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "61_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using calculate_correlation, what is the correlation between Robbery and Injury?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "0.845",
+          "tolerance": 0.01
+        },
+        "key_insights": [
+          "The scatter plot displays Robbery on x-axis and Injury on y-axis.",
+          "There is a strong positive correlation between the two variables.",
+          "The Pearson correlation coefficient is approximately 0.845."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Use calculate_correlation with pearson method to compute the correlation coefficient between x and y."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Robbery",
+            "y": "Injury",
+            "color": "District"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "61_Berlin_crimes_scatter",
+    "dataset_path": "datasets/61_Berlin_crimes_scatter.json",
+    "row_count": 1200,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/61_Berlin_crimes_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

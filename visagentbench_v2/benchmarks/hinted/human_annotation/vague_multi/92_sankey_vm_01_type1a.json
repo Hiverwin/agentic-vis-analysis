@@ -1,0 +1,100 @@
+{
+  "benchmark_id": "92_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use get_data_summary with scope equal to all, highlight_path with path from Official Website SEO/SEM to Enterprise SaaS Platform to compare the relative contribution patterns across high-value product lines.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Channel Partner leads are more evenly split between Enterprise SaaS Platform and Customized Solution."
+        },
+        "key_insights": [
+          "The Enterprise SaaS Platform and Customized Solution are the two highest-value product lines",
+          "Official Website SEO/SEM leads favor the Enterprise SaaS Platform."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "identify which product lines have the highest total signed value."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "the original view’s overlapping flows make it difficult to discern these patterns without targeted exploration."
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Official Website SEO/SEM",
+                  "Enterprise SaaS Platform"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Channel Partner",
+                "Official Website SEO/SEM",
+                "Industry Exhibition/Conference",
+                "Old Customer Referral",
+                "SDR Cold Call",
+                "Enterprise SaaS Platform",
+                "Customized Solution",
+                "Data Middleware Product",
+                "Maintenance Service",
+                "API Open Platform"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "92_sankey_b2b",
+    "dataset_path": "datasets/92_sankey_b2b.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/92_sankey_b2b.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

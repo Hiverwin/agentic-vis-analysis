@@ -1,0 +1,89 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "34_scatter_vm_06",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/34_bmw_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_06",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans and use show_regression with method equal to linear in order to know How does the relationship between price and fuel efficiency (MPG) vary across different BMW models, transmission types, and what are the key trade-offs?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is a notable inverse relationship between price and fuel efficiency across BMW vehicles. The most expensive 10 vehicles average only 31.5 MPG, while the cheapest 10 average 39.0 MPG, indicating that higher-priced models tend to be less fuel-efficient. Semi-Automatic transmission vehicles command the highest average price at 27,359.75 but have the lowest average MPG at 51.3. Manual transmission vehicles offer the most affordable option at 14,637.45 average price with reasonable fuel efficiency at 58.6 MPG. Automatic transmission vehicles strike a balance with average price of 22,419.02 and best fuel efficiency at 61.6 MPG. The overall price range spans from 1,200 to 123,456 with average price of 22,733.41, while MPG ranges from 5.5 to 470.8 with average of 56.4 MPG across 24 different BMW models.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Inverse relationship exists between price and fuel efficiency",
+          "Most expensive vehicles have lower MPG (31.5) compared to cheaper ones (39.0)",
+          "Semi-Automatic vehicles are most expensive but least fuel-efficient",
+          "Manual transmission offers best value with lowest price and good MPG",
+          "Automatic transmission provides best fuel efficiency at 61.6 MPG",
+          "Price range of 1",
+          "200 to 123",
+          "456 shows wide market segmentation"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation to measure the strength of relationship between price and MPG"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Use identify_clusters to discover natural groupings based on price and fuel efficiency"
+          },
+          {
+            "iteration": 3,
+            "tool": "show_regression",
+            "reasoning": "Use show_regression to visualize the linear relationship between price and MPG"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            },
+            {
+              "tool": "show_regression",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "linear"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "price",
+            "y": "mpg",
+            "color": "transmission",
+            "size": "engineSize"
+          }
+        }
+      }
+    }
+  ]
+}

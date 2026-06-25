@@ -1,0 +1,113 @@
+{
+  "benchmark_id": "80_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using zoom_2d_region and filter_categorical, which Workout_Type dominates in the region defined by Session_Duration from 0.5 to 0.75 hours and Calories_Burned from 500 to 800?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Workout frequency 3",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into the region where Session_Duration is 0.5–0.75 hours and Calories_Burned is 500–800 to focus on shorter, moderate-calorie sessions."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter out Yoga to see which Workout_frequency dominates among the remaining types in this region."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.5,
+                  0.75
+                ],
+                "y_range": [
+                  500,
+                  800
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "Yoga"
+                ],
+                "field": "Workout_Type"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Session_Duration (hours)",
+            "y": "Calories_Burned",
+            "color": "Workout_Type"
+          },
+          "view": {
+            "xDomain": [
+              0.5,
+              0.75
+            ],
+            "yDomain": [
+              500,
+              800
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Yoga\"], datum['Workout_Type']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "80_gym_members_exercise_tracking_scatter",
+    "dataset_path": "datasets/80_gym_members_exercise_tracking_scatter.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/80_gym_members_exercise_tracking_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

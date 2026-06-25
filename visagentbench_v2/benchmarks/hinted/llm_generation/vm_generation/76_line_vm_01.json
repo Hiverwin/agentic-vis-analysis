@@ -1,0 +1,93 @@
+{
+  "benchmark_id": "76_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use focus_lines with lines equal to dim and use highlight_trend with trend_type equal to United States in order to know What patterns can you observe in telecom services employment trends across North American countries from 2003 to 2024?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) The United States has by far the highest employment (average 1,360.5K) but shows a significant declining trend (-41.1% from 1,772.2K to 1,044.7K), 2) Mexico is the only major country showing strong growth (+82.6% from 150.5K to 274.8K), 3) Most smaller countries show declining trends, with Grenada experiencing the steepest decline (-83.3%), 4) El Salvador is an exception among smaller countries, showing growth (+71.6%), 5) The gap between the US and other countries is narrowing as US employment decreases while Mexico grows.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "United States has highest employment but declining trend",
+          "Mexico shows strong growth (+82.6%)",
+          "Most smaller countries declining",
+          "El Salvador growing among smaller countries",
+          "Gap between US and others narrowing"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.focus",
+            "rationale": "Focus on United States and Mexico lines to compare trends"
+          },
+          {
+            "iteration": 2,
+            "capability": "line.trend.highlight",
+            "rationale": "Highlight increasing trend to identify growing markets"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.focus",
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.focus",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines": [
+                  "dim"
+                ],
+                "line_field": "mode",
+                "mode": "dim",
+                "dim_opacity": 0.08
+              }
+            }
+          },
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "United States"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Employment_Thousands",
+            "color": "Country"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "76_Refined_Employment_Telecom_Services_NA_line",
+    "dataset_path": "datasets/76_Refined_Employment_Telecom_Services_NA_line.json",
+    "row_count": 113,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/76_Refined_Employment_Telecom_Services_NA_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

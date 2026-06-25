@@ -1,0 +1,113 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "18_parallel_vm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/18_Heart_Disease_Prediction_parallel.json",
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Use hide_dimensions with dimensions equal to hide, Age, BP, mode equal to hide and use filter_by_category with field equal to dimensions, values equal to Heart Disease, Presence and use highlight_category with field equal to field, values equal to Heart Disease, Presence and use filter_by_category with field equal to values, values equal to Heart Disease, Absence in order to know Analyze the multi-dimensional patterns in heart disease prediction data, identifying key differences between patients with and without heart disease",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The parallel coordinate analysis reveals significant multi-dimensional patterns between patients with and without heart disease. Key differences include: 1) Higher normalized values for Age (0.575 vs 0.494), BP (0.382 vs 0.329), Cholesterol (0.298 vs 0.270), ST depression (0.256 vs 0.100), and Thallium (0.708 vs 0.197) in patients with heart disease; 2) Lower Max HR (0.518 vs 0.667) in patients with heart disease; 3) The most striking difference is in Thallium values, followed by ST depression and Max HR. These patterns suggest a comprehensive profile for heart disease risk assessment, with multiple physiological factors showing consistent differences between the two groups.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Thallium shows largest difference between groups",
+          "ST depression is significantly higher in heart disease patients",
+          "Max HR is lower in heart disease patients",
+          "Multiple physiological factors show consistent patterns"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "hide_dimensions",
+            "reasoning": "Hide less relevant dimensions to focus on key factors"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_by_category",
+            "reasoning": "Filter to show only patients with heart disease"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_category",
+            "reasoning": "Highlight heart disease presence to visualize patterns"
+          },
+          {
+            "iteration": 4,
+            "tool": "filter_by_category",
+            "reasoning": "Filter to show only patients without heart disease for comparison"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "hide_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimensions": [
+                    "hide",
+                    "Age",
+                    "BP"
+                  ],
+                  "mode": "hide"
+                }
+              }
+            },
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "dimensions",
+                  "values": [
+                    "Heart Disease",
+                    "Presence"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": [
+                    "Heart Disease",
+                    "Presence"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "values",
+                  "values": [
+                    "Heart Disease",
+                    "Absence"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension"
+          }
+        }
+      }
+    }
+  ]
+}

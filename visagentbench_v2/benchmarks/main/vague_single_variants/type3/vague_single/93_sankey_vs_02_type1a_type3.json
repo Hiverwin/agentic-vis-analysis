@@ -1,0 +1,64 @@
+{
+  "benchmark_id": "93_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What is the distribution of traffic flowing to payment?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The only source of traffic is Alipay/WeChat Entry."
+        },
+        "key_insights": [
+          "there is  only one source of traffic,which is Alipay/WeChat Entry."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "color the flow of payment and get calculation"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "color": "#e74c3c",
+                "nodes": [
+                  "Payment"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "93_sankey_financial",
+    "dataset_path": "datasets/93_sankey_financial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

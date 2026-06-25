@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "25_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What is the most efficient type of exercise for burning fat among people with an experience level equal to 3?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Yoga"
+        },
+        "key_insights": [
+          "Among individuals with an experience level of 3, those practicing yoga have the highest body fat percentage.",
+          "Among individuals at experience level 3, those engaging in HIIT and strength training exhibit very similar fat percentages, both of which are slightly higher than those performing cardio exercises.",
+          "It can be inferred that among individuals with an experience level of 3, yoga may be the most efficient exercise type for fat burning."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stackMode.set",
+            "rationale": "The stacked chart made it difficult to discern which group—HIIT, Strength, or Cardio—had a higher fat percentage among participants with an experience level of 4. Therefore, the toggle stacked mode tool was used to expand each bar. By comparing them against the reference line, the answer was finally determined without needing to call the tool again."
+          }
+        ],
+        "required_capabilities": [
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "categorical",
+              "param": "mode",
+              "target": "grouped"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Workout_Type",
+            "y": "Fat_Percentage",
+            "color": "Experience_Level"
+          },
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "25_gym_members_exercise_tracking_bar",
+    "dataset_path": "datasets/25_gym_members_exercise_tracking_bar.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/25_gym_members_exercise_tracking_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

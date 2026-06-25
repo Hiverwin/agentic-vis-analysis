@@ -1,0 +1,96 @@
+{
+  "benchmark_id": "116_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "What is newly visible in the updated bar view compared to the original chart, with explicit category evidence?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Their strategic priorities share certain similarities. For France and the UK, they have invested the most in the health industry, which is the second-largest investment sector in Germany. However, Germany has made significant investments in AI, while the proportion of such investments in the UK and France is much lower. Their minimum investment amounts also vary. In France, it's e-commerce; in Germany, it's finance; and in the UK, it's education."
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stackMode.set",
+            "rationale": "get the grouped chart"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "remove the country not in Europe"
+          }
+        ],
+        "required_capabilities": [
+          "view.stackMode.set",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Australia",
+                  "India",
+                  "USA",
+                  "Netherlands",
+                  "Canada"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Australia\",\"India\",\"USA\",\"Netherlands\",\"Canada\"], datum['Country']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "116_startup_funding_dataset_bar",
+    "dataset_path": "datasets/116_startup_funding_dataset_bar.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

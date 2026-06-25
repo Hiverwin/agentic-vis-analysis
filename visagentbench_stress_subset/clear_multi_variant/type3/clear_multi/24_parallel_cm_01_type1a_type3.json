@@ -1,0 +1,98 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "24_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What samples have vitamin_c_percent_rda higher than the average and symptoms_count also higher than the average?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "YES"
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_category",
+            "reasoning": "filter the group of non-alcohol"
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "reduce the interrupt"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "alcohol_consumption",
+                  "values": [
+                    "No alcohol"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "vitamin_c_percent_rda",
+                    "symptoms_count",
+                    "bmi",
+                    "vitamin_a_percent_rda",
+                    "vitamin_d_percent_rda"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension",
+            "y": null,
+            "color": null
+          },
+          "layers": {
+            "count": 5,
+            "types": [
+              "rule",
+              "line",
+              null,
+              null,
+              null
+            ]
+          },
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          },
+          "axis_order": {
+            "dimension_order": [
+              "vitamin_c_percent_rda",
+              "symptoms_count",
+              "bmi",
+              "vitamin_a_percent_rda",
+              "vitamin_d_percent_rda"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order",
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

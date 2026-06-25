@@ -1,0 +1,80 @@
+{
+  "benchmark_id": "85_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Which product type has the highest mean price among the \"Customer demographics = Unknown\" group?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Haircare.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Use tools to filter out the data of the \"Unknown\" group for analysis."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Non-binary",
+                  "Female",
+                  "Male"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Customer demographics",
+            "y": "Price",
+            "color": "Product type"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Non-binary\",\"Female\",\"Male\"], datum['Customer demographics']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "85_supply_chain_data_bar",
+    "dataset_path": "datasets/85_supply_chain_data_bar.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/85_supply_chain_data_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

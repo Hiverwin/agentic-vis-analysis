@@ -1,0 +1,58 @@
+{
+  "task_type": "vague_single",
+  "task_id": "63_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/63_Berlin_crimes_heatmap.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use add_marginal_bars in order to know Which district shows the most stable drug crime pattern over the years?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Reinickendorf shows the most stable drug crime pattern with the lowest coefficient of variation (CV=0.0773) at an average of 76.04, indicating consistent drug crime levels across all years compared to other districts",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Reinickendorf has lowest coefficient of variation at 0.0773",
+          "Reinickendorf maintains consistent average of 76.04 across years",
+          "Friedrichshain-Kreuzberg shows highest variability with CV=0.3214"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "add_marginal_bars",
+            "reasoning": "Use add_marginal_bars to add marginal bars and observe the distribution patterns to identify which district has the most stable drug crime pattern over time"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "op": "mean",
+                  "show_top": true,
+                  "show_right": true,
+                  "bar_size": 70,
+                  "bar_color": "#666666"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "count": 3,
+            "has_type": "bar"
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

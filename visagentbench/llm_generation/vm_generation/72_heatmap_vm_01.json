@@ -1,0 +1,74 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "72_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/72_StudentsPerformance_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use add_marginal_bars with show_top equal to True, show_right equal to True in order to know What patterns can you observe in student writing scores across different race/ethnicity groups and parental education levels?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Writing scores generally increase with parental education level (master's degree highest at 75.7, high school lowest at 62.4), 2) Race/ethnicity groups show clear differences (group E highest at 71.4, group A lowest at 62.7), 3) The highest performing combination is group E with master's degree (80.5), while group A with some high school performs lowest (58.6), 4) There is a consistent upward trend in scores as parental education level increases across all race groups.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Writing scores increase with parental education level",
+          "Race/ethnicity groups show clear score differences",
+          "Group E with master's degree has highest score (80.5)",
+          "Group A with some high school has lowest score (58.6)",
+          "Consistent upward trend across all race groups"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Find extreme values to identify highest and lowest performing combinations"
+          },
+          {
+            "iteration": 2,
+            "tool": "add_marginal_bars",
+            "reasoning": "Add marginal bars to see overall trends by race and education level"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            },
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "op": "mean",
+                  "show_top": true,
+                  "show_right": true,
+                  "bar_size": 70,
+                  "bar_color": "#666666"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "race/ethnicity",
+            "y": "parental level of education",
+            "color": "writing score"
+          }
+        }
+      }
+    }
+  ]
+}

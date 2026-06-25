@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "23_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use get_data_summary with scope equal to visible to derive the highest historical power capacity in mAh.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "11200",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "Obtain all the data to get the answer"
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "visible"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Company Name",
+            "y": "Battery Capacity(mAh)",
+            "color": "Launched Year"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "23_Mobiles Dataset (2025)_bar",
+    "dataset_path": "datasets/23_Mobiles Dataset (2025)_bar.json",
+    "row_count": 847,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/23_Mobiles Dataset (2025)_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

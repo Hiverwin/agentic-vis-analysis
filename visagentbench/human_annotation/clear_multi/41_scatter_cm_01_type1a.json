@@ -1,0 +1,85 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "41_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/41_museum_visitors_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Use zoom_2d_region with x_range equal to (1000, 3600) and y_range equal to (2400, 7700) to focus on the dense area, then use calculate_correlation with method equal to pearson. What is the Pearson correlation coefficient (rounded to 2 decimals) between Chinese American Museum and America Tropical Interpretive Center visitor counts in this zoomed region?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.261",
+          "tolerance": 0.15
+        },
+        "key_insights": [
+          "The correlation is about 0.261."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom to dense area for focused correlation analysis."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Compute Pearson correlation in zoomed region."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    1000,
+                    3600
+                  ],
+                  "y_range": [
+                    2400,
+                    7700
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Chinese American Museum",
+            "y": "America Tropical Interpretive Center",
+            "color": null
+          },
+          "visible_domain": {
+            "x": [
+              1000,
+              3600
+            ],
+            "y": [
+              2400,
+              7700
+            ]
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

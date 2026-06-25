@@ -1,0 +1,67 @@
+{
+  "benchmark_id": "72_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What combination of race/ethnicity and parental level of education has the minimum writing score?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The result shows that group A in some high school has the minimal writing score of 45,on average.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "By using the tool we find that the minimum score appears in group A at some high school."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1,
+                "mode": "min"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "race/ethnicity",
+            "y": "parental level of education",
+            "color": "writing score"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "72_StudentsPerformance_heatmap",
+    "dataset_path": "datasets/72_StudentsPerformance_heatmap.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/72_StudentsPerformance_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

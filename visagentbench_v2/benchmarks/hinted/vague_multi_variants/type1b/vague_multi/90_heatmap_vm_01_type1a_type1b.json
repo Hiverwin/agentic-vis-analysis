@@ -1,0 +1,93 @@
+{
+  "benchmark_id": "90_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_cells, how does stress level impact sleep duration differently across weight groups?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Normal BMI Category: Stress levels 1–2 have minimal sleep duration variation; stress levels 3–8 show steady decline (8.4 → 6.1 hours)."
+        },
+        "key_insights": [
+          "Normal BMI Category: Stress levels 1–2 have minimal sleep duration variation; stress levels 3–8 show steady decline",
+          "Missing data for Obese (Stress Level 4) and Normal Weight (Stress Level 8) remains consistent across all subsets, confirming data gaps are subgroup-specific."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "sequential subsetting isolates each BMI category to compare stress impacts"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.cells.filter",
+            "rationale": "filling the gap between a holistic view and nuanced, group-specific trend analysis."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "heatmap.cells.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 6.4,
+                "max_value": 8
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 6.9,
+                "max_value": 8
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['Sleep Duration'] >= 6.4 && datum['Sleep Duration'] <= 8"
+              },
+              {
+                "filter": "datum['Sleep Duration'] >= 6.9 && datum['Sleep Duration'] <= 8"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "89_Sleep_health_and_lifestyle_dataset_heatmap",
+    "dataset_path": "datasets/89_Sleep_health_and_lifestyle_dataset_heatmap.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/89_Sleep_health_and_lifestyle_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

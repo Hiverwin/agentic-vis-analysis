@@ -1,0 +1,49 @@
+{
+  "task_type": "vague_single",
+  "task_id": "101_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/101_sankey_credit.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use trace_node with node_name equal to Default Y3 to rank treatments by overall utilization efficiency in order to know how do treatments rank by overall utilization efficiency?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Junk Orig shows the highest default risk with a 27.3% default rate (30 out of 110 loans), significantly higher than other rating categories. BBB Orig has a moderate default rate of 4.5% (10 out of 220 loans), while AAA, AA, and A Orig have 0% default rates.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Junk Orig has the highest default rate at 27.3%",
+          "BBB Orig has moderate default risk at 4.5%",
+          "Higher quality ratings (AAA",
+          "AA",
+          "A) show no defaults"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace the flow to Default Y3 to analyze which original rating categories contribute most to defaults"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Default Y3"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

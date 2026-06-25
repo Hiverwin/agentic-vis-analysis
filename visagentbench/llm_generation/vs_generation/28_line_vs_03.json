@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "28_line_vs_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/28_silver_prices_data_line.json",
+  "questions": [
+    {
+      "qid": "vs_03",
+      "question": "Use highlight_trend in order to know What are the key trends and volatility patterns in silver prices from 2016 to 2026?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the data analysis, silver prices have experienced a remarkable bull run from 2016 to 2026, with prices surging from 14.11 to 92.42 - a staggering 555% increase over the decade. The price range spans from a low of 12.20 to a high of 93.00, with an average price of 22.98 and significant volatility (standard deviation of 9.00). This dramatic appreciation suggests strong market demand for silver, potentially driven by industrial applications, investment demand, or macroeconomic factors. The data shows consistent upward momentum with the most recent price near the all-time high, indicating continued bullish sentiment in the silver market.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Silver prices increased 555% from 2016 to 2026 (14.11 to 92.42)",
+          "Price range: 12.20 (low) to 93.00 (high)",
+          "Average price: 22.98 with high volatility (std: 9.00)",
+          "Recent price near all-time high indicating continued bullish sentiment"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Analyze silver price trends and volatility over the decade"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "regression_line": true
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

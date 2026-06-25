@@ -1,0 +1,115 @@
+{
+  "benchmark_id": "87_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "Use filter_categories with categories equal to Coffee, Shaken Iced Beverages, Classic Espresso Drinks, Frappuccino® Light Blended Coffee, Tazo® Tea Drinks, Frappuccino® Blended Crème, Signature Espresso Drinks, Frappuccino® Blended Coffee to remove those, and sort_bars with order equal to descending. Among the remaining beverage types, which has the highest mean calories?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Signature Espresso Drinks",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Remove lower-calorie categories to focus on high-calorie beverage types."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort descending to identify the highest."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Coffee",
+                  "Shaken Iced Beverages",
+                  "Classic Espresso Drinks",
+                  "Frappuccino® Light Blended Coffee",
+                  "Tazo® Tea Drinks",
+                  "Frappuccino® Blended Crème",
+                  "Signature Espresso Drinks",
+                  "Frappuccino® Blended Coffee"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_order": [
+                  "Signature Espresso Drinks",
+                  "Frappuccino® Blended Coffee",
+                  "Frappuccino® Blended Crème",
+                  "Smoothies"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Beverage_category",
+            "y": "Calories"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Coffee\",\"Shaken Iced Beverages\",\"Classic Espresso Drinks\",\"Frappuccino® Light Blended Coffee\",\"Tazo® Tea Drinks\",\"Frappuccino® Blended Crème\",\"Signature Espresso Drinks\",\"Frappuccino® Blended Coffee\"], datum['Beverage_category']) < 0"
+              }
+            ],
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Signature Espresso Drinks",
+                "Frappuccino® Blended Coffee",
+                "Frappuccino® Blended Crème",
+                "Smoothies"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "86_starbucks_bar",
+    "dataset_path": "datasets/86_starbucks_bar.json",
+    "row_count": 242,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/86_starbucks_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

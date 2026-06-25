@@ -1,0 +1,71 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "116_bar_cm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "27_bar_cm_01：Use filter_subcategories and toggle_stack_mode to analyze bar chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "AI",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter to keep only AI and Finance industries"
+          },
+          {
+            "iteration": 2,
+            "tool": "toggle_stack_mode",
+            "reasoning": "Switch to grouped mode to compare side by side"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "E-commerce",
+                    "Education",
+                    "Gaming",
+                    "Health",
+                    "SaaS",
+                    "Tech"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "mark_mode": {
+            "is_stacked": false
+          }
+        },
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ]
+}

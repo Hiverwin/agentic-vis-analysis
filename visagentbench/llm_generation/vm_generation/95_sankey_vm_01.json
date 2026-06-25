@@ -1,0 +1,79 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "95_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/95_sankey_supply.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_conversion_rate with node_name equal to Assembly Line A and use trace_node with node_name equal to East China DC and use filter_flow with min_value equal to 150.0 in order to know How does the manufacturing supply chain flow from raw materials to end customers, and what are the key distribution patterns?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Assembly Line A (470) is the larger production line, distributing mainly to East China DC (195) and South China DC (155). Steel (205) and Chips (230) are key raw materials, with Steel going primarily to Frame Plant (180) and Chips to Display Factory (160). Consumer (440) is the largest end customer segment, receiving mainly through Direct Stores (190). Dealers (310) serve both Consumer and Enterprise customers, with the top flow being Dealers to Enterprise (195). The supply chain shows a clear multi-stage flow from raw materials to manufacturing plants to assembly lines to distribution centers to sales channels to end customers.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Assembly Line A is larger production line",
+          "Consumer is largest end customer",
+          "Steel and Chips are key raw materials",
+          "Multi-stage supply chain from materials to customers"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Calculate conversion rate for Assembly Line A"
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace the flow from East China DC to see distribution"
+          },
+          {
+            "iteration": 3,
+            "tool": "filter_flow",
+            "reasoning": "Filter flows with minimum value 150 to see major flow patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Assembly Line A"
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "East China DC"
+                }
+              }
+            },
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 150.0
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

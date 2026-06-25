@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "82_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What are the characteristics of the changes in electronics?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The income fluctuates, with both increases and decreases. It rises sharply in January, April, and August, reaches its lowest in March, and peaks in April."
+        },
+        "key_insights": [
+          "it fluctuates, with many increases and decreases",
+          "It rises sharply in January, April, and August",
+          "reaches its lowest in March, and peaks in April."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "Filtered out lines and we can analyse the changes."
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Home Appliances",
+                  "Clothing",
+                  "Books",
+                  "Beauty Products",
+                  "Sports"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Home Appliances\", \"Clothing\", \"Books\", \"Beauty Products\", \"Sports\"], datum['Product Category']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "82_Online Sales Data_line",
+    "dataset_path": "datasets/82_Online Sales Data_line.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,58 @@
+{
+  "task_type": "vague_single",
+  "task_id": "49_heatmap_vs_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/49_coffee_sales_heatmap.json",
+  "questions": [
+    {
+      "qid": "vs_03",
+      "question": "Use highlight_region in order to know How do coffee sales patterns vary across different times of day?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Coffee sales patterns show variations across morning, afternoon, and night periods, with different coffee types performing differently in each time slot",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Sales patterns vary by time of day",
+          "Different coffee types perform differently in each time slot",
+          "Certain coffee types may be more popular during specific times"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region",
+            "reasoning": "Highlight different time periods to analyze coffee sales patterns throughout the day"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "Morning",
+                    "Afternoon",
+                    "Night"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

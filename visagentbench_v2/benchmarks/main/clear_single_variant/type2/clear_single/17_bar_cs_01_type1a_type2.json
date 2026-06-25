@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "17_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "How does chest pain type characterize among people with heart disease having the highest mean?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "type 2",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stackMode.set",
+            "rationale": "toggle the stack mode to compare the chest pain type"
+          }
+        ],
+        "required_capabilities": [
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Heart Disease",
+            "y": "Cholesterol",
+            "color": "Chest pain type"
+          },
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Absence\"], datum['Heart Disease']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "17_Heart_Disease_Prediction_bar",
+    "dataset_path": "datasets/17_Heart_Disease_Prediction_bar.json",
+    "row_count": 270,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/17_Heart_Disease_Prediction_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

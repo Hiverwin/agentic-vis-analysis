@@ -1,0 +1,90 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "117_parallel_cm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/117_startup_funding_dataset_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "35_parallel_cm_01：Use filter_by_category with field equal to Gender and values equal to Female to focus on female samples, then use reorder_dimensions with dimension_order equal to Height, Weight, BMI, Age, then use calculate_correlation with method equal to pearson. What is the correlation between Height and Weight for females?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "-0.07",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Filter to show only IPO funding stage"
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to put Amount Raised first"
+          },
+          {
+            "iteration": 3,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate Pearson correlation between the two dimensions"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": "Funding Stage"
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "Series A",
+                    "Series B",
+                    "Series C",
+                    "Seed"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "axis_order": {
+            "dimension_order": [
+              "Series A",
+              "Series B",
+              "Series C",
+              "Seed"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

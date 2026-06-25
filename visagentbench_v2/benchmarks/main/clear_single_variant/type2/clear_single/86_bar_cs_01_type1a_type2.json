@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "86_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Which gender ranks third in terms of mean price?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Non-binary",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "filter the data to keep only the cosmetic and skin care products"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "values": [
+                  "cosmetic",
+                  "skin care"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Product type",
+            "y": "Price",
+            "color": "Customer demographics"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['Product type'] == \"cosmetic\" || datum['Product type'] == \"skin care\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "85_supply_chain_data_bar",
+    "dataset_path": "datasets/85_supply_chain_data_bar.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/85_supply_chain_data_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

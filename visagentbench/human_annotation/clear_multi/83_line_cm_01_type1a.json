@@ -1,0 +1,84 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "83_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/83_global-data-on-sustainable-energy-filtered_line.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use zoom_x_region with start equal to 2015 and end equal to 2020 to focus on 2015-2020, then use filter_lines with lines_to_remove equal to United State, China, Germany and Japan, then to see in which year the France's Electricity from renewables (TWh) is the highest among the all rest countries?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "2016 and 2018",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom to 2015-2020 for focused comparison."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_lines",
+            "reasoning": "Filter to remove United State, China, Germany and Japan."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2015",
+                  "end": "2020"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "United State",
+                    "China",
+                    "Germany",
+                    "Japan"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "2015",
+              "2020"
+            ]
+          },
+          "encoding": {
+            "x": "Year",
+            "y": "Electricity from renewables (TWh)",
+            "color": "Entity"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"United State\", \"China\", \"Germany\", \"Japan\"], datum['Entity']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

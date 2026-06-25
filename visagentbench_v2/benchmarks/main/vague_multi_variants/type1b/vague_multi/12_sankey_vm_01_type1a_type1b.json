@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "12_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using calculate_conversion_rate, how does the flow structure change in the updated view regarding which links are pruned or retained, which trunk paths dominate, and what this implies about node role or funnel behavior compared with the original view?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "From its total profit of 35.2 billion, Microsoft will allocate 6.5 billion for R&B investment, accounting for 0.185 of the total profit. Therefore, it can be concluded that Microsoft attaches great importance to the research and development of its products."
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "get the gross profit is 35.2B"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "get microsoft invest 6.5B money in research and development"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Gross Profit"
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "R&D"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Server Products",
+                "Office Products",
+                "LinkedIn",
+                "Windows",
+                "Gaming",
+                "Others (Layer 0)",
+                "Intelligent Cloud",
+                "Productivity",
+                "Personal Computing",
+                "Revenue",
+                "Gross Profit",
+                "Cost of Revenue",
+                "Operating Profit",
+                "Operating Expenses",
+                "Product Costs",
+                "Service Costs",
+                "Net Profit",
+                "Tax",
+                "R&D",
+                "S&M",
+                "G&A"
+              ],
+              "hidden_nodes": [
+                "Others (Layer 0)"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "12_sankey_micro",
+    "dataset_path": "datasets/12_sankey_micro.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/12_sankey_micro.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

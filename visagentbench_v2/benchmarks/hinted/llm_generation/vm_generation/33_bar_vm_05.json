@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "33_bar_vm_05",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_05",
+      "question": "Use sort_bars with order equal to descending, by_subcategory equal to Manual and use filter_subcategories in order to know How do different BMW models compare in terms of fuel efficiency across fuel types, transmission types, and what are the key performance patterns?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "BMW models show significant variation in fuel efficiency with i3 achieving exceptional 470.8 MPG and i8 at 137.3 MPG. Diesel models dominate the dataset with 7,027 vehicles averaging 56.4 MPG, while Petrol models have 3,417 vehicles. The i3 electric model stands out as the most fuel-efficient option. Manual transmission vehicles average 2527 units with Semi-Auto at 4666 and Automatic at 3588. The 3 Series, 1 Series, and 5 Series models consistently perform well with 75.1, 69.2, and 62.1 MPG respectively. Overall, BMW demonstrates diverse fuel efficiency options ranging from 5.5 to 470.8 MPG across different model lines and powertrain configurations.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "i3 electric model achieves exceptional 470.8 MPG making it most fuel-efficient",
+          "Diesel vehicles comprise majority of dataset with 7",
+          "027 units",
+          "Manual transmission vehicles show slightly different performance characteristics than automatic",
+          "3 Series",
+          "1 Series",
+          "and 5 Series models consistently rank among top performers",
+          "Fuel type significantly impacts MPG with electric and diesel vehicles showing best efficiency"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Use sort_bars to rank all models by average MPG performance"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "Use filter_subcategories to analyze performance differences between transmission types"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending",
+                "by_subcategory": "Manual"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "model",
+            "y": "mpg",
+            "color": "fuelType"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "33_bmw_bar",
+    "dataset_path": "datasets/33_bmw_bar.json",
+    "row_count": 10781,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/33_bmw_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

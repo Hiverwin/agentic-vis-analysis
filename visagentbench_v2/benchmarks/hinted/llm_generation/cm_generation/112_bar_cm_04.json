@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "112_bar_cm_04",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_04",
+      "question": "20_bar_cm_01：Use sort_bars with sort_order equal to ascending to sort bars from lowest to highest, then use toggle_stack_mode with mode equal to grouped to compare individual values. Which category has the lowest value?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Aware! Meisaku-kun: 14880",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Use sort_bars to sort titles by popularity"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "Use toggle_stack_mode to compare values"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Aware! Meisaku-kun",
+                "Warau Salesman Special Program",
+                "Makasete Iruka!",
+                "Doupo Cangqiong 3rd Season",
+                "Ayashi no Ceres",
+                "Maken-Ki! OVA",
+                "Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack",
+                "R.O.D: Read or Die",
+                "Zuihou de Zhaohuan Shi",
+                "RahXephon",
+                "One Piece Fan Letter",
+                "Juuou Mujin no Fafnir",
+                "Gintama. Shirogane no Tamashii-hen - Kouhan-sen",
+                "Takopii no Genzai",
+                "Owarimonogatari 2nd Season",
+                "3-gatsu no Lion 2nd Season",
+                "Kizumonogatari III: Reiketsu-hen",
+                "Fruits Basket: The Final",
+                "Hajime no Ippo",
+                "Kusuriya no Hitorigoto"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "mark_mode",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "112_anmie_filter_bar",
+    "dataset_path": "datasets/112_anmie_filter_bar.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

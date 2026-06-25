@@ -1,0 +1,84 @@
+{
+  "benchmark_id": "20_bar_cm_05",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_05",
+      "question": "27_bar_cm_01：Use filter_subcategories and toggle_stack_mode to analyze bar chart data.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Xbox One",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter no subcategories"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "Toggle to stacked mode"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "[]"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "stacked"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "stacked"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "20_ign_scores_bar",
+    "dataset_path": "datasets/20_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/20_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

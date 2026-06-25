@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "39_parallel_cs_02",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_02",
+      "question": "Use highlight_category in order to know Use highlight_category with field equal to region, values equal to southeast to highlight the southeast region. Which dimension shows the highest normalized value for southeast region?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "bmi",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight southeast region to identify which dimension shows the highest normalized value"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field,values",
+                "values": [
+                  "region",
+                  "southeast"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "39_insurance_parallel",
+    "dataset_path": "datasets/39_insurance_parallel.json",
+    "row_count": 5352,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/39_insurance_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

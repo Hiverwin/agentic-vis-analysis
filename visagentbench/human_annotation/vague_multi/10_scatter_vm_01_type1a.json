@@ -1,0 +1,76 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "10_scatter_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/10_scatter_synthetic_mental_health.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `change_encoding(field='diet_quality', channel='x')`; then apply `change_encoding(field='exercise_minutes', channel='y')`. Then judge whether higher diet quality is associated with higher exercise minutes, and justify your conclusion using visible overlap/separation across diet-quality groups.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After remapping to `diet_quality` (x) and `exercise_minutes` (y), the chart suggests at most a weak tendency, with substantial overlap among poor/average/good groups. Higher-quality groups can include somewhat more high-exercise points, but separation is not clean enough for a strong claim. Therefore the pattern is best interpreted as weak and noisy rather than strongly predictive."
+        },
+        "key_insights": [
+          "Encoding changes make `diet_quality` vs. `exercise_minutes` directly observable in the same coordinate frame.",
+          "Visible overlap and within-group spread imply only weak association at best.",
+          "The evidence supports a cautious, noise-aware interpretation rather than a strong deterministic relationship."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Map `x` to `diet_quality` so diet-level ordering can be evaluated along the horizontal axis."
+          },
+          {
+            "iteration": 2,
+            "tool": "change_encoding",
+            "reasoning": "Map `y` to `exercise_minutes` to create the target relationship view for behavioral comparison."
+          },
+          {
+            "iteration": 3,
+            "tool": "inspect_scatter_distribution",
+            "reasoning": "Compare overlap and spread across diet groups in the remapped view, then provide a conservative conclusion about trend strength."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "diet_quality",
+                  "channel": "x"
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "exercise_minutes",
+                  "channel": "y"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "diet_quality",
+            "y": "exercise_minutes",
+            "color": "diet_quality"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-paper text-ink antialiased;
+  font-family: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.panel {
+  @apply bg-white border border-slate-200 shadow-panel rounded-lg;
+}
+
+.section-tag {
+  @apply text-[11px] tracking-[0.14em] font-semibold uppercase text-slate-500;
+}

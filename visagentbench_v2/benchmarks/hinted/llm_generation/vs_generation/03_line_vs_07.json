@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "03_line_vs_07",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_07",
+      "question": "Use highlight_trend in order to know Compare the stock price trends of TechCorp and RetailInc throughout 2023",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "TechCorp shows a stronger upward trend with consistent growth from $150 to $218 (45.33% increase), while RetailInc has a more modest growth pattern from $80 to $108 (35.00% increase). TechCorp consistently outperforms RetailInc in both absolute price and growth rate.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "TechCorp has 45.33% growth",
+          "RetailInc has 35.00% growth",
+          "TechCorp consistently outperforms RetailInc"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.trend.highlight",
+            "rationale": "Highlight the trend lines to analyze the growth patterns of both companies"
+          }
+        ],
+        "required_capabilities": [
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "03_line_stocks",
+    "dataset_path": "datasets/03_line_stocks.json",
+    "row_count": 12,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/03_line_stocks.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

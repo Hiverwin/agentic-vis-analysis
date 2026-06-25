@@ -1,0 +1,91 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "113_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/113_nime_less_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Which type among TV and TV Special anime exhibits the higher average popularity?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "TV",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Remove Movie, ONA, OVA, Special to focus on TV and TV Special."
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder to place popularity adjacent for comparison."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "type",
+                  "values": [
+                    "Movie",
+                    "ONA",
+                    "OVA",
+                    "Special"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "score",
+                    "popularity",
+                    "members",
+                    "episodes"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension",
+            "y": null,
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Movie\",\"ONA\",\"OVA\",\"Special\"], datum['type']) < 0"
+            }
+          ],
+          "axis_order": {
+            "dimension_order": [
+              "score",
+              "popularity",
+              "members",
+              "episodes"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

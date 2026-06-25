@@ -2,7 +2,7 @@
 工具注册器（简化版 - 使用 vega_spec 而非 view_id）
 """
 
-from typing import Dict, List, Callable, Any
+from typing import Dict, List, Callable, Any, Optional
 from config.chart_types import ChartType
 from state_manager import tool_output
 
@@ -21,6 +21,9 @@ class ToolRegistry:
     def __init__(self):
         self._tools: Dict[str, Dict[str, Any]] = {}
         self._chart_tools: Dict[ChartType, List[str]] = {}
+        # plugin/custom tools are tracked separately for audit and easier export
+        self._custom_tools: Dict[str, Dict[str, Any]] = {}
+        self._custom_chart_tools: Dict[ChartType, List[str]] = {}
         self._register_all_tools()
     
     def _register_all_tools(self):
@@ -39,7 +42,7 @@ class ToolRegistry:
             'get_data': {
                 'function': common.get_data,
                 'category': 'perception',
-                'description': '返回原始数据',
+                'description': '返回部分原始数据',
                 'params': {
                     'state': {'type': 'dict', 'required': True},
                     'scope': {'type': 'str', 'required': False, 'default': 'all', 'description': 'all | filter | visible | selected'}
@@ -48,7 +51,7 @@ class ToolRegistry:
             'get_data_summary': {
                 'function': common.get_data_summary,
                 'category': 'perception',
-                'description': '获取数据统计摘要',
+                'description': '获取数据统计摘要（统计值等）',
                 'params': {
                     'state': {'type': 'dict', 'required': True},
                     'scope': {'type': 'str', 'required': False, 'default': 'all'}
@@ -126,7 +129,7 @@ class ToolRegistry:
                 'description': '高亮前N个条形',
                 'params': {
                     'state': {'type': 'dict', 'required': True},
-                    'n': {'type': 'int', 'required': False, 'default': 2},
+                    'n': {'type': 'int', 'required': False, 'default': 5},
                     'order': {'type': 'str', 'required': False, 'default': 'descending'}
                 }
             },
@@ -145,7 +148,7 @@ class ToolRegistry:
                 'description': '全局切换堆叠/分组显示模式',
                 'params': {
                     'state': {'type': 'dict', 'required': True},
-                    'mode': {'type': 'str', 'required': True, 'description': '"grouped"（分组并排）或 "stacked"（堆叠）'}
+                    'mode': {'type': 'str', 'required': False, 'default': 'grouped', 'description': '"grouped"（分组并排）或 "stacked"（堆叠）'}
                 }
             },
             'add_bars': {
@@ -197,15 +200,16 @@ class ToolRegistry:
                 'params': {
                     'state': {'type': 'dict', 'required': True},
                     'channel': {'type': 'str', 'required': True, 'description': '编码通道 (color, size, shape, opacity, x, y 等)'},
-                    'field': {'type': 'str', 'required': True, 'description': '新的字段名'}
+                    'field': {'type': 'str', 'required': True, 'description': '新的字段名'},
+                    'type': {'type': 'str', 'required': False, 'description': '可选字段类型: quantitative | nominal | ordinal | temporal'}
                 }
             }
         }
         
         # 折线图工具
         line_chart_tools_dict = {
-            'zoom_time_range': {
-                'function': line_chart_tools.zoom_time_range,
+            'zoom_x_region': {
+                'function': line_chart_tools.zoom_x_region,
                 'category': 'action',
                 'description': '缩放时间范围',
                 'params': {
@@ -273,8 +277,8 @@ class ToolRegistry:
                     'dim_opacity': {'type': 'float', 'required': False, 'default': 0.08, 'description': '非聚焦折线透明度（mode=dim）'}
                 }
             },
-            'drilldown_line_time': {
-                'function': line_chart_tools.drilldown_line_time,
+            'drill_down_x_axis': {
+                'function': line_chart_tools.drill_down_x_axis,
                 'category': 'action',
                 'description': '时间下钻（年→月→日）：交互必要性工具，逐层深入发现更细粒度的模式',
                 'params': {
@@ -284,16 +288,16 @@ class ToolRegistry:
                     'parent': {'type': 'dict', 'required': False, 'description': '父级信息，如 {"year": 2023} 或 {"year": 2023, "month": 3}'}
                 }
             },
-            'reset_line_drilldown': {
-                'function': line_chart_tools.reset_line_drilldown,
+            'reset_drilldown_x_axis': {
+                'function': line_chart_tools.reset_drilldown_x_axis,
                 'category': 'action',
                 'description': '重置折线图时间下钻，恢复到初始年度视图',
                 'params': {
                     'state': {'type': 'dict', 'required': True}
                 }
             },
-            'resample_time': {
-                'function': line_chart_tools.resample_time,
+            'resample_x_axis': {
+                'function': line_chart_tools.resample_x_axis,
                 'category': 'action',
                 'description': '时间粒度切换（重采样）：将时间序列从细粒度聚合到粗粒度（日→周→月→季度→年）',
                 'params': {
@@ -302,8 +306,8 @@ class ToolRegistry:
                     'agg': {'type': 'str', 'required': False, 'default': 'mean', 'description': '"mean" | "sum" | "max" | "min" | "median"'}
                 }
             },
-            'reset_resample': {
-                'function': line_chart_tools.reset_resample,
+            'reset_resample_x_axis': {
+                'function': line_chart_tools.reset_resample_x_axis,
                 'category': 'action',
                 'description': '重置时间重采样，恢复到原始粒度',
                 'params': {
@@ -317,7 +321,8 @@ class ToolRegistry:
                 'params': {
                     'state': {'type': 'dict', 'required': True},
                     'channel': {'type': 'str', 'required': True, 'description': '编码通道 (color, size, shape, opacity, x, y 等)'},
-                    'field': {'type': 'str', 'required': True, 'description': '新的字段名'}
+                    'field': {'type': 'str', 'required': True, 'description': '新的字段名'},
+                    'type': {'type': 'str', 'required': False, 'description': '可选字段类型: quantitative | nominal | ordinal | temporal'}
                 }
             }
         }
@@ -343,8 +348,8 @@ class ToolRegistry:
                     'method': {'type': 'str', 'required': False, 'default': 'pearson'}
                 }
             },
-            'zoom_dense_area': {
-                'function': scatter_plot_tools.zoom_dense_area,
+            'zoom_2d_region': {
+                'function': scatter_plot_tools.zoom_2d_region,
                 'category': 'action',
                 'description': '放大密集区域',
                 'params': {
@@ -399,7 +404,8 @@ class ToolRegistry:
                 'params': {
                     'state': {'type': 'dict', 'required': True},
                     'channel': {'type': 'str', 'required': True, 'description': '编码通道 (color, size, shape, opacity, x, y 等)'},
-                    'field': {'type': 'str', 'required': True, 'description': '新的字段名'}
+                    'field': {'type': 'str', 'required': True, 'description': '新的字段名'},
+                    'type': {'type': 'str', 'required': False, 'description': '可选字段类型: quantitative | nominal | ordinal | temporal'}
                 }
             }
         }
@@ -501,8 +507,8 @@ class ToolRegistry:
                     'outside_opacity': {'type': 'float', 'required': False, 'default': 0.1, 'description': '范围外透明度'}
                 }
             },
-            'drilldown_time': {
-                'function': heatmap_tools.drilldown_time,
+            'drilldown_axis': {
+                'function': heatmap_tools.drilldown_axis,
                 'category': 'action',
                 'description': '时间热力图下钻：年→月→日',
                 'params': {
@@ -548,7 +554,8 @@ class ToolRegistry:
                 'params': {
                     'state': {'type': 'dict', 'required': True},
                     'channel': {'type': 'str', 'required': True, 'description': '编码通道 (color, size, shape, opacity, x, y 等)'},
-                    'field': {'type': 'str', 'required': True, 'description': '新的字段名'}
+                    'field': {'type': 'str', 'required': True, 'description': '新的字段名'},
+                    'type': {'type': 'str', 'required': False, 'description': '可选字段类型: quantitative | nominal | ordinal | temporal'}
                 }
             }
         }
@@ -571,7 +578,7 @@ class ToolRegistry:
                 'params': {
                     'state': {'type': 'dict', 'required': True},
                     'field': {'type': 'str', 'required': True, 'description': '分类字段名'},
-                    'values': {'type': 'str|list', 'required': True, 'description': '要保留的值列表'}
+                    'values': {'type': 'str|list', 'required': True, 'description': '要排除的值列表'}
                 }
             },
             'highlight_category': {
@@ -606,6 +613,14 @@ class ToolRegistry:
         
         # 桑基图工具
         sankey_tools_dict = {
+            'get_node_options': {
+                'function': sankey_tools.get_node_options,
+                'category': 'perception',
+                'description': '获取桑基图当前所有节点名称与层级信息。在调用 highlight_path、trace_node、color_flows 等工具前应先调用此工具，确保使用的节点名与图中一致（避免使用不存在的名称如 Homepage/Electronics）。',
+                'params': {
+                    'state': {'type': 'dict', 'required': True}
+                }
+            },
             'filter_flow': {
                 'function': sankey_tools.filter_flow,
                 'category': 'action',
@@ -730,7 +745,9 @@ class ToolRegistry:
         self._chart_tools[ChartType.SCATTER_PLOT] = list(scatter_tools.keys()) + list(common_tools.keys())
         self._chart_tools[ChartType.HEATMAP] = list(heatmap_tools_dict.keys()) + list(common_tools.keys())
         self._chart_tools[ChartType.PARALLEL_COORDINATES] = list(parallel_coords_tools_dict.keys()) + list(common_tools.keys())
-        self._chart_tools[ChartType.SANKEY_DIAGRAM] = list(sankey_tools_dict.keys()) + list(common_tools.keys())
+        # 桑基图为 Vega 格式，无 encoding.x/y，get_tooltip_data 不适用，不暴露给 agent
+        _common_for_sankey = [k for k in common_tools.keys() if k != 'get_tooltip_data']
+        self._chart_tools[ChartType.SANKEY_DIAGRAM] = list(sankey_tools_dict.keys()) + _common_for_sankey
     
     def get_tool(self, tool_name: str) -> Dict[str, Any]:
         """获取工具信息"""
@@ -750,6 +767,82 @@ class ToolRegistry:
     def list_all_tools(self) -> List[str]:
         """列出所有工具"""
         return list(self._tools.keys())
+
+    def list_tool_descriptors_for_chart(self, chart_type: ChartType) -> List[Dict[str, Any]]:
+        """Return serializable tool descriptors for prompts/runtime export."""
+        names = self.list_tools_for_chart(chart_type)
+        out: List[Dict[str, Any]] = []
+        for name in names:
+            info = self.get_tool(name) or {}
+            out.append(
+                {
+                    "name": name,
+                    "category": info.get("category", "action"),
+                    "description": info.get("description", ""),
+                    "params": info.get("params", {}),
+                    "custom": name in self._custom_tools,
+                }
+            )
+        return out
+
+    def register_tool(
+        self,
+        *,
+        name: str,
+        function: Callable[..., Any],
+        category: str,
+        description: str,
+        params: Optional[Dict[str, Any]] = None,
+        chart_types: Optional[List[ChartType]] = None,
+        override: bool = False,
+    ) -> None:
+        """Register a custom tool so runtime/agent can discover and call it.
+
+        This is backward-compatible: existing built-in tools keep working unchanged.
+        """
+        if (not override) and name in self._tools:
+            raise ValueError(f"tool '{name}' already exists; pass override=True to replace")
+
+        info = self._wrap_tool_info(
+            {
+                "function": function,
+                "category": category,
+                "description": description,
+                "params": params or {},
+            }
+        )
+        self._tools[name] = info
+        self._custom_tools[name] = info
+
+        if chart_types:
+            for ct in chart_types:
+                self._chart_tools.setdefault(ct, [])
+                if name not in self._chart_tools[ct]:
+                    self._chart_tools[ct].append(name)
+                self._custom_chart_tools.setdefault(ct, [])
+                if name not in self._custom_chart_tools[ct]:
+                    self._custom_chart_tools[ct].append(name)
+
+    def unregister_tool(self, name: str) -> bool:
+        """Unregister previously added custom tool. Built-in tools are protected."""
+        if name not in self._custom_tools:
+            return False
+
+        self._custom_tools.pop(name, None)
+        self._tools.pop(name, None)
+
+        for ct, tool_names in self._chart_tools.items():
+            if name in tool_names:
+                self._chart_tools[ct] = [n for n in tool_names if n != name]
+        for ct, tool_names in self._custom_chart_tools.items():
+            if name in tool_names:
+                self._custom_chart_tools[ct] = [n for n in tool_names if n != name]
+        return True
+
+    def list_custom_tools(self) -> List[str]:
+        """List names of runtime-registered (non built-in) tools."""
+        return list(self._custom_tools.keys())
+
 
 
 tool_registry = ToolRegistry()

@@ -1,0 +1,60 @@
+{
+  "benchmark_id": "78_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What is the pattern of the top 5 cells appearing?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "It was found that all of them were most closely related to the specific job duties, and even the names of the tools included this element. For instance, an NLP engineer would need to apply the most LLM and NLP knowledge, while a Data engineer would use SQL, the database language."
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "find the top 5 cell"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "max"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "78_ai_job_dataset_heatmap",
+    "dataset_path": "datasets/78_ai_job_dataset_heatmap.json",
+    "row_count": 80,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

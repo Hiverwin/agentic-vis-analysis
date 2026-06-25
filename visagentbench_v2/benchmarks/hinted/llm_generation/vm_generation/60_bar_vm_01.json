@@ -1,0 +1,105 @@
+{
+  "benchmark_id": "60_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 and use change_encoding with field equal to District in order to know What patterns can be observed in fire incidents across Berlin districts? Analyze the distribution and identify which factors might explain the differences between high-incident and low-incident areas.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Fire incidents show a clear geographic pattern across Berlin districts. The top three districts with highest average fire incidents are Friedrichshain-Kreuzberg (28.78), Mitte (26.95), and Tempelhof-Schoneberg (26.02), while the lowest are Treptow-Kopenick (7.58), Charlottenburg-Wilmersdorf (9.12), and Pankow (12.16). There is a strong correlation (0.879) between fire incidents and total crime rates, suggesting that fire incidents are closely linked to overall urban activity and population density. The high-incident districts (Friedrichshain-Kreuzberg, Mitte) are central, densely populated areas with high commercial activity, while low-incident districts (Treptow-Kopenick, Charlottenburg-Wilmersdorf) are more residential and suburban. The 3.8-fold difference between highest and lowest districts indicates significant variation in fire risk across the city, likely influenced by factors such as building density, commercial activity, and population concentration.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Friedrichshain-Kreuzberg has highest fire incidents (28.78 average)",
+          "Treptow-Kopenick has lowest fire incidents (7.58 average)",
+          "Strong correlation (0.879) between fire incidents and total crime",
+          "High-incident districts are central urban areas with high density",
+          "3.8-fold difference between highest and lowest districts"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to identify districts with highest and lowest fire incidents"
+          },
+          {
+            "iteration": 2,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top 5 districts to focus on high-risk areas"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to analyze different perspectives of the data"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "ranking.topN.highlight",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "District"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "District",
+            "y": "Fire"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "60_Berlin_crimes_bar",
+    "dataset_path": "datasets/60_Berlin_crimes_bar.json",
+    "row_count": 1200,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/60_Berlin_crimes_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

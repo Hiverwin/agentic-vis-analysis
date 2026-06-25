@@ -1,0 +1,92 @@
+{
+  "benchmark_id": "91_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_categorical and calculate_correlation, is there a convincing linear relationship or does the cloud stay mushy?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Correlation comes out mildly negative—on the order of −0.28 on the filtered cosmetics points—so price and revenue are not marching together in a tight line. You should treat any upward or downward tilt as weak context, not a firm rule, because the scatter still looks broad."
+        },
+        "key_insights": [
+          "Pearson is weakly negative after the category filter.",
+          "Plenty of overlap remains: high price does not guarantee high revenue in this slice."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Isolates cosmetics so price–revenue behavior is not mixed with other product families."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Quantifies how tightly revenue tracks price once the view is narrowed."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Product type",
+                "categories_to_remove": [
+                  "skincare",
+                  "haircare"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"skincare\", \"haircare\"], datum['Product type']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "91_supply_chain_data_scatter",
+    "dataset_path": "datasets/91_supply_chain_data_scatter.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/91_supply_chain_data_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

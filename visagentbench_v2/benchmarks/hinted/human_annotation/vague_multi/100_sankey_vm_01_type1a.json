@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "100_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use `trace_node('Surgery Tx')` and `calculate_conversion_rate(node_name='Surgery Tx')` for a structured diagnosis of the surgery branch. Identify which diagnostic paths contribute most to `Surgery Tx`, how upstream intake routes are distributed before those diagnostics, and which conversion characteristic is most important in the full pathway. Anchor the answer in node-level evidence from both tools.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The combined evidence from `trace_node` and node-level conversion output shows that `Surgery Tx` is fed mainly by a small set of diagnostic nodes (notably `CT Scan` and `MRI`), with one path typically carrying stronger flow. Upstream, intake is distributed across multiple registration/department origins before converging into these diagnostics and then into surgery. The main conversion insight is a funnel-like pattern: multi-source intake, concentration at key diagnostic gates, and then selective transfer into `Surgery Tx`."
+        },
+        "key_insights": [
+          "`CT Scan` and `MRI` appear as principal immediate upstream contributors to `Surgery Tx` in the traced structure.",
+          "One diagnostic route (commonly `CT Scan`) shows stronger contribution signals to surgery in conversion-aware interpretation.",
+          "The pathway exhibits convergence: multiple entry routes merge before routing into a smaller set of surgery-relevant diagnostics."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace `Surgery Tx` first to map direct upstream diagnostics and immediate downstream outcomes."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Then compute conversion metrics at `Surgery Tx` to compare relative pathway contribution and avoid purely visual guessing."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Surgery Tx"
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Surgery Tx"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Emergency",
+                "Outpatient Appt",
+                "Referral-In",
+                "Internal Med",
+                "Surgery",
+                "Pediatrics",
+                "Cardiology",
+                "Blood Panel",
+                "CT Scan",
+                "MRI",
+                "Ultrasound",
+                "X-Ray",
+                "Medication",
+                "Surgery Tx",
+                "Observation",
+                "Physical Therapy",
+                "Cured & Discharged",
+                "Home Recovery",
+                "Transfer to Rehab",
+                "Transfer to ICU"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "100_sankey_patient",
+    "dataset_path": "datasets/100_sankey_patient.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/100_sankey_patient.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

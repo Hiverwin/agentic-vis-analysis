@@ -1,19 +1,11 @@
-"""
-VLM调用服务（DashScope API封装）
-注意：需要安装 pip install dashscope --break-system-packages
-"""
 
-from typing import Dict, List, Any, Optional
-import json
+from typing import Dict, List, Any
 
-# 尝试导入dashscope，如果未安装则提供mock
 try:
-    import dashscope
-    from dashscope import MultiModalConversation
-    DASHSCOPE_AVAILABLE = True
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
 except ImportError:
-    DASHSCOPE_AVAILABLE = False
-    print("Warning: dashscope not installed. Using mock VLM service.")
+    OPENAI_AVAILABLE = False
 
 from config.settings import Settings
 from core.utils import app_logger, extract_json_from_text
@@ -23,8 +15,12 @@ class VLMService:
     """VLM调用服务"""
     
     def __init__(self):
-        if DASHSCOPE_AVAILABLE:
-            dashscope.api_key = Settings.DASHSCOPE_API_KEY
+        self.client = None
+        if OPENAI_AVAILABLE and Settings.OPENROUTER_API_KEY:
+            self.client = OpenAI(
+                api_key=Settings.OPENROUTER_API_KEY,
+                base_url=Settings.VLM_BASE_URL
+            )
         self.model = Settings.VLM_MODEL
         self.max_tokens = Settings.VLM_MAX_TOKENS
         self.temperature = Settings.VLM_TEMPERATURE
@@ -33,59 +29,90 @@ class VLMService:
     def call(self, messages: List[Dict], system_prompt: str = None, 
              expect_json: bool = False) -> Dict:
         """调用VLM"""
-        if not DASHSCOPE_AVAILABLE:
-            return self._mock_call(messages, system_prompt, expect_json)
+        if not OPENAI_AVAILABLE:
+            return {
+                "success": False,
+                "error": "openai package is not installed; install dependency to enable VLM calls",
+            }
+        if self.client is None:
+            return {
+                "success": False,
+                "error": "OPENROUTER_API_KEY is not configured",
+            }
         
         try:
             api_messages = self._prepare_messages(messages, system_prompt)
-            response = MultiModalConversation.call(
+            response = self.client.chat.completions.create(
                 model=self.model,
                 messages=api_messages,
                 max_tokens=self.max_tokens,
-                temperature=self.temperature
+                temperature=self.temperature,
             )
-            
-            if response.status_code == 200:
-                content = response.output.choices[0].message.content[0]["text"]
-                
-                # 📊 添加日志：打印VLM原始输出
-                app_logger.info(f"🤖 VLM原始输出前500字符: {content[:500]}")
-                
-                result = {"success": True, "content": content}
-                if expect_json:
-                    result["parsed_json"] = extract_json_from_text(content)
-                return result
-            else:
-                # 📊 添加日志：打印错误详情
-                app_logger.error(f"❌ VLM API错误: status={response.status_code}, message={response.message}")
-                return {"success": False, "error": response.message}
+
+            content = self._extract_text_from_response(response)
+            app_logger.info(f"🤖 VLM原始输出前500字符: {content[:500]}")
+
+            result = {"success": True, "content": content}
+            if expect_json:
+                result["parsed_json"] = extract_json_from_text(content)
+            return result
         except Exception as e:
             app_logger.error(f"❌ VLM调用异常: {str(e)}", exc_info=True)
             return {"success": False, "error": str(e)}
     
     def _prepare_messages(self, messages: List, system_prompt: str = None) -> List:
-        """准备API消息格式"""
+        """准备 OpenAI 兼容消息格式"""
         api_messages = []
         if system_prompt:
-            api_messages.append({"role": "system", "content": [{"text": system_prompt}]})
+            api_messages.append({"role": "system", "content": system_prompt})
         
         for msg in messages:
             role = msg.get("role", "user")
             content = msg.get("content", [])
             if isinstance(content, str):
-                content = [{"text": content}]
-            api_messages.append({"role": role, "content": content})
+                api_messages.append({"role": role, "content": content})
+                continue
+
+            if isinstance(content, list):
+                api_parts = []
+                for part in content:
+                    if not isinstance(part, dict):
+                        continue
+                    if "text" in part:
+                        api_parts.append({
+                            "type": "text",
+                            "text": str(part.get("text", "")),
+                        })
+                    elif "image" in part:
+                        api_parts.append({
+                            "type": "image_url",
+                            "image_url": {"url": str(part.get("image", ""))},
+                        })
+                if api_parts:
+                    api_messages.append({"role": role, "content": api_parts})
+                    continue
+
+            api_messages.append({"role": role, "content": str(content)})
         return api_messages
-    
-    def _mock_call(self, messages, system_prompt, expect_json):
-        """Mock调用（用于测试）"""
-        mock_response = {
-            "success": True,
-            "content": "这是一个模拟响应。请安装dashscope包以使用真实的VLM服务。"
-        }
-        if expect_json:
-            mock_response["parsed_json"] = {"mock": True}
-        return mock_response
+
+    def _extract_text_from_response(self, response: Any) -> str:
+        """从 OpenAI 兼容返回中提取文本"""
+        try:
+            message_content = response.choices[0].message.content
+        except Exception:
+            return ""
+
+        if isinstance(message_content, str):
+            return message_content
+        if isinstance(message_content, list):
+            parts = []
+            for item in message_content:
+                if isinstance(item, dict):
+                    text = item.get("text")
+                    if isinstance(text, str):
+                        parts.append(text)
+            return "\n".join(parts)
+        return str(message_content or "")
     
     def call_with_image(self, text: str, image_base64: str, 
                        system_prompt: str = None, expect_json: bool = False):

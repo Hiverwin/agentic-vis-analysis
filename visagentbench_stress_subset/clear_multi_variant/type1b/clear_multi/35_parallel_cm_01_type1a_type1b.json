@@ -1,0 +1,94 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "35_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/35_bmw_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_07",
+      "question": "Using filter_by_category and reorder_dimensions, which fuel type among Diesel and Petrol cars exhibits a stronger correlation between price and mpg?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Petrol",
+          "alternatives": []
+        },
+        "key_insights": [
+          "After filtering, only Diesel and Petrol cars are shown.",
+          "With price and mpg adjacent, the correlation between them is visible for each fuel type.",
+          "Petrol has the stronger (less negative) correlation between price and mpg."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Remove Electric, Hybrid, and Other to focus on Diesel and Petrol for comparison."
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Place price and mpg adjacent for correlation assessment."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "fuelType",
+                  "values": [
+                    "Electric",
+                    "Hybrid",
+                    "Other"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "price",
+                    "mpg",
+                    "mileage",
+                    "tax"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension",
+            "y": null,
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Electric\",\"Hybrid\",\"Other\"], datum['fuelType']) < 0"
+            }
+          ],
+          "axis_order": {
+            "dimension_order": [
+              "price",
+              "mpg",
+              "mileage",
+              "tax"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

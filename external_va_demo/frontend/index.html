@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>External VA Demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+      .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
+      .card { background: #111827; border: 1px solid #334155; border-radius: 10px; padding: 12px; }
+      textarea, input { width: 100%; box-sizing: border-box; background: #0b1220; color: #e2e8f0; border: 1px solid #334155; border-radius: 8px; padding: 8px; }
+      textarea { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      button { background: #2563eb; color: #fff; border: 0; border-radius: 8px; padding: 8px 12px; cursor: pointer; margin-top: 8px; }
+      pre { background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 8px; overflow: auto; white-space: pre-wrap; }
+      #chart { min-height: 420px; }
+      h2, h3 { margin: 6px 0 10px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="card">
+        <h2>External VA Frontend</h2>
+        <label>Query</label>
+        <input id="query" value="What is the correlation trend in this scatter plot?" />
+        <label style="display:block; margin-top:8px;">Vega Spec</label>
+        <textarea id="spec"></textarea>
+        <button id="analyzeBtn">Analyze via Imported Agent</button>
+        <h3>Answer</h3>
+        <pre id="answer"></pre>
+        <h3>Tool Calls</h3>
+        <pre id="tools"></pre>
+      </section>
+      <section class="card">
+        <h2>Chart Preview</h2>
+        <div id="chart"></div>
+      </section>
+    </div>
+
+    <script>
+      const defaultSpec = {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "mark": "point",
+        "encoding": {
+          "x": {"field": "x", "type": "quantitative"},
+          "y": {"field": "y", "type": "quantitative"},
+          "color": {"field": "group", "type": "nominal"}
+        },
+        "data": {
+          "values": [
+            {"x": 1, "y": 2, "group": "A"},
+            {"x": 2, "y": 4, "group": "A"},
+            {"x": 3, "y": 7, "group": "B"},
+            {"x": 4, "y": 9, "group": "B"},
+            {"x": 5, "y": 8, "group": "C"}
+          ]
+        }
+      };
+
+      const specEl = document.getElementById("spec");
+      const queryEl = document.getElementById("query");
+      const answerEl = document.getElementById("answer");
+      const toolsEl = document.getElementById("tools");
+      specEl.value = JSON.stringify(defaultSpec, null, 2);
+
+      async function renderChart(spec) {
+        await vegaEmbed("#chart", spec, { actions: false });
+      }
+
+      async function analyze() {
+        let spec;
+        try {
+          spec = JSON.parse(specEl.value);
+        } catch (e) {
+          answerEl.textContent = "Invalid Vega spec JSON: " + e.message;
+          return;
+        }
+
+        await renderChart(spec);
+
+        const resp = await fetch("http://127.0.0.1:9000/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: queryEl.value, vega_spec: spec })
+        });
+        const data = await resp.json();
+        answerEl.textContent = data.answer || "";
+        toolsEl.textContent = JSON.stringify(data.tool_calls || [], null, 2);
+      }
+
+      document.getElementById("analyzeBtn").addEventListener("click", analyze);
+      renderChart(defaultSpec);
+    </script>
+  </body>
+  </html>

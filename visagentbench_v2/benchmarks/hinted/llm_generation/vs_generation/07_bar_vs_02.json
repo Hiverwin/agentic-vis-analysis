@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "07_bar_vs_02",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_02",
+      "question": "Use highlight_category with field equal to field, values equal to diet_quality in order to know Use highlight_category with field equal to diet_quality to analyze the relationship between diet quality and health indicators",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Individuals with average diet quality show slightly higher mood scores (7.78) compared to good (7.76) and poor (7.62) diet groups. Good diet quality is associated with more exercise minutes (20.24), while poor diet quality correlates with longer screen time (5.10 hours). Overall, diet quality has subtle but measurable effects on various health metrics, with average diet quality appearing to support better emotional well-being.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Average diet quality has highest mood scores",
+          "Good diet quality has most exercise minutes",
+          "Poor diet quality has longest screen time"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Use highlight_category to compare health indicators across different diet quality groups and identify patterns"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": "diet_quality"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "07_bar_synthetic_mental_health",
+    "dataset_path": "datasets/07_bar_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/07_bar_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

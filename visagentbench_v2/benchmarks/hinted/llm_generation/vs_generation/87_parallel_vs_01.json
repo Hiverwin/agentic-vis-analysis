@@ -1,0 +1,84 @@
+{
+  "benchmark_id": "87_parallel_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use hide_dimensions with dimensions equal to hide, Firehouse Museum, Chinese American Museum, America Tropical Interpretive Center in order to know Which museum dimension shows most distinctive visitor pattern compared to others?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Avila Adobe shows the most distinctive visitor pattern with consistently higher visitor numbers compared to other museums. While Firehouse Museum, Chinese American Museum, and America Tropical Interpretive Center show lower and more consistent visitor patterns, Avila Adobe stands out with values ranging from 18,976 to 25,231, indicating it is the most popular attraction among the four museums.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Avila Adobe has the highest visitor numbers among all museums",
+          "Other museums show lower and more consistent patterns",
+          "The distinctive pattern suggests Avila Adobe is the most popular attraction",
+          "There is significant variation in visitor numbers across different museums"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Use hide_dimensions to selectively hide other museums and focus on Avila Adobes distinctive pattern"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "hide",
+                  "Firehouse Museum",
+                  "Chinese American Museum",
+                  "America Tropical Interpretive Center"
+                ],
+                "mode": "hide"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "dimensions": {
+              "hidden_fields": [
+                "hide",
+                "Firehouse Museum",
+                "Chinese American Museum",
+                "America Tropical Interpretive Center"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "87_museum_visitors_parallel",
+    "dataset_path": "datasets/87_museum_visitors_parallel.json",
+    "row_count": 236,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/87_museum_visitors_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

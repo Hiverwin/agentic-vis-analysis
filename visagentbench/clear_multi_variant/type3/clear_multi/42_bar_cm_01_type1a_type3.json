@@ -1,0 +1,89 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "42_bar_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/42_pokemon_stats_2025_bar.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Which type has the higher mean HP, dark or bug?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "bug",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Map HP to y-axis for comparison."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categories",
+            "reasoning": "Remove other types to focus on bug and dark only."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "y",
+                  "field": "hp"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "dragon",
+                    "water",
+                    "fire",
+                    "poison",
+                    "electric",
+                    "ground",
+                    "fairy",
+                    "fighting",
+                    "normal",
+                    "ice",
+                    "ghost",
+                    "rock",
+                    "psychic",
+                    "dark",
+                    "steel"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "type_1",
+            "y": "hp",
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"dragon\",\"water\",\"fire\",\"poison\",\"electric\",\"ground\",\"fairy\",\"fighting\",\"normal\",\"ice\",\"ghost\",\"rock\",\"psychic\",\"grass\",\"steel\"], datum['type_1']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "encoding",
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

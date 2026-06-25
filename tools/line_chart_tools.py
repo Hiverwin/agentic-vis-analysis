@@ -45,7 +45,7 @@ def _get_data_values(spec: Dict) -> List[Dict[str, Any]]:
     return values if isinstance(values, list) else []
 
 
-def zoom_time_range(state: Dict, start: str, end: str) -> Dict[str, Any]:
+def zoom_x_region(state: Dict, start: str, end: str) -> Dict[str, Any]:
     """缩放时间范围 - 放大视图到特定时间段（不删除数据）"""
     new_state = copy.deepcopy(state)
     
@@ -102,7 +102,7 @@ def zoom_time_range(state: Dict, start: str, end: str) -> Dict[str, Any]:
     
     return {
         'success': True,
-        'operation': 'zoom_time_range',
+        'operation': 'zoom_x_region',
         'vega_state': new_state,
         'message': f'Zoomed to time range: {start} to {end}',
         'details': [f'View zoomed to show time range between {start} and {end}']
@@ -537,7 +537,7 @@ def focus_lines(
     }
 
 
-def drilldown_line_time(
+def drill_down_x_axis(
     state: Dict,
     level: str,
     value: int,
@@ -667,14 +667,14 @@ def drilldown_line_time(
         # 1. 过滤到指定年份
         new_transforms.append({
             'filter': f'year(datum.{raw_date_field}) == {value}',
-            '_avs_tag': 'line_drilldown_time'
+            '_avs_tag': 'line_drilldown_axis'
         })
         # 2. 按月聚合
         new_transforms.append({
             'timeUnit': 'yearmonth',
             'field': raw_date_field,
             'as': 'month_date',
-            '_avs_tag': 'line_drilldown_time'
+            '_avs_tag': 'line_drilldown_axis'
         })
         
         # 构建 groupby
@@ -685,7 +685,7 @@ def drilldown_line_time(
         new_transforms.append({
             'aggregate': [{'op': 'sum', 'field': raw_value_field, 'as': 'total_value'}],
             'groupby': month_groupby,
-            '_avs_tag': 'line_drilldown_time'
+            '_avs_tag': 'line_drilldown_axis'
         })
         
         state['parent'] = {'year': value}
@@ -722,14 +722,14 @@ def drilldown_line_time(
         # 1. 过滤到指定年月
         new_transforms.append({
             'filter': f'year(datum.{raw_date_field}) == {year_val} && month(datum.{raw_date_field}) == {vega_month}',
-            '_avs_tag': 'line_drilldown_time'
+            '_avs_tag': 'line_drilldown_axis'
         })
         # 2. 按日聚合（如果同一天有多条记录）
         new_transforms.append({
             'timeUnit': 'yearmonthdate',
             'field': raw_date_field,
             'as': 'day_date',
-            '_avs_tag': 'line_drilldown_time'
+            '_avs_tag': 'line_drilldown_axis'
         })
         
         # 构建 groupby
@@ -740,7 +740,7 @@ def drilldown_line_time(
         new_transforms.append({
             'aggregate': [{'op': 'sum', 'field': raw_value_field, 'as': 'total_value'}],
             'groupby': day_groupby,
-            '_avs_tag': 'line_drilldown_time'
+            '_avs_tag': 'line_drilldown_axis'
         })
         
         state['parent'] = {'year': year_val, 'month': value}
@@ -791,7 +791,7 @@ def drilldown_line_time(
     
     return {
         'success': True,
-        'operation': 'drilldown_line_time',
+        'operation': 'drill_down_x_axis',
         'vega_state': new_state,
         'message': f'下钻到 {title_suffix}',
         'current_level': level,
@@ -799,7 +799,7 @@ def drilldown_line_time(
     }
 
 
-def reset_line_drilldown(state: Dict) -> Dict[str, Any]:
+def reset_drilldown_x_axis(state: Dict) -> Dict[str, Any]:
     """
     重置折线图时间下钻，恢复到初始年度视图。
     
@@ -816,7 +816,7 @@ def reset_line_drilldown(state: Dict) -> Dict[str, Any]:
     if not isinstance(state, dict):
         return {
             'success': True,
-            'operation': 'reset_line_drilldown',
+            'operation': 'reset_drilldown_x_axis',
             'vega_state': new_state,
             'message': '未进行过下钻，无需重置'
         }
@@ -830,7 +830,7 @@ def reset_line_drilldown(state: Dict) -> Dict[str, Any]:
         if 'transform' in new_state:
             new_state['transform'] = [
                 t for t in new_state['transform']
-                if not (isinstance(t, dict) and t.get('_avs_tag') == 'line_drilldown_time')
+                if not (isinstance(t, dict) and t.get('_avs_tag') == 'line_drilldown_axis')
             ]
     
     # 恢复原始 encoding
@@ -849,13 +849,13 @@ def reset_line_drilldown(state: Dict) -> Dict[str, Any]:
     
     return {
         'success': True,
-        'operation': 'reset_line_drilldown',
+        'operation': 'reset_drilldown_x_axis',
         'vega_state': new_state,
         'message': '已重置到初始年度视图'
     }
 
 
-def resample_time(
+def resample_x_axis(
     state: Dict,
     granularity: str,
     agg: str = "mean",
@@ -964,13 +964,13 @@ def resample_time(
     
     return {
         'success': True,
-        'operation': 'resample_time',
+        'operation': 'resample_x_axis',
         'vega_state': new_state,
         'message': f'Resampled time to {granularity} with {agg} aggregation'
     }
 
 
-def reset_resample(state: Dict) -> Dict[str, Any]:
+def reset_resample_x_axis(state: Dict) -> Dict[str, Any]:
     """
     重置时间重采样，恢复到原始粒度。
     """
@@ -980,7 +980,7 @@ def reset_resample(state: Dict) -> Dict[str, Any]:
     if not isinstance(state, dict):
         return {
             'success': True,
-            'operation': 'reset_resample',
+            'operation': 'reset_resample_x_axis',
             'vega_state': new_state,
             'message': 'No resample state to reset'
         }
@@ -997,13 +997,13 @@ def reset_resample(state: Dict) -> Dict[str, Any]:
     
     return {
         'success': True,
-        'operation': 'reset_resample',
+        'operation': 'reset_resample_x_axis',
         'vega_state': new_state,
         'message': 'Reset to original time granularity'
     }
 
 
-def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
+def change_encoding(state: Dict, channel: str, field: str, type: Optional[str] = None) -> Dict[str, Any]:
     """
     Modify the field mapping of the specified encoding channel
     
@@ -1014,37 +1014,49 @@ def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
     """
     new_state = copy.deepcopy(state)
     
-    # 检查字段是否存在
+    # 检查字段是否存在（兼容大小写差异）
     data = _get_data_values(new_state)
-    if data and field not in data[0]:
-        available_fields = list(data[0].keys()) if data else []
-        return {
-            'success': False,
-            'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
-        }
-    
-    # 推断字段类型
-    field_type = 'nominal'
+    resolved_field = field
     if data:
-        sample_value = data[0].get(field)
-        if isinstance(sample_value, (int, float)):
-            field_type = 'quantitative'
-        elif isinstance(sample_value, str):
-            if any(sep in sample_value for sep in ['-', '/', ':']):
-                field_type = 'temporal'
+        available_fields = list(data[0].keys())
+        if field not in data[0]:
+            lowered = str(field).strip().lower()
+            for candidate in available_fields:
+                if str(candidate).strip().lower() == lowered:
+                    resolved_field = candidate
+                    break
+        if resolved_field not in data[0]:
+            return {
+                'success': False,
+                'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
+            }
+    
+    # 使用传入 type 或根据数据推断字段类型
+    valid_types = ('quantitative', 'nominal', 'ordinal', 'temporal')
+    if type and type in valid_types:
+        field_type = type
+    else:
+        field_type = 'nominal'
+        if data:
+            sample_value = data[0].get(resolved_field)
+            if isinstance(sample_value, (int, float)):
+                field_type = 'quantitative'
+            elif isinstance(sample_value, str):
+                if any(sep in sample_value for sep in ['-', '/', ':']):
+                    field_type = 'temporal'
     
     # 更新指定通道的 encoding
     if 'encoding' not in new_state:
         new_state['encoding'] = {}
     
     new_state['encoding'][channel] = {
-        'field': field,
+        'field': resolved_field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_state['encoding'][channel]['legend'] = {'title': field}
+        new_state['encoding'][channel]['legend'] = {'title': resolved_field}
         if field_type == 'quantitative':
             new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
@@ -1055,22 +1067,22 @@ def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
         'success': True,
         'operation': 'change_encoding',
         'vega_state': new_state,
-        'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
+        'message': f'Changed {channel} encoding to field "{resolved_field}" (type: {field_type})'
     }
 
 
 __all__ = [
-    'zoom_time_range',
+    'zoom_x_region',
     'highlight_trend',
     'detect_anomalies',
     'bold_lines',
     'filter_lines',
     'show_moving_average',
     'focus_lines',
-    'drilldown_line_time',
-    'reset_line_drilldown',
-    'resample_time',
-    'reset_resample',
+    'drill_down_x_axis',
+    'reset_drilldown_x_axis',
+    'resample_x_axis',
+    'reset_resample_x_axis',
     'change_encoding',
 ]
 

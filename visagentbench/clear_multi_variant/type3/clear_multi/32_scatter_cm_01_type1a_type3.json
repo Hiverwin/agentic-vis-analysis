@@ -1,0 +1,81 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "32_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "What is the Pearson correlation coefficient between bmi and charges for non-smokers?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.084",
+          "tolerance": 0.005
+        },
+        "key_insights": [
+          "Most non-smokers' premiums are concentrated below 20,000, with only a small portion falling between 25,000 and 35,000.",
+          "The points are most densely clustered in the 25-30 BMI range, with some overlapping areas requiring closer inspection when magnified.",
+          "Upon magnifying the region where BMI falls between 25 and 35, it was observed that the majority of data points' charges are concentrated below 15,000.",
+          "The correlation is not readily apparent from the view.",
+          "Since the data are continuous values, the Pearson correlation coefficient was used, yielding a correlation coefficient of approximately 0.018.",
+          "Compared to the initial view, it can be inferred that BMI has a smaller impact on charges than smoking status does."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Remove smokers to focus on non-smokers."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Compute Pearson correlation between bmi and charges."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "smoker",
+                  "categories_to_remove": [
+                    "yes"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "bmi",
+            "y": "charges",
+            "color": "smoker"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"yes\"], datum['smoker']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

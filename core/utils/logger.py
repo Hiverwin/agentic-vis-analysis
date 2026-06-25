@@ -1,11 +1,17 @@
 """日志工具"""
 import logging
+from pathlib import Path
+
 from config.settings import Settings
 
 def setup_logger(name: str, log_file=None, level=None):
     """设置日志器"""
     logger = logging.getLogger(name)
     logger.setLevel(level or Settings.LOG_LEVEL)
+    logger.propagate = False
+
+    if logger.handlers:
+        return logger
     
     formatter = logging.Formatter(Settings.LOG_FORMAT, datefmt=Settings.LOG_DATE_FORMAT)
     
@@ -16,6 +22,7 @@ def setup_logger(name: str, log_file=None, level=None):
     
     # 文件处理器
     if log_file:
+        Path(log_file).parent.mkdir(parents=True, exist_ok=True)
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)

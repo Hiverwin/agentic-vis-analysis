@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "46_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use highlight_region_by_value with min_value equal to 5.9 in order to know Use highlight_region_by_value with min_value equal to 5.9 to highlight cells with mean Anxiety greater than 5.9. How many cells have mean Anxiety greater than 5.9?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "2",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Highlight cells with mean Anxiety greater than 5.9 to count them"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.region.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 5.9,
+                "outside_opacity": 0.12
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "46_mxmh_survey_results_heatmap",
+    "dataset_path": "datasets/46_mxmh_survey_results_heatmap.json",
+    "row_count": 727,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/46_mxmh_survey_results_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

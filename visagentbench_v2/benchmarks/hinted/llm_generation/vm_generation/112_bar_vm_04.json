@@ -1,0 +1,87 @@
+{
+  "benchmark_id": "112_bar_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know First use sort_bars to sort titles by average popularity, then use highlight_top_n to highlight the top performers. Analyze the popularity distribution: how popularity varies across different anime titles, what characteristics distinguish top-performing titles from average ones, and whether there are clear popularity tiers or a gradual distribution.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The popularity distribution across anime titles shows significant variation. Top-performing titles stand out clearly from the rest, demonstrating substantially higher average popularity scores. There appears to be a tiered structure with a small group of highly popular titles at the top, followed by a middle tier of moderately popular titles, and a larger group of lower-popularity titles. The gap between the highest and lowest performing titles is substantial, indicating strong audience preferences for certain titles over others.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Popularity varies significantly across anime titles",
+          "Top performers show substantially higher scores",
+          "Tiered structure exists in popularity distribution",
+          "Gap between highest and lowest is substantial"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to see popularity ranking"
+          },
+          {
+            "iteration": 2,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top performers to analyze characteristics"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "title",
+            "y": "popularity"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "112_anmie_filter_bar",
+    "dataset_path": "datasets/112_anmie_filter_bar.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

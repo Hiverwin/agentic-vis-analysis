@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "02_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use expand_stack to compute the exact sales value of Electronics in the East region.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "1300",
+          "tolerance": 0
+        },
+        "key_insights": [
+          "After expanding, the Electronics bar for the East region shows a sales value of approximately 1,300, which is the highest Electronics sales across all regions."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stack.expand",
+            "rationale": "The expand stack action is a single, precise tool that separates the stacked segments, allowing us to read the exact value of the Electronics component in the East region. The original stacked view only showed the combined total, so expanding resolves the ambiguity in individual segment values. This directly answers the question, and no further tools are needed unless we want to compare this value across all regions."
+          }
+        ],
+        "required_capabilities": [
+          "view.stack.expand"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stack.expand",
+            "param_eval": {
+              "type": "categorical",
+              "param": "category",
+              "target": "East"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "product",
+            "y": "sales",
+            "color": "product"
+          },
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['region'] == \"East\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "02_bar_sales",
+    "dataset_path": "datasets/02_bar_sales.json",
+    "row_count": 8,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/02_bar_sales.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

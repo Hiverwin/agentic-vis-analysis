@@ -1,0 +1,97 @@
+{
+  "benchmark_id": "02_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_subcategories and sort_bars, which regions lead the pack in the Electronics-only view and what is the width of the gap between first and second place?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Electronics sales rank East first (about 1300), North second (about 1200), then West and South—the top two are only ~100 units apart, but both sit well above the bottom half of the list, so the chart reads as a tight race at the top with a clearer drop toward the South.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Removing Clothing leaves a clean Electronics-only comparison across regions.",
+          "East narrowly beats North; the sorted bars make that ordering and the ~100-point gap obvious."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "Strip Clothing so regional bars reflect Electronics revenue only."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Descending sort lines regions up from strongest Electronics sales downward."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "list",
+              "param": "subcategories_to_remove",
+              "target": [
+                "Clothing"
+              ]
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "categorical",
+              "param": "order",
+              "target": "descending"
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['product'] != \"Clothing\""
+              }
+            ],
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "South",
+                "West",
+                "North",
+                "East"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "02_bar_sales",
+    "dataset_path": "datasets/02_bar_sales.json",
+    "row_count": 8,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/02_bar_sales.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

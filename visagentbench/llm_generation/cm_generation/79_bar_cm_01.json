@@ -1,0 +1,88 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "79_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "69_bar_cm_01：Use get_data_summary and sort_bars to analyze bar chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "PlayStation 4",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "Get data summary to view all platform statistics"
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to identify platform with highest average Action score"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "order",
+                  "by_subcategory": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Nintendo DS",
+              "PlayStation",
+              "Wii",
+              "Game Boy Color",
+              "Game Boy Advance",
+              "PlayStation 2",
+              "PlayStation Portable",
+              "GameCube",
+              "Nintendo 64",
+              "Nintendo 3DS",
+              "Xbox 360",
+              "PC",
+              "Xbox",
+              "Nintendo DSi",
+              "PlayStation 3",
+              "iPhone",
+              "Dreamcast",
+              "Wireless",
+              "PlayStation Vita",
+              "PlayStation 4",
+              "Xbox One"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

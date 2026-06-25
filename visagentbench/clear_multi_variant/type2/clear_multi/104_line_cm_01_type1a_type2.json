@@ -1,0 +1,84 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "104_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/104_gender_gap_in_life_line.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Which year exhibits the maximum contribution value for New Zealand among the three countries?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "1977",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom to 1970-1980 to focus on the target period."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_lines",
+            "reasoning": "Filter to remove Russia, United State, Japan, and United Kindom."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "1970",
+                  "end": "1980"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Russia",
+                    "United State",
+                    "Japan",
+                    "United Kindom"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "1970",
+              "1980"
+            ]
+          },
+          "encoding": {
+            "x": "Year",
+            "y": "Contribution of gender in life expectancy gap (years) - Age group: 15-39",
+            "color": "Entity"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Russia\", \"United State\", \"Japan\", \"United Kindom\"], datum['Entity']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "11_line_vs_03",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_03",
+      "question": "Use highlight_trend in order to know How has the revenue composition of Apple products evolved from 2007 to 2025, and which product categories show the most significant growth patterns?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The revenue composition has evolved dramatically from 2007 to 2025. MacBook and iPhone dominate the revenue landscape, with MacBook showing the strongest overall performance with total revenue of 4093.25 billion and peak revenue of 1750 billion. iPhone follows closely with 3775.56 billion total revenue and a peak of 915 billion. Services has shown consistent steady growth from 6.13 billion to 105.13 billion, representing a reliable revenue stream. Watch and AirPods, while starting later, have demonstrated rapid growth trajectories. The data reveals Apple successful diversification strategy beyond just iPhone, with Services becoming an increasingly important revenue contributor.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "MacBook has the highest total revenue at 4093.25 billion",
+          "iPhone is the second highest at 3775.56 billion",
+          "Services shows consistent steady growth from 6.13 to 105.13 billion",
+          "Watch and AirPods demonstrate rapid growth despite starting later",
+          "Apple has successfully diversified beyond iPhone dependency"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.trend.highlight",
+            "rationale": "Use highlight_trend to visualize the overall growth patterns of Apple product revenues from 2007 to 2025"
+          }
+        ],
+        "required_capabilities": [
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "11_apple_time_line",
+    "dataset_path": "datasets/11_apple_time_line.json",
+    "row_count": 133,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/11_apple_time_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

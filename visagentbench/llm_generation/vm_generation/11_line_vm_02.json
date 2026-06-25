@@ -1,0 +1,70 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "11_line_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/11_apple_time_line.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "How did Apple's product revenues change from 2022-2025, and what might explain these changes?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Apple's product revenues showed significant abnormal growth in 2022-2023, with MacBook reaching 1720-1750 billion and iPhone reaching 895-915 billion. This was followed by a dramatic decline in 2024, with revenues returning to normal levels similar to 2021. The 2022-2023 spike appears to be data anomalies or reporting errors, as such extreme growth is unlikely in reality. The 2024-2025 data shows a return to realistic revenue levels with modest growth across products.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "2022-2023 show abnormal revenue spikes",
+          "MacBook had highest abnormal growth",
+          "2024-2025 returned to normal levels",
+          "Data appears to contain reporting errors for 2022-2023"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom into 2022-2023 to analyze abnormal growth"
+          },
+          {
+            "iteration": 2,
+            "tool": "focus_lines",
+            "reasoning": "Focus on MacBook and iPhone to analyze their performance"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2022",
+                  "end": "2023"
+                }
+              }
+            },
+            {
+              "tool": "focus_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "dim",
+                  "lines": [
+                    "MacBook",
+                    "iPhone"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {},
+          "data_filtered": []
+        }
+      }
+    }
+  ]
+}

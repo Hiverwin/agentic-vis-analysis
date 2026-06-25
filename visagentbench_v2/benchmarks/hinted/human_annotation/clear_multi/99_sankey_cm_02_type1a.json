@@ -1,0 +1,82 @@
+{
+  "benchmark_id": "99_sankey_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use calculate_conversion_rate with node_name equal to Proj Alpha and then use highlight_path with path equal to EC2, us-east-1, Proj Alpha, then . What is the inflow value (in thousands USD per month) from us-east-1 to Proj Alpha on this path?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "80",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the path from EC2 through us-east-1 to Proj Alpha."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Get inflow value for Proj Alpha from the highlighted path."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "EC2",
+                  "us-east-1",
+                  "Proj Alpha"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Proj Alpha"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "99_sankey_cloud",
+    "dataset_path": "datasets/99_sankey_cloud.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

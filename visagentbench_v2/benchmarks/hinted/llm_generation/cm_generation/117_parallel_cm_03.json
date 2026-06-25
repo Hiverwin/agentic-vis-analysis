@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "117_parallel_cm_03",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "35_parallel_cm_01：Use filter_by_category with field equal to Gender and values equal to Female to focus on female samples, then use reorder_dimensions with dimension_order equal to Height, Weight, BMI, Age, then use calculate_correlation with method equal to pearson. What is the correlation between Height and Weight for females?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "-0.07",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only IPO funding stage"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Reorder dimensions to put Amount Raised first"
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate Pearson correlation between the two dimensions"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": "Funding Stage"
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "Series A",
+                  "Series B",
+                  "Series C",
+                  "Seed"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "axis_order": {
+              "dimension_order": [
+                "Series A",
+                "Series B",
+                "Series C",
+                "Seed"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "117_startup_funding_dataset_parallel",
+    "dataset_path": "datasets/117_startup_funding_dataset_parallel.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/117_startup_funding_dataset_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

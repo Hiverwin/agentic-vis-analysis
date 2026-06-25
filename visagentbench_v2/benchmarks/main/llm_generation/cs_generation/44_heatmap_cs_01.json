@@ -1,0 +1,61 @@
+{
+  "benchmark_id": "44_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use find_extremes in order to know Use find_extremes to identify which type and grazing_treatment combination has the highest mean rainfall_reduction.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "fungi - stable",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use find_extremes to identify the type and grazing_treatment combination with the highest mean rainfall_reduction"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "44_Sensitivity_Soil_Nutrient_Pools new_heatmap",
+    "dataset_path": "datasets/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+    "row_count": 1006,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

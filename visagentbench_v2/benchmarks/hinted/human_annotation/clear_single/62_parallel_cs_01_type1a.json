@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "62_parallel_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use filter_by_category with field equal to dimension, filter_by_category with values equal to Robbery, Burglary, Arson and Drugs to rank the types of crime by overall frequency.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Injury and threat.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "In the parallel coordinate plot, a large number of lines are concentrated at the high positions on the \"Injury/Threat\" axis, which constitutes the most obvious dense area."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "dimension",
+                "values": [
+                  "Robbery",
+                  "Burglary",
+                  "Arson",
+                  "Drugs"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Robbery\",\"Burglary\",\"Arson\",\"Drugs\"], datum['dimension']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "62_Berlin_crimes_parallel",
+    "dataset_path": "datasets/62_Berlin_crimes_parallel.json",
+    "row_count": 7200,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/62_Berlin_crimes_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

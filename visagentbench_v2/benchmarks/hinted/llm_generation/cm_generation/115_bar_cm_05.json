@@ -1,0 +1,117 @@
+{
+  "benchmark_id": "115_bar_cm_05",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_05",
+      "question": "42_bar_cm_01：Use toggle_stack_mode with mode equal to grouped to see individual values, then use filter_categories with categories equal to [2022, 2023] to focus on recent years, then use sort_bars with sort_order equal to descending. Which year has higher values?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "ASICS",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stackMode.set",
+            "rationale": "Use toggle_stack_mode to compare brand performance"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Use filter_categories to focus on top brands"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.sort.encoding",
+            "rationale": "Use sort_bars to sort by sales volume"
+          }
+        ],
+        "required_capabilities": [
+          "view.stackMode.set",
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "ASICS",
+                  "Puma",
+                  "Reebok"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "ASICS",
+                "Puma",
+                "Reebok",
+                "New Balance",
+                "Adidas",
+                "Nike"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "mark_mode",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "115_sport_life_bar",
+    "dataset_path": "datasets/115_sport_life_bar.json",
+    "row_count": 6059,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/115_sport_life_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

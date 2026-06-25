@@ -1,0 +1,91 @@
+{
+  "benchmark_id": "100_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use calculate_conversion_rate with node_name equal to Cured & Discharged to compute the overall flow of patients through the system and identify which treatment plan has the highest rate of patients achieving Cured & Released.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Surgery Tx has the highest rate of patients achieving Cured & Released,",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Surgery Tx has the highest conversion rate"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "The calculate conversion rate tool directly computes the success proportion for each treatment"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Cured & Discharged"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Emergency",
+                "Outpatient Appt",
+                "Referral-In",
+                "Internal Med",
+                "Surgery",
+                "Pediatrics",
+                "Cardiology",
+                "Blood Panel",
+                "CT Scan",
+                "MRI",
+                "Ultrasound",
+                "X-Ray",
+                "Medication",
+                "Surgery Tx",
+                "Observation",
+                "Physical Therapy",
+                "Cured & Discharged",
+                "Home Recovery",
+                "Transfer to Rehab",
+                "Transfer to ICU"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "100_sankey_patient",
+    "dataset_path": "datasets/100_sankey_patient.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/100_sankey_patient.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

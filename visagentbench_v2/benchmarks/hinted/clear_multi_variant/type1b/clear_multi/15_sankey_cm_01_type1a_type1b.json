@@ -1,0 +1,82 @@
+{
+  "benchmark_id": "15_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using highlight_path and calculate_conversion_rate, which node provides the largest inflow to K-12 Funding?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Education",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the path to focus on Education to K-12 Funding flow."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Compute inflow; the tool returns upstream sources; baseline cannot get this without tools."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Personal Income Tax",
+                  "Education",
+                  "K-12 Funding"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "K-12 Funding"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "15_sankey_government",
+    "dataset_path": "datasets/15_sankey_government.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

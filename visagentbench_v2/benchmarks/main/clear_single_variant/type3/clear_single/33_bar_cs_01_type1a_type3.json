@@ -1,0 +1,110 @@
+{
+  "benchmark_id": "33_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What is the name of the model series in the third position based on fuel efficiency?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "2 Series.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The 3 Series is the most fuel-efficient series, with the 1 Series a close second, forming a top tier.",
+          "The 2 Series emerges as the clear third-ranked model, establishing a benchmark for high efficiency.",
+          "The traditional core numbered series occupy the top five positions, outperforming the X and M line models in total efficiency."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "The sorting operation directly answers the question by revealing the ranking. The third bar corresponds to the 2 Series. No further tools are needed."
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "categorical",
+              "param": "order",
+              "target": "descending"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "model",
+            "y": "mpg",
+            "color": "fuelType"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                " 3 Series",
+                " 1 Series",
+                " 2 Series",
+                " 5 Series",
+                " 4 Series",
+                " X1",
+                " X3",
+                " X5",
+                " i3",
+                " X2",
+                " X4",
+                " 6 Series",
+                " 7 Series",
+                " M4",
+                " Z4",
+                " X6",
+                " i8",
+                " X7",
+                " 8 Series",
+                " M3",
+                " M5",
+                " M2",
+                "3 Series",
+                "1 Series",
+                "5 Series",
+                " Z3",
+                " M6",
+                "X3",
+                "4 Series",
+                "2 Series",
+                "7 Series",
+                "6 Series"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "33_bmw_bar",
+    "dataset_path": "datasets/33_bmw_bar.json",
+    "row_count": 10781,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/33_bmw_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

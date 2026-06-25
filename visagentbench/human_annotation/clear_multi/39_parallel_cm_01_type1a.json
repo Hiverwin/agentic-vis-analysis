@@ -1,0 +1,86 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "39_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/39_insurance_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_by_category with field equal to region and values equal to [northeast, northwest] to exclude northern regions and keep only southeast and southwest, then use reorder_dimensions with dimension_order equal to [age, bmi, charges, children] to place bmi and charges adjacent. Which region has the stronger correlation between bmi and charges: southeast or southwest?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "southeast",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The lines of children have high line concentration."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Filter to keep only southeast and southwest for comparison."
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to place bmi and charges adjacent for visual comparison of correlation strength."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "region",
+                  "values": [
+                    "northeast",
+                    "northwest"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "age",
+                    "bmi",
+                    "charges",
+                    "children"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "indexof([\"southeast\", \"southwest\"], datum['region']) >= 0"
+            }
+          ],
+          "axis_order": {
+            "dimension_order": [
+              "age",
+              "bmi",
+              "charges",
+              "children"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

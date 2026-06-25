@@ -1,0 +1,87 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "59_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/59_health care diabetes_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use highlight_region_by_value with min_value equal to 75.0 and use change_encoding with field equal to Outcome in order to know How does blood pressure vary across different pregnancy counts and diabetes outcomes? Analyze the patterns to understand the relationship between reproductive history, diabetes status, and cardiovascular health indicators.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Blood pressure shows a complex relationship with pregnancy count and diabetes status. Diabetic patients (Outcome=1) have slightly higher average blood pressure (70.82) compared to non-diabetic patients (68.18). The relationship with pregnancy count is non-linear: blood pressure is lowest at 2 pregnancies (63.25 average), then rises significantly at 5 pregnancies (76.21) and peaks at 9 pregnancies (77.89). The highest blood pressure occurs in diabetic patients with 9 pregnancies (82.06 average), while the lowest occurs in non-diabetic patients with 2 pregnancies (61.94). This suggests that both high pregnancy count and diabetes status contribute to elevated blood pressure, with the combination creating the highest risk. Interestingly, blood pressure drops slightly at very high pregnancy counts (10+), possibly due to selection bias or different physiological adaptations.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Diabetic patients have 2.64 higher average blood pressure than non-diabetic",
+          "Blood pressure peaks at 9 pregnancies (77.89 average)",
+          "Highest BP in diabetic patients with 9 pregnancies (82.06)",
+          "Lowest BP in non-diabetic patients with 2 pregnancies (61.94)",
+          "Both high pregnancy count and diabetes contribute to elevated blood pressure"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Find extreme blood pressure values to identify highest and lowest risk groups"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_region_by_value",
+            "reasoning": "Highlight regions with high blood pressure to visualize at-risk populations"
+          },
+          {
+            "iteration": 3,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to analyze the data from different perspectives"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            },
+            {
+              "tool": "highlight_region_by_value",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 75.0,
+                  "outside_opacity": 0.12
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Outcome"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Pregnancies",
+            "y": "Outcome",
+            "color": "BloodPressure"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "benchmark_id": "64_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using highlight_region_by_value, how many cells have a mean of Average Tree Price that is less than 70?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "9",
+          "tolerance": 0
+        },
+        "key_insights": [
+          "9 cells' mean of Average Tree Price is less than 70."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Use this tool to find the cells with mean of Average Tree Price less than 50."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.region.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "max_value": 50
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Type of tree",
+            "color": "Average Tree Price"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "64_US Christmas Tree Sales _heatmap",
+    "dataset_path": "datasets/64_US Christmas Tree Sales _heatmap.json",
+    "row_count": 14,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

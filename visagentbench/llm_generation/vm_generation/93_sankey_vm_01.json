@@ -1,0 +1,85 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "93_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_conversion_rate with node_name equal to Alipay/WeChat Entry and use color_flows with nodes equal to Alipay/WeChat Entry, color equal to #e74c3c and use highlight_path with path equal to Alipay/WeChat Entry, Payment in order to know What are the main traffic entry channels and how do they convert to different financial products?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Alipay/WeChat Entry is the dominant traffic source (25500) with the largest flow going to Payment (12000) and Consumer Credit (8500). Bank App Push (13000) primarily drives Wealth Products (5600). Consumer Credit receives the most total transactions (17400), followed by Wealth Products (16080). The top flow is Alipay/WeChat Entry to Payment (12000), indicating strong payment usage through mobile platforms. Offline Branch/Field Sales (9200) contributes mainly to Wealth Products (4100) and Insurance (3500), showing traditional channels still matter for complex products.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Alipay/WeChat Entry is dominant traffic source",
+          "Payment has largest single flow",
+          "Consumer Credit receives most total transactions",
+          "Traditional channels serve complex products"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Calculate conversion rate for Alipay/WeChat Entry"
+          },
+          {
+            "iteration": 2,
+            "tool": "color_flows",
+            "reasoning": "Color flows from Alipay/WeChat Entry to see distribution"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_path",
+            "reasoning": "Highlight the path from Alipay/WeChat Entry to Payment"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Alipay/WeChat Entry"
+                }
+              }
+            },
+            {
+              "tool": "color_flows",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "nodes": [
+                    "Alipay/WeChat Entry"
+                  ],
+                  "color": "#e74c3c"
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Alipay/WeChat Entry",
+                    "Payment"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

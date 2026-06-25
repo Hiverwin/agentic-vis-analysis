@@ -1,0 +1,58 @@
+{
+  "task_type": "vague_single",
+  "task_id": "37_parallel_vs_11",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/37_cancer_parallel .json",
+  "questions": [
+    {
+      "qid": "vs_11",
+      "question": "Use highlight_category with field equal to field,values, values equal to Heavy to compare the consistency of vitamin intake types A, C, and D with the trend of changes in symptoms_count in order to know what is the consistency of vitamin intake types with the trend of changes in symptoms_count?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Diagnosis M shows consistently higher normalized values than Diagnosis B across most dimensions, particularly in Radius (mean) with difference of 0.2516 and Area (mean) with difference of 0.2187, while Fractal dimension (mean) shows minimal difference of only 0.0039",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Diagnosis M has higher average values in Radius (mean) (0.4961 vs 0.2445)",
+          "Diagnosis M shows significantly higher Area (mean) values (0.3541 vs 0.1354)",
+          "Fractal dimension (mean) shows minimal difference between diagnoses (0.2679 vs 0.2718)"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_category",
+            "reasoning": "Use highlight_category with field equal to Diagnosis, values equal to M to highlight malignant tumors and observe their characteristics across all dimensions"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field,values",
+                  "values": [
+                    "Diagnosis",
+                    "M"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

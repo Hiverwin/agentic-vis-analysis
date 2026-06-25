@@ -1,0 +1,94 @@
+{
+  "benchmark_id": "21_line_cm_05",
+  "task_type": "clear_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cm_05",
+      "question": "11_line_cm_01：Use show_moving_average with window_size equal to 7 to smooth the line, then use zoom_x_region with start equal to 2020-01-01 and end equal to 2020-12-31 to focus on a single year. What is the trend of the smoothed line during this period?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Fake tree",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.movingAverage.show",
+            "rationale": "Show moving average to identify trend"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom to 2015-2016 period to analyze growth"
+          }
+        ],
+        "required_capabilities": [
+          "line.movingAverage.show",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.movingAverage.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "window_size": 5
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2015-01-01",
+                "end": "2016-01-01"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "2015-01-01",
+              "2016-01-01"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "has_type": "line"
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "21_Number of trees sold over Yea_line",
+    "dataset_path": "datasets/21_Number of trees sold over Yea_line.json",
+    "row_count": 14,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/21_Number of trees sold over Yea_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,65 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "89_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/89_Sleep_health_and_lifestyle_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "63_heatmap_cm_01：Use adjust_color_scale and find_extremes to analyze heatmap chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Stress Level 6 - Normal",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "adjust_color_scale",
+            "reasoning": "Adjust color scale to enhance visibility"
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extremes",
+            "reasoning": "Find the cell with extreme sleep duration value"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "color_scale": {
+            "scheme": "viridis"
+          }
+        },
+        "state_check_fields": [
+          "color_scale"
+        ]
+      }
+    }
+  ]
+}

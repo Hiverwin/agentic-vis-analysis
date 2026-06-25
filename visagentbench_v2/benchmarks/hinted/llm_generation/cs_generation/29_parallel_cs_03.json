@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "29_parallel_cs_03",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_03",
+      "question": "Use highlight_category in order to know Use highlight_category with field equal to uses_ai, values equal to Yes to highlight students who use AI. Which group shows higher grades_after_ai values?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Yes",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight students who use AI to compare their grades_after_ai with those who do not use AI"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field,values",
+                "values": [
+                  "uses_ai",
+                  "Yes"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "29_students_ai_usage_parallel",
+    "dataset_path": "datasets/29_students_ai_usage_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/29_students_ai_usage_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

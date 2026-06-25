@@ -300,7 +300,7 @@ def toggle_stack_mode(state: Dict, mode: str = "grouped") -> Dict[str, Any]:
         if 'y' in new_state['encoding']:
             new_state['encoding']['y']['stack'] = 'zero'
         
-        message = 'Switched to stacked mode: all subcategories displayed stacked,便于查看总量'
+        message = 'Switched to stacked mode: all subcategories displayed stacked'
         
     else:
         return {'success': False, 'error': f'Invalid mode: {mode}, please use "grouped" or "stacked"'}
@@ -316,7 +316,7 @@ def toggle_stack_mode(state: Dict, mode: str = "grouped") -> Dict[str, Any]:
     }
 
 
-def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
+def change_encoding(state: Dict, channel: str, field: str, type: Optional[str] = None) -> Dict[str, Any]:
     """
     Modify the field mapping of the specified encoding channel
     
@@ -327,37 +327,49 @@ def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
     """
     new_state = copy.deepcopy(state)
     
-    # 检查字段是否存在
+    # 检查字段是否存在（兼容大小写差异）
     data = _get_values_from_data_obj(new_state.get('data', {}) or {})
-    if data and field not in data[0]:
-        available_fields = list(data[0].keys()) if data else []
-        return {
-            'success': False,
-            'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
-        }
-    
-    # 推断字段类型
-    field_type = 'nominal'
+    resolved_field = field
     if data:
-        sample_value = data[0].get(field)
-        if isinstance(sample_value, (int, float)):
-            field_type = 'quantitative'
-        elif isinstance(sample_value, str):
-            if any(sep in sample_value for sep in ['-', '/', ':']):
-                field_type = 'temporal'
+        available_fields = list(data[0].keys())
+        if field not in data[0]:
+            lowered = str(field).strip().lower()
+            for candidate in available_fields:
+                if str(candidate).strip().lower() == lowered:
+                    resolved_field = candidate
+                    break
+        if resolved_field not in data[0]:
+            return {
+                'success': False,
+                'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
+            }
+    
+    # 使用传入 type 或根据数据推断字段类型
+    valid_types = ('quantitative', 'nominal', 'ordinal', 'temporal')
+    if type and type in valid_types:
+        field_type = type
+    else:
+        field_type = 'nominal'
+        if data:
+            sample_value = data[0].get(resolved_field)
+            if isinstance(sample_value, (int, float)):
+                field_type = 'quantitative'
+            elif isinstance(sample_value, str):
+                if any(sep in sample_value for sep in ['-', '/', ':']):
+                    field_type = 'temporal'
     
     # 更新指定通道的 encoding
     if 'encoding' not in new_state:
         new_state['encoding'] = {}
     
     new_state['encoding'][channel] = {
-        'field': field,
+        'field': resolved_field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_state['encoding'][channel]['legend'] = {'title': field}
+        new_state['encoding'][channel]['legend'] = {'title': resolved_field}
         if field_type == 'quantitative':
             new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
@@ -368,7 +380,7 @@ def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
         'success': True,
         'operation': 'change_encoding',
         'vega_state': new_state,
-        'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
+        'message': f'Changed {channel} encoding to field "{resolved_field}" (type: {field_type})'
     }
 
 

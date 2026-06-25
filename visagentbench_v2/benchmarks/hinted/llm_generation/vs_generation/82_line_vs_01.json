@@ -1,0 +1,78 @@
+{
+  "benchmark_id": "82_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use focus_lines in order to know How does the sales trend of Electronics compare to other product categories over time?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Electronics consistently shows the highest sales volume compared to other categories, with a generally upward trend throughout the period. Home Appliances and Sports follow as the second and third highest categories, while Clothing, Beauty Products, and Books have significantly lower sales figures",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Electronics has the highest sales volume",
+          "Electronics shows a generally upward trend",
+          "Home Appliances and Sports follow as second and third highest categories"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.focus",
+            "rationale": "Focus on Electronics to analyze its sales trend compared to other categories"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.focus"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.focus",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines": [
+                  "dim",
+                  "Electronics"
+                ],
+                "line_field": "mode,lines",
+                "mode": "dim",
+                "dim_opacity": 0.08
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "82_Online Sales Data_line",
+    "dataset_path": "datasets/82_Online Sales Data_line.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,87 @@
+{
+  "benchmark_id": "12_sankey_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Analyze Microsoft's revenue flow and business segment contributions based on the FY23 Q2 income statement.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Microsoft's FY23 Q2 revenue flow shows Intelligent Cloud as the largest business segment contributing $21.5B, followed by Productivity ($17.0B) and Personal Computing ($14.2B). The company generated total revenue of $52.7B, with a strong profit margin of 31.1% ($16.4B net profit). Cost of Revenue was $17.5B, while Operating Expenses were $14.8B, demonstrating efficient cost management. The Intelligent Cloud segment's leadership position highlights Microsoft's success in cloud services and enterprise solutions.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Intelligent Cloud is the largest business segment with $21.5B",
+          "Strong profit margin of 31.1% indicates efficient operations",
+          "Cost of Revenue ($17.5B) is well managed relative to total revenue",
+          "Cloud services are driving Microsoft's revenue growth"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace the Intelligent Cloud node to understand its contribution"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate conversion rates to analyze revenue flow efficiency"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Intelligent Cloud"
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Revenue"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": []
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "12_sankey_micro",
+    "dataset_path": "datasets/12_sankey_micro.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/12_sankey_micro.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

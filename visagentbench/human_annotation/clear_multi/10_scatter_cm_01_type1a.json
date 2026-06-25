@@ -1,0 +1,73 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "10_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/10_scatter_synthetic_mental_health.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_categorical with categories_to_remove equal to good and poor to keep only average diet quality, then use calculate_correlation with method equal to pearson. What is the Pearson correlation coefficient (rounded to 3 decimals) between sleep_hours and screen_time for individuals with average diet quality?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.062"
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Remove good and poor to keep only average diet quality."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Compute Pearson correlation for the filtered data."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories_to_remove": [
+                    "good",
+                    "poor"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "sleep_hours",
+            "y": "screen_time",
+            "color": "diet_quality"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"good\", \"poor\"], datum['diet_quality']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

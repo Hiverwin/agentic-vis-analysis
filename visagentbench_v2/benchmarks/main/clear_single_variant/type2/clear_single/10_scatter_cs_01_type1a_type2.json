@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "10_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What is the computed correlation between sleep duration and screen time using the Pearson method?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "-0.0209",
+          "tolerance": 0.005
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "After using the tool \"calculate correlation\", we found that sleep duration and screen time have a negative correlation of approximately -0.04125."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "sleep_hours",
+            "y": "screen_time",
+            "color": "diet_quality"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "10_scatter_synthetic_mental_health",
+    "dataset_path": "datasets/10_scatter_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/10_scatter_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

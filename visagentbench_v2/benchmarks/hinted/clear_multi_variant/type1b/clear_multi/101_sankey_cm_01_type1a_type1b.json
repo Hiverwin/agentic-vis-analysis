@@ -1,0 +1,83 @@
+{
+  "benchmark_id": "101_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Using highlight_path and get_data, what is the count of loans that transitioned from AAA Y2 to AAA Y3?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "345",
+          "tolerance": 0
+        },
+        "key_insights": [
+          "345 loans maintained AAA rating from year 2 to year 3."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the path from AAA Y2 to AAA Y3 to focus on loans that maintained AAA rating through year 3."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.rows.inspect",
+            "rationale": "Retrieve the visible flow data to count loans on the AAA Y2 to AAA Y3 path."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "data.rows.inspect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "AAA Y2",
+                  "AAA Y3"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.rows.inspect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "visible"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "101_sankey_credit",
+    "dataset_path": "datasets/101_sankey_credit.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/101_sankey_credit.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,100 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "36_scatter_cm_07",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/36_cancer_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_07",
+      "question": "84_scatter_cm_01：Use filter_categorical with categories_to_remove equal to [Classic Espresso Drinks, Tazo® Tea Drinks, Signature Espresso Drinks, Shaken Iced Beverages, Smoothies, Frappuccino® Blended Coffee, Frappuccino® Light Blended Coffee, Frappuccino® Blended Crème] to keep only Coffee drinks, then use zoom_2d_region with x_range from 0 to 20 and y_range from 0 to 50 to zoom into the low-sugar low-calorie region. Use get_data with scope visible to find the minimum Calories value among Coffee drinks in this region. What is that value?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Higher Radius (mean) region",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Filter to focus on specific data points"
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom into high Radius region"
+          },
+          {
+            "iteration": 3,
+            "tool": "get_data",
+            "reasoning": "Get data summary to calculate average Texture value"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories_to_remove": [
+                    "Radius (mean)",
+                    "15",
+                    "20",
+                    "25",
+                    "30"
+                  ],
+                  "field": "field"
+                }
+              }
+            },
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    15.0,
+                    30.0
+                  ],
+                  "y_range": [
+                    15.0,
+                    40.0
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              15.0,
+              30.0
+            ],
+            "y": [
+              15.0,
+              40.0
+            ]
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

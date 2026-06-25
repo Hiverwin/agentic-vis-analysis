@@ -1,0 +1,55 @@
+{
+  "task_type": "vague_single",
+  "task_id": "64_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_region_by_value with min_value equal to 60.0 in order to know Which tree type shows more price variability over the years?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Fake tree shows more price variability with prices ranging from 63.60 to 98.70 and average of 74.38, indicating significant price fluctuations compared to real trees which have more stable prices ranging from 34.87 to 74.70 with average of 44.52",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Fake tree has higher average price at 74.38 compared to real tree at 44.52",
+          "Fake tree shows wider price range from 63.60 to 98.70",
+          "Real tree has more stable pricing with smaller range from 34.87 to 74.70"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region_by_value",
+            "reasoning": "Use highlight_region_by_value to highlight regions with different price ranges and observe which tree type shows more variability in pricing over time"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region_by_value",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 60.0,
+                  "outside_opacity": 0.12
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "106_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/106_life expectancey_line.json",
+  "questions": [
+    {
+      "qid": "vm_04",
+      "question": "Use `filter_lines` to remove Zimbabwe, Brazil, and Australia, then apply `zoom_x_region` to 2000-2020. Describe the life-expectancy trajectories of the remaining four countries: trend shape, relative ranking, any convergence/catch-up, and whether potential crossings become clearer after zooming. Ground the answer in visible signals (country names, slope direction, and relative spacing).",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After excluding Zimbabwe, Brazil, and Australia, the 2000-2020 zoom shows four remaining lines that generally increase, but with different slope regimes. One trajectory appears consistently smoother, while another shows a steeper middle segment followed by visible flattening. Ranking is not fully reshuffled, yet the gap between the middle lines narrows in part of the interval, indicating partial catch-up rather than complete overtaking. This evidence is more legible in the zoomed view than in the full timeline."
+        },
+        "key_insights": [
+          "In 2000-2020, the four retained countries all trend upward, but their slope intensity and phase changes are not identical.",
+          "Top-vs-bottom ordering remains distinguishable, while mid-tier spacing narrows during part of the interval (catch-up signal).",
+          "Filtering plus zooming is necessary to observe local slope transitions and near-crossing behavior with confidence."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_lines",
+            "reasoning": "First remove Zimbabwe, Brazil, and Australia to reduce visual clutter and isolate four comparable trajectories."
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_x_region",
+            "reasoning": "Then zoom to 2000-2020 to compare slope changes, ranking persistence, and convergence signals in a focused time window."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Zimbabwe",
+                    "Brazil",
+                    "Australia"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2000",
+                  "end": "2020"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "2000",
+              "2020"
+            ]
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Zimbabwe\", \"Brazil\", \"Australia\"], datum['Entity']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

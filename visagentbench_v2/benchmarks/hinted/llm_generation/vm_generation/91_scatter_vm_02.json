@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "91_scatter_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans and use zoom_2d_region with x_range from 80.0 to 100.0, y_range from 6000.0 to 8000.0 in order to know What patterns can you identify in the relationship between price and revenue across different product types, and how do the clusters distribute?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The scatter plot reveals three distinct clusters corresponding to the three product types. The overall correlation between price and revenue is weak, but when analyzed by product type, cosmetics shows a weak negative correlation (-0.285), skincare shows a weak positive correlation (0.233), and haircare shows almost no correlation (-0.046). Cosmetics products tend to cluster in the higher price range (avg 57.36) with higher revenue (avg 6212.36), while haircare products are more scattered across the price range with lower average revenue (5131.04).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Three distinct clusters by product type",
+          "Weak overall price-revenue correlation",
+          "Cosmetics cluster in high-price high-revenue region",
+          "Haircare most scattered across price range"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate overall correlation between price and revenue"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Identify clusters in the scatter plot"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into high-price high-revenue region to examine patterns"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute",
+          "analysis.clusters.identify",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  80.0,
+                  100.0
+                ],
+                "y_range": [
+                  6000.0,
+                  8000.0
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Price",
+            "y": "Revenue generated",
+            "color": "Product type"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "91_supply_chain_data_scatter",
+    "dataset_path": "datasets/91_supply_chain_data_scatter.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/91_supply_chain_data_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

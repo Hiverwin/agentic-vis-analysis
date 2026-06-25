@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "111_heatmap_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use highlight_region_by_value with min_value equal to 20.0 and use find_extremes with top_n equal to 5, mode equal to both in order to know First use highlight_region_by_value to highlight cells with temperature above a threshold, then use find_extremes to identify the hottest and coldest cells. Analyze the spatial-temporal patterns: which cities experience the most extreme temperature variations, how seasonal patterns differ between northern and southern cities, and what climate characteristics emerge from the highlighted regions.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The heatmap reveals distinct seasonal temperature patterns across cities. Northern cities show more extreme temperature variations between summer and winter months, with temperatures ranging from below freezing in winter to warm summer conditions. Southern cities maintain more moderate temperatures year-round with less seasonal variation. The hottest cells typically appear in summer months for inland cities, while coastal cities benefit from maritime moderation. The coldest cells are concentrated in winter months for northern cities, showing clear latitudinal climate gradients.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Northern cities show more extreme seasonal variations",
+          "Southern cities maintain moderate temperatures year-round",
+          "Hottest cells appear in summer months for inland cities",
+          "Coldest cells concentrated in winter months for northern cities"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Highlight cells above threshold to identify hot regions"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find extreme temperature cells to analyze patterns"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.region.highlight",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 20.0,
+                "outside_opacity": 0.12
+              }
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "month",
+            "y": "city",
+            "color": "temp"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "111_heatmap_tmp",
+    "dataset_path": "datasets/111_heatmap_tmp.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

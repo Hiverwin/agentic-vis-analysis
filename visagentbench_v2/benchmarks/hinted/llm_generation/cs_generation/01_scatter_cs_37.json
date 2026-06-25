@@ -1,0 +1,60 @@
+{
+  "benchmark_id": "01_scatter_cs_37",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_37",
+      "question": "Use calculate_correlation in order to know What is the correlation between Horsepower and Miles_per_Gallon?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "-0.78",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Use calculate_correlation with pearson method to compute the correlation coefficient between Horsepower and Miles_per_Gallon"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "01_scatter_cars",
+    "dataset_path": "datasets/01_scatter_cars.json",
+    "row_count": 392,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/01_scatter_cars.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

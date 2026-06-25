@@ -1,0 +1,26 @@
+{
+  "id": "44_heatmap_cm_01",
+  "image": "44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+  "question": "Which type has the highest faith_pd value?",
+  "answer": "fungi",
+  "answer_type": "categorical",
+  "is_objective": true,
+  "tools": [
+    {
+      "tool": "filter_cells",
+      "params": {
+        "threshold": 5000000000
+      },
+      "reasoning": "Filter cells with high faith_pd values"
+    },
+    {
+      "tool": "cluster_rows_cols",
+      "params": {
+        "cluster_rows": true,
+        "cluster_cols": true
+      },
+      "reasoning": "Cluster rows and columns to group similar data"
+    }
+  ],
+  "can_ask_max_min": true
+}

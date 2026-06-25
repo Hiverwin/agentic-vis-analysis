@@ -1,0 +1,131 @@
+{
+  "benchmark_id": "15_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How do the different expense types compare in their importance in the flow of funds of the contractor?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Overall, equipment purchase has received greater attention."
+        },
+        "key_insights": [
+          "Equipment purchase funds have increased, with multiple sources of inflow.",
+          "Equipment purchase funds have increased, but the sources of inflow little than equipment purch."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Analyze the inflow of funds for equipment purchases, as well as the sources of the inflow."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Analyze the inflow of funds for salaries, as well as the sources of the inflow."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Equipment Purch"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Salaries"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Personal Income Tax",
+                "Corporate Tax",
+                "Bond Issuance",
+                "Fees & Fines",
+                "Defense",
+                "Education",
+                "Healthcare",
+                "Transport",
+                "Social Welfare",
+                "Military Operations",
+                "Defense R&D",
+                "Veterans Affairs",
+                "K-12 Funding",
+                "Higher Education",
+                "Research Grants",
+                "Medicare Subsidy",
+                "Hospital Funding",
+                "Pharma Programs",
+                "Highway Projects",
+                "Rail Projects",
+                "Aviation Safety",
+                "Pension Payments",
+                "Unemployment Aid",
+                "Housing Subsidy",
+                "Defense Corp A",
+                "Defense Corp B",
+                "Research Inst",
+                "Personnel Costs",
+                "Healthcare Prov",
+                "Pharma Co",
+                "School Districts",
+                "Textbook Publ",
+                "State Univ",
+                "Equipment Vendor",
+                "Construct Co A",
+                "Construct Co B",
+                "Aviation Corp",
+                "Direct Transfer",
+                "Equipment Purch",
+                "Infrastructure",
+                "R&D Expense",
+                "Salaries",
+                "Operations",
+                "Citizen Benefit"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "15_sankey_government",
+    "dataset_path": "datasets/15_sankey_government.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

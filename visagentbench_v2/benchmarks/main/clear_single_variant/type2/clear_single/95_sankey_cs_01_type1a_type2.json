@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "95_sankey_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What is the maximum contribution of materials to the Tire Plant when filtering by a minimum value of 50?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Rubber is the material that contributes the most to the Tire Plant",
+          "alternatives": []
+        },
+        "key_insights": [
+          "the rubber flow to the Tire Plant  is the only remaining input,"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "Filtering small flows removes visual clutter, making it easier to focus on the largest, most impactful material inputs."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 50
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "95_sankey_supply",
+    "dataset_path": "datasets/95_sankey_supply.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/95_sankey_supply.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

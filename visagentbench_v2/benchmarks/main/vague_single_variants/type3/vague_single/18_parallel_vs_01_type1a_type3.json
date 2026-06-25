@@ -1,0 +1,75 @@
+{
+  "benchmark_id": "18_parallel_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What dimensions show the clearest separation between cases, and what stands out on the Thallium axis in the Presence cohort?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Once only Presence traces remain, the bundle still spreads across age and cholesterol, but Thallium values lean high: normalized scores average in the low‑to‑mid 0.7 range with several lines hugging the upper part of the axis. That reads clinically as “reversible defect” territory for many positive cases, so Thallium is the channel where the surviving lines bunch away from zero more than, say, resting blood pressure."
+        },
+        "key_insights": [
+          "The filtered view emphasizes Thallium-heavy trajectories among confirmed cases.",
+          "Other dimensions still overlap, so the story is not a single clean separator beyond that Thallium shift."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Dropping Absence rows isolates patients with a positive heart-disease label for comparison."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Heart Disease",
+                "values": [
+                  "Absence"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Absence\"], datum['Heart Disease']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "18_Heart_Disease_Prediction_parallel",
+    "dataset_path": "datasets/18_Heart_Disease_Prediction_parallel.json",
+    "row_count": 1620,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/18_Heart_Disease_Prediction_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

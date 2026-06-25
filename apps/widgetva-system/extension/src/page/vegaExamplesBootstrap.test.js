@@ -229,8 +229,11 @@ test('ensureVegaExamplesPageBootstrap installs capture, bootstraps once, and rec
     appName: 'WidgetVA Official Page Integration',
   })
   const naturalLanguageResult = await root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop('Brush the visible scatter region.')
-  assert.equal(naturalLanguageResult.plan.operation.name, 'scatter.brushRegion')
-  assert.equal(naturalLanguageResult.result.actionResult.ok, true)
+  assert.equal(Array.isArray(naturalLanguageResult.turns), true)
+  assert.equal(naturalLanguageResult.turns.length, 1)
+  assert.equal(naturalLanguageResult.turns[0]?.plan?.step?.name, 'scatter.brushRegion')
+  assert.equal(naturalLanguageResult.turns[0]?.act?.ok, true)
+  assert.equal(naturalLanguageResult.turns[0]?.verify?.ok, true)
   assert.equal(runAgentLoopCalls, 1)
 
   const again = await ensureVegaExamplesPageBootstrap({

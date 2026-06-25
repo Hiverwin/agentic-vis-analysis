@@ -1,0 +1,151 @@
+{
+  "benchmark_id": "51_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "What is the relationship pattern (direction/strength), subgroup overlap versus separation, and what becomes clearer after interaction compared with the original chart?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Since the correlation is only -0.07, it may tell us that there does not exists linear relationship between cost and weight in this area."
+        },
+        "key_insights": [
+          "The cost does not show a strong relation with weight.",
+          "The data of ship mode does not show a great difference compared to whole data in the area.",
+          "The correlation is -0.07"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "As mentions in the question, so we do the zoom step first."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "We just cares about the data of ship mode."
+          },
+          {
+            "iteration": 3,
+            "capability": "selection.region.set",
+            "rationale": "Selecting for next step."
+          },
+          {
+            "iteration": 4,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Correlation is a good parameter to show relationship."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "data.filter.categorical",
+          "selection.region.set",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  3998.6669921875,
+                  6025.333658854167
+                ],
+                "y_range": [
+                  47.774978637695334,
+                  301.17501068115234
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Mode_of_Shipment",
+                "categories_to_remove": [
+                  "Road",
+                  "Flight"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "selection.region.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  4003.7336588541666,
+                  6025.333658854167
+                ],
+                "y_range": [
+                  85.78498344421389,
+                  299.1478026916494
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              4003.7336588541666,
+              6025.333658854167
+            ],
+            "yDomain": [
+              85.78498344421389,
+              299.1478026916494
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Road\", \"Flight\"], datum['Mode_of_Shipment']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "51_Train_scatter",
+    "dataset_path": "datasets/51_Train_scatter.json",
+    "row_count": 10999,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/51_Train_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

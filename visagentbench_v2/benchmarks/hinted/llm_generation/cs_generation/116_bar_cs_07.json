@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "116_bar_cs_07",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_07",
+      "question": "Use highlight_top_n in order to know Use highlight_top_n with n equal to 5. Among these top five countries, which industry has the highest average funding amount?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Technology",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top 5 countries and identify the industry with highest average funding"
+          }
+        ],
+        "required_capabilities": [
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "116_startup_funding_dataset_bar",
+    "dataset_path": "datasets/116_startup_funding_dataset_bar.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

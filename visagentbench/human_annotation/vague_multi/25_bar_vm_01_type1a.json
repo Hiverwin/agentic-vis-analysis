@@ -1,0 +1,75 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "25_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/25_gym_members_exercise_tracking_bar.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `filter_categories`; then apply `toggle_stack_mode`. In the updated bar view, analyze category-level pattern shifts: ranking changes, widening or narrowing gaps, and standout groups. Explain what is newly visible after interaction versus the original chart, with explicit category evidence.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The changes in the experience levels of two projects with similar fat percentage have the same effect on the changes in fat percentage."
+        },
+        "key_insights": [
+          "The fat percentage of HIIT and Yoga is the similar.",
+          "The chart shows that the fat percentage of both projects decreases as the level increases."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "Use the filter to select two items with similar fat percentage."
+          },
+          {
+            "iteration": 2,
+            "tool": "toggle_stack_mode",
+            "reasoning": "Using tools to group horizontally can help us more intuitively study whether the changes in the levels of the two projects have the same effect on the changes in fat content."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Cardio",
+                    "Strength"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Cardio\",\"Strength\"], datum['Workout_Type']) < 0"
+            }
+          ],
+          "mark_mode": {
+            "is_stacked": false
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode"
+        ]
+      }
+    }
+  ]
+}

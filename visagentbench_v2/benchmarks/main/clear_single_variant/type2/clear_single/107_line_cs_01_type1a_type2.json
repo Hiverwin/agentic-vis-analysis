@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "107_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "How does the overall survival rate for all countries characterize the increasing trend?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "increase",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.trend.highlight",
+            "rationale": "get the trend"
+          }
+        ],
+        "required_capabilities": [
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "107_survive_to_65_line",
+    "dataset_path": "datasets/107_survive_to_65_line.json",
+    "row_count": 496,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/107_survive_to_65_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

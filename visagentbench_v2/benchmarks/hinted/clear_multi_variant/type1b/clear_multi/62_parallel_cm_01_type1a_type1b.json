@@ -1,0 +1,120 @@
+{
+  "benchmark_id": "62_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_by_category and reorder_dimensions, which region exhibits a stronger relationship between injury and drugs?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Mitte.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter category to only focus on Mitte and Friedrichshain-Kreuzberg district."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Reorder dimensions to put injury and Drugs together."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "District",
+                "values": [
+                  "Pankow",
+                  "Charlottenburg-Wilmersdorf",
+                  "Spandau",
+                  "Treptow-Köpenick",
+                  "Marzahn-Hellersdorf",
+                  "Lichtenberg",
+                  "Reinickendorf",
+                  "Steglitz-Zehlendorf",
+                  "Tempelhof-Schöneberg",
+                  "Neukölln"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "Robbery",
+                  "Injury",
+                  "Drugs",
+                  "Theft",
+                  "Burglary",
+                  "Arson"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension",
+            "color": "District"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Neukölln\",\"Pankow\",\"Charlottenburg-Wilmersdorf\",\"Spandau\",\"Treptow-Köpenick\",\"Marzahn-Hellersdorf\",\"Lichtenberg\",\"Reinickendorf\",\"Steglitz-Zehlendorf\",\"Tempelhof-Schöneberg\"], datum['District']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "62_Berlin_crimes_parallel",
+    "dataset_path": "datasets/62_Berlin_crimes_parallel.json",
+    "row_count": 7200,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/62_Berlin_crimes_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

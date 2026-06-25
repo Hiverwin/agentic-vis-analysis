@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "69_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use get_data_summary with scope equal to all and to see the median, sort_bars with order equal to descending to identify how many companies have followers above or equal to the median.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "12",
+          "tolerance": 3
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "The question asks how many companies have followers above the median, so you need to use the 'get data summary' tool to obtain the median first."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "To more easily find how many companies have followers above the median, use the sort bars tool to sort the companies."
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "company",
+            "y": "followers"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Google",
+                "Amazon",
+                "LinkedIn",
+                "Microsoft",
+                "Ted Conferences",
+                "Unilever",
+                "Deloitte",
+                "LinkedIn News",
+                "IBM",
+                "Apple",
+                "Forbes Magazine",
+                "Tata Consultancy Services",
+                "Nestle",
+                "Harvard Business Review",
+                "Accenture",
+                "The Economist",
+                "Tesla Motors",
+                "Meta",
+                "Netflix",
+                "Wipro"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "69_top_100_linkedin_companies_2026_bar",
+    "dataset_path": "datasets/69_top_100_linkedin_companies_2026_bar.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/69_top_100_linkedin_companies_2026_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

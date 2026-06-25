@@ -1,0 +1,88 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "100_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/100_sankey_patient.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "What are the diagnostic paths that contribute most to Surgery Tx, how are the upstream intake routes distributed before those diagnostics, and which conversion characteristic is most important in the full pathway?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The combined evidence from `trace_node` and node-level conversion output shows that `Surgery Tx` is fed mainly by a small set of diagnostic nodes (notably `CT Scan` and `MRI`), with one path typically carrying stronger flow. Upstream, intake is distributed across multiple registration/department origins before converging into these diagnostics and then into surgery. The main conversion insight is a funnel-like pattern: multi-source intake, concentration at key diagnostic gates, and then selective transfer into `Surgery Tx`."
+        },
+        "key_insights": [
+          "`CT Scan` and `MRI` appear as principal immediate upstream contributors to `Surgery Tx` in the traced structure.",
+          "One diagnostic route (commonly `CT Scan`) shows stronger contribution signals to surgery in conversion-aware interpretation.",
+          "The pathway exhibits convergence: multiple entry routes merge before routing into a smaller set of surgery-relevant diagnostics."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace `Surgery Tx` first to map direct upstream diagnostics and immediate downstream outcomes."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Then compute conversion metrics at `Surgery Tx` to compare relative pathway contribution and avoid purely visual guessing."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Surgery Tx"
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Surgery Tx"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "Emergency",
+              "Outpatient Appt",
+              "Referral-In",
+              "Internal Med",
+              "Surgery",
+              "Pediatrics",
+              "Cardiology",
+              "Blood Panel",
+              "CT Scan",
+              "MRI",
+              "Ultrasound",
+              "X-Ray",
+              "Medication",
+              "Surgery Tx",
+              "Observation",
+              "Physical Therapy",
+              "Cured & Discharged",
+              "Home Recovery",
+              "Transfer to Rehab",
+              "Transfer to ICU"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

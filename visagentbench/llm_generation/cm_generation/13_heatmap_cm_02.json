@@ -1,0 +1,64 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "13_heatmap_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "08_heatmap_cm_01：Use cluster_rows_cols to group similar patterns, then use filter_cells with value greater than 0.7 to focus on strong correlations. Which variables have the strongest correlations?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "cosmetics",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "cluster_rows_cols",
+            "reasoning": "Cluster rows and columns to group similar product types and demographics"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells",
+            "reasoning": "Filter cells to focus on price range 50-60 to analyze specific price segment"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "cluster_rows_cols",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "cluster_rows": true,
+                  "cluster_cols": true,
+                  "method": "sum"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {}
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "clustering_order": {
+            "clustered": true
+          }
+        },
+        "state_check_fields": [
+          "clustering_order"
+        ]
+      }
+    }
+  ]
+}

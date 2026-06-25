@@ -1,0 +1,76 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "67_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/67_vitamin_deficiency_disease_dataset_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_categorical and calculate_correlation, what is the Pearson correlation coefficient (rounded to 3 decimals) between vitamin_a_percent_rda and vitamin_e_percent_rda for females?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.423",
+          "tolerance": 0.005
+        },
+        "key_insights": [
+          "The correlation is about 0.423."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Remove Male to focus on Female data."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Compute Pearson correlation for vitamin A vs E in females."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "gender",
+                  "categories_to_remove": [
+                    "Male"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "vitamin_a_percent_rda",
+            "y": "vitamin_e_percent_rda",
+            "color": "gender"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Male\"], datum['gender']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

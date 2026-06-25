@@ -1,0 +1,103 @@
+{
+  "benchmark_id": "50_parallel_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Is there a significant correlation between manufacturing costs and production volumes?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "There is No significant correlation between manufacturing costs and production volumes based on the visual inspection of the parallel coordinates plot."
+        },
+        "key_insights": [
+          "he lines connecting the \"Manufacturing costs\" axis (left) to the \"Production volumes\" axis (right) are chaotic and cross over each other extensively.he lines connecting the \"Manufacturing costs\" axis (left) to the \"Production volumes\" axis (right) are chaotic and cross over each other extensively."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "We care about correlation between manufacturing costs and production volumes"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "Manufacturing lead time",
+                  "Defect rates"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          },
+          "view": {
+            "xDomain": [
+              "Manufacturing costs",
+              "Production volumes"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Manufacturing costs\", \"Production volumes\"], datum['dimension']) >= 0",
+                "_pc_hide_dimensions": true
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "dimensions": {
+              "hidden_fields": [
+                "Manufacturing lead time",
+                "Defect rates"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "50_supply_chain_data_parallel",
+    "dataset_path": "datasets/50_supply_chain_data_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/50_supply_chain_data_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

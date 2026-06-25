@@ -1,0 +1,64 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "13_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_cells_by_region and add_marginal_bars, what is the analysis of hotspot/coldspot structure, row-column contrasts, and local anomalies in the updated heatmap compared to the original view?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Male consumers have a higher average product price compared to female consumers."
+        },
+        "key_insights": [
+          "Female consumers show significantly higher prices for cosmetics products compared to males,",
+          "while male consumers exhibit higher prices for skincare.",
+          "Haircare prices are similar between the two genders.",
+          "The average product price for males is higher than that for females."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Keep only female and male customer demographics to enable a direct comparison between the two segments."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "Non-binary",
+                    "Unknown"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "show_top": true,
+                  "show_right": true,
+                  "op": "mean"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": null,
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

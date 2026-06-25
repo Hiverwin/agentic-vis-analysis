@@ -1,0 +1,67 @@
+{
+  "benchmark_id": "13_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What combination of product type and customer demographic corresponds to the highest price on the heatmap?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The highest price appears at the intersection of 'cosmetics' and 'Male'.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "After using the find extreme tool, we found that the highest price occurs at the intersection of \"cosmetics\" and \"Male\"."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 50,
+                "mode": "max"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Product type",
+            "y": "Customer demographics",
+            "color": "Price"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "13_supply_chain_data_heatmap",
+    "dataset_path": "datasets/13_supply_chain_data_heatmap.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

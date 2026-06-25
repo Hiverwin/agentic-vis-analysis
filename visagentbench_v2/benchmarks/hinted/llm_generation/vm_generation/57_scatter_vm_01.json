@@ -1,0 +1,112 @@
+{
+  "benchmark_id": "57_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use identify_clusters with n_clusters equal to 3, method equal to kmeans and use calculate_correlation with method equal to pearson and use zoom_2d_region with x_range from 0.8 to 2.5, y_range from 140.0 to 200.0 in order to know What are the key risk factors for diabetes based on this dataset? Analyze the relationship between glucose levels, diabetes pedigree function, and pregnancy history to identify patterns that distinguish diabetic from non-diabetic patients.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Glucose level is the strongest indicator of diabetes risk. Diabetic patients (Outcome=1) have significantly higher average glucose (141.26) compared to non-diabetic patients (109.98). The diabetes pedigree function (DPF) also shows a notable difference (0.550 vs 0.430). Patients with both high glucose (>140) and high DPF (>0.8) have a 75.8% diabetes rate, while those with low glucose (<100) and low DPF (<0.4) have only a 6.1% diabetes rate. Pregnancy history shows diabetic patients average 4.87 pregnancies vs 3.30 for non-diabetic. The weak correlation (0.137) between glucose and DPF suggests these are independent risk factors that combine multiplicatively rather than being directly related.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Glucose is the strongest diabetes indicator with 28.28 difference between outcomes",
+          "High glucose and high DPF combined show 75.8% diabetes rate",
+          "Low glucose and low DPF show only 6.1% diabetes rate",
+          "Glucose and DPF are independent risk factors with weak correlation"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Identify clusters to find distinct patient groups based on glucose and DPF"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between glucose and DPF to understand their relationship"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into high-risk region to analyze patients with elevated glucose and DPF values"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.clusters.identify",
+          "analysis.correlation.compute",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.8,
+                  2.5
+                ],
+                "y_range": [
+                  140.0,
+                  200.0
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "DiabetesPedigreeFunction",
+            "y": "Glucose",
+            "color": "Outcome",
+            "size": "Pregnancies"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "57_health care diabetes_scatter",
+    "dataset_path": "datasets/57_health care diabetes_scatter.json",
+    "row_count": 768,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/57_health care diabetes_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,76 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "13_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Using filter_cells_by_region and find_extremes, which Customer demographic has the highest mean price for haircare?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Male",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Remove haircare and skincare columns to keep only cosmetic."
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extremes",
+            "reasoning": "Find the demographic with maximum price for haircare."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_values": [
+                    "haircare",
+                    "skincare"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "max"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Product type",
+            "y": "Customer demographics",
+            "color": "Price"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"haircare\",\"skincare\"], datum['Product type']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

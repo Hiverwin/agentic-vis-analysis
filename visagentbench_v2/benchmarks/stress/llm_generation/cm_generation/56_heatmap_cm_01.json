@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "56_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "46_heatmap_cm_01：Use cluster_rows_cols to group similar patterns, then use filter_cells with value greater than 0.5 to focus on significant values, then use adjust_color_scale with scheme equal to blues to visualize intensity. What is the pattern of the clustered heatmap?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "JioMart",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Cluster rows and columns to identify patterns"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filter cells to focus on service rating 5"
+          },
+          {
+            "iteration": 3,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "Adjust color scale to better visualize differences"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.clusters.identify",
+          "heatmap.cells.filter",
+          "heatmap.colorScale.adjust"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "cluster_rows": true,
+                "cluster_cols": true,
+                "method": "sum"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          },
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "viridis"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "clustering_order": {
+              "clustered": true
+            },
+            "color_scale": {
+              "scheme": "viridis"
+            }
+          }
+        },
+        "state_check_fields": [
+          "clustering_order",
+          "color_scale"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "56_Ecommerce_Delivery_Analytics_New_heatmap",
+    "dataset_path": "datasets/56_Ecommerce_Delivery_Analytics_New_heatmap.json",
+    "row_count": 100000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/56_Ecommerce_Delivery_Analytics_New_heatmap.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

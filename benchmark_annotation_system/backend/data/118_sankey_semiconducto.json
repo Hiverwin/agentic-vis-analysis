@@ -1,0 +1,312 @@
+{
+  "rawLinks": [
+    {
+      "source": "Batch A",
+      "target": "Litho Normal",
+      "value": 3800
+    },
+    {
+      "source": "Batch A",
+      "target": "Litho Deviation",
+      "value": 150
+    },
+    {
+      "source": "Batch A",
+      "target": "Overlay Error",
+      "value": 50
+    },
+    {
+      "source": "Batch B",
+      "target": "Litho Normal",
+      "value": 3600
+    },
+    {
+      "source": "Batch B",
+      "target": "Litho Deviation",
+      "value": 180
+    },
+    {
+      "source": "Batch B",
+      "target": "Overlay Error",
+      "value": 70
+    },
+    {
+      "source": "Batch C",
+      "target": "Litho Normal",
+      "value": 1900
+    },
+    {
+      "source": "Batch C",
+      "target": "Litho Deviation",
+      "value": 170
+    },
+    {
+      "source": "Batch C",
+      "target": "Overlay Error",
+      "value": 80
+    },
+    {
+      "source": "Litho Normal",
+      "target": "Etch Normal",
+      "value": 9000
+    },
+    {
+      "source": "Litho Normal",
+      "target": "Under-Etch",
+      "value": 200
+    },
+    {
+      "source": "Litho Normal",
+      "target": "Sidewall Damage",
+      "value": 100
+    },
+    {
+      "source": "Litho Deviation",
+      "target": "Etch Normal",
+      "value": 280
+    },
+    {
+      "source": "Litho Deviation",
+      "target": "Under-Etch",
+      "value": 150
+    },
+    {
+      "source": "Litho Deviation",
+      "target": "Sidewall Damage",
+      "value": 70
+    },
+    {
+      "source": "Overlay Error",
+      "target": "Scrap (Litho)",
+      "value": 200
+    },
+    {
+      "source": "Etch Normal",
+      "target": "Depo Normal",
+      "value": 8900
+    },
+    {
+      "source": "Etch Normal",
+      "target": "Thickness Fault",
+      "value": 280
+    },
+    {
+      "source": "Etch Normal",
+      "target": "Contamination",
+      "value": 100
+    },
+    {
+      "source": "Under-Etch",
+      "target": "Depo Normal",
+      "value": 180
+    },
+    {
+      "source": "Under-Etch",
+      "target": "Thickness Fault",
+      "value": 120
+    },
+    {
+      "source": "Under-Etch",
+      "target": "Scrap (Etch)",
+      "value": 50
+    },
+    {
+      "source": "Sidewall Damage",
+      "target": "Scrap (Etch)",
+      "value": 170
+    },
+    {
+      "source": "Depo Normal",
+      "target": "Bin 1 (Good)",
+      "value": 7800
+    },
+    {
+      "source": "Depo Normal",
+      "target": "Bin 2 (Downgrade)",
+      "value": 1000
+    },
+    {
+      "source": "Depo Normal",
+      "target": "Bin 99 (Fail)",
+      "value": 280
+    },
+    {
+      "source": "Thickness Fault",
+      "target": "Bin 1 (Good)",
+      "value": 150
+    },
+    {
+      "source": "Thickness Fault",
+      "target": "Bin 2 (Downgrade)",
+      "value": 180
+    },
+    {
+      "source": "Thickness Fault",
+      "target": "Bin 99 (Fail)",
+      "value": 70
+    },
+    {
+      "source": "Contamination",
+      "target": "Bin 99 (Fail)",
+      "value": 100
+    },
+    {
+      "source": "Bin 1 (Good)",
+      "target": "Final Good",
+      "value": 7700
+    },
+    {
+      "source": "Bin 1 (Good)",
+      "target": "Package Loss",
+      "value": 250
+    },
+    {
+      "source": "Bin 2 (Downgrade)",
+      "target": "Downgrade Ship",
+      "value": 1000
+    },
+    {
+      "source": "Bin 2 (Downgrade)",
+      "target": "Package Loss",
+      "value": 180
+    },
+    {
+      "source": "Bin 99 (Fail)",
+      "target": "Scrap (CP)",
+      "value": 450
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Batch A",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Batch B",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Batch C",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Litho Normal",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Litho Deviation",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Overlay Error",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "Etch Normal",
+      "depth": 2,
+      "order": 0
+    },
+    {
+      "name": "Under-Etch",
+      "depth": 2,
+      "order": 1
+    },
+    {
+      "name": "Sidewall Damage",
+      "depth": 2,
+      "order": 2
+    },
+    {
+      "name": "Scrap (Litho)",
+      "depth": 2,
+      "order": 3
+    },
+    {
+      "name": "Depo Normal",
+      "depth": 3,
+      "order": 0
+    },
+    {
+      "name": "Thickness Fault",
+      "depth": 3,
+      "order": 1
+    },
+    {
+      "name": "Contamination",
+      "depth": 3,
+      "order": 2
+    },
+    {
+      "name": "Scrap (Etch)",
+      "depth": 3,
+      "order": 3
+    },
+    {
+      "name": "Bin 1 (Good)",
+      "depth": 4,
+      "order": 0
+    },
+    {
+      "name": "Bin 2 (Downgrade)",
+      "depth": 4,
+      "order": 1
+    },
+    {
+      "name": "Bin 99 (Fail)",
+      "depth": 4,
+      "order": 2
+    },
+    {
+      "name": "Final Good",
+      "depth": 5,
+      "order": 0
+    },
+    {
+      "name": "Downgrade Ship",
+      "depth": 5,
+      "order": 1
+    },
+    {
+      "name": "Package Loss",
+      "depth": 5,
+      "order": 2
+    },
+    {
+      "name": "Scrap (CP)",
+      "depth": 5,
+      "order": 3
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Wafer Start"
+    },
+    {
+      "depth": 1,
+      "label": "Lithography"
+    },
+    {
+      "depth": 2,
+      "label": "Etching"
+    },
+    {
+      "depth": 3,
+      "label": "Deposition"
+    },
+    {
+      "depth": 4,
+      "label": "CP Test"
+    },
+    {
+      "depth": 5,
+      "label": "Final Test"
+    }
+  ]
+}

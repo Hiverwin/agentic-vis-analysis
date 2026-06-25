@@ -1,4 +1,4 @@
-import { runPagePortAgentLoop } from './pagePortAgentLoop.js'
+import { runPagePortAgentLoop, runPagePortAgentSession, runPagePortAgentTurn } from './pagePortAgentLoop.js'
 
 export const DEFAULT_OPENROUTER_AGENT_MODEL = 'deepseek/deepseek-v4-flash'
 
@@ -85,6 +85,39 @@ function buildRepairMessages({ objective, observe, previousContent = '' }) {
         query: {},
       },
     },
+  })
+
+  return [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ]
+}
+
+function buildReasonMessages({
+  objective,
+  observe,
+  plan,
+  result,
+  verification,
+  latestCoordinationResult,
+} = {}) {
+  const systemPrompt = [
+    'You are the answer stage of a widget-based visual analytics agent.',
+    'You have already observed, planned, executed, and verified one analysis step.',
+    'Write the user-facing answer for this turn.',
+    'Use the actual execution result and verification outcome.',
+    'Do not invent computed values that are not present in the runtime result.',
+    'Return JSON only.',
+    'The JSON must contain answer.',
+  ].join(' ')
+
+  const userPrompt = JSON.stringify({
+    objective,
+    observe,
+    plan,
+    result,
+    verification,
+    latestCoordinationResult,
   })
 
   return [
@@ -274,6 +307,60 @@ export function createNaturalLanguagePlanner({
   }
 }
 
+export function createNaturalLanguageReasoner({
+  completeChat,
+  model = DEFAULT_OPENROUTER_AGENT_MODEL,
+  temperature = 0.2,
+} = {}) {
+  if (typeof completeChat !== 'function') {
+    throw new Error('createNaturalLanguageReasoner requires completeChat().')
+  }
+
+  return async function reasoner({
+    objective = null,
+    observe = null,
+    plan = null,
+    result = null,
+    verification = null,
+    latestCoordinationResult = null,
+  } = {}) {
+    const response = await completeChat({
+      model,
+      temperature,
+      messages: buildReasonMessages({
+        objective,
+        observe,
+        plan,
+        result,
+        verification,
+        latestCoordinationResult,
+      }),
+    })
+
+    const content = response?.content || ''
+    const parsed = extractJsonObject(content)
+    if (parsed && typeof parsed.answer === 'string' && parsed.answer.trim().length > 0) {
+      return {
+        answer: parsed.answer.trim(),
+        rawResponse: clone(response?.raw || null),
+        rawContent: content,
+      }
+    }
+
+    const fallbackAnswer =
+      (typeof result?.summary === 'string' && result.summary.length > 0 ? result.summary : null)
+      || (typeof result?.message === 'string' && result.message.length > 0 ? result.message : null)
+      || (typeof plan?.assistantMessage === 'string' && plan.assistantMessage.length > 0 ? plan.assistantMessage : null)
+      || 'Completed one agent step.'
+
+    return {
+      answer: fallbackAnswer,
+      rawResponse: clone(response?.raw || null),
+      rawContent: content,
+    }
+  }
+}
+
 export async function runNaturalLanguagePagePortAgentLoop(port, {
   objective = null,
   completeChat,
@@ -286,10 +373,68 @@ export async function runNaturalLanguagePagePortAgentLoop(port, {
     model,
     temperature,
   })
+  const reasoner = createNaturalLanguageReasoner({
+    completeChat,
+    model,
+    temperature,
+  })
 
   return runPagePortAgentLoop(port, {
     ...loopOptions,
     objective,
     planner,
+    reasoner,
+  })
+}
+
+export async function runNaturalLanguagePagePortAgentSession(port, {
+  objective = null,
+  completeChat,
+  model = DEFAULT_OPENROUTER_AGENT_MODEL,
+  temperature = 0.2,
+  ...loopOptions
+} = {}) {
+  const planner = createNaturalLanguagePlanner({
+    completeChat,
+    model,
+    temperature,
+  })
+  const reasoner = createNaturalLanguageReasoner({
+    completeChat,
+    model,
+    temperature,
+  })
+
+  return runPagePortAgentSession(port, {
+    ...loopOptions,
+    objective,
+    planner,
+    reasoner,
+  })
+}
+
+export async function runNaturalLanguagePagePortAgentTurn(port, {
+  objective = null,
+  completeChat,
+  model = DEFAULT_OPENROUTER_AGENT_MODEL,
+  temperature = 0.2,
+  ...loopOptions
+} = {}) {
+  const planner = createNaturalLanguagePlanner({
+    completeChat,
+    model,
+    temperature,
+  })
+  const reasoner = createNaturalLanguageReasoner({
+    completeChat,
+    model,
+    temperature,
+  })
+
+  return runPagePortAgentTurn(port, {
+    ...loopOptions,
+    objective,
+    planner,
+    reasoner,
   })
 }

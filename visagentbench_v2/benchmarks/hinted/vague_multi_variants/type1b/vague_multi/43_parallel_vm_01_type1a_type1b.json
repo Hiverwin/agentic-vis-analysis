@@ -1,0 +1,126 @@
+{
+  "benchmark_id": "43_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_by_category and hide_dimensions, how do the trajectories converge or diverge across dimensions in the updated parallel-coordinates view?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Sepal Length and Petal Length shows a negative correlation."
+        },
+        "key_insights": [
+          "Sepal Length: Ranges from approximately 4.3 cm to 5.8 cm.",
+          "Petal Length: Values are tightly grouped around 1.0 cm to 1.5 cm",
+          "It shows a negative correlation relationship between Sepal Length and Petal Length."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "We just care about the specie Inis-setosa."
+          },
+          {
+            "iteration": 2,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "we only take care of two length."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Species",
+                "values": [
+                  "Iris-versicolor",
+                  "Iris-virginica"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "Sepal Width (cm)",
+                  "Petal Width (cm)"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "Sepal Length (cm)",
+              "Petal Length (cm)"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Sepal Length (cm)\", \"Petal Length (cm)\"], datum['dimension']) >= 0",
+                "_pc_hide_dimensions": true
+              },
+              {
+                "filter": "indexof([\"Iris-versicolor\",\"Iris-virginica\"], datum['Species']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "dimensions": {
+              "hidden_fields": [
+                "Sepal Width (cm)",
+                "Petal Width (cm)"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "43_iris_parallel",
+    "dataset_path": "datasets/43_iris_parallel.json",
+    "row_count": 600,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/43_iris_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

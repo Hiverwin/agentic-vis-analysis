@@ -1,0 +1,535 @@
+\section{Widget-Centric Agentic VA Framework}
+\label{sec:framework}
+% TODO: Define the widget abstraction and overall system architecture.
+% TODO: Specify the action API such as filter, brush, zoom, pan, select, re-encode, and navigation.
+% TODO: Specify the perception API such as view context, visible distributions, selections, and labels.
+% TODO: Describe interface state representation and grounding to model inputs and outputs.
+% TODO: Justify design choices for standardization and portability across VA tools.
+% Original: A standardized, model-facing interaction layer is therefore necessary to enable semantic actions, structured evidence checks, and comparable traces across models, supporting stable evaluation in this paper and follow-up research.
+% Original: A standardized, model-facing interaction layer---i.e., a widget-level tool interface exposing action APIs and perception-query APIs---lets agents perform semantic actions (e.g., filter, zoom, and re-encode) with explicit parameters in data space, verify outcomes through structured evidence queries, and produce comparable tool-call traces across models for stable evaluation in this paper and follow-up research.
+
+We aim to develop and evaluate VLM agents that can complete VA tasks by operating interfaces.
+However, current VA tools expose heterogeneous interfaces that make agent behavior hard to reproduce and diagnose.
+A standardized interface is therefore necessary to make VA systems easier for agents to operate, as well as to make agent behavior reproducible and diagnosable.
+To this end, we present a widget-centric framework that standardizes interactive visualization components as widgets with explicit state, action APIs, and perception APIs.
+This design enables VLMs to operate VA interfaces through standardized APIs and supports closed-loop interaction and systematic evaluation.
+%   semantic tool calls.
+% This framework as widgets with explicit state, action APIs, and perception-query APIs.
+% This design supports closed-loop interaction and systematic evaluation.
+
+
+\subsection{Design Requirements}
+\label{sec:framework_rationale}
+
+
+The framework was iteratively refined through biweekly interviews with three experts (E1--E3) in developing visual analytics systems and agent systems.
+E1 is a visualization researcher with extensive experience in building VA systems.
+E2 and E3 are Ph.D. students in computer science with one year of experience building tool-using agents.
+None of them are coauthors of this paper.
+We distilled the feedback from these discussions into three design requirements.
+% Original: We distilled their feedback into three design requirements. % , each paired with a concrete design choice in our widget-centric framework
+
+
+
+
+
+% Original: When operating real interfaces, agents that rely on screenshots and coordinate-based actions often incur long action sequences and face unreliable grounding.
+\textbf{R1: Intent-aligned, structured interaction.}
+The supported interaction should be both model-friendly and analytically meaningful.
+Rather than requiring pixel-level control (\eg, mouse clicks and keyboard shortcuts), the high-level interactions that match analysts' intent (e.g., filter, zoom, select, and re-encode) are more meaningful and easier to reason about for both humans and agents.
+E2 commented, \textit{``a model-friendly interface should expose intent-level operations with typed parameters, so an agent can plan and act in data space rather than chase pixels.''}
+E3 also argued that while pixel-level control seems more robust, it may fail with unreliable grounding and introduces unnecessary complexity for the model.
+Moreover, this design also reduces ambiguity for the model and yields cleaner, comparable traces.
+The trace of interaction history, including tool calls and parameters, can be directly inspected and evaluated across runs.
+% We meet this requirement by standardizing interactive components as widgets and exposing their operations as semantic tool calls with explicit parameters~\cite{AXIS2025}.
+
+% Original: Interactive analysis requires more than executing actions; it requires verifying what changed and extracting evidence to decide the next step.
+% Original: Pixel-only observation makes such verification hard, especially for dense marks or tooltip-dependent values.
+% Original: \paragraph{R2: Enable closed-loop evidence acquisition and verification.}
+\textbf{R2: Queryable intermediate states.}
+VA tasks are typically performed through a sequence of interactions rather than a one-shot problem.
+After each operation, users need to verify what changed, extract evidence, and decide what to do next.
+E2 emphasized: \textit{``The agent must be able to immediately read back outcomes after taking an action. Otherwise, the agent cannot reliably recover from mistakes or refine hypotheses.''}
+E1 added that it might be useful to provide the results in both text and visual format: 
+\textit{``while the text format is more precise, the visual format is more intuitive and easier to understand for some tasks, such as identify cluster in a scatter plot.''}
+So the framework is designed to pass both the updated state(text format) and the new rendered view(visual format) into the next interaction run.
+In addition, this design supports a more robust evaluation by comparing the interface's intermediate states rather than relying solely on the final answer and the trace of the interaction history.
+
+
+\textbf{R3: Portable and unified interface.}
+A portable and unified interface is necessary to abstract heterogeneous VA systems into consistent, model-friendly schemas and tool signatures.
+Such uniformity reduces the learning and control burden for VLM agents.
+E1 commented \textit{''By making each interactive visualization component a plug-and-play object with a standardized API, developers can easily build VA systems and directly reuse the agent capabilities inherited from the framework.''}
+Meanwhile, this design makes the framework extensible: new visualization can be easily supported by implementing the widget schema.
+
+% To meet the three disgn requirements, we propose the following framework (\Cref{fig:framework}).
+% \begin{figure*}[t]
+%   \centering
+%   \includegraphics[width=\textwidth]{figs/framework.pdf}
+%   \caption{
+% Overview of our widget-centric agentic VA framework.
+% Interactive charts are abstracted as widgets with standardized state, action, and perception interfaces, which are then operated by a context-aware agent through an Observe--Plan--Act--Verify--Reason loop.
+% The same abstraction also supports reuse and extension across new tasks, widgets, and tool APIs.
+% }
+%   \label{fig:framework}
+% \end{figure*}
+
+
+
+\subsection{Widget Abstraction}
+\label{sec:framework_widget}
+
+% We model a VA interface as a set of interactive widgets.
+
+% Original: In our framework, each widget is designed as an operable object with a schema:
+% Original: This schema is derived from the design requirements above, so that each widget supports intent-aligned operations, verifiable evidence access, and portability.
+% Original: $W = (S, A, P)$,
+% Original: where $S$ is the widget state, $A$ is a set of action APIs, and $P$ is a set of perception APIs.
+Guided by the three design requirements above, we designed a widget-centric abstraction in which each interactive visualization component is a self-contained unit.
+Specifically, each widget $W$ encapsulates \textbf{state ($S$)}, \textbf{actions ($A$)}, and \textbf{perception queries ($P$)}, so that humans and agents can operate it in a uniform way.
+% We detail each component in the following.
+
+\subsubsection{Widget State}
+
+The widget state specifies the widget's view and interaction configuration, enabling a visualization to be rendered unambiguously from the state.
+This state allows an agent to interpret what the widget shows and allows tools to update the view reproducibly.
+Inspired by the visualization pipeline proposed by Card et al.~\cite{card1999readings} and the declarative design of Vega-Lite~\cite{Satyanarayan2017VegaLite}, we represent the widget state as a compact view specification with the following five components:
+\begin{itemize}[nosep]
+\item \textbf{Chart Type.} We currently support six chart types: bar charts, line charts, scatter plots, heatmaps, parallel coordinates, and sankey diagrams.
+We focus on these chart types because they are widely used in VA practice and collectively cover diverse visual structures and interaction patterns needed by our benchmark tasks.
+\item \textbf{Data Transformation.} This component defines the data transforms applied before rendering, such as filter, sort, and aggregate.
+\item \textbf{Visual Mapping.} This component maps data fields to visual channels such as position (x, y), color, size, and shape.
+\item \textbf{View Transformation.} This component specifies view-level configuration and transforms, such as scale domains and ranges, axis configuration, and pan/zoom extents when applicable.
+\item \textbf{Interactive Selection.} This component defines interactive selection state, such as brushed regions, clicked/hovered items, and selected subsets
+\end{itemize}
+
+Given the source dataset and widget state, we can generate a Vega/Vega-Lite specification that renders the widget deterministically.
+
+% Importantly, the full underlying dataset is not required to be embedded in $S$ and data-dependent evidence, for instance, visible/selected subsets can be obtained through perception APIs (Section~\ref{sec:perception-api}).
+
+
+
+
+\subsubsection{Action}
+\label{sec:action-api}
+
+% Original: Each action corresponds to an intent-level interaction that a human or agent may perform on a widget (e.g., filter, zoom, select, and re-encode) and changes its state accordingly.
+% Original: Specifically, each action will take the current widget state and parameters as input, and return an updated widget state.
+% Original: Instead of listing all the actions that a widget supports, we derive a set of abstract action primitives by analyzing the interaction techniques commonly supported by interactive visualizations.
+% Original: For example, the \texttt{zoom} primitive will be \texttt{zoom\_x\_range} for a line chart, or \texttt{zoom\_region\_2d} for a scatter plot.
+% Original: This abstraction makes the effect of each action explicit to the model and improves portability by reusing the same action semantics across different widgets.
+Each action corresponds to an intent-level interaction (e.g., filter, zoom), which takes the current widget state and typed parameters as input and returns an updated widget state.
+Rather than enumerating all concrete actions per widget, we introduce a layer of abstract action primitives so that the same interaction semantics can be reused across widget types and new widgets only need to instantiate existing primitives.
+We derive these primitives from the interaction techniques commonly supported by interactive visualizations and group them into six categories: data transformation (\textsc{Filter}, \textsc{Sort}, \textsc{Drill-down}, \textsc{Aggregate}), visual mapping (\textsc{Re-encode}), view transformation (\textsc{Zoom}), interactive selection (\textsc{Brush/Select}, \textsc{Highlight}, \textsc{Focus}), analytic augmentation (\textsc{Overlay/Annotate}), and navigation (\textsc{Navigate}, \textsc{Add/Remove}).
+Each primitive is then instantiated as widget-specific tools.
+For example, the \textsc{Zoom} primitive becomes \texttt{zoom\_x\_range} for a line chart and \texttt{zoom\_region\_2d} for a scatter plot.
+Please note that not every widget supports every primitive, and some widgets may provide additional actions beyond existing primitives (e.g., expand stacked bars) .
+A full listing is provided in the supplemental material.
+
+
+
+
+% \paragraph{Validation and error recovery.}
+% Because tools expose explicit parameter schemas, the executor can detect invalid calls early and return structured error messages.
+% This design supports self-correction loops; the agent can query valid categories via before re-calling an action tool.
+
+
+
+\subsubsection{Perception Queries}
+\label{sec:perception-api}
+
+% In contrast to actions that change the widget state, perception queries are read-only tools that take the current widget state as input and return structured, machine-readable evidence about what the widget shows under the current state.
+% This design supports closed-loop exploration, where an agent alternates action execution with perception checks to verify intermediate effects and decide the next step.
+% Original: Perception queries take the current widget state as input and return structured, machine-readable information about what the widget shows.
+% Original: Unlike actions, perception queries are side-effect free, \ie, given the same widget state and parameters, a query deterministically returns the same information.
+% Original: This separation enables closed-loop exploration, where an agent alternates between executing an action to update the state and querying information to validate the intermediate results.
+% Original: \paragraph{Perception Primitives.}
+% Original: Table~\ref{tab:perception-api} summarizes the perception primitives used in our framework.
+% Original: The taxonomy spans three categories: ...
+Perception queries take the current widget state as input and return structured, machine-readable information about what the widget currently shows.
+Unlike actions, perception queries are side-effect free, \ie, deterministically returns the same result given the same state and parameters. 
+This separation enables closed-loop exploration, where the agent alternates between executing actions and issuing perception queries to validate intermediate results.
+Similar to actions, we derive perception primitives and organize them into three categories: \textsc{Inspect} exposes structured evidence such as view configuration and raw data, \textsc{Summarize} returns lightweight aggregates for quick comparison and sanity checks, and \textsc{Compute} derives higher-level analytical results such as correlations.
+A full listing is provided in the supplemental material.\looseness=-1
+
+
+
+%\paragraph{Data scopes.}
+%To make queries precise under interaction, they share a \texttt{scope} parameter that specifies which portion of the data the query should be evaluated over under the current widget state:
+%\texttt{all} refers to the entire dataset;
+%\texttt{filter} refers to the dataset after applying data transformations (e.g., filters) but before view-dependent constraints;
+%\texttt{visible} refers to the currently rendered subset after view transformations (e.g., zoomed extents or scale domains);
+%and \texttt{selected} refers to the subset induced by the current interactive selection predicate (e.g., brushed items).
+%This design allows an agent to validate whether an action achieved the intended effect at the appropriate granularity.
+%For example, after \texttt{filter\_categories}, querying \texttt{get\_data\_summary(scope="filter")} verifies the remaining population, whereas after \texttt{zoom\_region\_2d}, \texttt{get\_data(scope="visible")} inspects what is currently in view.
+
+% \paragraph{Analysis tools as computational perception.}
+% Beyond direct read-outs, optional \texttt{analysis} tools (e.g., clustering, correlation, anomaly detection, bottleneck identification) return derived evidence computed from the scoped data under the current widget state.
+% They can be treated as computational perception that augments verification and decision-making, while preserving the core contract that perception does not mutate widget state.
+
+%We keep this layer lightweight so the core framework remains portable across widgets and systems.
+
+
+
+
+
+
+% The description of each action and perception primitive is also provided in the library, so that the model can easily understand the semantics of them.
+% The library is designed to be extensible, so that new widgets can be easily added by implementing the same widget schema.
+% The library is also designed to be portable, so that it can be used in different VA systems.
+
+% To operationalize the widget abstraction and the APIs defined above, we implement a Python runtime that instantiates widgets, executes tools, and materializes renderable views from structured widget states.
+
+% \paragraph{Widget templates and state.}
+% We maintain a small library of chart-type templates that define the required state fields for each widget type.
+% A widget instance is created by binding a dataset to a template and producing an initial widget state.
+% The runtime then materializes a renderable Vega or Vega-Lite specification by combining the dataset with the current state.
+% This separation keeps the state compact and tool-operable, while keeping rendering deterministic.
+
+% \paragraph{Tool registry and implementation.}
+% Tool definitions are stored in a centralized tool registry script.
+% For each tool, the registry records a unique name, a category, a short natural-language description, and a JSON-style argument schema.
+% These registry entries are serialized into the model context at runtime.
+% Tool implementations are organized by widget type.
+% Each widget type maintains a Python module that implements its action and perception tools over the widget state.
+% Adding a new widget type therefore requires providing a chart template and a corresponding tool module that follows the same process.
+
+
+% \paragraph{Self-contained components and agentic system.}
+% Each widget is designed to be self-contained: it bundles a dataset reference, an initial state, and the tool module needed to operate that state.
+% We also provide a lightweight agentic system that renders the current view and displays tool traces, while delegating all tool execution and rendering to the backend.
+% This keeps the core framework independent of UI choices.
+
+
+
+
+
+% Original: \noindent Many modern VLMs already support tool calling, so a minimal setup can directly provide the current widget state along with the available action and perception tools to enable interactive VA exploration.
+% Original: However, in practice we find that such direct tool use can be unreliable for long-horizon analysis, due to issues such as inconsistent planning, weak state tracking, and brittle recovery from intermediate errors.
+% Original: We therefore provide a default implementation of agentic VA scaffolds that work closely with our widget-centric abstraction.
+% Original: These scaffolds structure tool use through a closed-loop interaction protocol and structured intermediate results, enabling VLMs to be invoked more effectively and consistently.
+% Original: Please note that our goal is not to claim an optimal agent design, but to provide a practical starting point for evaluating and improving interface-operating VLM agents in VA systems.
+% Original: Future work can explore stronger agent architectures, richer memory and verification mechanisms, and tighter human-in-the-loop controls within our widget-centric abstraction.
+
+
+% Original: We therefore provide a default implementation of agentic VA scaffolds that structure tool use through a closed-loop interaction protocol and structured intermediate results, enabling VLMs to operate widgets more effectively and consistently.
+% %% ---------- 3.3.1  Interaction Protocol ----------
+% \subsubsection{Interaction Protocol}
+% \label{sec:interaction_protocol}
+
+% Figure~\ref{fig:framework_overview} (to be added) illustrates the overall protocol.
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figs/system_overview_cropped.pdf}
+  \caption{Overview of our agent-driven visual analytics interface.
+% The interface consists of four panels.
+(A) The \textbf{Data Panel} supports session management, guided demo cases. % , and two visualization initialization paths
+(B) The \textbf{Agent Panel} presents the operating mode, phase-based iteration traces, tool execution details, and mixed-initiative follow-up interactions.
+(C) The \textbf{Visualization Panel} renders the current interactive chart and allows users to inspect the corresponding state of the view.
+(D) The \textbf{Interaction Trace Panel} records the analysis process as a branch-aware provenance graph that captures tool actions, human interruptions, and reset/undo operations.}
+\label{fig:system_overview}
+\end{figure*}
+\subsection{Agentic VA Scaffolds}
+\noindent Since many modern VLMs have supported tool calling, exposing the widget state and available tools can already enable interactive VA exploration to some extent.
+In practice, however, this direct tool use is unreliable for long-horizon analysis due to inconsistent planning, weak state tracking, and unreliable error recovery.
+Moreover, there are still some VLMs that do not natively support tool calling.
+Therefore, we provide an agentic VA scaffold built on top of our widget-centric abstraction, which structures tool use through a closed-loop interaction protocol and structured intermediate results so that VLMs can operate widgets more effectively and consistently.
+Please note that this scaffold is not meant to be an optimal agent design, but to offer a practical starting point for developing, evaluating, and improving interface-operating VLM agents.
+Future work can explore stronger architectures, richer memory mechanisms, and tighter human-in-the-loop controls.
+\label{sec:framework_grounding}
+\paragraph{Agent Context.}
+At each step, the agent needs sufficient context to interpret the current analytical situation and decide on the next action.
+Inspired by Zhao~\etal\cite{Zhao2025ProactiveVA}, we distinguish two kinds of agent context: \textbf{observation} is the dynamic context provided at each step, including the user query, the current widget state, and the rendered view; \textbf{knowledge} is the persistent context configured in the system, including the system prompt, the tool registry, and chart-specific usage descriptions. This separation allows the system to update only the observation between steps while keeping knowledge constant, reducing per-step token cost and ensuring that the agent's behavior remains grounded in stable tool definitions regardless of how many interaction steps it takes.
+
+
+%\paragraph{Input and Prompting.}
+%same as agent context
+%Each run starts with user query, the initial widget state, and the initial rendering view. The intermediate context contains three forms of context at each iteration: textual interaction history, the current structured widget state serialized from Vega/Vega-Lite, and the rendered chart image. 
+%The system prompt enforces a consistent tool-call format and a concise answer format.
+%We include the full prompts in the appendix.%
+
+\paragraph{Tool-call format.}
+We use function calls to invoke tools.
+Each tool call specifies a tool name and a JSON argument object that is validated against the tool schema.
+%The assistant message contains a list of tool calls in a standard function-calling format~\cite{MCP2025}.
+This design ensures that tool invocation is explicit and verifiable across models.%
+
+
+
+% Given a user query, the agent iterates over five stages:
+% (1)~\emph{observe} the current widget view and read the user query;
+% (2)~\emph{plan} the next tool call based on observed information and the analytical goal;
+% (3)~\emph{act} by invoking an action tool, which the executor validates against the registry schema and applies to update the widget \texttt{state};
+% (4)~\emph{verify} to confirm that the intended effect was achieved; and
+% (5)~\emph{reason} by generating insights from the updated context and deciding whether to continue or terminate.
+% The loop terminates when the agent determines that sufficient evidence has been collected to produce a final response.
+% This closed-loop design lets the agent ground each decision in the actual widget state, catch errors before they propagate, and adapt the remaining plan based on intermediate 
+% findings.
+% Concretely, the \emph{verify} stage first applies lightweight deterministic checks over the tool output and the updated widget state; when these are insufficient, the model 
+% further inspects the rendered view against the expected outcome.
+% If either check fails, a concise diagnostic summary is appended to the next-step \textit{observation}, and the agent replans from this grounded feedback.
+
+\paragraph{Closed-Loop Interaction Protocol.}
+Rather than asking the model to produce a full action plan in one shot, our scaffolds let the agent act incrementally and ground every decision in the latest widget state.
+Given a user query, the agent iterates over five stages:
+(1)~\emph{observe} the current widget view and read the user query;
+(2)~\emph{plan} the next tool call;
+(3)~\emph{act} by invoking the planned tool, and the widget state is updated accordingly;
+(4)~\emph{verify} to confirm that the intended effect was achieved; and
+(5)~\emph{reason} by generating insights from the updated context and deciding whether to continue or terminate.
+If any failure occurs, a diagnostic summary is fed back into the next-step \textit{observation}, and the agent replans accordingly.
+Otherwise, the agent decides whether to continue or terminate.
+The loop ends when the agent determines that sufficient evidence has been collected to produce a final response.
+% In addition to linguistic replanning, the framework also exposes explicit recovery tools such as \texttt{undo\_view} and \texttt{reset\_view}, allowing the agent to restore a valid analytical context before continuing.
+%The loop terminates when sufficient verification-consistent evidence has been collected to support a final response, or when the maximum number of interaction rounds is reached.
+
+% This \emph{act $\rightarrow$ verify} pattern lets the agent confirm correct grounding early, preventing small errors from compounding over long horizons.
+% For example, after invoking \texttt{filter\_categories} on a bar chart, the executor adds a filter transform to the state:
+
+% \begin{figure}[h]
+% \centering
+% \small\ttfamily
+% \begin{tabular}{@{}l@{}}
+% \colorbox{NavyBlue!10}{\textcolor{NavyBlue}{\textbf{"data\_filtered":}}} [ \\
+% \hspace*{1em}\{ \\
+% \hspace*{2em}\colorbox{ForestGreen!10}{\textcolor{ForestGreen}{\textbf{"filter":}}} "indexof(["3 Series", "i3"], datum['model']) >= 0" \\
+% \hspace*{1em}\} \\
+% ]
+% \end{tabular}
+% \end{figure}
+
+% \noindent The agent can then query the filtered subset to verify the result before proceeding.
+
+%% ---------- 3.3.2  Operating Modes ----------
+% \subsubsection{Operating Modes}
+% \label{sec:operating_modes}
+
+
+% The same interaction protocol supports two operating modes that differ in planning strategy and stopping criteria.
+
+% \textbf{Goal-oriented mode} applies when the query specifies both the intended action and the analysis target, e.g., \textit{``Filter respectively to analyze the 3 regions' cars mpg distribution patterns.''}
+% The agent plans a focused tool-call sequence toward that goal and stops once the query is fulfilled.
+% This mode is for users who have a clear data analysis and visualization goal to rapidly get the information.
+
+% \textbf{Autonomous exploration mode} applies when the query is open-ended, e.g., \textit{``Analyze the 3 regions' cars.''}
+% The agent maintains an internal exploration agenda, runs iterative exploration cycles, and returns insights with supporting evidence and suggested follow-up questions.
+% This mode prioritizes accelerating sensemaking and reducing manual interaction burden rather than optimizing for a single predefined query.
+
+% A lightweight intent router selects the mode based on the user query. \vica{How is it actually implemented? and when will the mode be switched?}
+% % Because both modes use the same tool interface, their behaviors remain comparable through identical trace and state logging.
+
+%% ---------- 3.4  Implementation ----------
+\subsection{Implementation}
+\label{sec:framework_implementation}
+
+\paragraph{System architecture.}
+% The system adopts a thin-client architecture.
+% The front-end is built with React and provides an interactive workspace that renders the current widget view, tool-call history, and agent responses.
+The system adopts a thin-client architecture, where the front-end is built with React and renders the current widget view, while the back-end is implemented with FastAPI and exposes session-level endpoints for widget loading and agent interaction.
+% At each agent step, the back-end assembles the current widget state, the rendered view, and the interaction history into a structured prompt, submits it to the VLM, and validates the returned tool call or final response before applying it.
+% : all widget state management, tool dispatch, and error handling reside on the back-end, so the same front-end can connect to different model backends without modification
+This separation keeps the front-end stateless with respect to the analysis logic, and users can freely interact with the current widget and co-analyze with the agent.
+% \vica{What's the difference between co-analysis and co-exploration?}
+
+% \paragraph{Tool registry and execution.}
+% Tools are implemented as Python functions organized by chart type, with shared utilities (e.g., \texttt{undo\_view}, \texttt{reset\_view}) factored into a common module.
+% A centralized tool registry records each tool's name, category, natural-language description, and JSON parameter schema.
+% These definitions are serialized into the agent's persistent system context so that the model can discover available tools and their expected arguments at every step.
+% Tool invocation follows the OpenAI-style function-calling format: the model returns a structured \texttt{\{name, arguments\}} object, and a schema-validated executor checks the tool name and argument types against the registry before dispatching the call.
+% If validation fails, the executor returns a structured error message, allowing the agent to self-correct without crashing the session.
+% We also expose the same tool set through an MCP (Model Context Protocol) service by registering each tool with an \texttt{@mcp.tool()} decorator.
+% This dual interface keeps the tool contract consistent regardless of whether the model backend uses native function calling or the MCP protocol.
+
+\paragraph{Extensibility.}
+The framework is designed to be extensible at both the widget and tool levels without modifying the core agent runtime.
+To add a new interaction to an existing widget, a developer implements a Python function that takes the current widget state and typed parameters as input and returns an updated state, then registers the function in the tool registry so that the agent can discover and invoke it.
+To add an entirely new chart type, the developer only needs to register a \texttt{ChartTypeConfig} entry that specifies the state schema and the default Vega/Vega-Lite template, implements the corresponding tool module following the same input/output contract as existing widgets, and optionally supplies a chart-specific prompt template to teach the agent domain-specific analytical strategies.
+% Because the agent loop and the tool executor operate solely through the registry interface, neither requires modification when new widgets or tools are introduced.
+
+\paragraph{Portability.}
+The portable unit of the framework is the combination of the standardized widget contract and the agent runtime that operates on top of it.
+This design supports two integration paths.
+First, developers can compose a new VA system by assembling our widgets as building blocks.
+\Cref{sec:system_interface} demonstrates such a system.
+Second, developers who already maintain a VA system can wrap their existing visualizations with our widget interface and immediately reuse the built-in tools and agent capabilities.
+% In practice, this adaptation is lightweight for systems that already describe views with declarative specifications such as Vega-Lite, since the existing view state can be translated into our canonical widget state.
+% The external system only needs to provide the current visualization state and the user query; prompt construction, tool selection, state tracking, and error recovery remain in the shared runtime.
+
+\subsection{System Interface}
+\label{sec:system_interface}
+
+
+
+% Original: \subsection{Agentic VA Framework}
+
+
+To demonstrate the framework in practice, we build a prototype agentic VA system that supports human-agent co-analysis (\Cref{fig:system_overview}).
+% It contains Data Panel (A), Visualization Panel (B), Interaction Trajectory Panel (C), and Agent Panel (D).
+% Together, these panels support initializing an analysis session, interacting with the current view, inspecting the agent's iterative reasoning process, and tracing how the analysis evolves over time. %  four panels: 
+
+\subsubsection{Interface Components}
+
+\textbf{Data Panel} serves as the entry point for analysis setup.
+Users can upload a CSV file and configure chart type, or directly paste a Vega/Vega-Lite specification to initialize   a view (\Cref{fig:system_overview}A1).
+To facilitate the analysis, the system will automatically generate several exploratory analysis paths so that users can follow the paths to analyze the data without manual intervention (\Cref{fig:system_overview}A2).
+% \vica{Update the name in Figure, including GUIDED DEMO CASES (use other to replace it), VISUALIZATION PANEL, INTERACTION TRAJECTORY (OR TRACE? Use the unified term) PANEL, AGENT PANEL}
+
+\noindent\textbf{Agent Panel} acts as the conversational and procedural control surface of the system (\Cref{fig:system_overview}B).
+It displays the current operating mode, presents each analytical iteration as a structured trace with the executed tools and intermediate results, and provides a text input for users to submit follow-up queries at any point.
+
+% \yutong{human operation is not directly parameterized as a tool call function so I slightly changed the expression}
+\noindent\textbf{Visualization Panel} renders the current chart and supports interaction from both humans and agents (\Cref{fig:system_overview}C1).
+When a user interacts with the visualization, the operation is parameterized as a tool call following the same widget-centric abstraction, so human and agent interactions are recorded in a uniform format and can be replayed or compared on equal footing.
+%Vica‘s original ：Visualization Panel renders the current chart and supports direct in-teraction from both the human and the agent (Fig. 2B1). 
+%When a userinteracts with the visualization, the operation is parameterized as a toolcall following the same widget-centric abstraction used by the agent,so human and agent interactions are recorded in a uniform format andcan be replayed or compared on equal footing.
+
+% Original: \noindent\textbf{Interaction Trajectory Panel} records the provenance of the ongoing analysis.
+% Original: Rather than presenting a flat history list, it visualizes the analysis as a branch-aware trajectory that links baseline states, model-initiated tool calls, human interruptions, and reset/undo relations (\Cref{fig:system_overview}C1).
+% Original: The panel further provides navigation controls, such as  centering the current node, so that users can inspect longer analytical histories without losing track of the active branch (\Cref{fig:system_overview}C2).
+\noindent\textbf{Interaction Trace Panel} visualizes the interaction process as a branch-aware provenance graph (\Cref{fig:system_overview}D1).
+Each node represents a widget state and is labeled with the action name that produced it, making the analytical progression easy to follow.
+We use a purple \texttt{Human} badge and dashed line and the default blue model-action node to represent human-initiated and agent-initiated interactions, respectively.
+% The reset/undo operation will be recorded using a golden dash line.
+Users can click any node to jump to the corresponding state, enabling free navigation across the analysis history.
+% The panel also provides utility controls such as centering the current node, so that users can inspect longer trajectories without losing track of the active branch (\Cref{fig:system_overview}C2).
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figs/visagentbench_construction_draft_compressed.pdf}
+  \caption{\textbf{VisAgentBench benchmark construction pipeline.}
+We construct the benchmark in four stages: dataset sourcing and widget construction, task taxonomy design and human annotation, prompt-variant and schema-based synthesis, and unified instance packaging for fine-grained evaluation.
+% The final benchmark stores all task sources in a shared format with widget references, prompts, target answers or insights, reference traces, and final view states.
+}
+  \label{fig:bench construction}
+\end{figure*}
+
+To accommodate varying levels of user intent, the panel supports two operating modes.
+In \textbf{goal-oriented mode}, the user query specifies a concrete analysis target, and the agent will decompose the goal into subtasks, plan a focused tool-call sequence, and terminate once the objective is fulfilled.
+This mode targets users who already know what to inspect and want the agent to issue the necessary steps with minimal detours.
+In \textbf{autonomous exploration mode}, the user query is open-ended, and the agent will maintain an internal exploration agenda, iteratively propose and verify analysis actions, and return insights with supporting evidence and suggested follow-ups.
+This mode prioritizes sensemaking, surfacing important insights, and reducing the user's manual exploration burden.
+
+
+% \noindent\textbf{Goal-oriented mode} is used when the user query specifies a concrete analysis goal and usually also implies a specific operation.
+% %Typical examples include requests such as \textit{"Filter to compare the MPG distributions of the three regions"}.
+% In this mode, the agent maintains an explicit objective and, at each step, \textbf{decompose} the goal into subtasks and \textbf{plan} the correspoding tool call to close the remaining analytical gap. It terminates once the goal is achieved.
+% This mode targets users who already know what to inspect and want the agent to issue the necessary steps with minimal detours.
+
+% \noindent\textbf{Autonomous exploration mode} is used when the user query is broad, open-ended, or exploratory in nature, such as \textit{"Analyze the three regions"}.
+% In this mode, the agent maintains an internal exploration agenda, iteratively proposes and verifies promising analysis actions, and returns insights together with supporting evidence.
+% This mode prioritizes sensemaking, surfacing important insights, and reducing the user's manual exploration burden.
+
+% The text input at the bottom of the panel allows users to continue analysis from the current visualization state and trajectory context.
+% It exposes the current operating mode, displays the system's intent interpretation for the active turn (\Cref{fig:system_overview}D1), and presents each analytical iteration as a structured trace (\Cref{fig:system_overview}D2).
+% Within each iteration, the agent's behavior is organized into the interaction protocol and is paired with the executed tools, intermediate arguments, execution results, and verification summaries.
+% \noindent\textbf{Agent Panel} acts as the conversational and procedural control surface of the system.
+% When users submit a concrete analysis request, it will switch to the Goal-oriented mode and the agent will plan and execute the request step by step.
+% When the user's request is broad, open-ended, or exploratory in nature, it will switch to the Autonomous exploration mode and the agent will automatically explore the data 
+% and return insights.
+% This panel also supports mixed-initiative interaction.
+% For example, the agent can issue clarification questions when the user's request is underspecified, or proactively generate follow-up suggestions after completing the current 
+% line of reasoning.
+% When the analysis is more open-ended, the agent can proactively generate follow-up suggestions after completing the current line of reasoning.
+
+% Overall, the interface keeps the current view, its state history, the branch-aware provenance, and the agent's iterative reasoning visible at the same time.
+%This co-visibility is critical for supporting transparent mixed-initiative visual analysis, because users can inspect both \emph{what} the system does and \emph{why} it proceeds in a particular direction.
+% \yutong{update content: make operating modes and illustrative examples to be more concise}
+% \subsubsection{Operating Modes}
+% \label{sec:operating_modes}
+% \noindent\textbf{Goal-oriented mode} is used when the user query specifies a concrete analysis goal and usually also implies a specific operation.
+% %Typical examples include requests such as \textit{"Filter to compare the MPG distributions of the three regions"}.
+% In this mode, the agent maintains an explicit objective and, at each step, \textbf{decompose} the goal into subtasks and \textbf{plan} the correspoding tool call to close the remaining analytical gap. It terminates once the goal is achieved.
+% This mode targets users who already know what to inspect and want the agent to issue the necessary steps with minimal detours.
+
+% \noindent\textbf{Autonomous exploration mode} is used when the user query is broad, open-ended, or exploratory in nature, such as \textit{"Analyze the three regions"}.
+% In this mode, the agent maintains an internal exploration agenda, iteratively proposes and verifies promising analysis actions, and returns insights together with supporting evidence.
+% This mode prioritizes sensemaking, surfacing important insights, and reducing the user's manual exploration burden.
+
+%A lightweight intent router selects the operating mode at the beginning of each user turn, and mode switching occurs on turn boundaries.
+%If the user submits a new request while the agent is still executing, the system records it as a pending interrupt, allows the current iteration to reach a safe boundary, and then starts a new run under the newly inferred mode.
+%As a result, an ongoing autonomous exploration can switch to Goal-oriented mode when the user issues a directive follow-up such as \textit{``Zoom into the upper-right cluster and compare the green points.''}
+%Conversely, a previously directive workflow can switch to Autonomous mode when the user broadens the task with a follow-up such as \textit{``Analyze this region further.''}
+%This turn-level routing preserves a stable analysis trace while still supporting flexible mixed-initiative transitions between user-led and agent-led exploration.
+
+%The two modes therefore share the same tool interface and state-transition protocol, but differ in how initiative is distributed between the user and the agent, how future actions are selected, and when the system considers the current round of analysis complete.
+
+%\subsubsection{Illustrative Usage Scenarios}
+% \yutongcomment{maybe this 2 serve as examples to introduce system function , the evaluation cases are presented in the following fig}
+%\label{sec:interaction_scenarios}
+
+%We illustrate the two operating modes with two usage scenarios.
+%The first scenario highlights a \textbf{cooperative}, workflow.
+%The agent will pause to clarify the user's intent if there is confusion in the request before continuing.
+%The second scenario highlights a more \textbf{autonomous} workflow in which the agent proactively drives a multi-step analysis and proposes a next step after completing the current reasoning path.
+%Together, these examples show how the same interface and interaction protocol support different allocations of initiative between the user and the agent.
+
+
+
+
+% \paragraph{Mixed Initiateive scenario.}
+% The system supports mixed-initiative interaction.
+% For example, the agent can issue clarification questions when the user's request is unclear. (\Cref{fig:cooperative} 1.1). 
+% The same example then shows in the opposite direction (human interrupts agent's analysis).
+% While the agent is executing its current line of analysis, the user can directly interact with the visualization by selecting a region of interest and issuing a new request from that view (\Cref{fig:cooperative} 2.1).
+% The agent treats this intervention as a continuation from the current analytical state: it takes the updated selection as the new focus, resumes the analysis from there, and records the event with the human-interrupt badge in the trajectory. 
+% In addition, if the agent detect's the new query is more like another mode of analysis, it will suggest user to switch mode (\Cref{fig:cooperative} 1.2).
+% %This design is important for visual analytics because it preserves both responsiveness and provenance.
+% %Users can redirect the analysis at the moment a more promising region becomes visible, while the system retains a trace of how the session changed course.
+% Together, this example shows that these cooperative designs allow users and agent to work together, any of them can step into an ongoing analysis through direct visual interaction, and continue without losing context.
+
+%\paragraph{Mixed-initiative scenario (\Cref{fig:cooperative}).}
+%Alice asks the system to analyze fuel efficiency across car origins on a scatter plot.
+%The request is goal-oriented but underspecified, so the agent asks a clarification question and suggests possible directions.
+%After Alice selects a direction, the agent begins executing the analysis.
+%Midway through, Alice notices an interesting cluster, selects it directly on the visualization, and submits a follow-up query.
+%The agent treats the intervention as a branch from the current state: it takes Alice's selection as the new focus, resumes analysis from there, and records the interruption in the trajectory.
+%This scenario shows that either party can steer an ongoing analysis through direct interaction without losing context or provenance.
+
+%The intent router assigns this turn to Goal-Oriented mode because the user expresses a concrete analytical need, but the current request still leaves multiple plausible directions for the next action.
+%In this case, the agent will issue a clarification question with structured response options to users and suspend further action, waiting for explicit user feedback, making the user an active participant in specifying the next analytical step.
+%The same workflow also supports initiative in the opposite direction.
+%While the agent is analyzing, the user may directly interact with the visualization by selecting or brushing a region of interest and then submit a new request to redirect the current analysis.
+%The interruption is triggered only when the user sends a new query, at which point the system packages the current interaction state together with the request, lets the ongoing iteration reach a safe boundary, and resumes analysis from the updated context.
+%The resulting interruption is recorded in the trajectory as a Human interrupt branch, making the intervention visible in the provenance of the session.
+%This scenario therefore illustrates cooperative analysis as a bidirectional mixed-initiative process: the agent can ask the user for clarification when intent is ambiguous, and the user can in turn interrupt and steer the agent through direct visual interaction and a new request.
+
+% \paragraph{Autonomous scenario.}
+% \Cref{fig:autonomous} illustrates another interaction mode, where the user provides 
+% an open-ended exploratory query over a dense scatterplot and the agent takes the 
+% lead in structuring the analysis.
+% The agent progressively transforms the high-level semantic query through a sequence 
+% of analysis actions, such as filtering and zooming, making plan for exploration, 
+% and drilling down to find more useful insights (\Cref{fig:autonomous} 1).
+% In addition, the example shows that autonomous analysis in our system is not a 
+% single turn process. Once the agent reaches a sufficiently supported conclusion, it 
+% returns a grounded summary of the discovered insights and proposes concrete \textbf
+% {follow-up analyses} (\Cref{fig:autonomous} 3) based on the current view.
+% %%The trajectory view makes these model-driven steps explicit, revealing not only 
+% the final conclusion but also how the current evidence was constructed.
+% %In this sense, the agent does more than automate interaction: it helps carry the 
+% analysis forward by turning the current result into the next actionable question.
+% This makes the autonomous mode useful not only for answering an initial request, 
+% but also for sustaining exploratory sensemaking over multiple rounds.
+
+
+%\paragraph{Autonomous exploration scenario (\Cref{fig:autonomous}).}
+%Bob opens a dense scatter plot and asks the system to ``explore this chart and find interesting patterns.''
+%The agent enters autonomous mode, iteratively filtering, zooming, and drilling down to expose structure in the data.
+%Once it reaches a sufficiently supported conclusion, it returns a grounded summary of the discovered insights and proposes concrete follow-up analyses based on the current view.
+%Bob can accept a suggestion to continue, or take over with a new query at any point.
+%This scenario shows that autonomous mode can sustain multi-round exploratory sensemaking, not just answer a single request.
+
+%Together, the two scenarios demonstrate that the framework supports both user-led and agent-led analysis within the same interface, tool protocol, and provenance representation.
+%The cooperative case emphasizes clarification, interruption, and redirection from the current view, whereas the autonomous case emphasizes self-directed exploration and grounded follow-up.
+%Presenting both in one system demonstrates that users can move between directive analysis and open-ended sensemaking without switching workflows or losing the trace of prior analytical states.
+
+%Figure~\ref{fig:autonomous} shows an autonomous interaction in which the user provides an open-ended request over a dense scatterplot with multiple encodings.
+%Because the request emphasizes general exploration rather than a single explicit action, the system routes the turn to Autonomous mode.
+%The agent then executes several iterations of the Observe--Plan--Act--Verify--Reason loop, progressively narrowing the analysis through tool calls such as filtering, zooming, or region-focused inspection.
+%The corresponding trajectory records these model-driven steps as a continuous analytical branch.
+%Once the agent reaches a sufficiently supported  conclusion, it returns an evidence-backed summary and generates a suggested next step for continued exploration.
+%This scenario illustrates the agent-led end of the framework: rather than waiting for detailed user instructions at every step, the system proactively advances the analysis while keeping intermediate states, executed tools, and follow-up opportunities transparent.
+
+%Overall, the two cases emphasize that our framework supports a continuum between user-led and agent-led analysis under a shared interface, shared tool protocol, and shared provenance representation.
+%The cooperative case foregrounds clarification and alignment, whereas the autonomous case foregrounds exploratory initiative and recommendation.
+%By presenting both within the same system, we show how users can move between directive analysis and open-ended sensemaking without leaving the interface or losing the trace of prior analytical states.

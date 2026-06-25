@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "02_bar_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 and use filter_subcategories in order to know How do sales performance differ across regions and products, and what patterns can be observed in data?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "South region has the highest total sales (2050), followed by West (2020), North (2000), and East (1950). Electronics significantly outperforms Clothing with total sales of 4550 vs 3470. However, regional preferences vary: East region shows strongest Electronics performance (1300 vs 650), while South region favors Clothing (1100 vs 950). The data reveals that while Electronics is the dominant product overall, regional differences exist in product preferences, with East being the most Electronics-focused region and South being more balanced between products.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "South region has highest total sales",
+          "Electronics significantly outperforms Clothing overall",
+          "East region shows strongest Electronics preference",
+          "Regional variations in product preferences exist",
+          "Sales distribution is relatively balanced across regions"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars by region to compare total sales performance"
+          },
+          {
+            "iteration": 2,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top regions to identify best performers"
+          },
+          {
+            "iteration": 3,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter by product to analyze product-specific performance"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "ranking.topN.highlight",
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "region",
+            "y": "sales",
+            "color": "product",
+            "xOffset": "product"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "02_bar_sales",
+    "dataset_path": "datasets/02_bar_sales.json",
+    "row_count": 8,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/02_bar_sales.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

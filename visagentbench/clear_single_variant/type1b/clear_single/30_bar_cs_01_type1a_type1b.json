@@ -1,0 +1,51 @@
+{
+  "task_type": "clear_single",
+  "task_id": "30_bar_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using toggle_stack_mode, which combination has the highest mean vitamin D percent RDA: moderate sun exposure and Vegan diet or Low sun exposure and Vegetarian diet?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "moderate sun exposure and Vegan diet",
+          "alternatives": [
+            "Moderate sun exposure and Vegan diet"
+          ]
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "toggle_stack_mode",
+            "reasoning": "Use the toggle stack mode tool to switch the view to grouped in order to see the comparison of mean vitamin D percent RDA."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "categorical",
+                "param": "mode",
+                "target": "grouped"
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "sun_exposure",
+            "y": "vitamin_d_percent_rda",
+            "color": "diet_type"
+          },
+          "mark_mode": {
+            "is_stacked": true
+          }
+        }
+      }
+    }
+  ]
+}

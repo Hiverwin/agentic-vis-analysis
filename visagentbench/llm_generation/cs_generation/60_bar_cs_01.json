@@ -1,0 +1,63 @@
+{
+  "task_type": "clear_single",
+  "task_id": "60_bar_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/60_Berlin_crimes_bar.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use sort_bars in order to know Use sort_bars with order equal to descending to rank districts by average Fire incidents and return the district positioned second.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Mitte",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars in descending order to identify the district with the second highest average Fire incidents"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Friedrichshain-Kreuzberg",
+              "Mitte",
+              "Tempelhof-Schöneberg",
+              "Neukölln",
+              "Marzahn-Hellersdorf",
+              "Spandau",
+              "Steglitz-Zehlendorf",
+              "Reinickendorf",
+              "Lichtenberg",
+              "Pankow",
+              "Charlottenburg-Wilmersdorf",
+              "Treptow-Köpenick"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

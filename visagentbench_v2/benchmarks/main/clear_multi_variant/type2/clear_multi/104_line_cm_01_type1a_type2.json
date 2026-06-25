@@ -1,0 +1,105 @@
+{
+  "benchmark_id": "104_line_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Which year exhibits the maximum contribution value for New Zealand among the three countries?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "1977",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom to 1970-1980 to focus on the target period."
+          },
+          {
+            "iteration": 2,
+            "capability": "line.series.filter",
+            "rationale": "Filter to remove Russia, United State, Japan, and United Kindom."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "1970",
+                "end": "1980"
+              }
+            }
+          },
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Russia",
+                  "United State",
+                  "Japan",
+                  "United Kindom"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Contribution of gender in life expectancy gap (years) - Age group: 15-39",
+            "color": "Entity"
+          },
+          "view": {
+            "xDomain": [
+              "1970",
+              "1980"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Russia\", \"United State\", \"Japan\", \"United Kindom\"], datum['Entity']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "104_gender_gap_in_life_line",
+    "dataset_path": "datasets/104_gender_gap_in_life_line.json",
+    "row_count": 538,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/104_gender_gap_in_life_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,118 @@
+{
+  "benchmark_id": "42_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `filter_categories`; then apply `filter_categories`. In the updated bar view, analyze category-level pattern shifts: ranking changes, widening or narrowing gaps, and standout groups. Explain what is newly visible after interaction versus the original chart, with explicit category evidence.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Yes,"
+        },
+        "key_insights": [
+          "The intuitive type is also relatively fast in terms of speed.",
+          "The intuitive type is also relatively slow in terms of speed."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Use tools to identify the intuitive-fast types."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Use tools to identify the intuitive-slow types."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "grass",
+                  "fire",
+                  "water",
+                  "bug",
+                  "normal",
+                  "ground",
+                  "fairy",
+                  "fighting",
+                  "rock",
+                  "ghost",
+                  "ice",
+                  "dragon",
+                  "dark",
+                  "steel"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "grass",
+                  "water",
+                  "bug",
+                  "normal",
+                  "electric",
+                  "poison",
+                  "ground",
+                  "fighting",
+                  "psychic",
+                  "rock",
+                  "ghost",
+                  "dragon",
+                  "dark",
+                  "fire"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"grass\",\"water\",\"bug\",\"normal\",\"electric\",\"poison\",\"ground\",\"fighting\",\"psychic\",\"rock\",\"ghost\",\"dragon\",\"dark\",\"fire\"], datum['type_1']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "42_pokemon_stats_2025_bar",
+    "dataset_path": "datasets/42_pokemon_stats_2025_bar.json",
+    "row_count": 250,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/42_pokemon_stats_2025_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

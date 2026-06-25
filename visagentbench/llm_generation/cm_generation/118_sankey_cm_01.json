@@ -1,0 +1,58 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "118_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/118_sankey_semiconducto.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "93_sankey_cm_01：Use filter_flow with min_value equal to 500 to remove small flows, then use trace_node with node_name equal to Wealth Products. Which node contributes the least inflow to Wealth Products?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "7700",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_flow",
+            "reasoning": "Filter flows to show only those with at least 500 wafers"
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace the Final Good node to see its inflows"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 500.0
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Final Good"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

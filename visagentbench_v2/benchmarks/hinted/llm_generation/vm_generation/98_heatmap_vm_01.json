@@ -1,0 +1,106 @@
+{
+  "benchmark_id": "98_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use highlight_region_by_value with min_value equal to 24.5 and use change_encoding with field equal to Experience_Level in order to know Analyze the BMI distribution patterns across different workout types and experience levels, and discuss what insights this reveals about fitness progression.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The BMI distribution analysis reveals interesting patterns: (1) Cardio workouts show the highest BMI variation across experience levels, with Level 2 having the highest average BMI (26.52) while Level 3 drops to 24.42, suggesting that experienced cardio practitioners achieve better weight management. (2) Strength training maintains relatively consistent BMI across all levels (24.18-25.04), indicating stable body composition regardless of experience. (3) Yoga practitioners show a clear downward trend in BMI from Level 1 (24.74) to Level 3 (24.16), demonstrating progressive fitness improvement. (4) HIIT shows the most uniform BMI distribution (24.92-25.41), suggesting it may be equally effective across all experience levels. (5) Overall, Level 2 practitioners have the highest average BMI (25.26), possibly indicating this level includes many individuals still working on weight management goals. These patterns suggest that experience level impacts BMI differently depending on workout type, with Yoga and Cardio showing the most pronounced benefits at higher experience levels.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Cardio Level 2 has highest average BMI at 26.52",
+          "Yoga Level 3 has lowest average BMI at 24.16",
+          "Strength training shows most consistent BMI across levels",
+          "Level 2 practitioners have highest overall BMI"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find the extreme BMI values to identify highest and lowest BMI combinations"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Highlight regions with BMI above average to see which combinations have higher BMI"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to view the data from different perspective"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find",
+          "heatmap.region.highlight",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 24.5,
+                "outside_opacity": 0.12
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Experience_Level"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Workout_Type",
+            "y": "Experience_Level",
+            "color": "BMI"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "98_gym_members_exercise_tracking_heatmap",
+    "dataset_path": "datasets/98_gym_members_exercise_tracking_heatmap.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/98_gym_members_exercise_tracking_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

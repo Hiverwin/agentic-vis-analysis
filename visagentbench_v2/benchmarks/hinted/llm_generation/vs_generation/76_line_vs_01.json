@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "76_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_trend in order to know Compare the employment trends between the United States and Mexico from 2003 to 2024. What factors might explain these contrasting trends?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The United States shows a significant declining trend in employment, decreasing by 41.05% from 1772.23 thousand in 2003 to 1044.65 thousand in 2024. In contrast, Mexico demonstrates a strong increasing trend, growing by 82.58% from 150.52 thousand to 274.81 thousand over the same period. This contrast could be explained by factors such as industry outsourcing, technological advancements reducing labor needs in the US, and expanding telecommunications infrastructure in Mexico creating new job opportunities.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "US employment declined by 41.05%",
+          "Mexico employment increased by 82.58%",
+          "Contrasting trends suggest different economic factors at play"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.trend.highlight",
+            "rationale": "Use highlight_trend to visualize and analyze the employment trends for both countries over the 21-year period."
+          }
+        ],
+        "required_capabilities": [
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "76_Refined_Employment_Telecom_Services_NA_line",
+    "dataset_path": "datasets/76_Refined_Employment_Telecom_Services_NA_line.json",
+    "row_count": 113,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/76_Refined_Employment_Telecom_Services_NA_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

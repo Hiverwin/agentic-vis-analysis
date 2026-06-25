@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "43_parallel_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "How does Iris-virginica differ from the other two species?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Iris-virginica has the highest values for petal length and petal width. Its sepal length is also the longest among the three species, while sepal width is moderate."
+        },
+        "key_insights": [
+          "Iris-virginica has the highest values for petal length and petal width.",
+          "Its sepal length is also the longest among the three species, while sepal width is moderate."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "highlighting Iris-virginica allows direct comparison of its feature trends against the other species."
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Species",
+                "values": [
+                  "Iris-virginica"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "43_iris_parallel",
+    "dataset_path": "datasets/43_iris_parallel.json",
+    "row_count": 600,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/43_iris_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

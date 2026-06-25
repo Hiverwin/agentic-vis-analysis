@@ -1,0 +1,76 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "104_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/104_gender_gap_in_life_line.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use filter_lines with lines_to_remove equal to Australia, Germany, Japan, New Zealand, United Kingdom, United States and use highlight_trend with trend_type equal to increasing in order to know How do the gender life expectancy gap trends differ between Russia and other developed nations, and what historical factors might explain these differences?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Russia shows dramatically higher gender life expectancy gap compared to other developed nations, with values consistently 2-4 times higher (averaging 2.87 years vs 0.5-1.0 years for others). The gap peaked around 3.9 years in recent decades, while Western nations like UK (avg 0.55), Japan (avg 0.55), and Australia (avg 0.68) maintained much lower gaps. This disparity likely reflects Russias historical challenges including higher male mortality from cardiovascular disease, alcohol-related deaths, workplace accidents, and the social upheaval of the 1990s transition period. The data suggests systemic health and social factors in Russia that disproportionately affect male longevity compared to the more stable health outcomes in Western developed nations.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Russia has highest gender gap at avg 2.87 years",
+          "Western nations average 0.5-1.0 years gap",
+          "Russia gap is 2-4x higher than others",
+          "UK and Japan have lowest average gaps"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_lines",
+            "reasoning": "Filter to show only Russia for focused analysis of its unique pattern"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight the overall trend to understand the gap evolution over time"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Australia",
+                    "Germany",
+                    "Japan",
+                    "New Zealand",
+                    "United Kingdom",
+                    "United States"
+                  ],
+                  "line_field": "lines_to_remove"
+                }
+              }
+            },
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Contribution of gender in life expectancy gap (years) - Age group: 15-39",
+            "color": "Entity"
+          }
+        }
+      }
+    }
+  ]
+}

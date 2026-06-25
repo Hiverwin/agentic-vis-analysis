@@ -1,0 +1,90 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "108_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/108_insurance_sankey.json",
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "What weak links disappear, what major links remain, and what does that imply about the operational role of Medium Risk after applying the filter?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After `filter_flow(min_value=500)`, long-tail edges around `Medium Risk` are pruned, so the node is no longer visually dominated by small noisy links. Under `trace_node`, the strongest inbound path remains from `Doc Review`, and the strongest outbound path remains toward `Full Payout`, while weaker branches (for example low-volume review or denial/withdrawal routes) become less visible or disappear. This before/after contrast indicates that `Medium Risk` functions as a high-throughput routing hub driven by a few dominant channels, not by many tiny flows."
+        },
+        "key_insights": [
+          "Applying `filter_flow(500)` removes low-value edges and reveals the structural backbone around `Medium Risk`.",
+          "`Doc Review -> Medium Risk` remains a dominant inbound connection after filtering.",
+          "`Medium Risk -> Full Payout` remains a dominant outbound connection, supporting a hub-like interpretation."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_flow",
+            "reasoning": "First remove links below 500 to suppress weak-flow noise and expose high-volume structure."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Then trace `Medium Risk` to verify which inbound/outbound connections persist as the dominant pathways after thresholding."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 500
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Medium Risk"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "App Self-Service",
+              "Call Center",
+              "Agent Submitted",
+              "Partner API",
+              "Auto-Approve",
+              "Simple Manual",
+              "Complex Manual",
+              "Investigation",
+              "Doc Review",
+              "Field Inspection",
+              "Medical Review",
+              "Special Invest",
+              "Low Risk",
+              "Medium Risk",
+              "High Risk",
+              "Full Payout",
+              "Partial Payout",
+              "Denied",
+              "Withdrawn",
+              "Instant Payment",
+              "Delayed Payment",
+              "Payment Failed"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

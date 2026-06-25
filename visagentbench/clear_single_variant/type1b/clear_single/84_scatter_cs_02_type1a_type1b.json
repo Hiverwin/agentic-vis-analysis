@@ -1,0 +1,69 @@
+{
+  "task_type": "clear_single",
+  "task_id": "84_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/84_starbucks_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using zoom_2d_region, is there a beverage with low sugar content and relatively high calorie count?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "boolean",
+          "value": "NO"
+        },
+        "key_insights": [
+          "find that when the data of sugars are low, their calories are low likewise"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "get the answer"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    0,
+                    24.675001144409176
+                  ],
+                  "y_range": [
+                    6.874999999999975,
+                    550
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              0,
+              24.675001144409176
+            ],
+            "y": [
+              6.874999999999975,
+              550
+            ]
+          },
+          "encoding": {
+            "x": " Sugars (g)",
+            "y": "Calories",
+            "color": "Beverage_category"
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

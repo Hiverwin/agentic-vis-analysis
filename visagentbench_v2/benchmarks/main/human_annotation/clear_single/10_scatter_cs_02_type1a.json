@@ -1,0 +1,85 @@
+{
+  "benchmark_id": "10_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use zoom_2d_region with x_range from 10.360166918436686 to 11, y_range from 2.403498992919922 to 7.969499664306641 to rank diet_quality by sleep_hours and return the diet_quality positioned first.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "average",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "zoom the area"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  10.360166918436686,
+                  11
+                ],
+                "y_range": [
+                  2.403498992919922,
+                  7.969499664306641
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "sleep_hours",
+            "y": "screen_time",
+            "color": "diet_quality"
+          },
+          "view": {
+            "xDomain": [
+              10.360166918436686,
+              11
+            ],
+            "yDomain": [
+              2.403498992919922,
+              7.969499664306641
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "10_scatter_synthetic_mental_health",
+    "dataset_path": "datasets/10_scatter_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/10_scatter_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

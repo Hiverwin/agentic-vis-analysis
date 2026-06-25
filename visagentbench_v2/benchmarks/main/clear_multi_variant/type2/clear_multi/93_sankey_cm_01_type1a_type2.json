@@ -1,0 +1,85 @@
+{
+  "benchmark_id": "93_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Which node contributes the least inflow to Wealth Products?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Short Video Feed Ads",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Alipay/WeChat Entry and Bank App Push are the dominant sources of traffic for Wealth Products."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the path from Alipay/WeChat Entry to Wealth Products."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Get inflow details for Wealth Products from upstream list."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Alipay/WeChat Entry",
+                  "Wealth Products"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Wealth Products"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "93_sankey_financial",
+    "dataset_path": "datasets/93_sankey_financial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

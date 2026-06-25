@@ -1,0 +1,68 @@
+{
+  "task_type": "vague_single",
+  "task_id": "60_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/60_Berlin_crimes_bar.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Friedrichshain-Kreuzberg has the highest average fire incidents (28.78), followed by Mitte and Tempelhof-Schöneberg. The lowest fire incidents are in Treptow-Köpenick (7.58) and Charlottenburg-Wilmersdorf (9.12). Central districts generally have higher fire incidents than peripheral districts, likely due to higher population density and urban activity",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Friedrichshain-Kreuzberg has highest fire incidents",
+          "Central districts have higher fire incidents than peripheral districts",
+          "Significant variation between highest and lowest districts",
+          "Fire incidents appear to correlate with urban density"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Use sort_bars to analyze the distribution of fire incidents across Berlin districts"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Friedrichshain-Kreuzberg",
+              "Mitte",
+              "Tempelhof-Schöneberg",
+              "Neukölln",
+              "Marzahn-Hellersdorf",
+              "Spandau",
+              "Steglitz-Zehlendorf",
+              "Reinickendorf",
+              "Lichtenberg",
+              "Pankow",
+              "Charlottenburg-Wilmersdorf",
+              "Treptow-Köpenick"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "50_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/50_supply_chain_data_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "35_parallel_cm_01：Use filter_by_category with field equal to Gender and values equal to Female to focus on female samples, then use reorder_dimensions with dimension_order equal to Height, Weight, BMI, Age, then use calculate_correlation with method equal to pearson. What is the correlation between Height and Weight for females?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "skincare, cosmetics",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Filter to focus on specific product types"
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to focus on production volumes and defect rates"
+          },
+          {
+            "iteration": 3,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between product types and supply chain metrics"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": [
+                    "Product type",
+                    "cosmetics"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "Production volumes",
+                    "Defect rates",
+                    "Manufacturing costs",
+                    "Manufacturing lead time"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "axis_order": {
+            "dimension_order": [
+              "Production volumes",
+              "Defect rates",
+              "Manufacturing costs",
+              "Manufacturing lead time"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

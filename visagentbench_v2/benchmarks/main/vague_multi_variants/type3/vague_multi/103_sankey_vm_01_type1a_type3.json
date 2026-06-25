@@ -1,0 +1,131 @@
+{
+  "benchmark_id": "103_sankey_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_03",
+      "question": "How can the starting salary be increased?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Graduating on time can increase the probability of obtaining a high salary."
+        },
+        "key_insights": [
+          "Most industries are 10-20k/mo.",
+          "The higher-paid tech workers mainly come from on-time grad.",
+          "The higher-paid tech workers mainly come from on-time grad."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use tools to track where the higher salaries come from in those industries"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use tools to track where the higher salaries come from graduation status."
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use tools to track where the higher salaries come from graduation status."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "10-20K/mo"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Tech/Internet"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Finance Ind"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Engineering",
+                "Business",
+                "Liberal Arts",
+                "Sciences",
+                "Computer Sci",
+                "Mechanical Eng",
+                "Electrical Eng",
+                "Accounting",
+                "Finance Major",
+                "Marketing Major",
+                "English",
+                "Psychology",
+                "History",
+                "Biology",
+                "Chemistry",
+                "On-Time Grad",
+                "Delayed Grad",
+                "Dropped Out",
+                "Tech/Internet",
+                "Manufacturing",
+                "Finance Ind",
+                "Education",
+                "Healthcare",
+                "Other Industry",
+                ">20K/mo",
+                "10-20K/mo",
+                "<10K/mo"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "103_sankey_university",
+    "dataset_path": "datasets/103_sankey_university.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/103_sankey_university.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

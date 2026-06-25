@@ -1,0 +1,101 @@
+{
+  "benchmark_id": "104_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_lines and zoom_x_region, how do the remaining countries differ in the 2000 to 2010 window regarding steadiness, volatility, and local reversals?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After removing Russia and United States, the remaining country lines become visibly easier to compare in 2000-2010 because overlap is reduced. In the zoomed window, the surviving lines no longer move as one pattern: at least one country shows a smoother near-monotonic path, while another shows a local bend (flattening or slight reversal) in the mid-to-late part of the interval. The key takeaway is not a single global rise/fall, but different temporal rhythms among countries that are only clear after filtering and zooming."
+        },
+        "key_insights": [
+          "Filtering out Russia and United States reduces dominance and exposes fine-grained trend shapes among the remaining countries in 2000-2010.",
+          "Within the zoomed interval, countries differ in stability: some trajectories are smooth while others show local turning behavior.",
+          "Compared with the full view, the filtered+zoomed view supports stronger country-to-country rhythm comparisons instead of broad generic statements."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "Remove Russia and United States first to suppress dominant lines and reveal comparable patterns among non-dominant countries."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "Then zoom to 2000-2010 so local bends, volatility, and cross-country stability differences can be read directly from the visible segment."
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Russia",
+                  "United States"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2000",
+                "end": "2010"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "2000",
+              "2010"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Russia\", \"United States\"], datum['Entity']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "104_gender_gap_in_life_line",
+    "dataset_path": "datasets/104_gender_gap_in_life_line.json",
+    "row_count": 538,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/104_gender_gap_in_life_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

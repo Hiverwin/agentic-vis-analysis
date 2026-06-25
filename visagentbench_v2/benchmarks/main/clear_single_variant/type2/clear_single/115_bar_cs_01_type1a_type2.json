@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "115_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Which brand ranks third in sales volume among low-income customers?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "New Balance",
+          "alternatives": [
+            "New Balance"
+          ]
+        },
+        "key_insights": [
+          "New Balance has the third highest sales volume among low-income customers"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "obtain data"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "value": "High, Medium"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "brand",
+            "y": "units_sold",
+            "color": "customer_income_level"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "115_sport_life_bar",
+    "dataset_path": "datasets/115_sport_life_bar.json",
+    "row_count": 6059,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/115_sport_life_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

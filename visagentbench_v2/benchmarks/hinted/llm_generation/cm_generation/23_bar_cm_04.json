@@ -1,0 +1,217 @@
+{
+  "benchmark_id": "23_bar_cm_04",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_04",
+      "question": "60_bar_cm_01：Use change_encoding and filter_categories and change_encoding and filter_categories and change_encoding and filter_categories and change_encoding and filter_categories and change_encoding to analyze bar chart data.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "iQOO",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to focus on battery capacity"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": " Filter categories to show only recent two years data"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.encoding.change",
+            "rationale": " Change encoding to analyze company data"
+          },
+          {
+            "iteration": 4,
+            "capability": "data.filter.categorical",
+            "rationale": " Filter categories to focus on top companies"
+          },
+          {
+            "iteration": 5,
+            "capability": "view.encoding.change",
+            "rationale": " Change encoding to compare battery capacities"
+          },
+          {
+            "iteration": 6,
+            "capability": "data.filter.categorical",
+            "rationale": " Filter categories to confirm results"
+          },
+          {
+            "iteration": 7,
+            "capability": "view.encoding.change",
+            "rationale": " Change encoding to finalize analysis"
+          },
+          {
+            "iteration": 8,
+            "capability": "data.filter.categorical",
+            "rationale": " Filter categories to show relevant data"
+          },
+          {
+            "iteration": 9,
+            "capability": "view.encoding.change",
+            "rationale": " Change encoding to present final ranking"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.categorical",
+          "view.encoding.change",
+          "data.filter.categorical",
+          "view.encoding.change",
+          "data.filter.categorical",
+          "view.encoding.change",
+          "data.filter.categorical",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Battery Capacity(mAh)"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Launched Year",
+                  "Year 2024",
+                  "Year 2025"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Company Name"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Launched Year",
+                  "Year 2024",
+                  "Year 2025"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Battery Capacity(mAh)"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Company Name",
+                  "Poco",
+                  "iQOO"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Company Name"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Launched Year",
+                  "Year 2024",
+                  "Year 2025"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Battery Capacity(mAh)"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Company Name",
+            "y": "Battery Capacity(mAh)",
+            "color": "Launched Year"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "23_Mobiles Dataset (2025)_bar",
+    "dataset_path": "datasets/23_Mobiles Dataset (2025)_bar.json",
+    "row_count": 847,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/23_Mobiles Dataset (2025)_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

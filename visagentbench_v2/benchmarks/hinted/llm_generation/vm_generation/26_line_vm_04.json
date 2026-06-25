@@ -1,0 +1,112 @@
+{
+  "benchmark_id": "26_line_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use focus_lines with lines equal to Age: 0, Age: 80 and use detect_anomalies with threshold equal to 2.0 and use highlight_trend with trend_type equal to increasing in order to know How do the death rate trends differ across age groups, and what significant anomalies can be observed?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "All age groups show significant declining trends in death rates over time, with the most dramatic declines in younger age groups. Age: 0 group decreased by 96.1% from 145.22 to 5.68, Age: 10 decreased by 95.6%, and Age: 25 decreased by 90.8%. Older age groups also showed substantial but slightly less dramatic declines: Age: 45 decreased by 87.7%, Age: 65 decreased by 79.2%, and Age: 80 decreased by 64.7%. Notable anomalies were detected around 1959-1961 across all age groups, with death rates spiking significantly during this period, likely reflecting historical events.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Youngest age group (Age: 0) had the largest percentage decline at 96.1%",
+          "Oldest age group (Age: 80) consistently had the highest death rates but still declined significantly",
+          "All age groups showed anomalous spikes in death rates during 1959-1961 period",
+          "The gap between youngest and oldest death rates narrowed over time",
+          "Death rates for middle-aged groups (25",
+          "45",
+          "65) declined steadily without major fluctuations"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.focus",
+            "rationale": "Focus on Age: 0 and Age: 80 to compare youngest and oldest groups"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "Detect anomalies across all age groups to identify unusual patterns"
+          },
+          {
+            "iteration": 3,
+            "capability": "line.trend.highlight",
+            "rationale": "Highlight the overall decreasing trend across all age groups"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.focus",
+          "analysis.anomalies.detect",
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.focus",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines": [
+                  "Age: 0",
+                  "Age: 80"
+                ],
+                "line_field": "Age_Group",
+                "mode": "dim",
+                "dim_opacity": 0.08
+              }
+            }
+          },
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "threshold": 2.0
+              }
+            }
+          },
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Central death rate",
+            "color": "Age_Group"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "26_China_centra_death_rate_line",
+    "dataset_path": "datasets/26_China_centra_death_rate_line.json",
+    "row_count": 432,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/26_China_centra_death_rate_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

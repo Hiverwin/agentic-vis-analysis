@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "60_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using change_encoding, does the district with the most fires also have the most cases of damage?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Yes.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Use the change encoding tool to switch the field to the damage category to observe damage statistics in different districts."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Damage",
+                "channel": "color"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "District",
+            "y": "Fire",
+            "color": "Damage"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "state_check_fields": [
+              "encoding"
+            ]
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "60_Berlin_crimes_bar",
+    "dataset_path": "datasets/60_Berlin_crimes_bar.json",
+    "row_count": 1200,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/60_Berlin_crimes_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

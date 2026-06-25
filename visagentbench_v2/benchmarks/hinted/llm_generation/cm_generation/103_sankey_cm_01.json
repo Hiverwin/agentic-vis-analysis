@@ -1,0 +1,76 @@
+{
+  "benchmark_id": "103_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "94_sankey_cm_01：Use calculate_conversion_rate with node_name equal to Fresh Food and then use trace_node with node_name equal to Fresh Food. What is the largest inflow value to Fresh Food?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "230",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Use calculate_conversion_rate to analyze Computer Sci node and identify its outflow distribution"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use trace_node to trace the path from Computer Sci to On-Time Grad to verify the flow value"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Computer Sci"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Computer Sci"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "103_sankey_university",
+    "dataset_path": "datasets/103_sankey_university.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/103_sankey_university.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,106 @@
+{
+  "benchmark_id": "24_parallel_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use highlight_category with field equal to field, values equal to alcohol_consumption and use hide_dimensions with dimensions equal to bmi, symptoms_count, mode equal to hide and use filter_by_category with field equal to field, values equal to alcohol_consumption in order to know How do health metrics and vitamin levels differ across different alcohol consumption groups?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Analysis reveals subtle but consistent patterns across alcohol consumption groups. Heavy drinkers show slightly higher BMI (0.375) and symptom counts (0.213) compared to non-drinkers (BMI 0.363, symptoms 0.202). Vitamin A and C levels are marginally higher in heavy drinkers, possibly due to dietary compensation. Interestingly, non-drinkers have slightly better vitamin D levels (0.250 vs 0.240). Overall, the differences are modest but suggest that alcohol consumption correlates with slightly poorer health outcomes across multiple dimensions.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Heavy drinkers show slightly higher BMI and symptoms",
+          "Vitamin D levels are better in non-drinkers",
+          "Differences across groups are modest but consistent"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight heavy drinkers to analyze their health patterns"
+          },
+          {
+            "iteration": 2,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide less relevant dimensions to focus on key metrics"
+          },
+          {
+            "iteration": 3,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to compare moderate drinkers with other groups"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values",
+          "parallel.dimensions.hide",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": "alcohol_consumption"
+              }
+            }
+          },
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "bmi",
+                  "symptoms_count"
+                ],
+                "mode": "hide"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": "alcohol_consumption"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "24_vitamin_deficiency_disease_dataset_20260123_parallel (3)",
+    "dataset_path": "datasets/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json",
+    "row_count": 20000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

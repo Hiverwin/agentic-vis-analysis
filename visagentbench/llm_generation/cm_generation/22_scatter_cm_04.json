@@ -1,0 +1,81 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "22_scatter_cm_04",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/22_Employee_Attrition_DataSet_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_04",
+      "question": "61_scatter_cm_01：Use filter_categorical with field equal to District and categories_to_remove equal to Charlottenburg-Wilmersdorf, Friedrichshain-Kreuzberg, Lichtenberg, Marzahn-Hellersdorf, Neukölln, Pankow, and Reinickendorf to keep only Mitte, then use calculate_correlation with method equal to pearson. What is the Pearson correlation coefficient (rounded to 2 decimals) between Robbery and Injury for Mitte district?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "1",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Filter by work life balance level 1"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categorical",
+            "reasoning": "Filter by work life balance level 4"
+          },
+          {
+            "iteration": 3,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between distance from home and income"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories_to_remove": [
+                    "WorkLifeBalance",
+                    "1"
+                  ],
+                  "field": "field"
+                }
+              }
+            },
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories_to_remove": [
+                    "WorkLifeBalance",
+                    "4"
+                  ],
+                  "field": "value"
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

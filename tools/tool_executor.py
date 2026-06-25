@@ -3,6 +3,7 @@
 """
 
 from typing import Dict, Any, List
+import inspect
 import traceback
 from .tool_registry import tool_registry
 
@@ -13,6 +14,63 @@ class ToolExecutor:
     def __init__(self):
         self.registry = tool_registry
         self.execution_history: List[Dict[str, Any]] = []
+        self._param_aliases: Dict[str, Dict[str, str]] = {
+            # common alias compatibility
+            'change_encoding': {
+                'field_type': 'type',
+                'encoding_type': 'type',
+                'dtype': 'type',
+            },
+            # bar
+            'filter_categories': {
+                'category': 'categories',
+                'values': 'categories',
+            },
+            'expand_stack': {
+                'categories': 'category',
+            },
+            'highlight_top_n': {
+                # category belongs to expand_stack; ignore for compatibility instead of failing
+                'category': '__drop__',
+            },
+            # line
+            'filter_lines': {
+                'lines': 'lines_to_remove',
+            },
+            'focus_lines': {
+                'line_names': 'lines',
+                'lines_to_highlight': 'lines',
+            },
+            # scatter
+            'filter_categorical': {
+                'categories': 'categories_to_remove',
+                'remove_categories': 'categories_to_remove',
+                'column': 'field',
+                'category_field': 'field',
+            },
+            # parallel
+            'filter_by_category': {
+                'column': 'field',
+                'dimension': 'field',
+                'categories': 'values',
+            },
+            'highlight_category': {
+                'column': 'field',
+                'dimension': 'field',
+                'categories': 'values',
+            },
+            'filter_dimension': {
+                'value_range': 'range',
+                'interval': 'range',
+                'field': 'dimension',
+                'column': 'dimension',
+            },
+            # sankey
+            'collapse_nodes': {
+                'nodes': 'nodes_to_collapse',
+                'node_names': 'nodes_to_collapse',
+            },
+        }
     
     def execute(self, tool_name: str, params: Dict[str, Any], validate: bool = True) -> Dict[str, Any]:
         """
@@ -34,6 +92,10 @@ class ToolExecutor:
                 'error': f'Tool "{tool_name}" not found',
                 'available_tools': self.registry.list_all_tools()
             }
+
+        tool_function = tool_info['function']
+        params = self._normalize_params(tool_name, params)
+        params = self._filter_unknown_params(tool_function, params)
         
         # 参数验证
         if validate:
@@ -50,7 +112,6 @@ class ToolExecutor:
         
         # 执行工具
         try:
-            tool_function = tool_info['function']
             result = tool_function(**params)
             
             # 记录执行历史
@@ -102,6 +163,42 @@ class ToolExecutor:
                 filled_params[param_name] = param_spec['default']
         
         return filled_params
+
+    def _normalize_params(self, tool_name: str, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize historical aliases to canonical parameter names."""
+        if not isinstance(params, dict):
+            return {}
+        normalized = dict(params)
+        aliases = self._param_aliases.get(tool_name, {})
+        for src, dst in aliases.items():
+            if src not in normalized:
+                continue
+            value = normalized.pop(src)
+            if dst == '__drop__':
+                continue
+            if dst in normalized:
+                continue
+            # lightweight coercion for common scalar/list mismatches
+            if dst in ('categories', 'lines_to_remove', 'nodes_to_collapse') and not isinstance(value, list):
+                value = [value]
+            if dst == 'category' and isinstance(value, list):
+                value = value[0] if value else ''
+            normalized[dst] = value
+        return normalized
+
+    def _filter_unknown_params(self, tool_function: Any, params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Drop unknown kwargs for strict_compat mode.
+        This prevents runtime TypeError on legacy/extra parameter names.
+        """
+        try:
+            sig = inspect.signature(tool_function)
+        except Exception:
+            return params
+        if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()):
+            return params
+        allowed = set(sig.parameters.keys())
+        return {k: v for k, v in params.items() if k in allowed}
     
     def _record_execution(self, tool_name: str, params: Dict[str, Any], 
                          result: Dict[str, Any], success: bool):

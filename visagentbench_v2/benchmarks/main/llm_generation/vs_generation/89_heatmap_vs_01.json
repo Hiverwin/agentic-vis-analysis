@@ -1,0 +1,78 @@
+{
+  "benchmark_id": "89_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use add_marginal_bars in order to know How does stress level affect sleep duration across different BMI categories?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Stress level has a clear negative relationship with sleep duration across all BMI categories. People with the lowest stress level (3) consistently get the most sleep, averaging around 8.1-8.4 hours regardless of BMI category. As stress increases to the highest level (8), sleep duration decreases significantly to around 5.9-6.1 hours. This pattern suggests that higher stress is associated with shorter sleep duration, and this relationship holds true across normal weight, overweight, and obese individuals alike.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Lowest stress level (3) has longest sleep duration",
+          "Highest stress level (8) has shortest sleep duration",
+          "The negative relationship is consistent across all BMI categories",
+          "BMI category has less impact on sleep duration compared to stress level"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.marginals.add",
+            "rationale": "Use add_marginal_bars to observe the marginal distributions and identify patterns between stress level and sleep duration across BMI categories"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "op": "mean",
+                "show_top": true,
+                "show_right": true,
+                "bar_size": 70,
+                "bar_color": "#666666"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 3,
+              "has_type": "bar"
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "89_Sleep_health_and_lifestyle_dataset_heatmap",
+    "dataset_path": "datasets/89_Sleep_health_and_lifestyle_dataset_heatmap.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/89_Sleep_health_and_lifestyle_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

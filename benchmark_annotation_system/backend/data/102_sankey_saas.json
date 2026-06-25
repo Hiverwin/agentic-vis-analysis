@@ -1,0 +1,253 @@
+{
+  "rawLinks": [
+    {
+      "source": "Google Ads",
+      "target": "Active (High)",
+      "value": 180
+    },
+    {
+      "source": "Google Ads",
+      "target": "Active (Low)",
+      "value": 260
+    },
+    {
+      "source": "Google Ads",
+      "target": "Inactive M1",
+      "value": 110
+    },
+    {
+      "source": "Organic",
+      "target": "Active (High)",
+      "value": 310
+    },
+    {
+      "source": "Organic",
+      "target": "Active (Low)",
+      "value": 220
+    },
+    {
+      "source": "Organic",
+      "target": "Inactive M1",
+      "value": 70
+    },
+    {
+      "source": "Referral",
+      "target": "Active (High)",
+      "value": 240
+    },
+    {
+      "source": "Referral",
+      "target": "Active (Low)",
+      "value": 130
+    },
+    {
+      "source": "Referral",
+      "target": "Inactive M1",
+      "value": 30
+    },
+    {
+      "source": "Social Media",
+      "target": "Active (High)",
+      "value": 70
+    },
+    {
+      "source": "Social Media",
+      "target": "Active (Low)",
+      "value": 140
+    },
+    {
+      "source": "Social Media",
+      "target": "Inactive M1",
+      "value": 90
+    },
+    {
+      "source": "Active (High)",
+      "target": "Upgraded (Pro)",
+      "value": 350
+    },
+    {
+      "source": "Active (High)",
+      "target": "Retained (Basic)",
+      "value": 310
+    },
+    {
+      "source": "Active (High)",
+      "target": "Churned M3",
+      "value": 140
+    },
+    {
+      "source": "Active (Low)",
+      "target": "Upgraded (Pro)",
+      "value": 90
+    },
+    {
+      "source": "Active (Low)",
+      "target": "Retained (Basic)",
+      "value": 350
+    },
+    {
+      "source": "Active (Low)",
+      "target": "Churned M3",
+      "value": 310
+    },
+    {
+      "source": "Inactive M1",
+      "target": "Retained (Basic)",
+      "value": 40
+    },
+    {
+      "source": "Inactive M1",
+      "target": "Churned M3",
+      "value": 260
+    },
+    {
+      "source": "Upgraded (Pro)",
+      "target": "Loyal",
+      "value": 310
+    },
+    {
+      "source": "Upgraded (Pro)",
+      "target": "Downgraded",
+      "value": 85
+    },
+    {
+      "source": "Upgraded (Pro)",
+      "target": "Churned M6",
+      "value": 45
+    },
+    {
+      "source": "Retained (Basic)",
+      "target": "Loyal",
+      "value": 220
+    },
+    {
+      "source": "Retained (Basic)",
+      "target": "Downgraded",
+      "value": 180
+    },
+    {
+      "source": "Retained (Basic)",
+      "target": "Churned M6",
+      "value": 300
+    },
+    {
+      "source": "Loyal",
+      "target": "Renewed",
+      "value": 430
+    },
+    {
+      "source": "Loyal",
+      "target": "Churned Y1",
+      "value": 100
+    },
+    {
+      "source": "Downgraded",
+      "target": "Renewed",
+      "value": 85
+    },
+    {
+      "source": "Downgraded",
+      "target": "Churned Y1",
+      "value": 180
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Google Ads",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Organic",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Referral",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Social Media",
+      "depth": 0,
+      "order": 3
+    },
+    {
+      "name": "Active (High)",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Active (Low)",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Inactive M1",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "Upgraded (Pro)",
+      "depth": 2,
+      "order": 0
+    },
+    {
+      "name": "Retained (Basic)",
+      "depth": 2,
+      "order": 1
+    },
+    {
+      "name": "Churned M3",
+      "depth": 2,
+      "order": 2
+    },
+    {
+      "name": "Loyal",
+      "depth": 3,
+      "order": 0
+    },
+    {
+      "name": "Downgraded",
+      "depth": 3,
+      "order": 1
+    },
+    {
+      "name": "Churned M6",
+      "depth": 3,
+      "order": 2
+    },
+    {
+      "name": "Renewed",
+      "depth": 4,
+      "order": 0
+    },
+    {
+      "name": "Churned Y1",
+      "depth": 4,
+      "order": 1
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Acquisition Channel"
+    },
+    {
+      "depth": 1,
+      "label": "Month 1 Engagement"
+    },
+    {
+      "depth": 2,
+      "label": "Month 3 Status"
+    },
+    {
+      "depth": 3,
+      "label": "Month 6 Status"
+    },
+    {
+      "depth": 4,
+      "label": "Year 1 Outcome"
+    }
+  ]
+}

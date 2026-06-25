@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "13_heatmap_vs_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json",
+  "questions": [
+    {
+      "qid": "vs_02",
+      "question": "Use highlight_region in order to know What pricing patterns emerge when analyzing product types across different customer demographics, and which segments command premium pricing?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The pricing analysis reveals distinct patterns across product types and customer demographics. Cosmetics commands the highest average price at 57.36, significantly outpacing skincare at 47.26 and haircare at 46.01. Among customer demographics, Unknown category shows the highest average price at 56.40, followed by Male at 49.55, Non-binary at 46.50, and Female at 43.52. The overall price range spans from 1.70 to 99.17 with an average of 49.46. Notably, cosmetics products consistently maintain premium pricing across all demographic segments, while haircare products tend to be more competitively priced. The Unknown demographic segment appears willing to pay higher prices across all product categories, suggesting potential untapped market insights.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Cosmetics has the highest average price at 57.36",
+          "Unknown demographic has highest average price at 56.40",
+          "Female demographic has lowest average price at 43.52",
+          "Overall price range is 1.70 to 99.17",
+          "Cosmetics consistently maintains premium pricing across all demographics"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region",
+            "reasoning": "Use highlight_region to focus on the cosmetics product type which commands the highest average price across all demographics"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {}
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

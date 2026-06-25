@@ -1,0 +1,94 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "32_scatter_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "How do non-smokers split into separable charge bands, and what role do BMI and children sizing play in those clusters?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "With smokers cleared out, the k-means overlay carves non-smokers into low-, mid-, and high-charge tiers that line up with BMI: heavier BMIs drift upward on charges while family size (point size) nudges the cloud so that bigger households lean toward the pricier band. It is not a single clean line—there is overlap—but the clusters read as BMI-driven cost tiers with children acting as a secondary spread."
+        },
+        "key_insights": [
+          "Three color clusters emerge among non-smokers after zooming and filtering.",
+          "Higher BMI tracks higher charges within those clusters; children size modulates but does not override the BMI gradient."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "Magnifies the dense BMI–charges band where non-smokers overlap."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categorical",
+            "reasoning": "Removes smoker rows so clustering reflects non-smoker structure."
+          },
+          {
+            "iteration": 3,
+            "tool": "identify_clusters",
+            "reasoning": "Labels risk tiers that line up with BMI/children cues."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "list",
+                "param": "x_range",
+                "target": [
+                  0.12568359375,
+                  55
+                ]
+              }
+            },
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "list",
+                "param": "categories_to_remove",
+                "target": [
+                  "yes"
+                ]
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "numeric",
+                "param": "n_clusters",
+                "target": 3,
+                "tolerance": 0.1
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              0.12568359375,
+              55
+            ]
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"yes\"], datum['smoker']) < 0"
+            }
+          ],
+          "cluster_field": {
+            "color_field_contains": "cluster"
+          }
+        },
+        "state_check_fields": [
+          "cluster_field",
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

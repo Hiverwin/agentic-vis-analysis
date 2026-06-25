@@ -1,0 +1,86 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "106_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/106_life expectancey_line.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Using zoom_x_region and filter_lines, how many years did the United States have a higher life expectancy than the United Kingdom?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "20",
+          "tolerance": 4
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom to 1970-2000 for focused comparison."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_lines",
+            "reasoning": "Filter to keep only United States and United Kingdom."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "1970",
+                  "end": "2000"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Australia",
+                    "Brazil",
+                    "Canada",
+                    "China",
+                    "Japan",
+                    "Zimbabwe"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Life expectancy - Sex: female - Age: 0 - Variant: estimates",
+            "color": "Entity"
+          },
+          "visible_domain": {
+            "x": [
+              "1970",
+              "2000"
+            ]
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Australia\", \"Brazil\", \"Canada\", \"China\", \"Japan\", \"Zimbabwe\"], datum['Entity']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

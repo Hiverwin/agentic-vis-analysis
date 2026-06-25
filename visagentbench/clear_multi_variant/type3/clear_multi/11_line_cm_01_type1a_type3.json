@@ -1,0 +1,144 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "11_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/11_apple_time_line.json",
+  "questions": [
+    {
+      "qid": "cm_05",
+      "question": "Which product exhibits a higher revenue growth rate, MacBook or watch?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "MacBook",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "get the data between 2021 and 2024"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_lines",
+            "reasoning": "get the macbook one"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_trend",
+            "reasoning": "get a very slow trend for macbook"
+          },
+          {
+            "iteration": 4,
+            "tool": "filter_lines",
+            "reasoning": "get the watch one"
+          },
+          {
+            "iteration": 5,
+            "tool": "highlight_trend",
+            "reasoning": "get the trend that very stable"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2021",
+                  "end": "2024"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "iPhone",
+                    "iPad",
+                    "Revenue_Billions",
+                    "AirPods",
+                    "Watch",
+                    "Services",
+                    "Other_Products"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "iPhone",
+                    "MacBook",
+                    "Revenue_Billions",
+                    "AirPods",
+                    "iPad",
+                    "Services",
+                    "Other_Products"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"iPhone\", \"MacBook\", \"Revenue_Billions\", \"AirPods\", \"iPad\", \"Services\", \"Other_Products\"], datum['Product']) < 0"
+            }
+          ],
+          "layers": {
+            "regression_line": true
+          },
+          "visible_domain": {
+            "x": [
+              "2021",
+              "2024"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "layers",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

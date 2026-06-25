@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "111_heatmap_cm_07",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_07",
+      "question": "40_heatmap_cm_01：Use filter_cells_by_region and find_extremes to analyze heatmap chart data.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Apr",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filter to show only Bangkok row"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find the maximum temperature month in Bangkok"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_values": [
+                  "Bangkok"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1,
+                "mode": "max"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "111_heatmap_tmp",
+    "dataset_path": "datasets/111_heatmap_tmp.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

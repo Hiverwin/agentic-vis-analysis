@@ -1,0 +1,105 @@
+{
+  "benchmark_id": "56_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use highlight_region_by_value with min_value equal to 580.0 and use change_encoding with field equal to Service Rating in order to know How does the relationship between service rating and order value vary across different platforms? Analyze the patterns and identify which platform shows the most consistent performance across all rating levels.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Swiggy Instamart shows the most consistent performance across all rating levels with the smallest variation in average order values (ranging from 588.51 to 601.35, a spread of only 12.84 INR). It also has the highest average order value at Rating 1 (601.35 INR). In contrast, JioMart shows the most variation with a spread of 20.11 INR (from 575.49 at Rating 4 to 595.60 at Rating 3). Blinkit falls in between with moderate consistency. Interestingly, all platforms show relatively stable order values across ratings, suggesting that order value is not strongly correlated with service rating.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Swiggy Instamart has most consistent performance with only 12.84 INR spread",
+          "JioMart shows most variation with 20.11 INR spread",
+          "Order value is not strongly correlated with service rating across all platforms"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find the extreme values to identify the highest and lowest average order values"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Highlight regions with high and low order values to visualize patterns across platforms and ratings"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to analyze the data from different perspectives"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find",
+          "heatmap.region.highlight",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 580.0,
+                "outside_opacity": 0.12
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Service Rating"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Platform",
+            "y": "Service Rating",
+            "color": "Order Value (INR)"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "56_Ecommerce_Delivery_Analytics_New_heatmap",
+    "dataset_path": "datasets/56_Ecommerce_Delivery_Analytics_New_heatmap.json",
+    "row_count": 100000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/56_Ecommerce_Delivery_Analytics_New_heatmap.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

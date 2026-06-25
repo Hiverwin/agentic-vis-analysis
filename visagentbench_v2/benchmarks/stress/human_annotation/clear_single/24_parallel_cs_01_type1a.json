@@ -1,0 +1,85 @@
+{
+  "benchmark_id": "24_parallel_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use highlight_category with field equal to alcohol_consumption, values equal to Heavy to evaluate whether there are any samples in the \"High Alcohol Consumption\" group with a higher BMI and a lower vitamin_d_percent_rda.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "boolean",
+          "value": "YES"
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "get the answer"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "alcohol_consumption",
+                "values": [
+                  "Heavy"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "24_vitamin_deficiency_disease_dataset_20260123_parallel (3)",
+    "dataset_path": "datasets/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json",
+    "row_count": 20000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

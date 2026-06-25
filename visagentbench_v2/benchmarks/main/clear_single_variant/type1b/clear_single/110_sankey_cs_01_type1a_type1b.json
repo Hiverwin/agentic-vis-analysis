@@ -1,0 +1,62 @@
+{
+  "benchmark_id": "110_sankey_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using calculate_conversion_rate, what is the conversion rate of the process of transforming \"Composing\" into \"Organic Fertilizer\"?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "approximately 0.83.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate the conversion rate of \"composing\" to \"Organic Fertilizer\" using tools."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Organic Fertilizer"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "110_sankey_trash",
+    "dataset_path": "datasets/110_sankey_trash.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/110_sankey_trash.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

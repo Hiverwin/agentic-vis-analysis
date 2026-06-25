@@ -1,0 +1,81 @@
+{
+  "benchmark_id": "32_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Which children number type has the second highest charges in the specified region?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Children number 4",
+          "alternatives": [
+            "Children 4",
+            "4 children"
+          ]
+        },
+        "key_insights": [
+          "The children number 5 has the highest charges in this region."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "The change encoding tool has successfully identified the problem answers, so there is no need to continue investigating with additional tools."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "categorical",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  25.1,
+                  30.2
+                ],
+                "y_range": [
+                  4553.2,
+                  14518.5
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "bmi",
+            "y": "charges",
+            "color": "region"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "32_insurance_scatter",
+    "dataset_path": "datasets/32_insurance_scatter.json",
+    "row_count": 1338,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

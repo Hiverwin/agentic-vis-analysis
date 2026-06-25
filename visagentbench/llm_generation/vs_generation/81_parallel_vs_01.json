@@ -1,0 +1,58 @@
+{
+  "task_type": "vague_single",
+  "task_id": "81_parallel_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/81_gym_members_exercise_tracking_parallel.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_category with field equal to field,values, values equal to Heavy to compare the consistency of vitamin intake types A, C, and D with the trend of changes in symptoms_count in order to know what is the consistency of vitamin intake types with the trend of changes in symptoms_count?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Yoga shows the most balanced performance across all dimensions, maintaining consistent normalized values across weight, height, BPM, calories burned, and session duration",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Yoga shows consistent performance across all dimensions",
+          "HIIT has higher values in some dimensions but more variation",
+          "Cardio and Strength show more balanced but lower overall performance"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_category",
+            "reasoning": "Highlight Yoga to analyze its performance across all dimensions"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field,values",
+                  "values": [
+                    "Workout_Type",
+                    "Yoga"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

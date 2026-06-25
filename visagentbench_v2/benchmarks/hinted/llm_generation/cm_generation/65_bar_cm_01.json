@@ -1,0 +1,115 @@
+{
+  "benchmark_id": "65_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "42_bar_cm_01：Use toggle_stack_mode with mode equal to grouped to see individual values, then use filter_categories with categories equal to [2022, 2023] to focus on recent years, then use sort_bars with sort_order equal to descending. Which year has higher values?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Sedentary exercise level has the highest average vitamin C intake, with vegetarian diet showing the highest intake across all exercise levels",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stackMode.set",
+            "rationale": "Toggle stack mode to compare diet types"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter by diet categories to analyze intake patterns"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars by vitamin C intake to identify highest values"
+          }
+        ],
+        "required_capabilities": [
+          "view.stackMode.set",
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "group"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "diet_type",
+                  "Vegetarian",
+                  "Omnivore"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "stacked"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Active",
+                "Light",
+                "Moderate",
+                "Sedentary"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "mark_mode",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "65_vitamin_deficiency_disease_dataset_bar",
+    "dataset_path": "datasets/65_vitamin_deficiency_disease_dataset_bar.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/65_vitamin_deficiency_disease_dataset_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

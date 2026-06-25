@@ -1,0 +1,68 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "112_bar_vm_04",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json",
+  "questions": [
+    {
+      "qid": "vm_04",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know First use sort_bars to sort titles by average popularity, then use highlight_top_n to highlight the top performers. Analyze the popularity distribution: how popularity varies across different anime titles, what characteristics distinguish top-performing titles from average ones, and whether there are clear popularity tiers or a gradual distribution.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The popularity distribution across anime titles shows significant variation. Top-performing titles stand out clearly from the rest, demonstrating substantially higher average popularity scores. There appears to be a tiered structure with a small group of highly popular titles at the top, followed by a middle tier of moderately popular titles, and a larger group of lower-popularity titles. The gap between the highest and lowest performing titles is substantial, indicating strong audience preferences for certain titles over others.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Popularity varies significantly across anime titles",
+          "Top performers show substantially higher scores",
+          "Tiered structure exists in popularity distribution",
+          "Gap between highest and lowest is substantial"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to see popularity ranking"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top performers to analyze characteristics"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "title",
+            "y": "popularity"
+          }
+        }
+      }
+    }
+  ]
+}

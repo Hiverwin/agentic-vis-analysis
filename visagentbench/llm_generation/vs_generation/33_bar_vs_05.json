@@ -1,0 +1,87 @@
+{
+  "task_type": "vague_single",
+  "task_id": "33_bar_vs_05",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/33_bmw_bar.json",
+  "questions": [
+    {
+      "qid": "vs_05",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The BMW models with the best fuel efficiency are likely the ones with higher MPG values. Electric models (if present) would typically have higher efficiency, followed by hybrid models, and then gasoline models. The ranking shows which models are most fuel-efficient, with variations based on their fuel type.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Electric models have highest efficiency",
+          "Hybrid models are next in efficiency",
+          "Gasoline models have lower efficiency"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars by MPG to identify models with best fuel efficiency"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              " 3 Series",
+              " 1 Series",
+              " 2 Series",
+              " 5 Series",
+              " 4 Series",
+              " X1",
+              " X3",
+              " X5",
+              " i3",
+              " X2",
+              " X4",
+              " 6 Series",
+              " 7 Series",
+              " M4",
+              " Z4",
+              " X6",
+              " i8",
+              " X7",
+              " 8 Series",
+              " M3",
+              " M5",
+              " M2",
+              "3 Series",
+              "1 Series",
+              "5 Series",
+              " Z3",
+              " M6",
+              "X3",
+              "4 Series",
+              "2 Series",
+              "7 Series",
+              "6 Series"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

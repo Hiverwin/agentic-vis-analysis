@@ -1,0 +1,83 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "09_line_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/09_museum_visitors_line.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use zoom_x_region with start equal to 2014-01-01, end equal to 2014-12-31 and use highlight_trend with trend_type equal to increasing and use detect_anomalies with threshold equal to 2.0 in order to know What seasonal patterns and trends can be observed in the museum visitor data over the years, and what factors might explain the variations?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The museum shows clear seasonal patterns with peak visitation during summer months (July consistently shows high numbers: 13490 in 2014, 11072 in 2015, 12188 in 2016). Spring months (April) show the lowest visitation (2824 in 2014, 4650 in 2018). There is a noticeable declining trend from 2014-2015 (avg ~8500) to 2018 (avg ~4500), suggesting decreasing popularity or external factors affecting attendance. Summer peaks likely correlate with tourist season and school holidays, while spring lows may reflect post-winter recovery period.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Clear seasonal pattern with summer peaks and spring lows",
+          "Declining trend from 2014 to 2018 in overall visitation",
+          "July consistently shows highest visitation across years",
+          "April consistently shows lowest visitation across years"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom into specific year regions to analyze seasonal patterns in detail"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight increasing and decreasing trends to identify overall visitation patterns"
+          },
+          {
+            "iteration": 3,
+            "tool": "detect_anomalies",
+            "reasoning": "Detect anomalies to identify unusual visitor patterns in specific months"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2014-01-01",
+                  "end": "2014-12-31"
+                }
+              }
+            },
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            },
+            {
+              "tool": "detect_anomalies",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "threshold": 2.0
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Date",
+            "y": "America Tropical Interpretive Center"
+          }
+        }
+      }
+    }
+  ]
+}

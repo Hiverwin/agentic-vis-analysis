@@ -1,0 +1,126 @@
+{
+  "rawLinks": [
+    {
+      "source": "Fresh Supermarket (Offline Scan/Delivery)",
+      "target": "Fresh Food",
+      "value": 4200
+    },
+    {
+      "source": "Fresh Supermarket (Offline Scan/Delivery)",
+      "target": "Home & Living",
+      "value": 860
+    },
+    {
+      "source": "Fresh Supermarket (Offline Scan/Delivery)",
+      "target": "Beauty & Skincare",
+      "value": 320
+    },
+    {
+      "source": "Live Streaming (Douyin/Xiaohongshu)",
+      "target": "Beauty & Skincare",
+      "value": 3800
+    },
+    {
+      "source": "Live Streaming (Douyin/Xiaohongshu)",
+      "target": "Fresh Food",
+      "value": 1100
+    },
+    {
+      "source": "Live Streaming (Douyin/Xiaohongshu)",
+      "target": "Electronics & Appliances",
+      "value": 960
+    },
+    {
+      "source": "Live Streaming (Douyin/Xiaohongshu)",
+      "target": "Home & Living",
+      "value": 540
+    },
+    {
+      "source": "Community Group (WeChat/Community)",
+      "target": "Fresh Food",
+      "value": 2600
+    },
+    {
+      "source": "Community Group (WeChat/Community)",
+      "target": "Home & Living",
+      "value": 1500
+    },
+    {
+      "source": "Community Group (WeChat/Community)",
+      "target": "Electronics & Appliances",
+      "value": 380
+    },
+    {
+      "source": "Brand Ads (Elevator/Official)",
+      "target": "Electronics & Appliances",
+      "value": 1800
+    },
+    {
+      "source": "Brand Ads (Elevator/Official)",
+      "target": "Beauty & Skincare",
+      "value": 720
+    },
+    {
+      "source": "Brand Ads (Elevator/Official)",
+      "target": "Home & Living",
+      "value": 480
+    },
+    {
+      "source": "Brand Ads (Elevator/Official)",
+      "target": "Fresh Food",
+      "value": 250
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Live Streaming (Douyin/Xiaohongshu)",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Fresh Supermarket (Offline Scan/Delivery)",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Community Group (WeChat/Community)",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Brand Ads (Elevator/Official)",
+      "depth": 0,
+      "order": 3
+    },
+    {
+      "name": "Fresh Food",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Beauty & Skincare",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Home & Living",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "Electronics & Appliances",
+      "depth": 1,
+      "order": 3
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Acquisition Channel"
+    },
+    {
+      "depth": 1,
+      "label": "Business Attribution"
+    }
+  ]
+}

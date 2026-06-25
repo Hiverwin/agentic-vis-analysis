@@ -1,0 +1,70 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "01_scatter_vm_19",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/01_scatter_cars.json",
+  "questions": [
+    {
+      "qid": "vm_19",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans in order to know How do cars from different origins (USA, Japan, Europe) compare in terms of their horsepower and fuel efficiency relationship?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Japanese cars show best fuel efficiency with lower horsepower (average 30.45 MPG at 79.84 HP), European cars have moderate efficiency with lower horsepower (27.60 MPG at 80.56 HP), while USA cars have lowest fuel efficiency with significantly higher horsepower (20.03 MPG at 119.05 HP). The data shows a clear negative correlation between horsepower and fuel efficiency across all origins, with Japanese cars clustering in the high-efficiency low-horsepower region, USA cars in the low-efficiency high-horsepower region, and European cars in between.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Strong negative correlation between horsepower and MPG",
+          "Japanese cars have best fuel efficiency with lowest horsepower",
+          "USA cars have lowest fuel efficiency with highest horsepower",
+          "European cars show intermediate characteristics",
+          "Three distinct clusters based on origin"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate overall correlation between horsepower and fuel efficiency to understand the relationship"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Identify clusters in the data to see how cars group by origin"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Horsepower",
+            "y": "Miles_per_Gallon",
+            "color": "Origin"
+          }
+        }
+      }
+    }
+  ]
+}

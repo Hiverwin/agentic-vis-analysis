@@ -1,0 +1,86 @@
+{
+  "benchmark_id": "64_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "What are the price trends of fake and real trees and is there a correlation between the price changes of the two tree types over the years?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The price changes of fake and real trees are positively correlated, as both increase over time"
+        },
+        "key_insights": [
+          "Both tree types follow an upward trajectory, but fake trees are consistently more expensive.",
+          "The price changes of fake and real trees are positively correlated, as both increase over time."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "Adjusting the color scale improves visual compariso"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.rows.inspect",
+            "rationale": "extracting the data allows for a more precise correlation analysis"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.colorScale.adjust",
+          "data.rows.inspect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "reds"
+              }
+            }
+          },
+          {
+            "capability": "data.rows.inspect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "color_scale": {
+              "scheme": "reds"
+            }
+          }
+        },
+        "state_check_fields": [
+          "color_scale"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "64_US Christmas Tree Sales _heatmap",
+    "dataset_path": "datasets/64_US Christmas Tree Sales _heatmap.json",
+    "row_count": 14,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

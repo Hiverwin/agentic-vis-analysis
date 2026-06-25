@@ -1,0 +1,85 @@
+{
+  "benchmark_id": "51_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "01_scatter_cm_01：Use calculate_correlation with parameter equal to horsepower and miles per gallon, identify_clusters to assess whether the main clusters correspond highly to the Origin label.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Cluster 2 has the highest average cost, and the correlation is negative (-0.13)",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between weight and cost"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Identify clusters to analyze average cost per cluster"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "cluster_field": {
+              "color_field_contains": "cluster"
+            }
+          }
+        },
+        "state_check_fields": [
+          "cluster_field"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "51_Train_scatter",
+    "dataset_path": "datasets/51_Train_scatter.json",
+    "row_count": 10999,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/51_Train_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

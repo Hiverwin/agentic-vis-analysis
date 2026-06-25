@@ -1,0 +1,95 @@
+{
+  "benchmark_id": "31_line_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use show_moving_average with window_size equal to 5, zoom_x_region with start from 2021-10-01 to 2022-02-28 to characterize the overall direction of the trend.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Short-term fluctuations are filtered out, revealing a clear upward trend into November 2021, followed by a decline.It shows a distinct rise to a peak, followed by a consistent downward trend through February 2022.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.movingAverage.show",
+            "rationale": "Smoothing removes noise to clarify the core trend, closing the gap between raw volatility and the true directional pattern. This provides a stable baseline for analyzing the target interval."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "The rate of decline after the peak is slightly slower than the rate of ascent before it."
+          }
+        ],
+        "required_capabilities": [
+          "line.movingAverage.show",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.movingAverage.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "window_size": 5
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2021-10-01",
+                "end": "2022-02-28"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {},
+          "view": {
+            "xDomain": [
+              "2021-10-01",
+              "2022-02-28"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "has_type": "line"
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "31_TSLA_Stock_line",
+    "dataset_path": "datasets/31_TSLA_Stock_line.json",
+    "row_count": 254,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/31_TSLA_Stock_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

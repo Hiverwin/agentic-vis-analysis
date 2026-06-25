@@ -1,0 +1,125 @@
+{
+  "benchmark_id": "16_bar_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use sort_bars with order equal to descending and use filter_subcategories with subcategories_to_remove equal to Canada, UK, India and use highlight_top_n with n equal to 2 and use change_encoding with field equal to Country in order to know Analyze the chocolate sales performance across sales persons and countries, identifying key patterns and top performers",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The chocolate sales data reveals Karlen McCaffrey as the top performer with 209.6 average boxes shipped, followed by Jan Morforth (199.7) and Dotty Strutley (193.8). Canada leads in country performance with 181.3 average boxes, ahead of UK (173.3) and India (163.0). The data shows significant variation in sales performance across both sales persons and countries, with top performers consistently outperforming others by meaningful margins. This suggests effective sales strategies or market conditions that could be analyzed further.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Karlen McCaffrey is top sales person",
+          "Canada has highest average sales",
+          "Significant performance variation across sales persons",
+          "Regional differences in sales performance"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort sales persons by performance to identify top performers"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter by country to analyze regional differences"
+          },
+          {
+            "iteration": 3,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top 5 sales persons to focus on key performers"
+          },
+          {
+            "iteration": 4,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to view country-level performance"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "data.filter.subcategory",
+          "ranking.topN.highlight",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Canada",
+                  "UK",
+                  "India"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Country"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Sales Person",
+            "y": "Boxes Shipped",
+            "color": "Country"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "16_bar_Chocolate Sales",
+    "dataset_path": "datasets/16_bar_Chocolate Sales.json",
+    "row_count": 3282,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

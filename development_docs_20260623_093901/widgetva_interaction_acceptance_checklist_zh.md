@@ -1,7 +1,55 @@
+# 验收前准备
+
+本文档默认协作者已经具备以下环境：
+- Git
+- Node.js 20+
+- npm
+- Chrome
+
+下面统一使用一个本地工作目录变量：
+
+```bash
+export WIDGETVA_ROOT=/path/to/agentic-visual-reframe
+```
+
+例如：
+
+```bash
+export WIDGETVA_ROOT=~/workspace/agentic-visual-reframe
+```
+
+# 拉取仓库
+
+如果协作者需要完整拉取整个仓库，可执行：
+
+```bash
+git clone <你的仓库地址> "$WIDGETVA_ROOT"
+```
+
+如果协作者只需要本次 widget abstraction 验收所需内容，建议使用 sparse checkout，仅拉取验收相关目录：
+
+```bash
+git clone --filter=blob:none --no-checkout <你的仓库地址> "$WIDGETVA_ROOT"
+cd "$WIDGETVA_ROOT"
+git sparse-checkout init --cone
+git sparse-checkout set \
+  apps/widgetva-system \
+  widgetva-kit \
+  development_docs_20260623_093901 \
+  README.md \
+  .gitignore
+git checkout
+```
+
+说明：
+- `apps/widgetva-system`：Chrome extension 与验收运行入口
+- `widgetva-kit`：widget abstraction / integration 核心实现
+- `development_docs_20260623_093901`：验收文档与开发文档
+
 # 初始执行步骤
 
 ```bash
-cd /Users/chenyutong/Desktop/agentic-visual-reframe/apps/widgetva-system
+cd "$WIDGETVA_ROOT/apps/widgetva-system"
 ```
 
 ```bash
@@ -17,7 +65,7 @@ npm run build:extension
 3. 首次加载时点击 `加载已解压的扩展程序`，选择：
 
 ```text
-/Users/chenyutong/Desktop/agentic-visual-reframe/apps/widgetva-system/extension/dist
+$WIDGETVA_ROOT/apps/widgetva-system/extension/dist
 ```
 
 4. 后续代码更新后点击扩展卡片上的刷新按钮
@@ -32,44 +80,7 @@ window.__widgetVA
 验收标准：
 - 返回不是 `undefined`
 
-# Observable D3 结构确认方法
 
-适用页面：  
-[https://observablehq.com/@d3/scatterplot](https://observablehq.com/@d3/scatterplot)
-
-先不要直接看 brush 是否成功，而是先确认 WidgetVA 当前抓到的是否就是用户眼前那张图。
-
-在 `DevTools -> Console` 中执行：
-
-```js
-await window.__widgetVAObservableD3Debug?.()
-```
-
-需要重点查看：
-- `route`
-- `surface.surfaceTag`
-- `surface.inferredKind`
-- `surfaceRect.width`
-- `surfaceRect.height`
-- `markCount`
-- `rowSummary.count`
-
-然后执行：
-
-```js
-await window.__widgetVAObservableD3Probe?.()
-```
-
-验收标准：
-- 页面上出现明显的红色虚线大边框
-- 左上角出现 `WidgetVA Probe`
-- 红框准确覆盖用户眼前那张散点图
-
-只有在这一步通过后，才继续检查 brush / highlight / zoom 的视觉反馈。
-
-这一步的原则是：
-- 先确认“抓到的结构就是可见图层”
-- 再确认“交互是否在这个图层上生效”
 
 # `bar.selectCategory`
 

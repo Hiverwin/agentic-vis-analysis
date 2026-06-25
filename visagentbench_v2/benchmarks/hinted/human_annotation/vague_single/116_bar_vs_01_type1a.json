@@ -1,0 +1,64 @@
+{
+  "benchmark_id": "116_bar_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "First apply toggle_stack_mode(mode=grouped). Then compare within each country how the AI industry segment stacks against other industries: list which countries show meaningful AI raised amount versus those where AI is minor relative to Finance/Technology in the grouped view. Ground country names and comparisons only in what is visible.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "After toggle_stack_mode(mode=grouped), compare each country’s AI bar to Finance and Tech side by side (same grouped view). Germany and the USA stand out: AI raised amounts exceed the combined Finance+Tech total (Germany ≈7.6B vs ≈6.6B; USA ≈9.2B vs ≈6.8B USD in the encoded data), so AI is a dominant slice versus those two industries. Australia, Canada, France, and India show the opposite pattern—AI is clearly smaller than Finance alone and than Finance+Tech together (e.g. India AI ≈5.1B vs Finance ≈7.0B). Netherlands and the UK sit in between: AI is comparable to Finance/Tech individually but does not dominate the pair. These contrasts are read from the grouped industry bars by country only."
+        },
+        "key_insights": [
+          "Germany and USA are the two countries where AI funding visibly exceeds Finance+Tech combined in the grouped bars.",
+          "Australia, Canada, France, and India show AI as a minority versus Finance (and versus Finance+Tech together)."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stackMode.set",
+            "rationale": "get the grouped chart"
+          }
+        ],
+        "required_capabilities": [
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "116_startup_funding_dataset_bar",
+    "dataset_path": "datasets/116_startup_funding_dataset_bar.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

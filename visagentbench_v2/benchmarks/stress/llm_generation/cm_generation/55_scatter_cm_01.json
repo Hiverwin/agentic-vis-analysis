@@ -1,0 +1,86 @@
+{
+  "benchmark_id": "55_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "22_scatter_cm_01：Use change_encoding to change y axis with field equal to YearsAtCompany, calculate_correlation with method equal to pearson. What is correlation between DistanceFromHome and YearsAtCompany.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "0.0072",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change color encoding to Service Rating to visualize rating distribution"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate Pearson correlation coefficient between Delivery Time and Order Value"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "channel",
+                "field": "color"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Delivery Time (Minutes)",
+            "y": "Order Value (INR)",
+            "color": "Service Rating",
+            "size": "Service Rating"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "55_Ecommerce_Delivery_Analytics_New_scatter",
+    "dataset_path": "datasets/55_Ecommerce_Delivery_Analytics_New_scatter.json",
+    "row_count": 100000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/55_Ecommerce_Delivery_Analytics_New_scatter.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

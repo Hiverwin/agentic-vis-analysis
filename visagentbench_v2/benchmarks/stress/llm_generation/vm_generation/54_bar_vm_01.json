@@ -1,0 +1,88 @@
+{
+  "benchmark_id": "54_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use change_encoding with field equal to Service Rating in order to know How do the three delivery platforms compare in terms of average delivery time and service ratings, and what insights can you draw about their performance?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "All three platforms show remarkably similar performance metrics. Swiggy Instamart and Blinkit both average 29.5 minutes delivery time with ratings of 3.24 and 3.23 respectively, while JioMart averages 29.6 minutes with a rating of 3.25. The differences are negligible, suggesting a highly competitive market where all platforms have optimized their delivery operations. The similar ratings indicate consistent service quality across platforms.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "All platforms have nearly identical delivery times around 29.5 min",
+          "Service ratings are also very similar at 3.23-3.25",
+          "Market appears highly competitive with optimized operations",
+          "Consistent service quality across all platforms"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to compare delivery times across platforms"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to analyze service rating distribution"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Service Rating"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Platform",
+            "y": "Delivery Time (Minutes)",
+            "color": "Service Rating"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "54_Ecommerce_Delivery_Analytics_New_bar",
+    "dataset_path": "datasets/54_Ecommerce_Delivery_Analytics_New_bar.json",
+    "row_count": 100000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/54_Ecommerce_Delivery_Analytics_New_bar.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

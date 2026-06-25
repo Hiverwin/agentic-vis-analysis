@@ -1,0 +1,83 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "76_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/76_Refined_Employment_Telecom_Services_NA_line.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "How do employment trends differ in America and what periods of unusual activity are characterized?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The U.S. employment drop from 1,780 to 1,510 thousand between 2003 and 2005 is confirmed as the most dramatic event in the dataset.The most significant anomaly is the sharp drop in U.S. employment around 2003, which is not mirrored by any other country."
+        },
+        "key_insights": [
+          "Mexico shows a small, consistent upward trend with no detected anomalies, indicating stable growth.",
+          "The smallest countries (Grenada, Barbados) exhibit no anomalies, as their employment levels remain near zero with minimal fluctuation.",
+          "The results show that the largest economy (U.S.) experienced the most dramatic fluctuations, while smaller economies remained stable."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "detect_anomalies",
+            "reasoning": "It allows us to compare the resilience and volatility of economies at different scales."
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_x_region",
+            "reasoning": "Zooming time range allows us to analyze the trend from 2002 to 2005 in the USA."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "detect_anomalies",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "threshold": 2
+                }
+              }
+            },
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2003",
+                  "end": "2005"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "count": 2,
+            "types": [
+              "line",
+              "point"
+            ]
+          },
+          "anomaly_markers": {
+            "has_markers": true,
+            "marker_type": "point"
+          },
+          "visible_domain": {
+            "x": [
+              "2003",
+              "2005"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "anomaly_markers",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

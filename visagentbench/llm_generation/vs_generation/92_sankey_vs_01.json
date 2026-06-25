@@ -1,0 +1,47 @@
+{
+  "task_type": "vague_single",
+  "task_id": "92_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/92_sankey_b2b.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use trace_node with node_name equal to Channel Partner to rank treatments by overall utilization efficiency in order to know how do treatments rank by overall utilization efficiency?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Channel Partner demonstrates the most diverse distribution across product lines, with significant flows to Customized Solution (46.9%), Data Middleware Product (24.6%), Maintenance Service (17.7%), and Enterprise SaaS Platform (10.8%), showing a well-balanced multi-product approach",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Channel Partner has the highest total flow at 13000",
+          "Channel Partner shows balanced distribution across 4 different product lines",
+          "Other sources tend to focus more heavily on specific product lines"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Use trace_node with node_name equal to Channel Partner to analyze its flow distribution across all product lines and evaluate which source shows the most diverse distribution"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Channel Partner"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

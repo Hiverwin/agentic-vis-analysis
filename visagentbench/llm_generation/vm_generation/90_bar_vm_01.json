@@ -1,0 +1,71 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "90_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/90_Train_bar.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know What insights can be derived from the relationship between product importance, customer care calls, and discount offerings?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The data reveals an interesting pattern: high-importance products receive the highest average discount (14.67), while low-importance products receive the lowest (13.04). There is also a clear inverse relationship between customer care calls and discounts - products with only 2 customer care calls average 16.77 discount, while those with 7 calls average only 6.46. This suggests that products requiring more customer support attention receive lower discounts, possibly as a cost-offsetting measure. High-importance products also have fewer average customer care calls (3.87) compared to low-importance products (4.11), indicating better customer satisfaction or fewer issues.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "High-importance products get highest discounts (14.67 avg)",
+          "low-importance get lowest (13.04 avg)",
+          "Inverse relationship: more customer calls correlates with lower discounts (2 calls=16.77 discount",
+          "7 calls=6.46 discount)",
+          "High-importance products have fewer customer care calls (3.87 avg vs 4.11 for low-importance)",
+          "Suggests quality products need less support and can offer better discounts"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to visualize the discount distribution across product importance levels"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight the top categories to focus on the highest discount offerings and their characteristics"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Product_importance",
+            "y": "Discount_offered",
+            "color": "Customer_care_calls"
+          }
+        }
+      }
+    }
+  ]
+}

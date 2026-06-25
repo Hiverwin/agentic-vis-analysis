@@ -1,0 +1,56 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "99_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "102_sankey_cm_01：Use trace_node with node_name equal to Upgraded (Pro), calculate_conversion_rate with node_name equal to Upgraded (Pro) to highlight all connected flows and compute the conversion rate from Upgraded (Pro) to Renewed.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Infrastructure as a Service (IaaS)",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace cloud service nodes"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": " Calculate conversion rate for cloud services"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "IaaS"
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {}
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

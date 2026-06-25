@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "100_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Using auto_collapse_by_rank, how does this simplified view change the perceived importance of different diagnostic tests in the overall patient journey?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The auto collapse by rank tool simplified the Diagnostics layer by folding low-volume tests into an \"Others\" category. This made the most common tests (Blood Panel, CT Scan) visually prominent, but it also changed how we perceive the importance of other diagnostics. While Blood Panel and CT Scan are indeed the most frequently used, the collapsed view hides the critical, specialized role of other tests for specific patient groups. This reveals a key tradeoff in data visualization: simplification can enhance clarity, but it can also mask important nuance in the overall patient journey."
+        },
+        "key_insights": [
+          "The simplified view makes Blood Panel (740 pts) and CT Scan (600 pts) appear as the dominant diagnostic choices, as they are the only explicitly visible nodes in the Diagnostics layer. All other tests (MRI, Ultrasound, X-Ray) are aggregated into the \"Others (Layer 2)\" node (760 pts), making them seem less important visually."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.node.collapse",
+            "rationale": "As the question ask to do so"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.node.collapse"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 2
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Emergency",
+                "Outpatient Appt",
+                "Referral-In",
+                "Internal Med",
+                "Surgery",
+                "Pediatrics",
+                "Cardiology",
+                "Blood Panel",
+                "CT Scan",
+                "MRI",
+                "Ultrasound",
+                "X-Ray",
+                "Medication",
+                "Surgery Tx",
+                "Observation",
+                "Physical Therapy",
+                "Cured & Discharged",
+                "Home Recovery",
+                "Transfer to Rehab",
+                "Transfer to ICU"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "100_sankey_patient",
+    "dataset_path": "datasets/100_sankey_patient.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/100_sankey_patient.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

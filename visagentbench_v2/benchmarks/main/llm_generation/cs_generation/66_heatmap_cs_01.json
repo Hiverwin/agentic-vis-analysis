@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "66_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use add_marginal_bars in order to know Use add_marginal_bars with show_top equal to True, show_right equal to True to determine which smoking status has the highest average vitamin C percentage.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Former",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.marginals.add",
+            "rationale": "Add marginal bars to visualize the average vitamin C percentage by smoking status and identify the highest one"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "op": "mean",
+                "show_top": true,
+                "show_right": true,
+                "bar_size": 70,
+                "bar_color": "#666666"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 3,
+              "has_type": "bar"
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "66_vitamin_deficiency_disease_dataset_heatmap",
+    "dataset_path": "datasets/66_vitamin_deficiency_disease_dataset_heatmap.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

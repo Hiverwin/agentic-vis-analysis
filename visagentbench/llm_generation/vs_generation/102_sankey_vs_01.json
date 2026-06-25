@@ -1,0 +1,51 @@
+{
+  "task_type": "vague_single",
+  "task_id": "102_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/102_sankey_saas.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use color_flows with color equal to value, nodes equal to Payment to characterize the distribution of traffic flowing to payment in order to know what is the distribution of traffic flowing to payment?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Referral is the best quality acquisition channel, generating 60% high-engagement users (240 out of 400). Organic search follows with 51.7% high-engagement users (310 out of 600). Google Ads produces 32.7% high-engagement users (180 out of 550), while Social Media has the lowest quality at 23.3% (70 out of 300).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Referral has highest proportion of high-engagement users at 60%",
+          "Organic search is second best at 51.7% high-engagement",
+          "Google Ads and Social Media have lower engagement quality"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "color_flows",
+            "reasoning": "Color the Referral flow to highlight its high-quality user acquisition pattern and compare with other channels"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "color_flows",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "nodes": [
+                    "#4CAF50",
+                    "Referral"
+                  ],
+                  "color": "#e74c3c"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

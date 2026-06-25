@@ -1,0 +1,105 @@
+{
+  "benchmark_id": "32_scatter_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans and use show_regression with method equal to linear in order to know How do smoking status, BMI, and number of children collectively influence insurance charges, and what patterns emerge from their interactions?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Smoking status has the most dramatic impact on insurance charges, with smokers averaging $32,050.23 compared to non-smokers at $8,434.27. BMI shows a positive correlation with charges, where higher BMI generally corresponds to higher insurance costs. The number of children has a more modest but still positive relationship with charges. The interaction between smoking and BMI appears particularly significant, as smokers with high BMI tend to have the highest charges overall, suggesting that smoking status acts as a primary cost multiplier while BMI and children contribute additional factors to the pricing model.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Smoking status is the dominant factor in insurance pricing with nearly 4x difference between smokers and non-smokers",
+          "BMI shows positive correlation with insurance charges indicating higher body mass index leads to higher costs",
+          "Number of children has moderate positive relationship with charges",
+          "The combination of smoking and high BMI results in the highest insurance charges overall"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Use calculate_correlation to measure the strength of relationship between BMI and insurance charges"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Use identify_clusters to discover natural groupings in the data based on all variables"
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.regression.show",
+            "rationale": "Use show_regression to visualize the linear relationship between BMI and charges"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute",
+          "analysis.clusters.identify",
+          "analysis.regression.show"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          },
+          {
+            "capability": "analysis.regression.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "linear"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "bmi",
+            "y": "charges",
+            "color": "smoker",
+            "size": "children"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "32_insurance_scatter",
+    "dataset_path": "datasets/32_insurance_scatter.json",
+    "row_count": 1338,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

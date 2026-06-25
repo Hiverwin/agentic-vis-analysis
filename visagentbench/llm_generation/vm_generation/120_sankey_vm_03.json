@@ -1,0 +1,84 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "120_sankey_vm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/120_startup_Funding_sankey.json",
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Use calculate_conversion_rate with node_name equal to Operating Fund and use filter_flow with min_value equal to 5000.0 and use highlight_path with path equal to Series B VC, Operating Fund, Engineering in order to know How does the Series B startup allocate its funding across different operational areas? What are the key spending priorities and cash flow patterns?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The Series B startup manages $50M total capital with clear allocation priorities. Series B VC contributes $35M (70%), with $28M going to Operating Fund and $7M to Reserve Fund. Series A (Prior) adds $10M, and Revenue contributes $4.5M. The Operating Fund ($41M total) allocates spending as: Engineering ($16.4M, 40%), Sales & Marketing ($12.3M, 30%), G&A ($6.15M, 15%), Product ($4.1M, 10%), and Customer Success ($2.05M, 5%). Salaries represent the largest expense category at $25.83M, split between Team Growth ($15.93M) and Talent Retention ($9.9M). The company maintains $9M in Reserve Fund and $5.4M Emergency Buffer for risk mitigation. With $6.3M allocated to Cash Runway and $900K to Runway Extension, the startup targets a 24-month runway. Engineering receives the highest operational funding, emphasizing product development as the core priority.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Series B VC contributes 70% of total capital",
+          "Engineering receives 40% of operating funds",
+          "Salaries account for 63% of total burn",
+          "Reserve Fund maintains 18% of capital",
+          "Company targets 24-month runway with $6.3M allocation"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Calculate conversion rate at Operating Fund to understand fund allocation efficiency"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_flow",
+            "reasoning": "Filter flows with minimum $5000K to focus on major capital movements"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_path",
+            "reasoning": "Highlight the path from Series B VC through Operating Fund to Engineering to see the primary investment flow"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Operating Fund"
+                }
+              }
+            },
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 5000.0
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Series B VC",
+                    "Operating Fund",
+                    "Engineering"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

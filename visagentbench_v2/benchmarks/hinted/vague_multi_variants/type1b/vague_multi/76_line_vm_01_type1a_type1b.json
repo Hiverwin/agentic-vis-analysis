@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "76_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using zoom_x_region and detect_anomalies, how do employment trends differ in America and what periods of unusual activity are identified?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The U.S. employment drop from 1,780 to 1,510 thousand between 2003 and 2005 is confirmed as the most dramatic event in the dataset.The most significant anomaly is the sharp drop in U.S. employment around 2003, which is not mirrored by any other country."
+        },
+        "key_insights": [
+          "Mexico shows a small, consistent upward trend with no detected anomalies, indicating stable growth.",
+          "The smallest countries (Grenada, Barbados) exhibit no anomalies, as their employment levels remain near zero with minimal fluctuation.",
+          "The results show that the largest economy (U.S.) experienced the most dramatic fluctuations, while smaller economies remained stable."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "It allows us to compare the resilience and volatility of economies at different scales."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "Zooming time range allows us to analyze the trend from 2002 to 2005 in the USA."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.anomalies.detect",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "threshold": 2
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2003",
+                "end": "2005"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "2003",
+              "2005"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "types": [
+                "line",
+                "point"
+              ]
+            },
+            "anomaly_markers": {
+              "has_markers": true,
+              "marker_type": "point"
+            }
+          }
+        },
+        "state_check_fields": [
+          "anomaly_markers",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "76_Refined_Employment_Telecom_Services_NA_line",
+    "dataset_path": "datasets/76_Refined_Employment_Telecom_Services_NA_line.json",
+    "row_count": 113,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/76_Refined_Employment_Telecom_Services_NA_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

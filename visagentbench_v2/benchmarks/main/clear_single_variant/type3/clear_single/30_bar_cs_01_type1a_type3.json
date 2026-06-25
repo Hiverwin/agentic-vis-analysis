@@ -1,0 +1,69 @@
+{
+  "benchmark_id": "30_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What is the combination with the highest mean vitamin D percent RDA: moderate sun exposure and Vegan diet or Low sun exposure and Vegetarian diet?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "moderate sun exposure and Vegan diet",
+          "alternatives": [
+            "Moderate sun exposure and Vegan diet"
+          ]
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stackMode.set",
+            "rationale": "Use the toggle stack mode tool to switch the view to grouped in order to see the comparison of mean vitamin D percent RDA."
+          }
+        ],
+        "required_capabilities": [
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "categorical",
+              "param": "mode",
+              "target": "grouped"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "sun_exposure",
+            "y": "vitamin_d_percent_rda",
+            "color": "diet_type"
+          },
+          "viewMode": {
+            "stackMode": "stacked"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "30_vitamin_deficiency_disease_dataset_20260123_bar",
+    "dataset_path": "datasets/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

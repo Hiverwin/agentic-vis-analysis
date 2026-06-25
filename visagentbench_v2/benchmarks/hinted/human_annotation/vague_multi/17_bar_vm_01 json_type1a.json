@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "17_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_03",
+      "question": "First remap encoding using `Sex`; then apply `reset_view`; then apply `toggle_stack_mode`. In the updated bar view, analyze category-level pattern shifts: ranking changes, widening or narrowing gaps, and standout groups. Explain what is newly visible after interaction versus the original chart, with explicit category evidence.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Observations revealed that among individuals without heart disease, cholesterol levels were similar between men and women. However, among those with heart disease, men exhibited significantly higher cholesterol levels. Regarding chest pain types, individuals with chest pain type 3 had the highest cholesterol levels among those without heart disease, while those with chest pain type 4 had the highest cholesterol levels among heart disease patients. It was also found that among individuals with heart disease, cholesterol levels increased with higher chest pain severity grades. However, no significant pattern was observed among those without heart disease."
+        },
+        "key_insights": [
+          "After adjusting the coloring, it becomes evident that among individuals without heart disease, men and women have similarly high cholesterol levels, each accounting for nearly half of the total.",
+          "However, among individuals with heart disease, men's cholesterol levels are significantly higher than women's.",
+          "Resetting the view clearly shows that among individuals without heart disease, cholesterol levels are highest in those with chest pain type 3; among those with heart disease, cholesterol levels are highest in those with chest pain type 4.",
+          "It was discovered that the total cholesterol levels in individuals without heart disease were actually higher than those in individuals with heart disease.",
+          "The cholesterol levels of individuals without heart disease who experience Type 1 chest pain appear to be comparable to those of individuals with heart disease who experience Type 3 chest pain.",
+          "The cholesterol levels of individuals with heart disease and chest pain type 1 are indeed comparable to those of individuals with heart disease and chest pain type 3.",
+          "Among individuals with heart disease, cholesterol levels increase progressively according to the type of chest pain, with those experiencing type 4 chest pain exhibiting a distinctly elevated cholesterol level."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "To examine the influence of gender and cholesterol levels on heart disease risk across two patient groups, we first applied color encoding to visualize gender. Subsequently, we reset the view to analyze the relationship between cholesterol levels and heart disease risk in patients with different types of chest pain."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.reset",
+            "rationale": "Stacked bar charts aren't very visually appealing. Switch to group mode to see whether the cholesterol levels of individuals with heart disease and chest pain type 1 are truly comparable to those with heart disease and chest pain type 3."
+          },
+          {
+            "iteration": 3,
+            "capability": "view.stackMode.set",
+            "rationale": "The question has essentially been answered; there's no need to call the tool anymore."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "view.reset",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "color",
+                "field": "Sex"
+              }
+            }
+          },
+          {
+            "capability": "view.reset",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "categorical",
+              "param": "mode",
+              "target": "grouped"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Heart Disease",
+            "y": "Cholesterol",
+            "color": "Chest pain type"
+          },
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding",
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "17_Heart_Disease_Prediction_bar",
+    "dataset_path": "datasets/17_Heart_Disease_Prediction_bar.json",
+    "row_count": 270,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/17_Heart_Disease_Prediction_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

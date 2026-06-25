@@ -1,0 +1,99 @@
+{
+  "benchmark_id": "74_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_subcategories with subcategories_to_remove equal to some college, bachelor's degree, associate's degree, high school, some high school, change_encoding with field equal to gender and channel equal to x to compare the mean math score of females and males among those whose parental level of education is a master's degree.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "Yes."
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Since the issue focuses on the difference in the mean of math scores by gender, change encoding is used to set the channel to x and the field to gender."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "Since the question focuses on people whose parental level of education is a master's degree, the filter subcategories tool is used to remove other levels of education."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "gender",
+                "channel": "x"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "some college",
+                  "bachelor's degree",
+                  "associate's degree",
+                  "high school",
+                  "some high school"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "gender",
+            "y": "math score",
+            "color": "parental level of education"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['parental level of education'] != \"some college\" && datum['parental level of education'] != \"bachelor's degree\" && datum['parental level of education'] != \"associate's degree\" && datum['parental level of education'] != \"high school\" && datum['parental level of education'] != \"some high school\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "74_StudentsPerformance_bar",
+    "dataset_path": "datasets/74_StudentsPerformance_bar.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

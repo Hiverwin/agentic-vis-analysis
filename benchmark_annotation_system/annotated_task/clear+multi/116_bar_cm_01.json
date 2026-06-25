@@ -1,0 +1,72 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "116_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Which industry contributes the most to Germany’s total funding?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "AI",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "expand_stack",
+            "reasoning": "get the data of germany"
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "obtain the answer"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "expand_stack",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "category": "Germany"
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Industry",
+            "y": "Amount Raised (USD)",
+            "color": "Industry"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['Country'] == \"Germany\""
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

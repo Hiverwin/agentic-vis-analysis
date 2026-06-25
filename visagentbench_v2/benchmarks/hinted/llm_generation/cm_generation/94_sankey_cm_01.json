@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "94_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "96_sankey_cm_01：Use collapse_nodes with aggregate_name equal to Overall conversion process, nodes_to_collapse with values Power Generation, Fuel Processing, Direct Heat, and Generation Loss, calculate_conversion_rate with node_name equal to Overall conversion process to compute the overall energy conversion efficiency of this aggregated node.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Fresh Food",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.node.collapse",
+            "rationale": "Collapse smaller nodes to focus on main flows"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate conversion rates to analyze node flows"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.node.collapse",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "nodes_to_collapse": [
+                  "Electronics & Appliances"
+                ],
+                "aggregate_name": "Other"
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Fresh Food"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "hidden_nodes": [
+                "Electronics & Appliances"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "94_sankey_retail",
+    "dataset_path": "datasets/94_sankey_retail.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/94_sankey_retail.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

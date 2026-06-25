@@ -1,0 +1,69 @@
+{
+  "benchmark_id": "36_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What is the correlation coefficient between Radius (mean) and Texture (mean)?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "0.324",
+          "tolerance": 0.05
+        },
+        "key_insights": [
+          "The Pearson correlation coefficient between Radius (mean) and Texture (mean) is approximately 0.324.",
+          "This value represents a weak positive relationship between the two variables.",
+          "The correlation is statistically significant given the p-value from the tool output."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "The calculate_correlation tool was selected to quantify the relationship between Radius (mean) and Texture (mean), which directly addresses the question's goal. The operation returns a clear correlation metric."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Radius (mean)",
+            "y": "Texture (mean)"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "36_cancer_scatter",
+    "dataset_path": "datasets/36_cancer_scatter.json",
+    "row_count": 569,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/36_cancer_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

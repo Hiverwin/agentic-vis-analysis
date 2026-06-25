@@ -1,0 +1,83 @@
+{
+  "benchmark_id": "99_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Which node contributes the least inflow to EC2?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "On-Demand",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Smaller cost flows (<$50K) are removed, simplifying the diagram to focus on major cost drivers.",
+          "Tracing EC2 shows its costs flow through us-east-1, then to Proj Alpha, and finally to the Engineering cost center. This confirms that Engineering is the main cost center responsible for EC2-related expenses."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "used filter flow to remove noise and focus on the most impactful costs"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "used trace node on EC2 to follow its cost allocation path through the layers"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 50
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "EC2"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "99_sankey_cloud",
+    "dataset_path": "datasets/99_sankey_cloud.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

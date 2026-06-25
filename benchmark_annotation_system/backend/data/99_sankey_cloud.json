@@ -1,0 +1,423 @@
+{
+  "rawLinks": [
+    {
+      "source": "On-Demand",
+      "target": "EC2",
+      "value": 82
+    },
+    {
+      "source": "On-Demand",
+      "target": "RDS",
+      "value": 28
+    },
+    {
+      "source": "On-Demand",
+      "target": "Lambda",
+      "value": 22
+    },
+    {
+      "source": "On-Demand",
+      "target": "S3",
+      "value": 15
+    },
+    {
+      "source": "On-Demand",
+      "target": "K8s",
+      "value": 18
+    },
+    {
+      "source": "On-Demand",
+      "target": "Other Svc",
+      "value": 10
+    },
+    {
+      "source": "Reserved",
+      "target": "EC2",
+      "value": 110
+    },
+    {
+      "source": "Reserved",
+      "target": "RDS",
+      "value": 45
+    },
+    {
+      "source": "Reserved",
+      "target": "S3",
+      "value": 12
+    },
+    {
+      "source": "Reserved",
+      "target": "K8s",
+      "value": 30
+    },
+    {
+      "source": "Spot",
+      "target": "EC2",
+      "value": 48
+    },
+    {
+      "source": "Spot",
+      "target": "Lambda",
+      "value": 8
+    },
+    {
+      "source": "Spot",
+      "target": "K8s",
+      "value": 22
+    },
+    {
+      "source": "Savings Plan",
+      "target": "EC2",
+      "value": 35
+    },
+    {
+      "source": "Savings Plan",
+      "target": "Lambda",
+      "value": 15
+    },
+    {
+      "source": "EC2",
+      "target": "us-east-1",
+      "value": 125
+    },
+    {
+      "source": "EC2",
+      "target": "eu-west-1",
+      "value": 85
+    },
+    {
+      "source": "EC2",
+      "target": "ap-northeast-1",
+      "value": 65
+    },
+    {
+      "source": "RDS",
+      "target": "us-east-1",
+      "value": 40
+    },
+    {
+      "source": "RDS",
+      "target": "eu-west-1",
+      "value": 20
+    },
+    {
+      "source": "RDS",
+      "target": "ap-northeast-1",
+      "value": 13
+    },
+    {
+      "source": "Lambda",
+      "target": "us-east-1",
+      "value": 25
+    },
+    {
+      "source": "Lambda",
+      "target": "eu-west-1",
+      "value": 12
+    },
+    {
+      "source": "Lambda",
+      "target": "ap-northeast-1",
+      "value": 8
+    },
+    {
+      "source": "S3",
+      "target": "us-east-1",
+      "value": 15
+    },
+    {
+      "source": "S3",
+      "target": "eu-west-1",
+      "value": 8
+    },
+    {
+      "source": "S3",
+      "target": "ap-northeast-1",
+      "value": 4
+    },
+    {
+      "source": "K8s",
+      "target": "us-east-1",
+      "value": 32
+    },
+    {
+      "source": "K8s",
+      "target": "eu-west-1",
+      "value": 22
+    },
+    {
+      "source": "K8s",
+      "target": "ap-northeast-1",
+      "value": 16
+    },
+    {
+      "source": "Other Svc",
+      "target": "us-east-1",
+      "value": 5
+    },
+    {
+      "source": "Other Svc",
+      "target": "eu-west-1",
+      "value": 3
+    },
+    {
+      "source": "Other Svc",
+      "target": "ap-northeast-1",
+      "value": 2
+    },
+    {
+      "source": "us-east-1",
+      "target": "Proj Alpha",
+      "value": 80
+    },
+    {
+      "source": "us-east-1",
+      "target": "Proj Beta",
+      "value": 62
+    },
+    {
+      "source": "us-east-1",
+      "target": "Shared Infra",
+      "value": 55
+    },
+    {
+      "source": "us-east-1",
+      "target": "Proj Gamma",
+      "value": 45
+    },
+    {
+      "source": "eu-west-1",
+      "target": "Proj Alpha",
+      "value": 40
+    },
+    {
+      "source": "eu-west-1",
+      "target": "Proj Beta",
+      "value": 35
+    },
+    {
+      "source": "eu-west-1",
+      "target": "Shared Infra",
+      "value": 42
+    },
+    {
+      "source": "eu-west-1",
+      "target": "Proj Gamma",
+      "value": 33
+    },
+    {
+      "source": "ap-northeast-1",
+      "target": "Proj Alpha",
+      "value": 25
+    },
+    {
+      "source": "ap-northeast-1",
+      "target": "Proj Beta",
+      "value": 28
+    },
+    {
+      "source": "ap-northeast-1",
+      "target": "Shared Infra",
+      "value": 30
+    },
+    {
+      "source": "ap-northeast-1",
+      "target": "Proj Gamma",
+      "value": 25
+    },
+    {
+      "source": "Proj Alpha",
+      "target": "Engineering",
+      "value": 95
+    },
+    {
+      "source": "Proj Alpha",
+      "target": "Data Team",
+      "value": 50
+    },
+    {
+      "source": "Proj Beta",
+      "target": "Engineering",
+      "value": 55
+    },
+    {
+      "source": "Proj Beta",
+      "target": "Data Team",
+      "value": 40
+    },
+    {
+      "source": "Proj Beta",
+      "target": "Finance Dept",
+      "value": 30
+    },
+    {
+      "source": "Shared Infra",
+      "target": "Engineering",
+      "value": 50
+    },
+    {
+      "source": "Shared Infra",
+      "target": "Data Team",
+      "value": 32
+    },
+    {
+      "source": "Shared Infra",
+      "target": "Finance Dept",
+      "value": 25
+    },
+    {
+      "source": "Shared Infra",
+      "target": "Platform Ops",
+      "value": 20
+    },
+    {
+      "source": "Proj Gamma",
+      "target": "Engineering",
+      "value": 35
+    },
+    {
+      "source": "Proj Gamma",
+      "target": "Data Team",
+      "value": 38
+    },
+    {
+      "source": "Proj Gamma",
+      "target": "Finance Dept",
+      "value": 15
+    },
+    {
+      "source": "Proj Gamma",
+      "target": "Platform Ops",
+      "value": 15
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "On-Demand",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Reserved",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Spot",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Savings Plan",
+      "depth": 0,
+      "order": 3
+    },
+    {
+      "name": "EC2",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "RDS",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Lambda",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "S3",
+      "depth": 1,
+      "order": 3
+    },
+    {
+      "name": "K8s",
+      "depth": 1,
+      "order": 4
+    },
+    {
+      "name": "Other Svc",
+      "depth": 1,
+      "order": 5
+    },
+    {
+      "name": "us-east-1",
+      "depth": 2,
+      "order": 0
+    },
+    {
+      "name": "eu-west-1",
+      "depth": 2,
+      "order": 1
+    },
+    {
+      "name": "ap-northeast-1",
+      "depth": 2,
+      "order": 2
+    },
+    {
+      "name": "Proj Alpha",
+      "depth": 3,
+      "order": 0
+    },
+    {
+      "name": "Proj Beta",
+      "depth": 3,
+      "order": 1
+    },
+    {
+      "name": "Shared Infra",
+      "depth": 3,
+      "order": 2
+    },
+    {
+      "name": "Proj Gamma",
+      "depth": 3,
+      "order": 3
+    },
+    {
+      "name": "Engineering",
+      "depth": 4,
+      "order": 0
+    },
+    {
+      "name": "Data Team",
+      "depth": 4,
+      "order": 1
+    },
+    {
+      "name": "Finance Dept",
+      "depth": 4,
+      "order": 2
+    },
+    {
+      "name": "Platform Ops",
+      "depth": 4,
+      "order": 3
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Purchase Option"
+    },
+    {
+      "depth": 1,
+      "label": "AWS Service"
+    },
+    {
+      "depth": 2,
+      "label": "Region"
+    },
+    {
+      "depth": 3,
+      "label": "Project / Tag"
+    },
+    {
+      "depth": 4,
+      "label": "Cost Center"
+    }
+  ]
+}

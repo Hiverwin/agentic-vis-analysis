@@ -1,0 +1,96 @@
+{
+  "benchmark_id": "101_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use filter_flow with min_value equal to 50 to characterize the overall trend of credit grade changes after one year for all the origination ratings.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "For all the origination ratings, the overall credit grade remained largely unchanged after one year."
+        },
+        "key_insights": [
+          "For all the initial ratings, the overall credit grade remained largely unchanged after one year."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "Use tools to eliminate the streams with smaller values and analyze the overall trend."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 50
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "AAA Orig",
+                "AA Orig",
+                "A Orig",
+                "BBB Orig",
+                "Junk Orig",
+                "AAA Y1",
+                "AA Y1",
+                "A Y1",
+                "BBB Y1",
+                "Junk Y1",
+                "Default Y1",
+                "Paid Off Y1",
+                "AAA Y2",
+                "AA Y2",
+                "A Y2",
+                "BBB Y2",
+                "Junk Y2",
+                "Default Y2",
+                "Paid Off Y2",
+                "AAA Y3",
+                "AA Y3",
+                "A Y3",
+                "BBB Y3",
+                "Junk Y3",
+                "Default Y3",
+                "Paid Off Y3"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "101_sankey_credit",
+    "dataset_path": "datasets/101_sankey_credit.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/101_sankey_credit.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

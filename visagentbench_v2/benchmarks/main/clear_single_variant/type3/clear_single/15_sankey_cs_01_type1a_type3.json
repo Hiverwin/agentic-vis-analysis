@@ -1,0 +1,62 @@
+{
+  "benchmark_id": "15_sankey_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Which type of revenue source is the largest source of funds?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Personal income tax.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "Use tool to get which type of revenue source is the largest source of funds."
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "15_sankey_government",
+    "dataset_path": "datasets/15_sankey_government.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

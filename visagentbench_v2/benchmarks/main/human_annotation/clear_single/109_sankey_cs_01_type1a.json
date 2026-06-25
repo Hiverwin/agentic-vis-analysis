@@ -1,0 +1,62 @@
+{
+  "benchmark_id": "109_sankey_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use calculate_conversion_rate with node_name equal to Payment Success. What is the largest inflow value for Payment Success?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "4500",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Use calculate_conversion_rate with node_name equal to Payment Success. The upstream list gives inflow values from each source; the largest is 4500."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Payment Success"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "109_sankey_seo",
+    "dataset_path": "datasets/109_sankey_seo.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/109_sankey_seo.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

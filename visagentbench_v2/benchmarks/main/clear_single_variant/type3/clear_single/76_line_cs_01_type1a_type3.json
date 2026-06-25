@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "76_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What was the nature of employment changes across America between 2019 and 2021?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "boolean",
+          "value": "Yes."
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "The single zoom action reveals that only the largest economy (the U.S.) showed a notable dip, while others remained stable or grew."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2019",
+                "end": "2021"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Employment_Thousands",
+            "color": "Country"
+          },
+          "view": {
+            "xDomain": [
+              "2019",
+              "2021"
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "76_Refined_Employment_Telecom_Services_NA_line",
+    "dataset_path": "datasets/76_Refined_Employment_Telecom_Services_NA_line.json",
+    "row_count": 113,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/76_Refined_Employment_Telecom_Services_NA_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

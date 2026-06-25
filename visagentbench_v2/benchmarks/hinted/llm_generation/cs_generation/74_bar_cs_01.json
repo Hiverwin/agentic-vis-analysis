@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "74_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use highlight_top_n in order to know Use highlight_top_n with n equal to 3 to identify which race-ethnicity group has the highest average math score among the top 3 groups.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "group E",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight the top 3 race-ethnicity groups to identify the one with the highest average math score"
+          }
+        ],
+        "required_capabilities": [
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "74_StudentsPerformance_bar",
+    "dataset_path": "datasets/74_StudentsPerformance_bar.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

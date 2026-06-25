@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "114_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "What is the relationship between discount percentage and units sold in retail stores?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "NO"
+        },
+        "key_insights": [
+          "no",
+          "no"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "filter the retail one"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "filter the online one"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "sales_channel",
+                "values": [
+                  "Retail Store"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "sales_channel",
+                "values": [
+                  "Online"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Online\"], datum['sales_channel']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "114_sport_life_parallel",
+    "dataset_path": "datasets/114_sport_life_parallel.json",
+    "row_count": 36354,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/114_sport_life_parallel.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

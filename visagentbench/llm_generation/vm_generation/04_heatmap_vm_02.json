@@ -1,0 +1,89 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "04_heatmap_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/04_heatmap_temp.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use highlight_region_by_value and use add_marginal_bars with show_top equal to True, show_right equal to True in order to know How do temperature patterns differ across Seattle, Miami, and Denver throughout the first half of the year, and what insights can be drawn from the heatmap?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Miami shows consistently highest temperatures with average of 26.17 and range from 22 to 31, maintaining warm conditions throughout January to June. Seattle demonstrates moderate temperatures with average of 13.83 and range from 8 to 21, showing gradual warming from winter to summer. Denver exhibits most extreme variation with lowest average of 11.00 and widest range from 2 to 23, experiencing dramatic temperature swings from freezing winter to warm summer. The heatmap reveals clear geographical climate differences: Miami as consistently warm, Seattle as moderately temperate, and Denver as highly variable with cold winters and warm summers.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Miami has consistently highest temperatures",
+          "Denver shows most extreme temperature variation",
+          "Seattle maintains moderate temperate conditions",
+          "Geographical climate differences are clearly visible",
+          "All cities show warming trend from January to June"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Find extreme temperatures to identify hottest and coldest points"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_region_by_value",
+            "reasoning": "Highlight regions above certain temperature to see warm areas"
+          },
+          {
+            "iteration": 3,
+            "tool": "add_marginal_bars",
+            "reasoning": "Add marginal bars to compare city averages"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            },
+            {
+              "tool": "highlight_region_by_value",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "outside_opacity": 0.12
+                }
+              }
+            },
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "op": "mean",
+                  "show_top": true,
+                  "show_right": true,
+                  "bar_size": 70,
+                  "bar_color": "#666666"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "month",
+            "y": "city",
+            "color": "temp"
+          }
+        }
+      }
+    }
+  ]
+}

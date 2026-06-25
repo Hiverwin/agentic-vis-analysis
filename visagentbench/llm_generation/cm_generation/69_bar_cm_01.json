@@ -1,0 +1,69 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "69_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/69_top_100_linkedin_companies_2026_bar.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "27_bar_cm_01：Use filter_subcategories and toggle_stack_mode to analyze bar chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "136000000",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter to show only Google"
+          },
+          {
+            "iteration": 2,
+            "tool": "toggle_stack_mode",
+            "reasoning": " Amazon"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "all except Google",
+                    "Amazon",
+                    "LinkedIn",
+                    "Microsoft"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "mark_mode": {
+            "is_stacked": false
+          }
+        },
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ]
+}

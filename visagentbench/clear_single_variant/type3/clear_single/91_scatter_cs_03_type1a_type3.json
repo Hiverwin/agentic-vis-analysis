@@ -1,0 +1,73 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "91_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/91_supply_chain_data_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Is there a product with a high price and low revenue generated?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "YES",
+          "alternatives": [
+            "YES"
+          ]
+        },
+        "key_insights": [
+          "find it is indeed some price with low revenue"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "zoom the high price area"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    74.88889185587566,
+                    100
+                  ],
+                  "y_range": [
+                    0,
+                    9908.333587646484
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              74.88889185587566,
+              100
+            ],
+            "y": [
+              0,
+              9908.333587646484
+            ]
+          },
+          "encoding": {
+            "x": "Price",
+            "y": "Revenue generated",
+            "color": "Product type"
+          }
+        },
+        "state_check_fields": [
+          "encoding",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

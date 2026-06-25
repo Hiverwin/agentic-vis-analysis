@@ -1,0 +1,110 @@
+{
+  "benchmark_id": "21_line_vm_06",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_06",
+      "question": "Use focus_lines with lines equal to Real tree and use highlight_trend with trend_type equal to increasing and use filter_lines with lines_to_remove equal to Real tree in order to know How do real and fake Christmas trees compare in terms of sales trends and market dynamics from 2010 to 2016?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Real trees consistently outsold fake trees throughout 2010-2016 with total sales of 195 million vs 88 million. However, fake trees showed stronger growth momentum with 127% increase vs only 1.5% for real trees. Real tree prices surged 107% while fake tree prices rose 53%. By 2016, fake tree sales reached 18.6 million, showing accelerating market penetration.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Real trees dominated total sales volume",
+          "Fake trees showed stronger growth rate especially in later years",
+          "Price increases were significant for both categories"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.focus",
+            "rationale": "Focus on real trees to analyze their sales pattern"
+          },
+          {
+            "iteration": 2,
+            "capability": "line.trend.highlight",
+            "rationale": "Highlight the increasing trend to identify growth periods"
+          },
+          {
+            "iteration": 3,
+            "capability": "line.series.filter",
+            "rationale": "Filter to show only fake trees to compare their growth trajectory"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.focus",
+          "line.trend.highlight",
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.focus",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines": [
+                  "Real tree"
+                ],
+                "line_field": "lines",
+                "mode": "dim",
+                "dim_opacity": 0.08
+              }
+            }
+          },
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          },
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Real tree"
+                ],
+                "line_field": "lines_to_remove"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Number of trees sold",
+            "color": "Type of tree"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "21_Number of trees sold over Yea_line",
+    "dataset_path": "datasets/21_Number of trees sold over Yea_line.json",
+    "row_count": 14,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/21_Number of trees sold over Yea_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

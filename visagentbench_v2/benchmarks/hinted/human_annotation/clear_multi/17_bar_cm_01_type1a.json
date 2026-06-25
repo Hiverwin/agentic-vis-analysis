@@ -1,0 +1,101 @@
+{
+  "benchmark_id": "17_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "Use filter_subcategories with subcategories_to_remove equal to 4, 2. and then use toggle_stack_mode to define the group that has the higher mean cholesterol levels in combination (Absence and chest pain type 1) or (presence and chest pain type 3).",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": " (presence and chest pain type 3).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The mean cholesterol levels in combination (presence and chest pain type 3) is higher than the mean cholesterol levels in combination (absence and chest pain type 1)."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "filter the categories and subcategories and find the people of type 3 chest pain,then look through the datas to find the region"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "toggle stack mode to show the trend of the mean cholesterol levels"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  4,
+                  2
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Heart Disease",
+            "y": "Cholesterol",
+            "color": "Chest pain type"
+          },
+          "viewMode": {
+            "stackMode": "stacked"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['Chest pain type'] != 4 && datum['Chest pain type'] != 2"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "17_Heart_Disease_Prediction_bar",
+    "dataset_path": "datasets/17_Heart_Disease_Prediction_bar.json",
+    "row_count": 270,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/17_Heart_Disease_Prediction_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

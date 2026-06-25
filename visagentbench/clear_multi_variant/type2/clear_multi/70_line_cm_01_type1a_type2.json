@@ -1,0 +1,76 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "70_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/70_one_person_ai_work_and_burnout_line.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What is the count of points where AI tool usage exceeds 25% among bugs introduced equal to 4 and 5?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "10",
+          "tolerance": 5
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom to 90-180 for focused comparison."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_lines",
+            "reasoning": "filter the lines of bugs introduced equals to 1,2 and 3"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "90",
+                  "end": "180"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    1,
+                    2,
+                    3
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Day",
+            "y": "AI_Tool_Usage_%",
+            "color": "Bugs_Introduced"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([1, 2, 3], datum['Bugs_Introduced']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

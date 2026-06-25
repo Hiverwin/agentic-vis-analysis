@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "63_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "59_heatmap_cm_01：Use adjust_color_scale with scheme equal to greens to visualize positive values, then use filter_cells with value greater than 0 to focus on positive correlations, then use cluster_rows_cols to group variables with similar correlation patterns. Which variables are most strongly positively correlated?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Friedrichshain-Kreuzberg and Mitte have consistently high drug crime rates, clustering together as the highest crime districts",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "Adjust color scale to better visualize drug crime rates"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filter cells with high drug crime rates"
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Cluster rows and columns to identify patterns"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.colorScale.adjust",
+          "heatmap.cells.filter",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "viridis"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "cluster_rows": true,
+                "cluster_cols": true,
+                "method": "sum"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "color_scale": {
+              "scheme": "viridis"
+            },
+            "clustering_order": {
+              "clustered": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "clustering_order",
+          "color_scale"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "63_Berlin_crimes_heatmap",
+    "dataset_path": "datasets/63_Berlin_crimes_heatmap.json",
+    "row_count": 1200,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/63_Berlin_crimes_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,67 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "85_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/85_supply_chain_data_bar.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "02_bar_cm_01：Use filter_categories with categories equal to [East, North] to exclude those regions, then use toggle_stack_mode with mode equal to stacked to compare total sales. Which region has higher total sales: West or South?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Unknown",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "Filter categories to analyze product types separately"
+          },
+          {
+            "iteration": 2,
+            "tool": "toggle_stack_mode",
+            "reasoning": "Toggle stack mode to compare total prices across demographics"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Product type"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "true"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "mark_mode": {
+            "is_stacked": true,
+            "stacking": "zero"
+          }
+        },
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ]
+}

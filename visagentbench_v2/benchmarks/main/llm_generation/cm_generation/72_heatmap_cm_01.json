@@ -1,0 +1,78 @@
+{
+  "benchmark_id": "72_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "08_heatmap_cm_01：Use find_extremes and find_extremes to analyze heatmap chart data.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "group E - master's degree",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find the top 3 cells with highest writing scores"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find the top 1 cell with highest writing score"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 3,
+                "mode": "max"
+              }
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "72_StudentsPerformance_heatmap",
+    "dataset_path": "datasets/72_StudentsPerformance_heatmap.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/72_StudentsPerformance_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

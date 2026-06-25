@@ -1,0 +1,62 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "119_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/119_sankey_game.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "101_sankey_cm_01：Use highlight_path with path equal to [AAA Y2, AAA Y3] and get_data with scope equal to visible to determine how many loans transitioned from AAA Y2 to AAA Y3. What is the loan count?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "15000000",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_path",
+            "reasoning": "Highlight the path from Daily Quests through Player Wallet to Gear Enhance"
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data",
+            "reasoning": "Get the visible data to see the flow values"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Daily Quests",
+                    "Player Wallet",
+                    "Gear Enhance"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

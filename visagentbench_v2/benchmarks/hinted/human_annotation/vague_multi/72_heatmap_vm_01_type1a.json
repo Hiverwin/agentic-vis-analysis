@@ -1,0 +1,92 @@
+{
+  "benchmark_id": "72_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use adjust_color_scale with scheme equal to viridis, cluster_rows_cols with cluster_rows equal to True, cluster_cols equal to True, method equal to max to characterize how writing scores vary across different racial/ethnic groups and parental education levels.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "By first adjusting the color scale to improve visibility and then clustering to organize the data, we transform a dense heatmap into a clear, interpretable structure. This reveals that while parental education is a strong predictor of writing scores, racial/ethnic identity also plays a significant role, creating distinct performance clusters that would have been hidden in the original view."
+        },
+        "key_insights": [
+          "The heatmap colors become more distinct, making it easier to spot small variations in scores that were previously hidden.",
+          "Similar performance patterns are placed next to each other, creating distinct blocks of color."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "Increase the contrast between the light and dark shades to make subtle differences in writing scores more visible."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Clustering then organizes the data into meaningful groups, turning a dense heatmap into a clear, interpretable structure that reveals hidden relationships between parental education, race/ethnicity, and writing scores."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.colorScale.adjust",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "viridis"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "cluster_rows": true,
+                "cluster_cols": true,
+                "method": "max"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "color_scale": {
+              "scheme": "viridis"
+            },
+            "clustering_order": {
+              "clustered": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "clustering_order",
+          "color_scale"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "72_StudentsPerformance_heatmap",
+    "dataset_path": "datasets/72_StudentsPerformance_heatmap.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/72_StudentsPerformance_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

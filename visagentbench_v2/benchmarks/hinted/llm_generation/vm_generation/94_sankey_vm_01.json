@@ -1,0 +1,102 @@
+{
+  "benchmark_id": "94_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use trace_node with node_name equal to Live Streaming (Douyin/Xiaohongshu) and use filter_flow with min_value equal to 2000.0 and use highlight_path with path equal to Fresh Supermarket (Offline Scan/Delivery), Fresh Food in order to know How do different acquisition channels drive sales across retail business categories?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Live Streaming (Douyin/Xiaohongshu) is the largest acquisition channel (6400) and primarily drives Beauty & Skincare (3800). Fresh Supermarket (Offline Scan/Delivery) (5380) mainly contributes to Fresh Food (4200). Fresh Food receives the most total GMV (8150), followed by Beauty & Skincare (4840). The top flow is Fresh Supermarket to Fresh Food (4200), showing offline channels are crucial for fresh products. Community Group (WeChat/Community) (4480) serves both Fresh Food (2600) and Home & Living (1500), indicating community-based shopping patterns.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Live Streaming drives Beauty & Skincare",
+          "Fresh Supermarket drives Fresh Food",
+          "Fresh Food receives most GMV",
+          "Community channels serve multiple categories"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace the flow from Live Streaming to see its distribution"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.flow.filter",
+            "rationale": "Filter flows with minimum value 2000 to see major flow patterns"
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the path from Fresh Supermarket to Fresh Food"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.flow.filter",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Live Streaming (Douyin/Xiaohongshu)"
+              }
+            }
+          },
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 2000.0
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Fresh Supermarket (Offline Scan/Delivery)",
+                  "Fresh Food"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "94_sankey_retail",
+    "dataset_path": "datasets/94_sankey_retail.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/94_sankey_retail.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

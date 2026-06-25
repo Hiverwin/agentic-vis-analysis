@@ -1,0 +1,98 @@
+{
+  "benchmark_id": "114_parallel_cm_05",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_05",
+      "question": "29_parallel_cm_01：Use reorder_dimensions with dimension_order equal to Age, Income, Education, Debt, then use calculate_correlation with method equal to pearson to analyze relationships between variables. What is the correlation between Income and Education?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Online",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Use reorder_dimensions to prioritize revenue dimension"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Use calculate_correlation to analyze revenue relationship"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "revenue_usd",
+                  "units_sold",
+                  "size",
+                  "base_price_usd",
+                  "discount_percent",
+                  "final_price_usd"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "axis_order": {
+              "dimension_order": [
+                "revenue_usd",
+                "units_sold",
+                "size",
+                "base_price_usd",
+                "discount_percent",
+                "final_price_usd"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "114_sport_life_parallel",
+    "dataset_path": "datasets/114_sport_life_parallel.json",
+    "row_count": 36354,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/114_sport_life_parallel.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

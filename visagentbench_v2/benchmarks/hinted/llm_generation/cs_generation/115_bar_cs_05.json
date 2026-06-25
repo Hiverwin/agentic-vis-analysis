@@ -1,0 +1,63 @@
+{
+  "benchmark_id": "115_bar_cs_05",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_05",
+      "question": "Use filter_subcategories with subcategories_to_remove equal to High, Medium in order to know Use filter_subcategories with value equal to High, Medium to keep only the low-income customer group. Which brand has the highest sales volume among low-income customers?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Puma",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter to show only Low income customers and identify the brand with highest units sold"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "High",
+                  "Medium"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "115_sport_life_bar",
+    "dataset_path": "datasets/115_sport_life_bar.json",
+    "row_count": 6059,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/115_sport_life_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

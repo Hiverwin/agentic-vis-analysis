@@ -1,0 +1,73 @@
+{
+  "task_type": "clear_single",
+  "task_id": "19_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/19_Heart_Disease_Prediction_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Which chest pain type exhibits the highest Cholesterol?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Chest pain type 3",
+          "alternatives": [
+            "3",
+            "chest pain type 3"
+          ]
+        },
+        "key_insights": [
+          "The chest pain type 'typical angina' has the highest Cholesterol in this region."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zooming up the diagram can help to detect the dominating status."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    50.4,
+                    55.6
+                  ],
+                  "y_range": [
+                    198.7,
+                    260.0
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              50.4,
+              55.6
+            ],
+            "y": [
+              198.7,
+              260.0
+            ]
+          },
+          "encoding": {
+            "x": "Age",
+            "y": "Cholesterol",
+            "color": "Heart Disease"
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

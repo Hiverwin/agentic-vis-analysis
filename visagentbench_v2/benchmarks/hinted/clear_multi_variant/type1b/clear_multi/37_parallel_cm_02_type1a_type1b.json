@@ -1,0 +1,109 @@
+{
+  "benchmark_id": "37_parallel_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_by_category and reorder_dimensions, what is the correlation between Radius (mean) and Smoothness (mean) among malignant samples?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "positive",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Remove B to focus on malignant (M) samples."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Place Radius and Smoothness adjacent for correlation assessment."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Diagnosis",
+                "values": [
+                  "B"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "Radius (mean)",
+                  "Smoothness (mean)",
+                  "Texture (mean)",
+                  "Area(mean)",
+                  "Fractal_Dimension_(mean)"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"B\"], datum['Diagnosis']) < 0"
+              }
+            ],
+            "axis_order": {
+              "dimension_order": [
+                "Radius (mean)",
+                "Smoothness (mean)",
+                "Texture (mean)",
+                "Area(mean)",
+                "Fractal_Dimension_(mean)"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "axis_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "37_cancer_parallel ",
+    "dataset_path": "datasets/37_cancer_parallel .json",
+    "row_count": 2845,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/37_cancer_parallel .json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

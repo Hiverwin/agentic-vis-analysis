@@ -1,0 +1,77 @@
+{
+  "benchmark_id": "84_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using filter_lines, in which year does the China line first surpass 1000 TWh of renewable electricity generation?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "2012",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning_trace": [],
+        "required_capabilities": [
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Austria",
+                  "Egypt",
+                  "France",
+                  "Germany",
+                  "Japan",
+                  "New Zealand",
+                  "United Kingdom",
+                  "United States"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Electricity from renewables (TWh)",
+            "color": "Entity"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Austria\", \"Egypt\", \"France\", \"Germany\", \"Japan\", \"New Zealand\", \"United Kingdom\", \"United States\"], datum['Entity']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "83_global-data-on-sustainable-energy-filtered_line",
+    "dataset_path": "datasets/83_global-data-on-sustainable-energy-filtered_line.json",
+    "row_count": 189,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/83_global-data-on-sustainable-energy-filtered_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

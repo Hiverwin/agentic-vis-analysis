@@ -1,0 +1,87 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "07_bar_vm_06",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/07_bar_synthetic_mental_health.json",
+  "questions": [
+    {
+      "qid": "vm_06",
+      "question": "Use change_encoding with field equal to weather and use filter_subcategories with subcategories_to_remove equal to sunny, cloudy and use sort_bars with order equal to descending in order to know How do different weather conditions and diet quality levels interact to affect sleep patterns, and what factors appear most influential?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Weather conditions show minimal impact on sleep hours, with rainy weather having slightly higher average sleep (7.10 hours) compared to cloudy (7.01 hours). Diet quality also shows small differences, with poor diet having 7.09 hours, good diet 7.07 hours, and average diet 7.06 hours. The interaction between weather and diet appears to be minimal, suggesting that other factors like stress level and exercise minutes may be more influential on sleep patterns than these two variables alone.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Weather has minimal impact on sleep hours with small variations across conditions",
+          "Diet quality shows very small differences in sleep duration",
+          "The interaction between weather and diet is not strongly correlated with sleep patterns",
+          "Other lifestyle factors may be more influential than weather and diet alone"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to analyze weather impact on sleep by switching x-axis to weather field"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter to focus on specific weather conditions for detailed comparison"
+          },
+          {
+            "iteration": 3,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to compare sleep hours across different diet quality levels"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "weather"
+                }
+              }
+            },
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "sunny",
+                    "cloudy"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "diet_quality",
+            "y": "sleep_hours",
+            "color": "weather"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "benchmark_id": "71_parallel_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "06_parallel_cm_01：Use filter_by_category with field equal to Species and values equal to Chinstrap and Gentoo, reorder_dimensions with dimension_order equal to Beak Length (mm), Flipper Length (mm),Beak Depth (mm), Body Mass (g) to characterize whether the measurements of Adelie penguins that show the strongest negative correlation is the negative correlation between Beak Depth and Flipper length stronger, or is the negative correlation between Beak Depth and Body Mass weight stronger.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Bugs_Introduced",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only High burnout risk data"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Reorder dimensions to better compare values"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Burnout_Risk",
+                "values": [
+                  "Low",
+                  "Medium"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "Bugs_Introduced",
+                  "Code_Complexity_Score",
+                  "Stress_Level_1_10",
+                  "Hours_Coded",
+                  "AI_Tool_Usage_%"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "axis_order": {
+              "dimension_order": [
+                "Bugs_Introduced",
+                "Code_Complexity_Score",
+                "Stress_Level_1_10",
+                "Hours_Coded",
+                "AI_Tool_Usage_%"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "71_one_person_ai_work_and_burnout_parallel",
+    "dataset_path": "datasets/71_one_person_ai_work_and_burnout_parallel.json",
+    "row_count": 900,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/71_one_person_ai_work_and_burnout_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,84 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "11_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/11_apple_time_line.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What was the revenue comparison between iPhone and AirPods in 2023?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "iPhone",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom to 2021-2024 to focus on recent years."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_lines",
+            "reasoning": "Filter to keep only iPhone and AirPods for comparison."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2021",
+                  "end": "2024"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "MacBook",
+                    "Watch",
+                    "Services",
+                    "Other_Products"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Revenue_Billions",
+            "color": "Product"
+          },
+          "visible_domain": {
+            "x": [
+              "2021",
+              "2024"
+            ]
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"MacBook\", \"Watch\", \"Services\", \"Other_Products\"], datum['Product']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

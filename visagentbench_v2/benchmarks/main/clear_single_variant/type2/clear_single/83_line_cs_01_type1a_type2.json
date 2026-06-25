@@ -1,0 +1,85 @@
+{
+  "benchmark_id": "83_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What day exhibits the maximum revenue for electronics?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Apr 12,2024",
+          "alternatives": [
+            "2024 APr 12",
+            "April 12,2024"
+          ]
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "filter the lies and find the highest point of the line of electronics"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "series_to_remove": [
+                  "Home Appliances",
+                  "Books",
+                  "Clothing",
+                  "Beauty Products",
+                  "Sports"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Date",
+            "y": "Total Revenue",
+            "color": "Product Category"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Home Appliances\", \"Books\", \"Clothing\", \"Beauty Products\", \"Sports\"], datum['Product Category']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "82_Online Sales Data_line",
+    "dataset_path": "datasets/82_Online Sales Data_line.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,69 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "52_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/52_years of economic new_line.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use highlight_trend with trend_type equal to increasing and use zoom_x_region with start equal to 2000, end equal to 2010 in order to know How has Afghanistan electricity access evolved over the years, and what are the key characteristics of this growth pattern?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Afghanistan shows remarkable growth in electricity access, rising from 4.4% in 2000 to 85.3% by 2022, representing an 80.9 percentage point increase. The growth appears relatively steady and continuous throughout the period, with the most rapid expansion occurring in the early 2000s. This represents one of the most dramatic improvements in electricity access globally.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Electricity access grew from 4.4% to 85.3%",
+          "Total increase of 80.9 percentage points",
+          "Growth was steady and continuous",
+          "Most rapid expansion in early 2000s"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight the overall increasing trend in electricity access"
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom into specific periods to analyze growth patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            },
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2000",
+                  "end": "2010"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Access to electricity (% of population)",
+            "color": "Entity"
+          }
+        }
+      }
+    }
+  ]
+}

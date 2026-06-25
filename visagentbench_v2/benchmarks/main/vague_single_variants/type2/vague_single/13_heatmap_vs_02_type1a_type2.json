@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "13_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What is the significant relationship between production volumes and prices of products?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is not a significant relationship."
+        },
+        "key_insights": [
+          "The production volumes of the three types of products is roughly the same, but the overall prices vary greatly."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Use tools to map the production volumes onto the y-axis and analyze their relationship with the price."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Production volumes",
+                "channel": "y"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Product type",
+            "y": "Production volumes",
+            "color": "Price"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "13_supply_chain_data_heatmap",
+    "dataset_path": "datasets/13_supply_chain_data_heatmap.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

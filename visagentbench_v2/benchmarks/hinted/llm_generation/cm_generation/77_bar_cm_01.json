@@ -1,0 +1,209 @@
+{
+  "benchmark_id": "77_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "60_bar_cm_01：Use change_encoding and filter_categories and change_encoding and filter_categories and change_encoding and filter_categories and change_encoding and filter_categories and change_encoding to analyze bar chart data.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Level 1",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to show Experience Level on x-axis"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only Level 1"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to show Experience Level on x-axis"
+          },
+          {
+            "iteration": 4,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only Level 2"
+          },
+          {
+            "iteration": 5,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to show Experience Level on x-axis"
+          },
+          {
+            "iteration": 6,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only Level 3"
+          },
+          {
+            "iteration": 7,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to show Experience Level on x-axis"
+          },
+          {
+            "iteration": 8,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only Level 1"
+          },
+          {
+            "iteration": 9,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to show Experience Level on x-axis"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.categorical",
+          "view.encoding.change",
+          "data.filter.categorical",
+          "view.encoding.change",
+          "data.filter.categorical",
+          "view.encoding.change",
+          "data.filter.categorical",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Experience_Level"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "1"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Experience_Level"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "2"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Experience_Level"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "3"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Experience_Level"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "1"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Experience_Level"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Workout_Type",
+            "y": "Fat_Percentage",
+            "color": "Experience_Level"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "77_gym_bar_sum",
+    "dataset_path": "datasets/77_gym_bar_sum.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/77_gym_bar_sum.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,88 @@
+{
+  "benchmark_id": "38_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Using change_encoding and calculate_correlation, what is the Pearson correlation coefficient (rounded to 3 decimals) between Smoothness (mean) and Concavity (mean)?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.522",
+          "tolerance": 0.1
+        },
+        "key_insights": [
+          "The scatter plot now displays Smoothness (mean) on x-axis and Concavity (mean) on y-axis.",
+          "There is a moderate positive correlation between Smoothness (mean) and Concavity (mean).",
+          "The Pearson correlation coefficient is approximately 0.522."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change y encoding to Concavity (mean) to show Smoothness vs Concavity relationship."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Compute Pearson correlation between Smoothness (mean) and Concavity (mean)."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Concavity (mean)",
+                "channel": "y"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Smoothness (mean)",
+            "y": "Concavity (mean)"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "38_cancer_scatter",
+    "dataset_path": "datasets/38_cancer_scatter.json",
+    "row_count": 569,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/38_cancer_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

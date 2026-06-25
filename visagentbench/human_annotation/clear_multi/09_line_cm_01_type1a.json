@@ -1,0 +1,78 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "09_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/09_museum_visitors_line.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use zoom_x_region with start equal to 2017-07-01 and end equal to 2018-11-01 to focus on the latter half of the time series, then use show_moving_average with window_size equal to 5. What is the approximate visitor count (rounded to the nearest hundred) at the lowest point of the smoothed line in this zoomed period?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "3500",
+          "tolerance": 500
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom to latter half to focus on 2017-07 to 2018-11."
+          },
+          {
+            "iteration": 2,
+            "tool": "show_moving_average",
+            "reasoning": "Smooth the line to find the lowest point in the zoomed period."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2017-07-01",
+                  "end": "2018-11-01"
+                }
+              }
+            },
+            {
+              "tool": "show_moving_average",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "window_size": 5
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Date",
+            "y": "America Tropical Interpretive Center",
+            "color": null
+          },
+          "layers": {
+            "count": 2,
+            "has_type": "line"
+          },
+          "visible_domain": {
+            "x": [
+              "2017-07-01",
+              "2018-11-01"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "layers",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "task_type": "vague_single",
+  "task_id": "74_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "How does the spread of group means across races compare to the spread across education levels in explaining the between-group separation?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The summary makes it clear that race/ethnicity means sit farther apart than education means do—roughly a twelve-point span from the lowest to highest race averages versus about seven points from the lowest to highest education averages on math. Education still matters (scores climb with parental schooling), but if you had to name the bigger divider in this dataset, it is the race/ethnicity grouping, with group E sitting well above group A at every education level."
+        },
+        "key_insights": [
+          "Mean math scores differ more across race/ethnicity labels than across parental education labels when you compare the two spreads head-to-head.",
+          "Within each education band, group E stays above group A by a comfortable margin."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "Surfaces numeric ranges so the race-versus-education comparison is grounded in the same table the chart encodes."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

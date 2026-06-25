@@ -1,0 +1,109 @@
+{
+  "benchmark_id": "111_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How can the seasonal patterns across cities in the Northern Hemisphere be characterized?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After adjusting the color scale, we observe that most Northern Hemisphere cities show a pattern of increasing values from winter to summer. Clustering groups cities like Nanjing, Beijing, New York and Tokyo together (showing strong seasonality), while Reykjavik forms its own cluster. Filtering to Reykjavik shows that its winter average temparature are relatively lower compared to other high-latitude cities, likely due to maritime influences."
+        },
+        "key_insights": [
+          "We might find clusters of cities that share similar climates (e.g., temperate cities, tropical cities). This can reveal if latitude correlates with pattern similarity.",
+          "If a city like Reykjavik is clustered separately from other high-latitude cities, highlighting it allows us to describe its unique pattern (e.g., relatively mild winters compared to other cold cities)."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.clusters.identify",
+            "rationale": "To algorithmically group cities (rows) that have similar patterns across the months. Clustering is a data-driven way to find cities with comparable temporal profiles."
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.region.highlight",
+            "rationale": "To drill down into specific clusters or individual cities that appear unusual. After clustering, we can use this tool to view a specific cluster or a single city to examine its pattern in detail."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.clusters.identify",
+          "heatmap.region.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "cluster_rows": true,
+                "cluster_cols": true,
+                "method": "sum"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_values": [
+                  "Jan",
+                  "Feb",
+                  "Mar",
+                  "Apr",
+                  "May",
+                  "Jun",
+                  "Jul",
+                  "Aug",
+                  "Sep",
+                  "Oct",
+                  "Nov",
+                  "Dec"
+                ],
+                "y_values": [
+                  "Reykjavik"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "clustering_order": {
+              "clustered": true
+            },
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "clustering_order",
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "111_heatmap_tmp",
+    "dataset_path": "datasets/111_heatmap_tmp.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

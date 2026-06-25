@@ -1,0 +1,112 @@
+{
+  "benchmark_id": "54_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Use change_encoding with field equal to Refund Requested, filter_subcategories with subcategories_to_remove equal to No, highlight_top_n with n equal to 1 to compute the platform with the longest average delivery time for orders that requested refunds.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Swiggy Instamart.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "To discuss the impact of requested refunds on delivery times, you first need to use the change encoding tool to switch the filed to refund requested."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "Discuss the impact of requested refunds on delivery time, using the filter subcategories tool to exclude cases where no refund was requested."
+          },
+          {
+            "iteration": 3,
+            "capability": "ranking.topN.highlight",
+            "rationale": "To find the platform with the longest average delivery time when a refund is requested, you should use the 'highlight top n' tool, select top 1, and identify the platform with the longest delivery time."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.subcategory",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Refund Requested",
+                "channel": "color"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "No"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 1,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Platform",
+            "y": "Delivery Time (Minutes)",
+            "color": "Refund Requested"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['Refund Requested'] != \"No\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "54_Ecommerce_Delivery_Analytics_New_bar",
+    "dataset_path": "datasets/54_Ecommerce_Delivery_Analytics_New_bar.json",
+    "row_count": 100000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/54_Ecommerce_Delivery_Analytics_New_bar.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

@@ -1,0 +1,75 @@
+{
+  "benchmark_id": "03_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use resample_x_axis to compute the average stock price of TechCorp in Q3 2023.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "199",
+          "tolerance": 20
+        },
+        "key_insights": [
+          "After resampling to quarterly intervals, TechCorp’s average stock price in Q3 (July–September) 2023 is approximately 201, which is higher than the Q2 average of ~186, confirming a clear acceleration in its price growth during the third quarter."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "axis.x.resample",
+            "rationale": "The original monthly granularity makes it hard to see the aggregated quarterly performance. Resampling time is the right tool here because it condenses the data into a higher-level summary that directly answers the question about quarterly averages."
+          }
+        ],
+        "required_capabilities": [
+          "axis.x.resample"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "axis.x.resample",
+            "param_eval": {
+              "type": "categorical",
+              "param": "granularity",
+              "target": "quarter"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "date",
+            "y": "price",
+            "color": "company"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "time_unit": {
+              "has_time_unit": true,
+              "unit": "quarter"
+            }
+          }
+        },
+        "state_check_fields": [
+          "time_unit"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "03_line_stocks",
+    "dataset_path": "datasets/03_line_stocks.json",
+    "row_count": 12,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/03_line_stocks.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

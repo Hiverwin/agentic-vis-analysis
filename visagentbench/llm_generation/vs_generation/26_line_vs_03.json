@@ -1,0 +1,57 @@
+{
+  "task_type": "vague_single",
+  "task_id": "26_line_vs_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/26_China_centra_death_rate_line.json",
+  "questions": [
+    {
+      "qid": "vs_03",
+      "question": "Use highlight_trend in order to know What are the trends in China central death rates across different age groups from 1950 to 2021?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the data analysis, all age groups in China have experienced significant declines in central death rates from 1950 to 2021. The most dramatic improvements are seen in younger age groups: Age 0 (infants) decreased by 96.09%, Age 10 by 95.60%, and Age 25 by 90.76%. Older age groups also showed substantial improvements but at slightly lower rates: Age 45 (-87.72%), Age 65 (-79.22%), and Age 80 (-64.68%). This pattern suggests that healthcare and living conditions have improved most significantly for younger populations, though all age groups have benefited from overall societal development and medical advancements over the 71-year period.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "All age groups show significant death rate declines from 1950-2021",
+          "Youngest age groups (0",
+          "10",
+          "25) show the most dramatic improvements (90-96% reduction)",
+          "Older age groups (65",
+          "80) show substantial but lower improvements (64-79% reduction)",
+          "Healthcare improvements have benefited all age groups over 71 years"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Analyze death rate trends across different age groups over time"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "regression_line": true
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

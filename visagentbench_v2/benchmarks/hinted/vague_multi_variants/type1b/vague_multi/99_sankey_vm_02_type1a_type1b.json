@@ -1,0 +1,115 @@
+{
+  "benchmark_id": "99_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using trace_node and highlight_path, how do cost flows differ between engineering-focused and data-focused cost centers?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The Engineering cost center’s costs are driven mainly by Proj Alpha and Proj Beta in the us-east-1 region, with EC2 as the primary service"
+        },
+        "key_insights": [
+          "The Engineering cost center has the highest overall spend",
+          "Proj Alpha is the largest single contributor to Engineering costs, while Shared Infra is the largest for the Data Team."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "establishes the initial comparison"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "identifies the project-level drivers"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Engineering",
+                  "Proj Alpha",
+                  "Proj Beta",
+                  "Shared Infra",
+                  "Proj Gamma",
+                  "Data Team"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Data Team"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "On-Demand",
+                "Reserved",
+                "Spot",
+                "Savings Plan",
+                "EC2",
+                "RDS",
+                "Lambda",
+                "S3",
+                "K8s",
+                "Other Svc",
+                "us-east-1",
+                "eu-west-1",
+                "ap-northeast-1",
+                "Proj Alpha",
+                "Proj Beta",
+                "Shared Infra",
+                "Proj Gamma",
+                "Engineering",
+                "Data Team",
+                "Finance Dept",
+                "Platform Ops"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "99_sankey_cloud",
+    "dataset_path": "datasets/99_sankey_cloud.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,96 @@
+{
+  "benchmark_id": "20_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Which platform ranks third highest among the platforms by average RPG score?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Wireless.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "sort the bars by the mean of RPG to get the third highest mean of RPG."
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Platform",
+            "y": "RPG"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Xbox One",
+                "Xbox",
+                "Wireless",
+                "PlayStation 4",
+                "PlayStation",
+                "GameCube",
+                "PC",
+                "Nintendo 3DS",
+                "Dreamcast",
+                "Xbox 360",
+                "Game Boy Advance",
+                "PlayStation 2",
+                "PlayStation 3",
+                "Wii",
+                "PlayStation Vita",
+                "Game Boy Color",
+                "Nintendo DS",
+                "iPhone",
+                "Nintendo DSi",
+                "PlayStation Portable",
+                "Nintendo 64"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "20_ign_scores_bar",
+    "dataset_path": "datasets/20_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/20_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

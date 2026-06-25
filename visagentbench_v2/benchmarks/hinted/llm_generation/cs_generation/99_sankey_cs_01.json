@@ -1,0 +1,60 @@
+{
+  "benchmark_id": "99_sankey_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use filter_flow with min_value equal to 40.0 in order to know Use filter_flow with min_value equal to 40 to see how many flows remain after filtering.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "19",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "Use filter_flow to filter flows with minimum value of 40 and count the remaining flows"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 40.0
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "99_sankey_cloud",
+    "dataset_path": "datasets/99_sankey_cloud.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

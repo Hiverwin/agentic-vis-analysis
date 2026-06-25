@@ -1,0 +1,80 @@
+{
+  "benchmark_id": "67_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use zoom_2d_region with x_range from 100.0 to 150.0, y_range from 100.0 to 150.0 in order to know Use zoom_2d_region with x_range from 100 to 150, y_range from 100 to 150 to determine which gender has more data points in the high vitamin A and E region.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Female",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into the high vitamin A and E region to compare the distribution between genders"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  100.0,
+                  150.0
+                ],
+                "y_range": [
+                  100.0,
+                  150.0
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              100.0,
+              150.0
+            ],
+            "yDomain": [
+              100.0,
+              150.0
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "67_vitamin_deficiency_disease_dataset_scatter",
+    "dataset_path": "datasets/67_vitamin_deficiency_disease_dataset_scatter.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/67_vitamin_deficiency_disease_dataset_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

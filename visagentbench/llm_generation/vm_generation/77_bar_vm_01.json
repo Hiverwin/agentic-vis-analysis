@@ -1,0 +1,70 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "77_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/77_gym_bar_sum.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know What patterns can you observe in fat percentage across different workout types and experience levels?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Experience level has a much stronger impact on fat percentage than workout type, with Level 3 (advanced) having significantly lower fat (14.8%) compared to Level 1 (27.6%) and Level 2 (27.3%), 2) Workout types show minimal differences in average fat percentage (Strength 25.5%, Cardio 25.4%, Yoga 24.5%, HIIT 24.5%), 3) The gap between beginner/intermediate (Levels 1-2) and advanced (Level 3) is substantial at around 12.8 percentage points, 4) This suggests that experience and consistency in training are more important factors for body composition than the specific type of workout chosen.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Experience level strongly impacts fat percentage",
+          "Level 3 has lowest fat (14.8%)",
+          "Workout types show minimal differences",
+          "Gap between beginner and advanced is 12.8%",
+          "Experience more important than workout type"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to see ordering of workout types"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top N to emphasize experience level differences"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Workout_Type",
+            "y": "Fat_Percentage",
+            "color": "Experience_Level"
+          }
+        }
+      }
+    }
+  ]
+}

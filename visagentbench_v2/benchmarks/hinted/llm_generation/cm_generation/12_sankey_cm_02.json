@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "12_sankey_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "100_sankey_cm_01：Use calculate_conversion_rate with node_name equal to Cured & Discharged and then use highlight_path with path equal to Surgery Tx, Cured & Discharged. What is the inflow value (in patients) from Surgery Tx to Cured & Discharged?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "52.7",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate conversion rate for Revenue node to see its inflow and outflow"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the path from Revenue to Gross Profit to verify the flow value"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Revenue"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Revenue",
+                  "Gross Profit"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "12_sankey_micro",
+    "dataset_path": "datasets/12_sankey_micro.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/12_sankey_micro.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

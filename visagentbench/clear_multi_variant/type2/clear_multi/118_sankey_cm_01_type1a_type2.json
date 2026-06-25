@@ -1,0 +1,66 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "118_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/118_sankey_semiconducto.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What is the largest downstream flow value in wafers from Litho Normal?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "9000",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Get inflow value for Litho Normal from Litho Normal."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace Etch Normal to find the largest flow (Etch Normal: 9000)."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Litho Normal"
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "itho Normal"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

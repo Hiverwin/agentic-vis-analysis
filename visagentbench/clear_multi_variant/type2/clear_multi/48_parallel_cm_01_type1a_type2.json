@@ -1,0 +1,91 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "48_parallel_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/48_candy_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Is there a clear positive correlation or negative correlation between sugarpercent and winpercent for chocolates?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "positive correlation"
+        },
+        "key_insights": [
+          "There is a clear correlation between sugarpercent and winpercent for chocolates."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "We focus on chocolate candy group."
+          },
+          {
+            "iteration": 2,
+            "tool": "hide_dimensions",
+            "reasoning": "We hide the pricepercent dimension to focus on the relationship between sugarpercent and winpercent."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "categorical",
+                "param": "all_params",
+                "target": {
+                  "field": "chocolate",
+                  "values": [
+                    "No"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "hide_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "hide",
+                  "dimensions": [
+                    "pricepercent"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension",
+            "y": null,
+            "color": "chocolate"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Yes\"], datum['chocolate']) < 0"
+            },
+            {
+              "filter": "indexof([\"pricepercent\"], datum['dimension']) < 0"
+            }
+          ],
+          "layers": {
+            "count": 5,
+            "types": [
+              "rule",
+              "line",
+              null,
+              null,
+              null
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

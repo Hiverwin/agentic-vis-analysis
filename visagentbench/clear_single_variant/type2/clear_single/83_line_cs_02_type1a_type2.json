@@ -1,0 +1,57 @@
+{
+  "task_type": "clear_single",
+  "task_id": "84_line_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/83_global-data-on-sustainable-energy-filtered_line.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "In which year does the China line first surpass 1000 TWh of renewable electricity generation?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "2012",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Austria",
+                    "Egypt",
+                    "France",
+                    "Germany",
+                    "Japan",
+                    "New Zealand",
+                    "United Kingdom",
+                    "United States"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Electricity from renewables (TWh)",
+            "color": "Entity"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Austria\", \"Egypt\", \"France\", \"Germany\", \"Japan\", \"New Zealand\", \"United Kingdom\", \"United States\"], datum['Entity']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

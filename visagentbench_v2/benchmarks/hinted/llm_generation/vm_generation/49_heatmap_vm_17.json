@@ -1,0 +1,107 @@
+{
+  "benchmark_id": "49_heatmap_vm_17",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_17",
+      "question": "Use filter_cells with min_value equal to 30.0, max_value equal to 38.0 and use highlight_region and use find_extremes with top_n equal to 5, mode equal to both in order to know How do coffee sales vary across different coffee types and times of day, and which combinations show highest and lowest sales performance?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The heatmap reveals coffee sales patterns across 8 coffee types and 3 time periods (Morning, Afternoon, Night) with 3,547 total transactions. Overall average sales amount is 31.65. Espresso shows the lowest average sales at 20.85, while Hot Chocolate (35.99), Cappuccino (35.88), and Latte (35.50) show the highest average sales. Time period analysis shows Night has highest average sales at 32.89, followed by Afternoon (31.64) and Morning (30.42). Hot Chocolate performs consistently well across all time periods with Morning (35.60), Afternoon (36.24), and Night (35.99). Americano shows lower performance with average 25.98, and Cortado also shows lower performance at 25.73. The data suggests that specialty drinks like Hot Chocolate, Cappuccino, and Latte are premium items with higher prices, while Espresso is the most affordable option. Night time period shows slightly higher sales performance, possibly due to evening demand patterns.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Espresso shows lowest average sales (20.85)",
+          "Hot Chocolate",
+          "Cappuccino",
+          "and Latte show highest average sales (35-36)",
+          "Night time period has highest average sales (32.89)",
+          "Overall average sales amount is 31.65",
+          "Specialty drinks command premium prices while Espresso is most affordable",
+          "Hot Chocolate performs consistently well across all time periods"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Use filter_cells to focus on specific sales ranges"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Use highlight_region to highlight specific coffee types and time periods"
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use find_extremes to identify highest and lowest sales values"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "heatmap.region.highlight",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 30.0,
+                "max_value": 38.0
+              }
+            }
+          },
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "coffee_name",
+            "y": "Time_of_Day",
+            "color": "money"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "49_coffee_sales_heatmap",
+    "dataset_path": "datasets/49_coffee_sales_heatmap.json",
+    "row_count": 3547,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/49_coffee_sales_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

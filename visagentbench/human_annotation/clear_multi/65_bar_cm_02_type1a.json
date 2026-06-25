@@ -1,0 +1,93 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "65_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/65_vitamin_deficiency_disease_dataset_bar.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use change_encoding with field equal to iron_percent_rda and channel equal to y,and then use filter_subcategories with value equal to Vegan and Vegetarian, then toggle_stack_mode with mode equal to grouped to evaluate which exercise_level has larger iron_percent_rda difference.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Moderate.",
+          "alternatives": [
+            "moderate"
+          ]
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "The question focused on iron intake. Therefore, the \"change encoding\" tool was used to select the channel as \"y\" and the field as \"iron_percent_rda\" to compare the iron_percent_rda levels of different exercise level groups."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_subcategories",
+            "reasoning": "To compare the iron intake of people with different diet types, it's necessary to use filter_subcategories to filter out all diet types except Moderate."
+          },
+          {
+            "iteration": 3,
+            "tool": "toggle_stack_mode",
+            "reasoning": "In order to observe and compare the iron intake of people with different diet types, the toggle_stack_mode tool needs to be used to switch the mode to \"grouped\" for the observation and comparison."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "iron_percent_rda",
+                  "channel": "y"
+                }
+              }
+            },
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "Vegan",
+                    "Vegetarian"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "exercise_level",
+            "y": "iron_percent_rda",
+            "color": "diet_type"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['diet_type'] != \"Vegan\" && datum['diet_type'] != \"Vegetarian\""
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

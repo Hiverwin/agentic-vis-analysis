@@ -1,0 +1,44 @@
+{
+  "values": [
+    {
+      "region": "North",
+      "product": "Electronics",
+      "sales": 1200
+    },
+    {
+      "region": "North",
+      "product": "Clothing",
+      "sales": 800
+    },
+    {
+      "region": "South",
+      "product": "Electronics",
+      "sales": 950
+    },
+    {
+      "region": "South",
+      "product": "Clothing",
+      "sales": 1100
+    },
+    {
+      "region": "East",
+      "product": "Electronics",
+      "sales": 1300
+    },
+    {
+      "region": "East",
+      "product": "Clothing",
+      "sales": 650
+    },
+    {
+      "region": "West",
+      "product": "Electronics",
+      "sales": 1100
+    },
+    {
+      "region": "West",
+      "product": "Clothing",
+      "sales": 920
+    }
+  ]
+}

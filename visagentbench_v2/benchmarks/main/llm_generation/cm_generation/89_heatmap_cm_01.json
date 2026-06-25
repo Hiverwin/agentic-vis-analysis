@@ -1,0 +1,85 @@
+{
+  "benchmark_id": "89_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "63_heatmap_cm_01：Use adjust_color_scale and find_extremes to analyze heatmap chart data.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Stress Level 6 - Normal",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "Adjust color scale to enhance visibility"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find the cell with extreme sleep duration value"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.colorScale.adjust",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "viridis"
+              }
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "color_scale": {
+              "scheme": "viridis"
+            }
+          }
+        },
+        "state_check_fields": [
+          "color_scale"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "89_Sleep_health_and_lifestyle_dataset_heatmap",
+    "dataset_path": "datasets/89_Sleep_health_and_lifestyle_dataset_heatmap.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/89_Sleep_health_and_lifestyle_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

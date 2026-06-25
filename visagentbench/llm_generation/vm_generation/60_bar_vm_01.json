@@ -1,0 +1,85 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "60_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/60_Berlin_crimes_bar.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 and use change_encoding with field equal to District in order to know What patterns can be observed in fire incidents across Berlin districts? Analyze the distribution and identify which factors might explain the differences between high-incident and low-incident areas.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Fire incidents show a clear geographic pattern across Berlin districts. The top three districts with highest average fire incidents are Friedrichshain-Kreuzberg (28.78), Mitte (26.95), and Tempelhof-Schoneberg (26.02), while the lowest are Treptow-Kopenick (7.58), Charlottenburg-Wilmersdorf (9.12), and Pankow (12.16). There is a strong correlation (0.879) between fire incidents and total crime rates, suggesting that fire incidents are closely linked to overall urban activity and population density. The high-incident districts (Friedrichshain-Kreuzberg, Mitte) are central, densely populated areas with high commercial activity, while low-incident districts (Treptow-Kopenick, Charlottenburg-Wilmersdorf) are more residential and suburban. The 3.8-fold difference between highest and lowest districts indicates significant variation in fire risk across the city, likely influenced by factors such as building density, commercial activity, and population concentration.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Friedrichshain-Kreuzberg has highest fire incidents (28.78 average)",
+          "Treptow-Kopenick has lowest fire incidents (7.58 average)",
+          "Strong correlation (0.879) between fire incidents and total crime",
+          "High-incident districts are central urban areas with high density",
+          "3.8-fold difference between highest and lowest districts"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to identify districts with highest and lowest fire incidents"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top 5 districts to focus on high-risk areas"
+          },
+          {
+            "iteration": 3,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to analyze different perspectives of the data"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "District"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "District",
+            "y": "Fire"
+          }
+        }
+      }
+    }
+  ]
+}

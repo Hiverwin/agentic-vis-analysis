@@ -1,0 +1,64 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "103_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/103_sankey_university.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_flow with min_value equal to 100 to remove small flows, then use trace_node with node_name equal to Engineering. What is the largest downstream flow value (in students) from Engineering?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "280",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_flow",
+            "reasoning": "Filter small flows to focus on major student flows."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace downstream from Engineering to find the largest flow (Computer Sci: 280)."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 100
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Engineering"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

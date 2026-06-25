@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "13_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Using filter_cells_by_region, how do the differences in price distribution across different consumer demographics compare between haircare and skincare product types?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Non-binary and unknown demographics show significantly higher prices for haircare, whereas the Male demographic exhibits higher prices for skincare."
+        },
+        "key_insights": [
+          "While non-binary and unknown consumers tend to pay premium prices for haircare products, male consumers demonstrate higher spending on skincare items."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filtering out cosmetics allows for a better comparison of price distributions between skincare and haircare."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_values": [
+                  "cosmetics"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "!(indexof([\"cosmetics\"], datum['Product type']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "13_supply_chain_data_heatmap",
+    "dataset_path": "datasets/13_supply_chain_data_heatmap.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

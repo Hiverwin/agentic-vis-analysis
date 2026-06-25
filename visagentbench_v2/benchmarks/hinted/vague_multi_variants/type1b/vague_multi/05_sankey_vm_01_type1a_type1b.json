@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "05_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using highlight_path, how does the flow structure change in the updated view regarding which links are pruned or retained, which trunk paths dominate, and what this implies about node role or funnel behavior compared with the original view?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "It was found that the majority of users who clicked on Google Ads eventually made a purchase. Therefore, it can be concluded that the ad keywords accurately matched a strong purchase intention and the users had a clear goal. so high user relevance"
+        },
+        "key_insights": [
+          "find that the majority of the traffic was directed to the purchase section in the end.",
+          "It was found that the secondary majority of the traffic also eventually led to the purchase process."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Mark the main traffic of Google Ads"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "get the data of the secondary traffic in google ads"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Google Ads",
+                  "Landing Page",
+                  "Product Detail",
+                  "Add to Cart",
+                  "Purchase"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Google Ads",
+                  "Product List",
+                  "Product Detail",
+                  "Add to Cart",
+                  "Purchase"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Google Ads",
+                "Facebook",
+                "Organic",
+                "Email",
+                "Landing Page",
+                "Product List",
+                "Search",
+                "Product Detail",
+                "Exit",
+                "Add to Cart",
+                "Bounce",
+                "Purchase"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "05_sankey_ecommercial",
+    "dataset_path": "datasets/05_sankey_ecommercial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/05_sankey_ecommercial.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

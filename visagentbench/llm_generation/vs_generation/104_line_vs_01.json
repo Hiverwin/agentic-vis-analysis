@@ -1,0 +1,53 @@
+{
+  "task_type": "vague_single",
+  "task_id": "104_line_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/104_gender_gap_in_life_line.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_trend in order to know Analyze how the contribution of different age groups to the gender life expectancy gap has evolved over time. Which age group shows the most significant change in its contribution pattern from 1921 to 2019?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The age group 0 (infant mortality) shows the most dramatic decline in contribution, dropping from an average of 0.775 years in early years (pre-1950) to just 0.101 years in recent years (post-1990), a decrease of 0.674 years. Conversely, the 60-79 age group has become increasingly important, rising from 1.436 to 2.567 years contribution (+1.131 years), now representing the largest contributor to the gender gap.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Age group 0 shows most dramatic decline from 0.775 to 0.101 years",
+          "Age group 60-79 has become the dominant contributor rising to 2.567 years",
+          "Age groups 80+ and 15-39 also show increasing trends over time"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight the increasing trend in the 60-79 age group contribution to analyze the shift in gender life expectancy gap patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "regression_line": true
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

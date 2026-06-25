@@ -1,0 +1,82 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "118_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/118_sankey_semiconducto.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use filter_flow with min_value equal to 500.0 and use trace_node with node_name equal to Final Good and use calculate_conversion_rate with node_name equal to Bin 1 (Good) in order to know How does the semiconductor wafer yield flow through different processing stages? What are the major loss points and efficiency patterns?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The semiconductor wafer flow shows a clear progression from 3 batches (A: 4000, B: 3850, C: 2150 wafers) through lithography, etching, and deposition stages. Litho Normal processes 9300 wafers (93% efficiency), while Etch Normal handles 9280 wafers. The main yield loss occurs at: (1) Overlay Error (200 wafers scrapped at litho), (2) Under-Etch and Sidewall Damage (520 wafers), (3) Thickness Fault and Contamination (500 wafers), and (4) Package Loss (430 wafers). Final yield reaches 7700 wafers (77% overall yield). Batch A contributes most to production (40%), followed by Batch B (38.5%) and Batch C (21.5%). The process shows consistent efficiency at each stage with approximately 7-8% cumulative losses across the manufacturing pipeline.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Overall yield is 77% (7700/10000 wafers)",
+          "Litho Normal achieves 93% efficiency",
+          "Batch A contributes 40% of total production",
+          "Major losses at Overlay Error",
+          "Package Loss",
+          "and CP Bin99",
+          "Consistent 7-8% loss rate at each processing stage"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_flow",
+            "reasoning": "Filter flows with minimum 500 wafers to focus on major production paths"
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace the Final Good node to understand its inflow sources"
+          },
+          {
+            "iteration": 3,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Calculate conversion rate at Bin 1 (Good) to measure yield efficiency"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 500.0
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Final Good"
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Bin 1 (Good)"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

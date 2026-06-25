@@ -1,0 +1,110 @@
+{
+  "benchmark_id": "43_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_by_category and reorder_dimensions, what is the correlation between Sepal Width and Petal Width for Iris-setosa?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "negative",
+          "alternatives": [
+            "negatively correlated"
+          ]
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Remove Iris-versicolor and Iris-virginica to focus on Iris-setosa."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Place Sepal Width and Petal Width adjacent for correlation assessment."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Species",
+                "values": [
+                  "Iris-versicolor",
+                  "Iris-virginica"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "Sepal Width (cm)",
+                  "Petal Width (cm)",
+                  "Sepal Length (cm)",
+                  "Petal Length (cm)"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Iris-versicolor\",\"Iris-virginica\"], datum['Species']) < 0"
+              }
+            ],
+            "axis_order": {
+              "dimension_order": [
+                "Sepal Width (cm)",
+                "Petal Width (cm)",
+                "Sepal Length (cm)",
+                "Petal Length (cm)"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "axis_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "43_iris_parallel",
+    "dataset_path": "datasets/43_iris_parallel.json",
+    "row_count": 600,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/43_iris_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

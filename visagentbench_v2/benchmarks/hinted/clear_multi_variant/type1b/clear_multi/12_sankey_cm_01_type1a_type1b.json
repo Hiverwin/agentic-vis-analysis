@@ -1,0 +1,136 @@
+{
+  "benchmark_id": "12_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Using calculate_conversion_rate and collapse_nodes, what percentage of Microsoft's revenue comes from its software services?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.48",
+          "tolerance": 0.05
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.node.collapse",
+            "rationale": "Aggregate all software products"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "get the software income is 25.3B"
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "get the hole income is 52.7B. so the answer is 25.3/52.7 = 0.48"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.node.collapse",
+          "sankey.conversionRate.calculate",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "aggregate_name": "software",
+                "nodes_to_collapse": [
+                  "Office Products",
+                  "LinkedIn",
+                  "Windows",
+                  "Gaming"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "software"
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Revenue"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "visible_nodes": [
+              "Server Products",
+              "Others (Layer 0)",
+              "software",
+              "Intelligent Cloud",
+              "Productivity",
+              "Personal Computing",
+              "Revenue",
+              "Gross Profit",
+              "Cost of Revenue",
+              "Operating Profit",
+              "Operating Expenses",
+              "Product Costs",
+              "Service Costs",
+              "Net Profit",
+              "Tax",
+              "R&D",
+              "S&M",
+              "G&A"
+            ],
+            "collapsed_nodes": [
+              "Others (Layer 0)"
+            ],
+            "node_visibility": {
+              "hidden_nodes": [
+                "Office Products",
+                "LinkedIn",
+                "Windows",
+                "Gaming"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "12_sankey_microsoft",
+    "dataset_path": "datasets/12_sankey_microsoft.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/12_sankey_microsoft.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

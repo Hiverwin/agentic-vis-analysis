@@ -1,0 +1,98 @@
+{
+  "benchmark_id": "51_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Use filter_categorical with field equal to Mode_of_Shipment and categories_to_remove equal to Flight, Ship to keep only road shipment mode, then use calculate_correlation with method equal to pearson to compute the correlation between cost and weight in the road shipment mode. What is the Pearson correlation coefficient (rounded to 2 decimals) between cost and weight in the road shipment mode?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "-0.145",
+          "tolerance": 0.01
+        },
+        "key_insights": [
+          "The correlation is about -0.145."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "We just cares about the data points of road shipment mode."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "The question asks us to calculate the correlation."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Mode_of_Shipment",
+                "categories_to_remove": [
+                  "Flight",
+                  "Ship"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Weight_in_gms",
+            "y": "Cost_of_the_Product",
+            "color": "Mode_of_Shipment"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Flight\", \"Ship\"], datum['Mode_of_Shipment']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "51_Train_scatter",
+    "dataset_path": "datasets/51_Train_scatter.json",
+    "row_count": 10999,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/51_Train_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

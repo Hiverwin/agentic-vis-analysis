@@ -1,0 +1,64 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "101_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/101_sankey_credit.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use trace_node with node_name equal to AAA Orig and use trace_node with node_name equal to Junk Orig in order to know How do the credit migration patterns differ between high-quality (AAA/AA) and lower-quality (BBB/Junk) loans over the three-year period?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "High-quality loans (AAA/AA) show strong rating stability with over 80% retaining their rating or improving, and minimal default risk (<1% cumulative). Lower-quality loans (BBB/Junk) exhibit significant downgrade pressure with 30-50% migrating to worse ratings and substantial default rates (27% for Junk in Y1 alone). The migration patterns reveal that BBB and Junk loans are the primary sources of default, while AAA/AA loans act as safe anchors in the portfolio.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "AAA loans have 84% retention rate in Y1",
+          "AAA loans have zero direct default risk",
+          "Junk loans have 27% default rate in Y1 alone",
+          "Lower-quality loans show significant downgrade pressure"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace the outflow patterns of AAA Orig to understand high-quality loan migration"
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace the outflow patterns of Junk Orig to understand lower-quality loan migration"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "AAA Orig"
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Junk Orig"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

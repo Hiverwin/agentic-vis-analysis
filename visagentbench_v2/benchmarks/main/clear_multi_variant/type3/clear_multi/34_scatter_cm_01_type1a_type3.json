@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "34_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "What is the Pearson correlation coefficient (rounded to 3 decimals) between price and engineSize?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.460",
+          "tolerance": 0.1
+        },
+        "key_insights": [
+          "The scatter plot now displays price on x-axis and engineSize on y-axis.",
+          "There is a moderate positive correlation between price and engineSize.",
+          "The Pearson correlation coefficient is approximately 0.460."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change y encoding to engineSize to show price vs engineSize relationship."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Compute Pearson correlation between price and engineSize."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "engineSize",
+                "channel": "y"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "price",
+            "y": "engineSize",
+            "color": "transmission"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "34_bmw_scatter",
+    "dataset_path": "datasets/34_bmw_scatter.json",
+    "row_count": 10781,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/34_bmw_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

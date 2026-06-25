@@ -1,0 +1,133 @@
+{
+  "benchmark_id": "75_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use filter_categories with categories equal to South American countries to compute their exact mean employment values, filter_categories with categories equal to South American countries to rank the country with the highest mean employment.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Brazil",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Zooming in is necessary because the initial view compresses the narrow yellow bars for South American countries, making exact values unreadable."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Australia",
+                  "Austria",
+                  "Bangladesh",
+                  "Belarus",
+                  "Bhutan",
+                  "Belgium",
+                  "Botswana",
+                  "Bulgaria",
+                  "Costa Rica",
+                  "Croatia",
+                  "Cyprus",
+                  "Czechia",
+                  "Denmark",
+                  "Dominican Republic",
+                  "Estonia",
+                  "Fiji",
+                  "Finland",
+                  "France",
+                  "Germany",
+                  "Greece",
+                  "Honduras",
+                  "Hungary",
+                  "Iceland",
+                  "India",
+                  "Ireland",
+                  "Israel",
+                  "Italy",
+                  "Kosovo",
+                  "Latvia",
+                  "Lesotho",
+                  "Lithuania",
+                  "Luxembourg",
+                  "Malta",
+                  "Mexico",
+                  "Netherlands",
+                  "Nigeria",
+                  "North Macedonia",
+                  "Norway",
+                  "Panama",
+                  "Poland",
+                  "Portugal",
+                  "Romania",
+                  "Rwanda",
+                  "Senegal",
+                  "Seychelles",
+                  "Singapore",
+                  "Slovak Republic",
+                  "Slovenia",
+                  "Spain",
+                  "Sweden",
+                  "Switzerland",
+                  "Thailand",
+                  "Turkiye",
+                  "United Kingdom",
+                  "United States",
+                  "West Bank and Gaza"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Country",
+            "y": "Employment_Thousands",
+            "color": "Continent"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Australia\",\"Austria\",\"Bangladesh\",\"Belarus\",\"Bhutan\",\"Belgium\",\"Botswana\",\"Bulgaria\",\"Costa Rica\",\"Croatia\",\"Cyprus\",\"Czechia\",\"Denmark\",\"Dominican Republic\",\"Estonia\",\"Fiji\",\"Finland\",\"France\",\"Germany\",\"Greece\",\"Honduras\",\"Hungary\",\"Iceland\",\"India\",\"Ireland\",\"Israel\",\"Italy\",\"Kosovo\",\"Latvia\",\"Lesotho\",\"Lithuania\",\"Luxembourg\",\"Malta\",\"Mexico\",\"Netherlands\",\"Nigeria\",\"North Macedonia\",\"Norway\",\"Panama\",\"Poland\",\"Portugal\",\"Romania\",\"Rwanda\",\"Senegal\",\"Seychelles\",\"Singapore\",\"Slovak Republic\",\"Slovenia\",\"Spain\",\"Sweden\",\"Switzerland\",\"Thailand\",\"Turkiye\",\"United Kingdom\",\"United States\",\"West Bank and Gaza\"], datum['Country']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "75_Refined_Employment_Telecom_Services_2024_bar",
+    "dataset_path": "datasets/75_Refined_Employment_Telecom_Services_2024_bar.json",
+    "row_count": 63,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/75_Refined_Employment_Telecom_Services_2024_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,69 @@
+{
+  "benchmark_id": "03_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What are the underlying long-term trends of TechCorp?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Its underlying long-term trend is for strong and accelerating growth."
+        },
+        "key_insights": [
+          "The 3-period moving average line shows a consistently steep upward slope without any significant pullback, indicating that the company's stock price maintained a stable growth momentum throughout 2023."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.movingAverage.show",
+            "rationale": "The role of moving average is to filter out short-term noise, allowing us to more clearly observe the core trend. The selection of a 3-period window achieves the smoothness of monthly fluctuations while preserving the changes in the medium-term trend."
+          }
+        ],
+        "required_capabilities": [
+          "line.movingAverage.show"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.movingAverage.show",
+            "param_eval": {
+              "type": "numeric",
+              "param": "window_size",
+              "target": 3,
+              "tolerance": 0.1
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "has_type": "line"
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "03_line_stocks",
+    "dataset_path": "datasets/03_line_stocks.json",
+    "row_count": 12,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/03_line_stocks.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

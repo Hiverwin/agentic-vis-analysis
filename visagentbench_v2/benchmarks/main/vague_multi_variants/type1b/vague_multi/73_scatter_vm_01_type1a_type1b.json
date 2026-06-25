@@ -1,0 +1,106 @@
+{
+  "benchmark_id": "73_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using zoom_2d_region, how does the impact of test preparation relate to the distribution of low-scoring and high-scoring areas?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "For the lower sections, the majority of people were unprepared and both scores were low. For the high-scoring areas, they also achieved high scores in both subjects. However, it can be observed that those who prepared performed better in mathematics, but there was no significant impact on the reading scores for those who did not prepare."
+        },
+        "key_insights": [
+          "find that more people in this area are no preparation",
+          "for reading score, no matter people if completed or not, all of them get a good grade",
+          "for math people in this area who get a higher score are completed"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "zoom the low price area"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "get the high score area data"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0,
+                  35.01666768391927
+                ],
+                "y_range": [
+                  0.250007629394533,
+                  99.20001220703125
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  79.94999694824219,
+                  100
+                ],
+                "y_range": [
+                  0,
+                  99.8499984741211
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              0,
+              35.01666768391927
+            ],
+            "yDomain": [
+              0.250007629394533,
+              99.20001220703125
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "73_StudentsPerformance_scatter",
+    "dataset_path": "datasets/73_StudentsPerformance_scatter.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/73_StudentsPerformance_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

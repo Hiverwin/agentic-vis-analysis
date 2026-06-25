@@ -1,0 +1,95 @@
+{
+  "benchmark_id": "16_bar_cs_03",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_03",
+      "question": "Use sort_bars in order to know Which salesperson shipped the most boxes in total?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Karlen McCaffrey",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars in descending order to identify the salesperson who shipped the most boxes"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Karlen McCaffrey",
+                "Jan Morforth",
+                "Dotty Strutley",
+                "Marney O'Breen",
+                "Beverie Moffet",
+                "Dennison Crosswaite",
+                "Oby Sorrel",
+                "Camilla Castle",
+                "Husein Augar",
+                "Roddy Speechley",
+                "Curtice Advani",
+                "Jehu Rudeforth",
+                "Andria Kimpton",
+                "Kaine Padly",
+                "Ches Bonnell",
+                "Kelci Walkden",
+                "Gunar Cockshoot",
+                "Brien Boise",
+                "Barr Faughny",
+                "Madelene Upcott",
+                "Mallorie Waber",
+                "Gigi Bohling",
+                "Van Tuxwell",
+                "Rafaelita Blaksland",
+                "Wilone O'Kielt"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "16_bar_Chocolate Sales",
+    "dataset_path": "datasets/16_bar_Chocolate Sales.json",
+    "row_count": 3282,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

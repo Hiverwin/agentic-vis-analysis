@@ -1,0 +1,115 @@
+{
+  "benchmark_id": "48_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `reorder_dimensions`; then apply `filter_by_category`. In the updated parallel-coordinates view, analyze where trajectories converge or diverge across dimensions, which transitions drive separation, and what changed in readability after interaction. Support with visible path and dimension evidence.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "There exists a iinverse Relationship between Win Percent and Price Percent and  lack of Clear Correlation between Sugar and Popularity."
+        },
+        "key_insights": [
+          "The orange lines (chocolate) generally show a higher concentration of high winpercent values compared to the blue lines.",
+          "Non-chocolate candies (blue) show a wider spread in popularity, ranging from very low to medium-high",
+          "High Popularity, Low Cost: Many of the lines with high Win Percent values (closer to the top of the middle axis) correspond to lower Price Percent values (towards the bottom of the right axis).",
+          "The lines are widely spread across the Sugar Percent axis (leftmost axis), ranging from very low (bottom) to very high (top)."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "We care about the relationship between winpercent and other two dimensions, putting winpercent in the middle can help to show the relationship."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "We focus on chocolate candy group."
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "sugarpercent",
+                  "winpercent",
+                  "pricepercent"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "chocolate",
+                "values": [
+                  "No"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"No\"], datum['chocolate']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "axis_order": {
+              "dimension_order": [
+                "sugarpercent",
+                "winpercent",
+                "pricepercent"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order",
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "48_candy_parallel ",
+    "dataset_path": "datasets/48_candy_parallel .json",
+    "row_count": 249,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/48_candy_parallel .json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

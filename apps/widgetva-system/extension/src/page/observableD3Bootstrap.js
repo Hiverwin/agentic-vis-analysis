@@ -3,7 +3,7 @@ export const OBSERVABLE_D3_BOOTSTRAP_ENTRY = 'observableD3'
 
 import {
   DEFAULT_OPENROUTER_AGENT_MODEL,
-  runNaturalLanguagePagePortAgentLoop,
+  runNaturalLanguagePagePortAgentSession,
 } from '../../../../../widgetva-kit/src/pageIntegrations.js'
 
 import {
@@ -18,6 +18,14 @@ function readOfficialPageChatTimeout(normalized) {
   }
 
   return normalized.chatTimeoutMs ?? normalized.timeoutMs
+}
+
+function readOfficialPageMaxTurns(normalized) {
+  if (!normalized || typeof normalized !== 'object') {
+    return undefined
+  }
+
+  return normalized.maxTurns
 }
 
 function summarizeError(error) {
@@ -145,10 +153,11 @@ export async function ensureObservableD3PageBootstrap({
     entry.runAgentLoop = (options = {}) => entry.controller?.runAgentLoop?.(options)
     entry.runNaturalLanguageAgentLoop = async (options = {}) => {
       const normalized = typeof options === 'string' ? { objective: options } : { ...(options || {}) }
-      return runNaturalLanguagePagePortAgentLoop(root.__widgetVA, {
+      return runNaturalLanguagePagePortAgentSession(root.__widgetVA, {
         objective: normalized.objective || normalized.prompt || null,
         model: normalized.model || DEFAULT_OPENROUTER_AGENT_MODEL,
         temperature: normalized.temperature,
+        maxTurns: readOfficialPageMaxTurns(normalized),
         completeChat: (request) =>
           completeOfficialPageAgentChat(root, {
             ...request,
@@ -202,10 +211,11 @@ export async function ensureObservableD3PageBootstrap({
       entry.runAgentLoop = (options = {}) => entry.controller?.runAgentLoop?.(options)
       entry.runNaturalLanguageAgentLoop = async (options = {}) => {
         const normalized = typeof options === 'string' ? { objective: options } : { ...(options || {}) }
-        return runNaturalLanguagePagePortAgentLoop(root.__widgetVA, {
+        return runNaturalLanguagePagePortAgentSession(root.__widgetVA, {
           objective: normalized.objective || normalized.prompt || null,
           model: normalized.model || DEFAULT_OPENROUTER_AGENT_MODEL,
           temperature: normalized.temperature,
+          maxTurns: readOfficialPageMaxTurns(normalized),
           completeChat: (request) =>
             completeOfficialPageAgentChat(root, {
               ...request,

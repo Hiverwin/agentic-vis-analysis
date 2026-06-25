@@ -1,0 +1,114 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "84_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/84_starbucks_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Use filter_categorical with categories_to_remove equal to [Classic Espresso Drinks, Tazo® Tea Drinks, Signature Espresso Drinks, Shaken Iced Beverages, Smoothies, Frappuccino® Blended Coffee, Frappuccino® Light Blended Coffee, Frappuccino® Blended Crème] to keep only Coffee drinks, then use zoom_2d_region with x_range from 0 to 20 and y_range from 0 to 50 to zoom into the low-sugar low-calorie region. Use get_data with scope visible to find the minimum Calories value among Coffee drinks in this region. What is that value?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "3",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Filter to keep only Coffee drinks for focused analysis."
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom into the low-sugar (0-20g) and low-calorie (0-50) region."
+          },
+          {
+            "iteration": 3,
+            "tool": "get_data",
+            "reasoning": "Retrieve visible data to find the minimum Calories value."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories_to_remove": [
+                    "Classic Espresso Drinks",
+                    "Tazo® Tea Drinks",
+                    "Signature Espresso Drinks",
+                    "Shaken Iced Beverages",
+                    "Smoothies",
+                    "Frappuccino® Blended Coffee",
+                    "Frappuccino® Light Blended Coffee",
+                    "Frappuccino® Blended Crème"
+                  ],
+                  "field": "Beverage_category"
+                }
+              }
+            },
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    0,
+                    20
+                  ],
+                  "y_range": [
+                    0,
+                    50
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "visible"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": " Sugars (g)",
+            "y": "Calories",
+            "color": "Beverage_category"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Classic Espresso Drinks\", \"Tazo® Tea Drinks\", \"Signature Espresso Drinks\", \"Shaken Iced Beverages\", \"Smoothies\", \"Frappuccino® Blended Coffee\", \"Frappuccino® Light Blended Coffee\", \"Frappuccino® Blended Crème\"], datum['Beverage_category']) < 0"
+            }
+          ],
+          "visible_domain": {
+            "x": [
+              0,
+              20
+            ],
+            "y": [
+              0,
+              50
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

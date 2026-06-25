@@ -1,0 +1,72 @@
+{
+  "task_type": "clear_single",
+  "task_id": "61_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/61_Berlin_crimes_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use zoom_2d_region with x_range from 0 to 19.9, y_range from 0 to 193.7 to evaluate which district in this region has largest number of robberies in this region.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Treptow-Köpenick",
+          "alternatives": [
+            "Treptow-Köpenick"
+          ]
+        },
+        "key_insights": [
+          "The Treptow-Köpenick district has the largest number of robberies in this region."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "zoom the region to find the district with the largest number of robberies"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    0,
+                    19.9
+                  ],
+                  "y_range": [
+                    0,
+                    193.7
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              0,
+              19.9
+            ],
+            "y": [
+              0,
+              193.7
+            ]
+          },
+          "encoding": {
+            "x": "Robbery",
+            "y": "Injury",
+            "color": "District"
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

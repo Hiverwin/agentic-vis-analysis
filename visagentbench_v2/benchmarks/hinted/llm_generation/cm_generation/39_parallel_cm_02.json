@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "39_parallel_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "39_parallel_cm_01：Use filter_by_category with field equal to Region and values equal to Asia to focus on Asian countries, then use calculate_correlation with method equal to pearson to identify strong correlations, then use reorder_dimensions to group highly correlated variables. Which variables are most strongly correlated in Asian countries?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "southeast",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter by region to compare charges"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between charges and other factors"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.sort.encoding",
+            "rationale": "Reorder dimensions to focus on charges"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.correlation.compute",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": "southeast"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "charges",
+                  "age",
+                  "bmi",
+                  "children"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "axis_order": {
+              "dimension_order": [
+                "charges",
+                "age",
+                "bmi",
+                "children"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "39_insurance_parallel",
+    "dataset_path": "datasets/39_insurance_parallel.json",
+    "row_count": 5352,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/39_insurance_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

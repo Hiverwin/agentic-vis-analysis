@@ -1,0 +1,111 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "19_scatter_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/19_Heart_Disease_Prediction_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use calculate_correlation with method equal to pearson and use zoom_2d_region with x_range from 50.0 to 70.0, y_range from 200.0 to 300.0 and use identify_clusters with n_clusters equal to 3, method equal to kmeans and use filter_by_category with field equal to n_clusters, values equal to Heart Disease, Presence in order to know Analyze the relationship between age, cholesterol levels, and heart disease status, identifying key patterns and insights",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The scatter plot analysis reveals several important patterns: 1) Patients with heart disease have higher average age (56.6 vs 52.7) and cholesterol levels (256.5 vs 244.2 mg/dL) compared to those without; 2) There is a weak positive correlation between age and cholesterol for both groups (0.158 for presence, 0.227 for absence); 3) Different chest pain types show varying age and cholesterol profiles, with type 4 showing the highest average cholesterol (254.6 mg/dL); 4) The data suggests that older age and higher cholesterol levels are associated with increased heart disease risk, though the correlation is not strong. The visualization allows for identifying potential risk profiles by examining the clustering of data points across age and cholesterol dimensions.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Heart disease patients have higher age and cholesterol",
+          "Older age correlates weakly with higher cholesterol",
+          "Different chest pain types show distinct profiles",
+          "Data clustering reveals risk patterns"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between age and cholesterol"
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom to region with highest cholesterol levels"
+          },
+          {
+            "iteration": 3,
+            "tool": "identify_clusters",
+            "reasoning": "Identify clusters in the data to find patterns"
+          },
+          {
+            "iteration": 4,
+            "tool": "filter_by_category",
+            "reasoning": "Filter by heart disease status to compare distributions"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    50.0,
+                    70.0
+                  ],
+                  "y_range": [
+                    200.0,
+                    300.0
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            },
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "n_clusters",
+                  "values": [
+                    "Heart Disease",
+                    "Presence"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Age",
+            "y": "Cholesterol",
+            "color": "Heart Disease",
+            "size": "Chest pain type"
+          }
+        }
+      }
+    }
+  ]
+}

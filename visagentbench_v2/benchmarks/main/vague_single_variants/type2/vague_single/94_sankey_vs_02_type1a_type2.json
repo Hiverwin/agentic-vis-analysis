@@ -1,0 +1,68 @@
+{
+  "benchmark_id": "94_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "How can the characteristics of the traffic flowing to fresh food be characterized?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "There are four sources, each accounting for 52%,32%,13%,3%."
+        },
+        "key_insights": [
+          "there are four sources",
+          "the flow from Live Streaming (Douyin/Xiaohongshu) takes 13%.",
+          "the flthe flow from Fresh Supermarket (Offline Scan/Delivery) takes 52%.",
+          "the flow from Community Group (WeChat/Community) takes 32%.",
+          "the flow from Brand Ads (Elevator/Official) takes 3%."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "color the flows of fresh food,and there are four sources"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "color": "#e74c3c",
+                "nodes": [
+                  "Fresh Food"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "94_samkey_retail",
+    "dataset_path": "datasets/94_samkey_retail.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/94_samkey_retail.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

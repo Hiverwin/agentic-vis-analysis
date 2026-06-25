@@ -1,0 +1,59 @@
+{
+  "task_type": "clear_single",
+  "task_id": "17_bar_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/17_Heart_Disease_Prediction_bar.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "How does chest pain type characterize among people with heart disease having the highest mean?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "type 2",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "toggle_stack_mode",
+            "reasoning": "toggle the stack mode to compare the chest pain type"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Heart Disease",
+            "y": "Cholesterol",
+            "color": "Chest pain type"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Absence\"], datum['Heart Disease']) < 0"
+            }
+          ],
+          "mark_mode": {
+            "is_stacked": false
+          }
+        },
+        "state_check_fields": [
+          "mark_mode"
+        ]
+      }
+    }
+  ]
+}

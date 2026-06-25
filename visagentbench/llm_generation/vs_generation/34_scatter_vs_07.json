@@ -1,0 +1,47 @@
+{
+  "task_type": "vague_single",
+  "task_id": "34_scatter_vs_07",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/34_bmw_scatter.json",
+  "questions": [
+    {
+      "qid": "vs_07",
+      "question": "Use calculate_correlation in order to know How does fuel efficiency vary with price for different transmission types, and what patterns can be observed in the data?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Fuel efficiency tends to vary with price, with some patterns emerging based on transmission type. Generally, more expensive BMW models may have different fuel efficiency characteristics compared to less expensive ones. Automatic transmission models might show different efficiency patterns than manual or semi-automatic models. Additionally, engine size often correlates with both price and fuel efficiency.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Fuel efficiency varies with price",
+          "Transmission type affects efficiency",
+          "Engine size correlates with both price and efficiency"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between price and fuel efficiency to understand their relationship"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

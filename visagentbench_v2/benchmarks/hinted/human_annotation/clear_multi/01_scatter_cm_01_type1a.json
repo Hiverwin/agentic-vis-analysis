@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "01_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use calculate_correlation with parameter equal to horsepower and miles per gallon, identify_clusters to assess whether the main clusters correspond highly to the Origin label.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "Yes"
+        },
+        "key_insights": [
+          "The Spearman correlation coefficient between Horsepower and Miles_per_Gallon is -0.85, which indicates a strong negative monotonic relationship. This means that as horsepower increases, fuel efficiency (miles per gallon) decreases in a very consistent fashion.",
+          "The clustering results divided the data into three groups: \"High horsepower with low fuel consumption\", \"Medium horsepower with medium fuel consumption\", and \"Low horsepower with high fuel consumption\".",
+          "These three groups precisely correspond to the three production regions of the United States, Japan and Europe."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "The overall trend is that the higher the horsepower, the lower the fuel consumption. However, it is not a strict straight line; there is a certain curve shape involved."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "The Spearman correlation tells us that \"the higher the horsepower, the lower the fuel consumption\" is a very significant rule.It is precisely because the vehicles from different origins follow this strong correlation pattern in terms of horsepower and fuel consumption that clusters corresponding to the origin have been formed."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "categorical",
+              "param": "method",
+              "target": "spearman"
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "numeric",
+              "param": "n_clusters",
+              "target": 3,
+              "tolerance": 0.1
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Horsepower",
+            "y": "Miles_per_Gallon",
+            "color": "cluster_3"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "cluster_field": {
+              "color_field_contains": "cluster"
+            }
+          }
+        },
+        "state_check_fields": [
+          "cluster_field"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "01_scatter_cars",
+    "dataset_path": "datasets/01_scatter_cars.json",
+    "row_count": 392,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/01_scatter_cars.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

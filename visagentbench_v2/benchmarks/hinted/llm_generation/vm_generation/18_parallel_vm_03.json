@@ -1,0 +1,134 @@
+{
+  "benchmark_id": "18_parallel_vm_03",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_03",
+      "question": "Use hide_dimensions with dimensions equal to hide, Age, BP, mode equal to hide and use filter_by_category with field equal to dimensions, values equal to Heart Disease, Presence and use highlight_category with field equal to field, values equal to Heart Disease, Presence and use filter_by_category with field equal to values, values equal to Heart Disease, Absence in order to know Analyze the multi-dimensional patterns in heart disease prediction data, identifying key differences between patients with and without heart disease",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The parallel coordinate analysis reveals significant multi-dimensional patterns between patients with and without heart disease. Key differences include: 1) Higher normalized values for Age (0.575 vs 0.494), BP (0.382 vs 0.329), Cholesterol (0.298 vs 0.270), ST depression (0.256 vs 0.100), and Thallium (0.708 vs 0.197) in patients with heart disease; 2) Lower Max HR (0.518 vs 0.667) in patients with heart disease; 3) The most striking difference is in Thallium values, followed by ST depression and Max HR. These patterns suggest a comprehensive profile for heart disease risk assessment, with multiple physiological factors showing consistent differences between the two groups.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Thallium shows largest difference between groups",
+          "ST depression is significantly higher in heart disease patients",
+          "Max HR is lower in heart disease patients",
+          "Multiple physiological factors show consistent patterns"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide less relevant dimensions to focus on key factors"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only patients with heart disease"
+          },
+          {
+            "iteration": 3,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight heart disease presence to visualize patterns"
+          },
+          {
+            "iteration": 4,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only patients without heart disease for comparison"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide",
+          "data.filter.categorical",
+          "data.highlight.values",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "hide",
+                  "Age",
+                  "BP"
+                ],
+                "mode": "hide"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "dimensions",
+                "values": [
+                  "Heart Disease",
+                  "Presence"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": [
+                  "Heart Disease",
+                  "Presence"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "values",
+                "values": [
+                  "Heart Disease",
+                  "Absence"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "18_Heart_Disease_Prediction_parallel",
+    "dataset_path": "datasets/18_Heart_Disease_Prediction_parallel.json",
+    "row_count": 1620,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/18_Heart_Disease_Prediction_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

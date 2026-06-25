@@ -1,0 +1,92 @@
+{
+  "benchmark_id": "11_line_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How did Apple's product revenues change from 2022-2025, and what might explain these changes?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Apple's product revenues showed significant abnormal growth in 2022-2023, with MacBook reaching 1720-1750 billion and iPhone reaching 895-915 billion. This was followed by a dramatic decline in 2024, with revenues returning to normal levels similar to 2021. The 2022-2023 spike appears to be data anomalies or reporting errors, as such extreme growth is unlikely in reality. The 2024-2025 data shows a return to realistic revenue levels with modest growth across products.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "2022-2023 show abnormal revenue spikes",
+          "MacBook had highest abnormal growth",
+          "2024-2025 returned to normal levels",
+          "Data appears to contain reporting errors for 2022-2023"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into 2022-2023 to analyze abnormal growth"
+          },
+          {
+            "iteration": 2,
+            "capability": "line.series.focus",
+            "rationale": "Focus on MacBook and iPhone to analyze their performance"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "line.series.focus"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2022",
+                "end": "2023"
+              }
+            }
+          },
+          {
+            "capability": "line.series.focus",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "dim",
+                "lines": [
+                  "MacBook",
+                  "iPhone"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": []
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "11_apple_time_line",
+    "dataset_path": "datasets/11_apple_time_line.json",
+    "row_count": 133,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/11_apple_time_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

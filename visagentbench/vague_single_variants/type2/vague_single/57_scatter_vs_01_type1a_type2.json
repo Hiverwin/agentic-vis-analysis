@@ -1,0 +1,51 @@
+{
+  "task_type": "vague_single",
+  "task_id": "57_scatter_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/57_health care diabetes_scatter.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "How does the visible spread, residual pattern, and regression line compare to the point cloud in assessing the trustworthiness of the linear fit?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The linear regression line is not a trustworthy summary of the bulk of the points. On the underlying DiabetesPedigreeFunction × Glucose data, the linear fit explains only about R² ≈ 0.02—the cloud is wide and Glucose varies greatly at similar pedigree values, so the red line cuts through a dispersed band rather than tracking a clear trend. Outcome-colored points span a large vertical range around the line; the line mainly captures a weak upward tilt, not the dominant structure of the view."
+        },
+        "key_insights": [
+          "Very low explained variance: the regression line leaves most variation in Glucose unexplained.",
+          "Visual impression matches a broad scatter with weak linear structure versus a tight band around the line."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "show_regression",
+            "reasoning": "get the regression"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "show_regression",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "linear"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "regression_line": true
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

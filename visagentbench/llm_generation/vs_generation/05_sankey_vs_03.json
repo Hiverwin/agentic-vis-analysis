@@ -1,0 +1,45 @@
+{
+  "task_type": "vague_single",
+  "task_id": "05_sankey_vs_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/05_sankey.json",
+  "questions": [
+    {
+      "qid": "vs_03",
+      "question": "Use calculate_conversion_rate with node_name equal to target to compute the overall flow of patients through the system and identify which treatment plan has the highest rate of patients achieving Cured & Released in order to know which treatment plan has the highest rate of patients achieving Cured & Released?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Google Ads has the most efficient conversion funnel, driving 9000 users with strong flow to Product Detail and ultimately contributing significantly to the 8000 purchases. While Facebook also brings substantial traffic (7000 users), Google Ads shows a more direct path to conversion through Landing Page and Product List entries.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Google Ads drives 9000 users",
+          "Overall conversion rate is 30.19%",
+          "Landing Page is the primary entry point"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Use calculate_conversion_rate to analyze traffic source efficiency and conversion paths"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {}
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

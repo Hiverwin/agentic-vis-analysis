@@ -1,0 +1,91 @@
+{
+  "benchmark_id": "103_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use highlight_path with path equal to Engineering, Computer Sci, On-Time Grad, Tech/Internet and use trace_node with node_name equal to Business in order to know How do the career pathways differ between Engineering and Business graduates in terms of industry placement and starting salary outcomes?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Engineering graduates show strong concentration in high-paying industries with Computer Science leading to Tech/Internet (the largest industry at 465 graduates), where 45% earn >20K/mo. Mechanical and Electrical Engineering graduates also flow significantly to Manufacturing and Tech sectors. Business graduates demonstrate more diverse industry placement with Finance and Accounting majors primarily entering Finance Industry (315 total) where 46% earn >20K/mo. The key difference is that Engineering paths lead more directly to Tech sector with higher salary ceilings, while Business paths offer broader industry distribution but slightly lower top-tier salary rates. Both show strong on-time graduation rates (82% for CS, 86% for Accounting).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Engineering has 600 graduates",
+          "largest college",
+          "Business has 500 graduates",
+          "second largest",
+          "Tech/Internet is largest industry at 465",
+          "Accounting has highest on-time grad rate at 86.1%",
+          "CS graduates have 82.1% on-time graduation"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the Engineering to Tech/Internet pathway to analyze Engineering career outcomes"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace the Business college node to understand Business graduate distribution"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Engineering",
+                  "Computer Sci",
+                  "On-Time Grad",
+                  "Tech/Internet"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Business"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "103_sankey_university",
+    "dataset_path": "datasets/103_sankey_university.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/103_sankey_university.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

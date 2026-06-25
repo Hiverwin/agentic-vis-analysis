@@ -1,0 +1,69 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "108_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/108_insurance_sankey.json",
+  "questions": [
+    {
+      "qid": "cm_04",
+      "question": "Use highlight_path with path equal to [App Self-Service, Auto-Approve] and get_data with scope equal to visible to determine how many claims from App Self-Service were auto-approved. What is the claim count?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "1800",
+          "tolerance": 0
+        },
+        "key_insights": [
+          "1800 claims submitted via App Self-Service were auto-approved."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_path",
+            "reasoning": "Highlight the path from App Self-Service to Auto-Approve to focus on claims that were auto-approved via the app."
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data",
+            "reasoning": "Retrieve the visible flow data to count claims on this path."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "App Self-Service",
+                    "Auto-Approve"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "visible"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

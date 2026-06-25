@@ -1,0 +1,53 @@
+{
+  "task_type": "vague_single",
+  "task_id": "103_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/103_sankey_university.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_path in order to know Analyze the career pathways of university graduates. Which academic major demonstrates the strongest correlation with high-paying jobs (>20K/mo) in the Tech/Internet industry?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Computer Science shows the strongest correlation with high-paying tech jobs. 82.1% of CS students graduate on-time (230 out of 280), and the Tech/Internet industry receives 465 graduates total with 210 landing >20K/mo positions. Engineering majors overall have strong tech industry placement with Computer Sci and Electrical Eng feeding primarily into Tech/Internet sector.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Computer Science has highest on-time graduation rate at 82.1%",
+          "Tech/Internet industry offers most >20K/mo positions at 210",
+          "Engineering majors dominate high-paying tech sector"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_path",
+            "reasoning": "Highlight the path from Engineering through Computer Science to high-paying tech jobs to analyze career outcomes"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Engineering",
+                    "Computer Sci",
+                    "On-Time Grad",
+                    "Tech/Internet",
+                    ">20K/mo"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "benchmark_id": "83_line_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "14_line_cm_01：Use zoom_x_region and filter_lines to analyze line chart data.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "China",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom to focus on 2015-2020 period"
+          },
+          {
+            "iteration": 2,
+            "capability": "line.series.filter",
+            "rationale": "Filter lines to remove other countries"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2015",
+                "end": "2020"
+              }
+            }
+          },
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Austria",
+                  "Egypt",
+                  "France",
+                  "Germany",
+                  "Japan",
+                  "New Zealand",
+                  "United Kingdom",
+                  "United States"
+                ],
+                "line_field": "end"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "2015",
+              "2020"
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "83_global-data-on-sustainable-energy-filtered_line",
+    "dataset_path": "datasets/83_global-data-on-sustainable-energy-filtered_line.json",
+    "row_count": 189,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/83_global-data-on-sustainable-energy-filtered_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

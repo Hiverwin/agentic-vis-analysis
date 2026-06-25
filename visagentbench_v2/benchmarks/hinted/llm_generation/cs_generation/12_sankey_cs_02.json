@@ -1,0 +1,60 @@
+{
+  "benchmark_id": "12_sankey_cs_02",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_02",
+      "question": "Use trace_node in order to know Which product category contributes the most revenue to Intelligent Cloud?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Server Products",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use trace_node to trace the flow into Intelligent Cloud and identify which product category contributes the most revenue"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Intelligent Cloud"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "12_sankey_micro",
+    "dataset_path": "datasets/12_sankey_micro.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/12_sankey_micro.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

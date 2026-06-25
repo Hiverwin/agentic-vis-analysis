@@ -1,0 +1,84 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "49_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/49_coffee_sales_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Using change_encoding and filter_cells_by_region, which month's mean price of Cortado is the lowest?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Aug",
+          "alternatives": [
+            "August"
+          ]
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "change encoding to see month pattern."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells_by_region",
+            "reasoning": "To isolate the 'Aug' ,'Sep' and 'Oct' row for focused analysis. "
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y": "Month_name"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Nov",
+                    "Dec"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "coffee_name",
+            "y": "Month_name",
+            "color": "money"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Aug\", \"Sep\", \"Oct\"], datum['Month_name']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

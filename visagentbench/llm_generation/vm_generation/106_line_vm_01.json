@@ -1,0 +1,73 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "106_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/106_life expectancey_line.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use filter_lines with lines_to_remove equal to Germany, Australia, Japan and use zoom_x_region with start equal to 1950, end equal to 2000 in order to know First use filter_lines to remove some countries, then use zoom_x_region for a specific time period. Based on the remaining lines, analyze how life expectancy evolves by country, including ranking stability, gap dynamics, and whether there is catch-up or overtaking. Cite visible evidence anchors (country names and trend/rank changes over time).",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Most countries show a steady increase in life expectancy over time. Some countries with lower initial values experience faster growth rates, leading to partial catch-up with higher-income countries. While overall rankings remain relatively stable, there are subtle shifts in the relative positions of certain countries over the observed period.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Most countries show an increasing trend in life expectancy over time",
+          "Some countries with lower starting points exhibit faster growth rates",
+          "Overall country rankings remain relatively stable with subtle shifts"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_lines",
+            "reasoning": "Filter lines to focus on specific countries"
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom into a specific time period to analyze trends in detail"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Germany",
+                    "Australia",
+                    "Japan"
+                  ],
+                  "line_field": "lines_to_remove"
+                }
+              }
+            },
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "1950",
+                  "end": "2000"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Life expectancy - Sex: female - Age: 0 - Variant: estimates",
+            "color": "Entity"
+          }
+        }
+      }
+    }
+  ]
+}

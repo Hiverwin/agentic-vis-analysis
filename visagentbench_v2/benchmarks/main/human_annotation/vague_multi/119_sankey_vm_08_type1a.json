@@ -1,0 +1,97 @@
+{
+  "benchmark_id": "119_sankey_vm_08",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `expand_node`; then apply `expand_node`. Then analyze how the flow structure changes in the updated view: which links are pruned or retained, which trunk paths dominate, and what this implies about node role or funnel behavior compared with the original view. Cite node/edge evidence explicitly.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The node of Others (Layer 2) is only Guild Upgrades with 2,000,000 gold.\nThe nodes of Others (Layer 3) are Transaction Tax,NPC Vendor and Guild Building,among them Transaction Tax costs most gold."
+        },
+        "key_insights": [
+          "The node of Others (Layer 2) is Guild Upgrades.",
+          "It takes 2,000,000 gold.",
+          "there are three nodes:Transaction Tax,NPC Vendor and Guild Building.",
+          "Transaction Tax costs the most gold.NPC Vendor and Guild Building cost less but the same amount of gold."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.node.collapse",
+            "rationale": "Expanded Others (Layer 2),we can see there are only one node and the number of gold for it."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.node.collapse",
+            "rationale": "Expanded Others (Layer 3),we can see there are three nodes and the cost of gold for them respectively."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.node.collapse",
+          "sankey.node.collapse",
+          "sankey.node.collapse"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 2
+              }
+            }
+          },
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "aggregate_name": "Others (Layer 2)"
+              }
+            }
+          },
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "aggregate_name": "Others (Layer 3)"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {}
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "119_sankey_game",
+    "dataset_path": "datasets/119_sankey_game.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/119_sankey_game.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

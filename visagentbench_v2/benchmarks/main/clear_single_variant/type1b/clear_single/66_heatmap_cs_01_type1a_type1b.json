@@ -1,0 +1,67 @@
+{
+  "benchmark_id": "66_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using find_extremes, what combination of smoking and drinking status corresponds to the lowest mean vitamin C percent RDA?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "When a person never smoke and drink alcohol moderately.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "By using the tool of finding extreme we obtain that the smallest value appears at a status where a person never smoke and drink alcohol moderately."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1,
+                "mode": "min"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "smoking_status",
+            "y": "alcohol_consumption",
+            "color": "vitamin_c_percent_rda"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "66_vitamin_deficiency_disease_dataset_heatmap",
+    "dataset_path": "datasets/66_vitamin_deficiency_disease_dataset_heatmap.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -118,7 +118,7 @@ class VegaService:
         if not self.vega_cli_available and not self.altair_available and not self.require_cli:
             app_logger.warning(
                 "  WARNING: No chart renderer available!\n"
-                "   System will use mock rendering (placeholder images).\n"
+                "   System will return rendering errors.\n"
                 "\n"
                 "   To enable real chart rendering, choose one:\n"
                 "\n"
@@ -145,7 +145,7 @@ class VegaService:
         
         Rendering strategy:
         - Always use vega-cli (vl2png for Vega-Lite, vg2png for Vega)
-        - If CLI not available, use mock rendering
+        - If CLI not available, return explicit error
         
         Args:
             vega_spec: Vega-Lite or Vega JSON specification
@@ -180,9 +180,11 @@ class VegaService:
                 if self.vega_cli_available:
                     return self._render_with_cli(vega_spec, output_format)
             
-            # If CLI not available, use mock rendering
-            app_logger.warning("No CLI renderer available, using mock rendering")
-            return self._mock_render(vega_spec)
+            # If CLI not available, return explicit error (no mock fallback).
+            return {
+                "success": False,
+                "error": "No chart renderer available. Install vega-cli (vl2png/vg2png) or set proper renderer dependencies.",
+            }
             
         except Exception as e:
             app_logger.error(f"Render error: {e}")
@@ -259,11 +261,11 @@ class VegaService:
                     "help": "Please check vega-cli installation. Run: vl2png --version or vg2png --version"
                 }
             else:
-                # otherwise use mock rendering
-                app_logger.warning(
-                    "Something wrong. The real data is not rendered.\n" 
-                )
-                return self._mock_render(vega_spec)
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "help": "Install vega-cli and verify with vl2png --version / vg2png --version",
+                }
     
     def _mock_render(self, vega_spec: Dict) -> Dict:
         """

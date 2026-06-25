@@ -1,0 +1,110 @@
+{
+  "benchmark_id": "18_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_by_category, how does the relationship between Thallium and Max HR manifest in the Absence group?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "In the \"Absence\" group visualized here, as the Thallium score decreases, the Max HR tends to increase. The lines on the plot cross over significantly between these two axes, confirming this opposing trend."
+        },
+        "key_insights": [
+          "patients with specific results on the Thallium scan (likely indicating reversible defects or other abnormalities) are highly represented in this heart disease prediction dataset",
+          "High Thallium correspond to the lowest values on the Max HR axis"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "We cares about Absence group"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "We care about Max HR and Thallium"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Heart Disease",
+                "values": [
+                  "Presence"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "dimension",
+                "values": [
+                  "Age",
+                  "BP",
+                  "Cholesterol",
+                  "ST depression"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Age\",\"BP\",\"Cholesterol\",\"ST depression\"], datum['dimension']) < 0"
+              },
+              {
+                "filter": "indexof([\"Presence\"], datum['Heart Disease']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "18_Heart_Disease_Prediction_parallel",
+    "dataset_path": "datasets/18_Heart_Disease_Prediction_parallel.json",
+    "row_count": 1620,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/18_Heart_Disease_Prediction_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

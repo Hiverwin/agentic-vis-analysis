@@ -1,0 +1,67 @@
+{
+  "benchmark_id": "72_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use find_extremes in order to know Use find_extremes to analyze the patterns of writing scores across different race/ethnicity groups and parental education levels",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The highest writing scores are found in Group E with parents having master degree, while the lowest scores are in Group A with parents having high school education, showing a clear correlation between parental education level and student performance",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Group E has highest writing scores",
+          "Master degree parents have highest scores",
+          "Group A has lowest writing scores",
+          "High school education parents have lowest scores",
+          "Parental education level strongly correlates with writing scores"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use find_extremes to identify the highest and lowest writing scores across different demographic groups"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "72_StudentsPerformance_heatmap",
+    "dataset_path": "datasets/72_StudentsPerformance_heatmap.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/72_StudentsPerformance_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

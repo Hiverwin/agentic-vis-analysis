@@ -1,0 +1,83 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "25_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/25_gym_members_exercise_tracking_bar.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_categories with value equal to Cardio and HIIT and toggle stack mode to compare which group‘s experience level 2 has the higher fat percentage.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Strength  ",
+          "alternatives": []
+        },
+        "key_insights": [
+          "After filtering out HIIT and cardio exercise types, it was found that among participants with an experience level of 2, those engaging in strength training had a significantly higher fat percentage than those practicing yoga.",
+          "Conversely, among individuals with an experience level of 3, those practicing yoga exhibited a significantly higher fat percentage than those engaging in strength training.",
+          "The sum of percentages for Yoga Type 2 is approximately 2,720, while that for Strength Type 1 is approximately 2,700.",
+          "The dark blue segments  the highest experience level, 3.0) are the smallest in both workout types, while the lightest segments (beginner level, 1.0) are the largest. This suggests that beginners contribute the most to the total fat percentage sum in both groups."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "The current view does not provide an intuitive answer, so consider expanding the bar layout for comparison along the reference lines."
+          },
+          {
+            "iteration": 2,
+            "tool": "toggle_stack_mode",
+            "reasoning": "Switch to grouped mode to compare total mean fat percentage between Strength and Yogo."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "HIIT",
+                    "Cardio"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Workout_Type",
+            "y": "Fat_Percentage",
+            "color": "Experience_Level"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"HIIT\",\"Cardio\"], datum['Workout_Type']) < 0"
+            }
+          ],
+          "mark_mode": {
+            "is_stacked": false
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode"
+        ]
+      }
+    }
+  ]
+}

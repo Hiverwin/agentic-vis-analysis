@@ -1,0 +1,71 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "80_scatter_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/80_gym_members_exercise_tracking_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans in order to know What patterns can you observe in the relationship between session duration and calories burned across different workout types?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) There is a very strong positive correlation (r=0.908) between session duration and calories burned, meaning longer sessions consistently burn more calories, 2) All four workout types show similar strong correlations (0.885-0.919), indicating this relationship holds across different exercise modalities, 3) Average calories burned are similar across workout types (884.5-925.8), suggesting workout type has less impact than duration, 4) High-frequency trainers (>=4 days/week) burn significantly more calories on average (1067.6 vs 726.4 for low-frequency trainers), 5) The data shows that session duration is the primary driver of calorie burn, regardless of workout type.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Strong correlation (r=0.908) between duration and calories",
+          "Similar correlations across workout types",
+          "Workout type has less impact than duration",
+          "High-frequency trainers burn more calories",
+          "Duration is primary driver of calorie burn"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between duration and calories"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Identify clusters to see grouping patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Session_Duration (hours)",
+            "y": "Calories_Burned",
+            "color": "Workout_Type",
+            "size": "Workout_Frequency (days/week)"
+          }
+        }
+      }
+    }
+  ]
+}

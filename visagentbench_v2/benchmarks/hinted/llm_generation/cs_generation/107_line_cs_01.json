@@ -1,0 +1,69 @@
+{
+  "benchmark_id": "107_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use detect_anomalies in order to know Use detect_anomalies with threshold equal to 2 to identify which country shows the most significant anomaly in male survival rate.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "China",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "Detect anomalies in survival rate trends across all countries"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.anomalies.detect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "threshold": 2.0
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "anomaly_markers": {
+              "has_markers": true,
+              "marker_type": "point"
+            }
+          }
+        },
+        "state_check_fields": [
+          "anomaly_markers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "107_survive_to_65_line",
+    "dataset_path": "datasets/107_survive_to_65_line.json",
+    "row_count": 496,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/107_survive_to_65_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

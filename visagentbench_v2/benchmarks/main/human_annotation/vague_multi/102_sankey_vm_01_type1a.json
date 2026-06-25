@@ -1,0 +1,112 @@
+{
+  "benchmark_id": "102_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_03",
+      "question": "First apply `reorder_nodes_in_layer`; then highlight a key path; then highlight a key path. Then analyze how the flow structure changes in the updated view: which links are pruned or retained, which trunk paths dominate, and what this implies about node role or funnel behavior compared with the original view. Cite node/edge evidence explicitly.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Mid‑term user state strongly determines whether users can be retained until the end."
+        },
+        "key_insights": [
+          "Reordering shows that Month 3 is the biggest churn stage.Only the two non-churn states (Retained (Basic) and Upgraded (Pro)) can still reach Renewed.",
+          "The path from Upgraded (Pro) is clean and direct with no extra churn branches.",
+          "The path from Retained (Basic) has side branches to Churned M6, showing it is unstable."
+        ],
+        "reasoning_trace": [],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "depth": 2,
+                "sort_by": "value_desc"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Upgraded (Pro)",
+                  "Loyal",
+                  "Renewed"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Retained (Basic)",
+                  "Loyal",
+                  "Renewed"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Google Ads",
+                "Organic",
+                "Referral",
+                "Social Media",
+                "Active (High)",
+                "Active (Low)",
+                "Inactive M1",
+                "Upgraded (Pro)",
+                "Retained (Basic)",
+                "Churned M3",
+                "Loyal",
+                "Downgraded",
+                "Churned M6",
+                "Renewed",
+                "Churned Y1"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "102_sankey_saas",
+    "dataset_path": "datasets/102_sankey_saas.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/102_sankey_saas.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

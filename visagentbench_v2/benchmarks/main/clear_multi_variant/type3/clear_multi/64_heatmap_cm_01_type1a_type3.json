@@ -1,0 +1,96 @@
+{
+  "benchmark_id": "64_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Which year corresponds to the lowest average price for real trees between 2010 and 2016?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "2011",
+          "tolerance": 0
+        },
+        "key_insights": [
+          "Real trees show a clear upward price trend from 2010 to 2016. Lowest price occurs in 2011."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filter out Fake tree row to focus on Real tree prices only."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find the year with the minimum average price for real trees."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Fake tree"
+              }
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1,
+                "mode": "min"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Type of tree",
+            "color": "Average Tree Price"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Fake tree\"], datum['Type of tree']) < 0",
+                "_avs_tag": "filter_cells_by_region"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "64_US Christmas Tree Sales _heatmap",
+    "dataset_path": "datasets/64_US Christmas Tree Sales _heatmap.json",
+    "row_count": 14,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

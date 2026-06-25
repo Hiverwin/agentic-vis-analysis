@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "19_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Does the population of older individuals with high cholesterol levels exhibit a higher count of those with heart disease compared to those without?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "More with heart disease.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "zoom the core dense region of cholesterol to see if there are more people suffer from heart disease."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "zoom the more focused region of cholesterol to see if there are more people suffer from heart disease."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  45.199999999999996,
+                  70.06666666666666
+                ],
+                "y_range": [
+                  0,
+                  597.75
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  45.262166666666666,
+                  70.04594444444444
+                ],
+                "y_range": [
+                  200.99343750000003,
+                  597.0028125
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Age",
+            "y": "Cholesterol",
+            "color": "Heart Disease"
+          },
+          "view": {
+            "xDomain": [
+              45.199999999999996,
+              70.06666666666666
+            ],
+            "yDomain": [
+              0,
+              597.75
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "19_Heart_Disease_Prediction_scatter",
+    "dataset_path": "datasets/19_Heart_Disease_Prediction_scatter.json",
+    "row_count": 270,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/19_Heart_Disease_Prediction_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

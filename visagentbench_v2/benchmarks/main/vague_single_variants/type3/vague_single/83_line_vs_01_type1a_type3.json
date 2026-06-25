@@ -1,0 +1,78 @@
+{
+  "benchmark_id": "83_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What are the changes in clothing after removing categories like Electronics, Home Appliances, Beauty Products, Books, and Sports?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The changes within each month are complex, showing a pattern of decreasing, then increasing, then decreasing, and then increasing between months."
+        },
+        "key_insights": [
+          "The changes within each month are complex",
+          "Decreased from January to March, decreased from April to May, decreased from July to August, increased from March to April, increased from May to July, increased in August"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "filter the lines and analyse the trend"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Electronics",
+                  "Home Appliances",
+                  "Beauty Products",
+                  "Books",
+                  "Sports"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Electronics\", \"Home Appliances\", \"Beauty Products\", \"Books\", \"Sports\"], datum['Product Category']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "82_Online Sales Data_line",
+    "dataset_path": "datasets/82_Online Sales Data_line.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

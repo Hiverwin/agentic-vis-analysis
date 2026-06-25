@@ -1,0 +1,76 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "13_heatmap_cm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_cells_by_region and find_extremes, which category has the highest mean price after removing rows with Male and Female gender?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "The sample that has highest mean price does not lies in the preserved categories since there is no red rectangle in the view.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Remove Male and Female to keep only Non-binary and Unknown gender."
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extremes",
+            "reasoning": "Find the category that has highest mean price."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "Male",
+                    "Female"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "max"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Product type",
+            "y": "Customer demographics",
+            "color": "Mean price"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Male\",\"Female\"], datum['Customer demographics']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

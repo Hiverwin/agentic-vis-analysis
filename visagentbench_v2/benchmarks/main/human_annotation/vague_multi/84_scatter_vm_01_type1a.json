@@ -1,0 +1,107 @@
+{
+  "benchmark_id": "84_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use zoom_2d_region with x_range from 60.075005722045894 to 90, y_range from 0 to 544.9583473205566 to evaluate whether the distribution differences of different Beverage_categories in the low Sugars area and the high Sugars area are significant.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "It was found that in both the low-sugar area and the high-sugar area, there were mainly concentrated on one or two types of beverages. Moreover, the calories in the low-sugar area were low, while the calories in the high-sugar area were all high."
+        },
+        "key_insights": [
+          "find that most of them are classic espresso drinks",
+          "all of them calories are low",
+          "find most of them are frappuccino blended drinks",
+          "almost all of them have more than 300 calories"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "zoom the low sugars area"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "zoom the high sugars area"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.3750011444091797,
+                  25.27500114440918
+                ],
+                "y_range": [
+                  0,
+                  253.4583053588867
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  60.075005722045894,
+                  90
+                ],
+                "y_range": [
+                  0,
+                  544.9583473205566
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              0.3750011444091797,
+              25.27500114440918
+            ],
+            "yDomain": [
+              0,
+              253.4583053588867
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "84_starbucks_scatter",
+    "dataset_path": "datasets/84_starbucks_scatter.json",
+    "row_count": 242,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/84_starbucks_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

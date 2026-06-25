@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "75_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know What patterns can you observe in telecom services employment across different countries and continents?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) The United States has by far the highest telecom employment at 1,044.7K, more than double the next country (India at 521.3K), 2) Other top countries include Brazil (487.0K), Mexico (274.8K), and Germany (215.9K), 3) North America has the highest average employment by continent (227.5K), driven primarily by the US and Mexico, 4) Europe has the most countries represented (32) but a moderate average of 38.8K, 5) The smallest employment is found in Seychelles (0.1K), Iceland (1.0K), and Bhutan (1.3K).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "United States has highest employment (1",
+          "044.7K)",
+          "India second (521.3K)",
+          "Brazil third (487.0K)",
+          "North America highest average by continent",
+          "Europe has most countries"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to see clear ordering by employment"
+          },
+          {
+            "iteration": 2,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top N to emphasize highest performing countries"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Country",
+            "y": "Employment_Thousands",
+            "color": "Continent"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "75_Refined_Employment_Telecom_Services_2024_bar",
+    "dataset_path": "datasets/75_Refined_Employment_Telecom_Services_2024_bar.json",
+    "row_count": 63,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/75_Refined_Employment_Telecom_Services_2024_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

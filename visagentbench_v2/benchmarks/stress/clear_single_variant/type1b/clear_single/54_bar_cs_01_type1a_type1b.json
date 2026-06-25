@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "54_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using change_encoding, which platform tends to have the longest extreme delivery times?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "JioMart",
+          "alternatives": [
+            "JioMart"
+          ]
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Use the change encoding tool to switch the field to delivery time in order to focus on delivery time issues."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "categorical",
+              "param": "field",
+              "target": "Delivery Time (Minutes)"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Platform",
+            "y": "Delivery Time (Minutes)",
+            "color": "Delivery Time (Minutes)"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "54_Ecommerce_Delivery_Analytics_New_bar",
+    "dataset_path": "datasets/54_Ecommerce_Delivery_Analytics_New_bar.json",
+    "row_count": 100000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/54_Ecommerce_Delivery_Analytics_New_bar.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

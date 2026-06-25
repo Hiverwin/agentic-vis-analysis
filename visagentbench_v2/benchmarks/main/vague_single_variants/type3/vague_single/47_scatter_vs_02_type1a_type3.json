@@ -1,0 +1,69 @@
+{
+  "benchmark_id": "47_scatter_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Which sugarpercent values are lower than 0.07?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Chiclets, Lemonhead, Reese's Miniatures, Sour Patch Kids and Sour Patch Tricksters"
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom the region can lists the name clearly at right-bar of the map."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "list",
+              "param": "x_range",
+              "target": [
+                0.028571119350857207,
+                0.07156844937472812
+              ]
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              0.028571119350857207,
+              0.07156844937472812
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "47_candy_scatter",
+    "dataset_path": "datasets/47_candy_scatter.json",
+    "row_count": 83,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/47_candy_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

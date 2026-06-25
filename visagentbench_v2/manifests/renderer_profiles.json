@@ -1,0 +1,76 @@
+{
+  "renderers": [
+    {
+      "renderer": "vega",
+      "status": "ready",
+      "adapter_family": "VegaLiteWidgetAdapter",
+      "transport_options": [
+        "in-page",
+        "playwright",
+        "websocket",
+        "browser-extension"
+      ],
+      "required_benchmark_fields": [
+        "widget_kind",
+        "question_set",
+        "required_capabilities",
+        "renderer_state_checks.vega",
+        "materializations.vega.spec_path"
+      ]
+    },
+    {
+      "renderer": "d3",
+      "status": "contract_ready",
+      "adapter_family": "D3WidgetAdapter",
+      "transport_options": [
+        "in-page",
+        "playwright",
+        "websocket",
+        "browser-extension"
+      ],
+      "required_benchmark_fields": [
+        "widget_kind",
+        "question_set",
+        "required_capabilities",
+        "data_source.dataset_path",
+        "canonical_state_checks"
+      ]
+    },
+    {
+      "renderer": "echarts",
+      "status": "contract_ready",
+      "adapter_family": "EChartsWidgetAdapter",
+      "transport_options": [
+        "in-page",
+        "playwright",
+        "websocket",
+        "browser-extension"
+      ],
+      "required_benchmark_fields": [
+        "widget_kind",
+        "question_set",
+        "required_capabilities",
+        "data_source.dataset_path",
+        "canonical_state_checks"
+      ]
+    },
+    {
+      "renderer": "custom",
+      "status": "contract_ready",
+      "adapter_family": "CustomWidgetAdapter",
+      "transport_options": [
+        "in-page",
+        "playwright",
+        "websocket",
+        "browser-extension"
+      ],
+      "required_benchmark_fields": [
+        "widget_kind",
+        "question_set",
+        "required_capabilities",
+        "data_source.dataset_path",
+        "canonical_state_checks"
+      ]
+    }
+  ]
+}

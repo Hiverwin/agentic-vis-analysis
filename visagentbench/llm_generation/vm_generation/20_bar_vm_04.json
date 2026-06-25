@@ -1,0 +1,105 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "20_bar_vm_04",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/20_ign_scores_bar.json",
+  "questions": [
+    {
+      "qid": "vm_04",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 and use filter_subcategories with subcategories_to_remove equal to Xbox One, Xbox, Wireless, PlayStation 4, PlayStation and use change_encoding with field equal to Platform in order to know Analyze the RPG game scores across different platforms, identifying key patterns and performance trends",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The analysis of RPG game scores across platforms reveals several key patterns: 1) Microsoft platforms (Xbox One, Xbox) consistently rank highest with average scores above 8.2, followed closely by Wireless platforms; 2) Sony platforms (PlayStation 4, PlayStation) show solid performance with scores around 7.9; 3) Nintendo platforms display more variation, with GameCube performing well (7.89) but Nintendo 64 lagging significantly (6.05); 4) PC gaming maintains a respectable average score of 7.76; 5) Mobile platforms (iPhone) and handhelds (PlayStation Portable) generally have lower average scores. The data suggests platform-specific trends in RPG game quality, with Microsoft and Sony consoles consistently delivering higher-rated RPG experiences.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Microsoft platforms lead in RPG scores",
+          "Sony platforms show consistent performance",
+          "Nintendo platforms have mixed results",
+          "Mobile and handheld platforms generally score lower"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort platforms by RPG scores to identify top performers"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top 5 platforms to focus on highest-rated systems"
+          },
+          {
+            "iteration": 3,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter by platform type to compare console categories"
+          },
+          {
+            "iteration": 4,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to analyze score distribution patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "Xbox One",
+                    "Xbox",
+                    "Wireless",
+                    "PlayStation 4",
+                    "PlayStation"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Platform"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Platform",
+            "y": "RPG"
+          }
+        }
+      }
+    }
+  ]
+}

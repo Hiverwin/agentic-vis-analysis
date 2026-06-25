@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "79_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "69_bar_cm_01：Use get_data_summary and sort_bars to analyze bar chart data.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "PlayStation 4",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "Get data summary to view all platform statistics"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to identify platform with highest average Action score"
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "order",
+                "by_subcategory": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Nintendo DS",
+                "PlayStation",
+                "Wii",
+                "Game Boy Color",
+                "Game Boy Advance",
+                "PlayStation 2",
+                "PlayStation Portable",
+                "GameCube",
+                "Nintendo 64",
+                "Nintendo 3DS",
+                "Xbox 360",
+                "PC",
+                "Xbox",
+                "Nintendo DSi",
+                "PlayStation 3",
+                "iPhone",
+                "Dreamcast",
+                "Wireless",
+                "PlayStation Vita",
+                "PlayStation 4",
+                "Xbox One"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "79_ign_scores_bar",
+    "dataset_path": "datasets/79_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

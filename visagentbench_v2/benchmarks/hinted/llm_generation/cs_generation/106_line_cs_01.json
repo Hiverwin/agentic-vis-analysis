@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "106_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use resample_x_axis in order to know Use resample_x_axis to compute the average life expectancy for Japan across all years.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "77.45",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "axis.x.resample",
+            "rationale": "Resample to compute average life expectancy for Japan"
+          }
+        ],
+        "required_capabilities": [
+          "axis.x.resample"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "axis.x.resample",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "granularity": "none",
+                "agg": "mean"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "time_unit": {
+              "has_time_unit": true,
+              "unit": "none"
+            }
+          }
+        },
+        "state_check_fields": [
+          "time_unit"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "106_life expectancey_line",
+    "dataset_path": "datasets/106_life expectancey_line.json",
+    "row_count": 592,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/106_life expectancey_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,56 @@
+{
+  "task_type": "clear_single",
+  "task_id": "74_bar_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using filter_subcategories, which race/ethnicity group has the third highest average math score?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Group C.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter the data to keep only the highest average math score group."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "value": "associate's degree, bachelor's degree, master's degree, some high school, some college"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "race/ethnicity",
+            "y": "math score",
+            "color": "parental level of education"
+          }
+        },
+        "data_filtered": [
+          {
+            "filter": "datum['parental level of education'] == \"associate's degree\" || datum['parental level of education'] == \"bachelor's degree\" || datum['parental level of education'] == \"master's degree\" || datum['parental level of education'] == \"some high school\" || datum['parental level of education'] == \"some college\""
+          }
+        ],
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

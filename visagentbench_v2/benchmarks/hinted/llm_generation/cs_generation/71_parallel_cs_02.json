@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "71_parallel_cs_02",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_02",
+      "question": "Use highlight_category in order to know Use highlight_category with field equal to Burnout_Risk, values equal to High to identify which dimension has the highest average normalized value for high burnout risk.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Bugs_Introduced",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight High burnout risk to analyze which dimension shows the highest normalized value"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field,values",
+                "values": "Burnout_Risk;High"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "71_one_person_ai_work_and_burnout_parallel",
+    "dataset_path": "datasets/71_one_person_ai_work_and_burnout_parallel.json",
+    "row_count": 900,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/71_one_person_ai_work_and_burnout_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

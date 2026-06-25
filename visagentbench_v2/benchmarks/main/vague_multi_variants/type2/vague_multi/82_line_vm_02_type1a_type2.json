@@ -1,0 +1,102 @@
+{
+  "benchmark_id": "82_line_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How do Sports and Books compare in revenue level and day-to-day jitter over Q1?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Sports runs an order of magnitude above Books on revenue in that quarter—roughly a four-hundred-ish mean daily ticket versus mid-sixties for Books—so the Sports line rides much higher on the y-axis. Both still wiggle day to day, but Books stays in a narrower band while Sports shows wider swings, including occasional spikes toward the upper hundreds or nearly two thousand on strong days."
+        },
+        "key_insights": [
+          "Sports dominates Books on absolute revenue throughout Q1.",
+          "Sports carries almost all of the visible volatility; Books looks comparatively flat."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Locks the window to January–March 2024 for an apples-to-apples seasonal read."
+          },
+          {
+            "iteration": 2,
+            "capability": "line.series.filter",
+            "rationale": "Removes other product families so Sports and Books are directly comparable."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2024-01-01",
+                "end": "2024-03-31"
+              }
+            }
+          },
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Electronics",
+                  "Home Appliances",
+                  "Clothing",
+                  "Beauty Products"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "2024-01-01",
+              "2024-03-31"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Electronics\", \"Home Appliances\", \"Clothing\", \"Beauty Products\"], datum['Product Category']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "82_Online Sales Data_line",
+    "dataset_path": "datasets/82_Online Sales Data_line.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

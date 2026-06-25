@@ -1,0 +1,112 @@
+{
+  "benchmark_id": "06_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How can the similarities and differences in the beak morphology relationship between Class A and Class C penguins when they are intermixed be characterized?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Both penguin species have beak depths concentrated within the relatively narrow range of (17.2, 21.2).\"\nHowever, beak length can serve as a distinguishing feature between the two species, with 43.65 as the critical threshold."
+        },
+        "key_insights": [
+          "Gentoo penguins can be distinguished from the other two species by beak depth",
+          "Focusing solely on beak characteristics is sufficient to differentiate all three penguin species."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Removing the axes for body mass and flipper length allows for a more precise exploration of the characteristics of beak depth and length."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.highlight.values",
+            "rationale": "Adelie and Chinstrap penguins exhibit both similarities and differences in their beak characteristics, which can be emphasized through highlighting for focused analysis"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide",
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "Body Mass (g)",
+                  "Flipper Length (mm)"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Species",
+                "values": [
+                  "Adelie",
+                  "Chinstrap"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "dimensions": {
+              "hidden_fields": [
+                "Body Mass (g)",
+                "Flipper Length (mm)"
+              ]
+            },
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "dimensions",
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "06_parallel_penguins",
+    "dataset_path": "datasets/06_parallel_penguins.json",
+    "row_count": 30,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/06_parallel_penguins.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

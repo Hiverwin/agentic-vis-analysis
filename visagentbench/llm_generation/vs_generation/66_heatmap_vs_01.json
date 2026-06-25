@@ -1,0 +1,48 @@
+{
+  "task_type": "vague_single",
+  "task_id": "66_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use find_extremes in order to know Which combination of smoking status and alcohol consumption has the highest average vitamin C intake, and what factors might contribute to this pattern?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Former smokers with moderate alcohol consumption have the highest average vitamin C intake. This could be due to former smokers being more health-conscious and moderate drinkers possibly having a more balanced diet that includes vitamin C-rich foods.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Former smokers with moderate alcohol consumption have highest vitamin C intake",
+          "The difference between highest and second highest is minimal",
+          "All combinations have relatively similar vitamin C intake levels"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Use find_extremes to identify the combination with highest vitamin C intake"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

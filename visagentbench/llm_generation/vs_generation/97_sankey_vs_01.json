@@ -1,0 +1,49 @@
+{
+  "task_type": "vague_single",
+  "task_id": "97_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/97_sankey_hr.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use trace_node with node_name equal to Referral to rank treatments by overall utilization efficiency in order to know how do treatments rank by overall utilization efficiency?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The Referral channel demonstrates superior talent quality and retention outcomes compared to other channels. It provides the highest number of S-Tier performers (60 hires), has strong promotion rates, and ultimately contributes significantly to retained employees. This suggests that employee referrals are an effective strategy for attracting high-quality talent.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Referral channel provides the highest number of hires (120 people)",
+          "Referral channel contributes significantly to S-Tier performers",
+          "Referral hires have strong promotion rates",
+          "Referral channel shows good retention outcomes",
+          "Referral is the most effective recruitment channel for quality talent"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace the flow from Referral channel to understand its impact on talent quality and retention outcomes"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Referral"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

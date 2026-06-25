@@ -1,0 +1,93 @@
+{
+  "benchmark_id": "35_parallel_vm_08",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_08",
+      "question": "Use filter_categorical and use identify_clusters with n_clusters equal to 3, method equal to kmeans in order to know How do different fuel types perform across multiple vehicle dimensions including price, mileage, tax, and fuel efficiency (MPG), and what are the key performance patterns and trade-offs?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "BMW vehicles show distinct performance patterns across fuel types. Diesel dominates the dataset with 28,108 data points across all dimensions, followed by Petrol with 13,668. Electric vehicles achieve perfect 1.0 MPG score but have limited representation with only 3 data points. Hybrid vehicles show balanced performance with average normalized values of 0.2124 for price, 0.3253 for MPG, 0.1093 for mileage, and 0.1407 for tax. Diesel vehicles demonstrate moderate performance across all dimensions with averages of 0.1683 price, 0.1124 MPG, 0.1395 mileage, and 0.2071 tax. Petrol vehicles show higher tax burden at 0.2771 but lower mileage at 0.0772. The MPG dimension reveals the most dramatic differences with Electric at 1.0, Hybrid at 0.3253, Diesel at 0.1124, and Petrol at 0.0804, highlighting significant fuel efficiency variations across powertrain types.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Diesel vehicles comprise majority of dataset with 28",
+          "108 data points",
+          "Electric vehicles achieve perfect MPG score but limited availability",
+          "Hybrid vehicles show balanced performance across all dimensions",
+          "Petrol vehicles have highest tax burden but lowest mileage",
+          "MPG dimension shows largest variation between fuel types",
+          "Price dimension shows relatively consistent performance across most fuel types"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Use filter_categorical to analyze each fuel type separately across dimensions"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Use identify_clusters to discover natural groupings based on multi-dimensional performance"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "Diesel",
+                  "3"
+                ],
+                "field": "value"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "35_bmw_parallel",
+    "dataset_path": "datasets/35_bmw_parallel.json",
+    "row_count": 43124,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/35_bmw_parallel.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

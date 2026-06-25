@@ -1,0 +1,125 @@
+{
+  "benchmark_id": "50_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First apply hide_dimensions(mode=hide, dimensions=[Manufacturing costs, Production volumes]). Then apply filter_by_category(field=Product type, values=[skincare, cosmetics]). With just lead time and defect rate left, do you see a reliable trade-off between speed and quality?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The haircare polylines cross freely—Pearson correlation between normalized lead time and defect rate is only about 0.03—so faster runs are not systematically cleaner or dirtier in this slice. You get a tangle of paths rather than a diagonal band, which means you should not infer a strong speed–quality trade-off from these two axes alone."
+        },
+        "key_insights": [
+          "Lead time and defect rate do not line up as a simple inverse relationship here.",
+          "After the category filter, every line is haircare, yet the spread across the two axes stays wide."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Strips extra axes so lead time and defects can be compared directly."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Keeps haircare lines to avoid mixing unrelated product physics."
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "Manufacturing costs",
+                  "Production volumes"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Product type",
+                "values": [
+                  "skincare",
+                  "cosmetics"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "Manufacturing lead time",
+              "Defect rates"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Manufacturing lead time\", \"Defect rates\"], datum['dimension']) >= 0",
+                "_pc_hide_dimensions": true
+              },
+              {
+                "filter": "indexof([\"skincare\",\"cosmetics\"], datum['Product type']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "dimensions": {
+              "hidden_fields": [
+                "Manufacturing costs",
+                "Production volumes"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "50_supply_chain_data_parallel",
+    "dataset_path": "datasets/50_supply_chain_data_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/50_supply_chain_data_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

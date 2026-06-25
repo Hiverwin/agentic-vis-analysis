@@ -1,0 +1,69 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "03_line_vm_12",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/03_line_stocks.json",
+  "questions": [
+    {
+      "qid": "vm_12",
+      "question": "Use highlight_trend with trend_type equal to increasing and use detect_anomalies with threshold equal to 2.0 in order to know How do TechCorp and RetailInc stock prices perform differently throughout 2023, and what patterns can be observed in their trends?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "TechCorp shows much stronger performance with consistent upward trend, growing 45.3% from 150 to 218 with 5 increases and no decreases. RetailInc shows more volatile performance with moderate growth of 35% from 80 to 108, experiencing 3 increases and 2 decreases. TechCorp maintains significantly higher price levels (average 186 vs 90.33) and demonstrates more stable growth pattern, while RetailInc shows more fluctuation with occasional dips. The data reveals TechCorp as stronger, more stable investment with consistent upward momentum.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "TechCorp shows stronger consistent growth",
+          "TechCorp has significantly higher price levels",
+          "RetailInc shows more volatile performance",
+          "TechCorp has no price decreases throughout 2023",
+          "RetailInc experiences occasional dips in price"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Use tool to answer the question."
+          },
+          {
+            "iteration": 2,
+            "tool": "detect_anomalies",
+            "reasoning": "Use tool to answer the question."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            },
+            {
+              "tool": "detect_anomalies",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "threshold": 2.0
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "date",
+            "y": "price",
+            "color": "company"
+          }
+        }
+      }
+    }
+  ]
+}

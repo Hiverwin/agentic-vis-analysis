@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "42_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using change_encoding, which type of Pokémon has the highest weight?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "water",
+          "alternatives": [
+            "water",
+            "WATER"
+          ]
+        },
+        "key_insights": [
+          "Water type Pokémon have the highest weight."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Use the tool to map weight onto the Y-axis."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "list",
+              "param": "all_params",
+              "target": {
+                "field": "weight",
+                "channel": "y"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "type_1",
+            "y": "weight"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "42_pokemon_stats_2025_bar",
+    "dataset_path": "datasets/42_pokemon_stats_2025_bar.json",
+    "row_count": 250,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/42_pokemon_stats_2025_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

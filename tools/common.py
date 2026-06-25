@@ -198,13 +198,21 @@ def get_data(state: Dict, scope: str = 'all') -> Dict[str, Any]:
             'error': f'Unknown scope: {scope}. Valid values: all, filter, visible, selected'
         }
     
+    field_preview = fields[:6]
+    field_suffix = f", +{len(fields) - len(field_preview)} more" if len(fields) > len(field_preview) else ""
+    message = (
+        f"scope={scope}, returned={len(result_data)}/{total_count}, "
+        f"fields={len(fields)} [{', '.join(map(str, field_preview))}{field_suffix}]"
+    )
+
     return {
         'success': True,
         'scope': scope,
         'total_count': total_count,
         'returned_count': len(result_data),
         'fields': fields,
-        'data': result_data
+        'data': result_data,
+        'message': message
     }
 
 
@@ -261,10 +269,16 @@ def get_data_summary(state: Dict, scope: str = 'all') -> Dict[str, Any]:
                     'distribution': value_counts
                 }
     
+    message = (
+        f"summary={summary} for scope={scope}"
+
+    )
+
     return {
         'success': True,
         'scope': scope,
-        'summary': summary
+        'summary': summary,
+        'message': message
     }
 
 
@@ -309,15 +323,22 @@ def change_encoding(state: Dict, channel: str, field: str, type: Optional[str] =
     """
     new_state = copy.deepcopy(state)
     
-    # 检查字段是否存在
+    # 检查字段是否存在（兼容大小写差异）
     data = _get_spec_data(new_state)
-    if data and field not in data[0]:
-        available_fields = list(data[0].keys()) if data else []
-        return {
-            'success': False,
-            'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
-        }
-    
+    resolved_field = field
+    if data:
+        available_fields = list(data[0].keys())
+        if field not in data[0]:
+            lowered = str(field).strip().lower()
+            for candidate in available_fields:
+                if str(candidate).strip().lower() == lowered:
+                    resolved_field = candidate
+                    break
+        if resolved_field not in data[0]:
+            return {
+                'success': False,
+                'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
+            }
     # 使用传入的 type，或推断字段类型
     valid_types = ('quantitative', 'nominal', 'ordinal', 'temporal')
     if type and type in valid_types:
@@ -325,7 +346,7 @@ def change_encoding(state: Dict, channel: str, field: str, type: Optional[str] =
     else:
         field_type = 'nominal'
         if data:
-            sample_value = data[0].get(field)
+            sample_value = data[0].get(resolved_field)
             if isinstance(sample_value, (int, float)):
                 field_type = 'quantitative'
             elif isinstance(sample_value, str):
@@ -337,13 +358,13 @@ def change_encoding(state: Dict, channel: str, field: str, type: Optional[str] =
         new_state['encoding'] = {}
     
     new_state['encoding'][channel] = {
-        'field': field,
+        'field': resolved_field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_state['encoding'][channel]['legend'] = {'title': field}
+        new_state['encoding'][channel]['legend'] = {'title': resolved_field}
         if field_type == 'quantitative':
             new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
@@ -354,7 +375,7 @@ def change_encoding(state: Dict, channel: str, field: str, type: Optional[str] =
         'success': True,
         'operation': 'change_encoding',
         'vega_state': new_state,
-        'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
+        'message': f'Changed {channel} encoding to field "{resolved_field}" (type: {field_type})'
     }
 
 # ==================== 行动类 API (Action APIs) ====================
@@ -632,22 +653,39 @@ def _apply_filters(data: List[Dict], transforms: List[Dict]) -> List[Dict]:
 
 
 def _eval_filter_expr(data: List[Dict], expr: str) -> List[Dict]:
-    """简单解析 filter 表达式"""
-    # 简化处理：支持常见模式
-    # datum.field == value, datum.field > value, etc.
+    """简单解析 filter 表达式，支持 datum['field'] 和 indexof"""
+    # Vega 表达式使用 && / ||；Python eval 需要 and / or
+    py_expr = expr.replace("&&", " and ").replace("||", " or ")
+
     result = []
-    
+
+    class _Datum:
+        """datum 对象，支持 datum['field'] 和 datum.field"""
+        def __init__(self, row):
+            self._row = row
+        def __getitem__(self, key):
+            return self._row.get(key)
+        def __getattr__(self, key):
+            return self._row.get(key)
+
+    def _indexof(arr, val):
+        """Vega indexof: 返回 val 在 arr 中的索引，不存在则 -1"""
+        try:
+            return arr.index(val)
+        except (ValueError, AttributeError):
+            return -1
+
+    _safe_builtins = {'True': True, 'False': False, 'None': None}
+    _namespace = {'datum': None, 'indexof': _indexof, '__builtins__': _safe_builtins}
+
     for row in data:
         try:
-            # 创建 datum 对象
-            datum = type('datum', (), row)()
-            # 安全评估（仅支持简单比较）
-            if eval(expr, {'datum': datum, '__builtins__': {}}):
+            _namespace['datum'] = _Datum(row)
+            if eval(py_expr, _namespace):
                 result.append(row)
-        except:
-            # 表达式太复杂，跳过
+        except Exception:
             result.append(row)
-    
+
     return result
 
 

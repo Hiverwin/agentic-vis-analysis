@@ -1,0 +1,116 @@
+{
+  "benchmark_id": "65_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using change_encoding and filter_subcategories, which exercise_level exhibits a larger difference in iron_percent_rda?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Moderate.",
+          "alternatives": [
+            "moderate"
+          ]
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "The question focused on iron intake. Therefore, the \"change encoding\" tool was used to select the channel as \"y\" and the field as \"iron_percent_rda\" to compare the iron_percent_rda levels of different exercise level groups."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "To compare the iron intake of people with different diet types, it's necessary to use filter_subcategories to filter out all diet types except Moderate."
+          },
+          {
+            "iteration": 3,
+            "capability": "view.stackMode.set",
+            "rationale": "In order to observe and compare the iron intake of people with different diet types, the toggle_stack_mode tool needs to be used to switch the mode to \"grouped\" for the observation and comparison."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.subcategory",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "iron_percent_rda",
+                "channel": "y"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Vegan",
+                  "Vegetarian"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "exercise_level",
+            "y": "iron_percent_rda",
+            "color": "diet_type"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['diet_type'] != \"Vegan\" && datum['diet_type'] != \"Vegetarian\""
+              }
+            ],
+            "state_check_fields": [
+              "data_filtered",
+              "encoding"
+            ]
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "65_vitamin_deficiency_disease_dataset_bar",
+    "dataset_path": "datasets/65_vitamin_deficiency_disease_dataset_bar.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/65_vitamin_deficiency_disease_dataset_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

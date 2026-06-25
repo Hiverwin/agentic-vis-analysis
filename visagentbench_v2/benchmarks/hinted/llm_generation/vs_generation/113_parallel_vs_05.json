@@ -1,0 +1,76 @@
+{
+  "benchmark_id": "113_parallel_vs_05",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_05",
+      "question": "Use highlight_category with field equal to type, values equal to Heavy to compare the consistency of vitamin intake types A, C, and D with the trend of changes in symptoms_count in order to know what is the consistency of vitamin intake types with the trend of changes in symptoms_count?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "TV series dominate dataset with 952 entries and show strong performance in score (0.4611) and members (0.0893) dimensions. Movies (416 entries) perform well in score (0.4502) and popularity (0.2714). ONA series (256 entries) excel in popularity (0.4641) but have lower members (0.0084). OVA series (248 entries) show moderate scores (0.3466) but good popularity (0.3235). Special and TV Special types have smaller sample sizes and show varied performance across dimensions. The data suggests TV series have broadest reach while ONA series have high relative popularity despite fewer members",
+          "alternatives": []
+        },
+        "key_insights": [
+          "TV series dominate dataset with highest count and strong score/members performance",
+          "ONA series excel in popularity but have lower member counts",
+          "Movies show balanced performance across score and popularity",
+          "OVA series have moderate scores but good popularity levels",
+          "Special and TV Special types have smaller sample sizes with varied performance"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Use highlight_category to visualize and compare different anime types across all four dimensions"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "type",
+                "values": "TV"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "113_nime_less_parallel",
+    "dataset_path": "datasets/113_nime_less_parallel.json",
+    "row_count": 2076,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/113_nime_less_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

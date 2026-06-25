@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "70_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "How can the long-run tendency be characterized in relation to the day-to-day noise?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The red regression overlay tilts gently upward across the six‑month window, so the long-run story is a modest increase in AI tool usage even though any single day can be chaotic. You still see frequent dips toward zero and occasional spikes into the mid‑40s percent, but those swings sit on top of a slow climb rather than a flat line."
+        },
+        "key_insights": [
+          "Short-term volatility is high, yet the smoothed trend points slightly up.",
+          "Extreme quiet days and busy spikes coexist; neither erases the gradual upward tilt."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.trend.highlight",
+            "rationale": "Adds a regression trend so the overall direction is visible above the noisy daily trace."
+          }
+        ],
+        "required_capabilities": [
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "70_one_person_ai_work_and_burnout_line",
+    "dataset_path": "datasets/70_one_person_ai_work_and_burnout_line.json",
+    "row_count": 180,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/70_one_person_ai_work_and_burnout_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

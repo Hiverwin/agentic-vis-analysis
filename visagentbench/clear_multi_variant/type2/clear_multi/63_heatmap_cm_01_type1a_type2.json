@@ -1,0 +1,65 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "63_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/63_Berlin_crimes_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Which district has the minimum drugs data?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Treptow-Köpenick",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "adjust_color_scale",
+            "reasoning": "Adjust the color scale to make the drugs data more visible."
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extreme",
+            "reasoning": "Find the district with the least drugs data."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            },
+            {
+              "tool": "find_extreme",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "min",
+                  "n": 1
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "District",
+            "color": "Drugs"
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

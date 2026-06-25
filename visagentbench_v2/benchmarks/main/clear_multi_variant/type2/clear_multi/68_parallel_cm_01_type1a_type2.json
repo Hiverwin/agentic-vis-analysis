@@ -1,0 +1,115 @@
+{
+  "benchmark_id": "68_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Which product type demonstrates a stronger correlation between number of products sold and shipping costs among skincare and cosmetics?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "skincare",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The orange (haircare) and red (cosmetics) lines generally slope downward from left to right.",
+          "Cosmetics has the widest range of shipping costs, stretching from the lowest end up to the absolute maximum.",
+          "A very obvious negative relationship can be observed (Inverse Relationship)."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide Revenue generated and Price to focus on Number of products sold and Shipping costs."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to keep only haircare and cosmetics for comparison."
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "Revenue generated",
+                  "Price"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Product type",
+                "values": [
+                  "haircare"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          },
+          "view": {
+            "xDomain": [
+              "Number of products sold",
+              "Shipping costs"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"skincare\", \"cosmetics\"], datum['Product type']) >= 0"
+              }
+            ],
+            "dimensions": {
+              "hidden_fields": [
+                "Revenue generated",
+                "Price"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "68_supply_chain_data_parallel",
+    "dataset_path": "datasets/68_supply_chain_data_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/68_supply_chain_data_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "41_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans and use show_regression with method equal to linear in order to know How do visitor patterns differ between Chinese American Museum and America Tropical Interpretive Center, and what clusters emerge from the data?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The data reveals a weak positive correlation of 0.1694 between Chinese American Museum and America Tropical Interpretive Center visitor numbers. Chinese American Museum shows lower visitor counts ranging from 1,073 to 7,702 with an average of 2,721.25. America Tropical Interpretive Center demonstrates significantly higher visitor numbers ranging from 2,824 to 13,490 with an average of 7,107.02. Cluster analysis identifies three distinct groups: Cluster 0 (30 data points) represents moderate visitors to both museums with average X of 2,747.97 and Y of 6,695.73. Cluster 1 (13 data points) shows high visitors to America Tropical Interpretive Center with average X of 3,021.92 and Y of 11,244.92. Cluster 2 (16 data points) represents low to moderate visitor patterns with average X of 2,426.88 and Y of 4,516.12. The data suggests America Tropical Interpretive Center attracts significantly more visitors overall.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Weak positive correlation of 0.1694 between the two museums",
+          "America Tropical Interpretive Center has significantly higher average visitors (7",
+          "107 vs 2",
+          "721)",
+          "Three distinct clusters identified in the data",
+          "Cluster 1 represents high visitor patterns to America Tropical Interpretive Center",
+          "America Tropical Interpretive Center visitor range is 2",
+          "824-13",
+          "490",
+          "Chinese American Museum visitor range is 1",
+          "073-7",
+          "702"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Use calculate_correlation to measure the strength of relationship between the two museums"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Use identify_clusters to discover natural groupings in the visitor data"
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.regression.show",
+            "rationale": "Use show_regression to visualize the linear relationship and trend"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute",
+          "analysis.clusters.identify",
+          "analysis.regression.show"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          },
+          {
+            "capability": "analysis.regression.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "linear"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Chinese American Museum",
+            "y": "America Tropical Interpretive Center"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "41_museum_visitors_scatter",
+    "dataset_path": "datasets/41_museum_visitors_scatter.json",
+    "row_count": 59,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/41_museum_visitors_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

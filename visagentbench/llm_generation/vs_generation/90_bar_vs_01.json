@@ -1,0 +1,59 @@
+{
+  "task_type": "vague_single",
+  "task_id": "90_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/90_Train_bar.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Product importance has minimal impact on discount strategy, with all three importance levels (high, medium, low) receiving very similar average discounts. High importance products receive the highest average discount at 14.67, followed by medium importance at 13.48, and low importance at 13.04. The small differences suggest that discount strategy is relatively uniform across product importance levels, rather than being strategically differentiated based on product importance.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "All product importance levels receive similar discounts",
+          "High importance gets slightly higher discount (14.67)",
+          "The difference between highest and lowest is minimal (1.63)",
+          "Discount strategy appears uniform rather than differentiated"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Use sort_bars to observe the distribution of average discounts across different product importance levels and identify patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "high",
+              "medium",
+              "low"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

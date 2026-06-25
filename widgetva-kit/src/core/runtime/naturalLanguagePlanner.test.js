@@ -5,6 +5,7 @@ import {
   createNaturalLanguagePlanner,
   formatAgentPlannerError,
   runNaturalLanguagePagePortAgentLoop,
+  runNaturalLanguagePagePortAgentTurn,
 } from './naturalLanguagePlanner.js'
 
 function createMockPagePort() {
@@ -191,4 +192,37 @@ test('runNaturalLanguagePagePortAgentLoop executes the planner result through th
   assert.equal(result.plan.operation.name, 'scatter.brushRegion')
   assert.equal(result.result.actionResult.ok, true)
   assert.equal(result.verification.ok, true)
+})
+
+test('runNaturalLanguagePagePortAgentTurn returns the compact formal turn contract', async () => {
+  const port = createMockPagePort()
+  const result = await runNaturalLanguagePagePortAgentTurn(port, {
+    objective: 'Focus the scatterplot on the relevant local cluster.',
+    model: 'test-model',
+    completeChat: async () => ({
+      raw: { id: 'response_2' },
+      content: JSON.stringify({
+        assistantMessage: 'I will brush the local cluster on the scatterplot.',
+        rationale: 'A local brush is the clearest next interaction for this goal.',
+        operation: {
+          kind: 'action',
+          name: 'scatter.brushRegion',
+          queryScope: {
+            widgetRef: 'w://widgetva-app/workspace/official-vega-lite-point_2d/widget/session_official-vega-lite-point_2d',
+          },
+          params: {
+            xField: 'Horsepower',
+            yField: 'Miles_per_Gallon',
+            xRange: [80, 140],
+            yRange: [18, 30],
+          },
+        },
+      }),
+    }),
+  })
+
+  assert.deepEqual(Object.keys(result), ['observe', 'plan', 'act', 'verify', 'reason'])
+  assert.equal(result.plan.step.name, 'scatter.brushRegion')
+  assert.equal(result.act.ok, true)
+  assert.equal(result.verify.ok, true)
 })

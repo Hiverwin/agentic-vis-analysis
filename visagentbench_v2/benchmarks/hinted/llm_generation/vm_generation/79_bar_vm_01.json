@@ -1,0 +1,88 @@
+{
+  "benchmark_id": "79_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know What patterns can you observe in action game scores across different gaming platforms?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Xbox One has the highest average action game score (7.70), followed closely by PlayStation 4 (7.55), 2) Modern consoles (Xbox One, PlayStation 4, PlayStation Vita) dominate the top positions, 3) Nintendo DS has the lowest average score (5.90), significantly below the overall average of 6.71, 4) There is a clear generation gap with newer platforms generally scoring higher than older ones, 5) The range between highest (7.70) and lowest (5.90) is 1.80 points, showing moderate variation across platforms.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Xbox One has highest score (7.70)",
+          "Modern consoles dominate top positions",
+          "Nintendo DS has lowest score (5.90)",
+          "Generation gap in scores",
+          "Moderate variation across platforms"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to see ordering of platforms"
+          },
+          {
+            "iteration": 2,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top N to emphasize highest scoring platforms"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Platform",
+            "y": "Action"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "79_ign_scores_bar",
+    "dataset_path": "datasets/79_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

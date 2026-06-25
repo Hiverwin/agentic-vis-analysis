@@ -1,0 +1,112 @@
+{
+  "benchmark_id": "47_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "47_scatter_cm_01：Use filter_categorical and calculate_correlation and filter_categorical and calculate_correlation to analyze scatter chart data.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Chocolate: 0.24, Non-chocolate: 0.18",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only chocolate candies"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation for chocolate candies"
+          },
+          {
+            "iteration": 3,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only non-chocolate candies"
+          },
+          {
+            "iteration": 4,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation for non-chocolate candies"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.correlation.compute",
+          "data.filter.categorical",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "No"
+                ],
+                "field": "chocolate"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [],
+                "field": "chocolate"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "47_candy_scatter",
+    "dataset_path": "datasets/47_candy_scatter.json",
+    "row_count": 83,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/47_candy_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

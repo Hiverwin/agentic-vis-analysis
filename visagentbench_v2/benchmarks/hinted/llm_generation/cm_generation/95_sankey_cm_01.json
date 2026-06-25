@@ -1,0 +1,81 @@
+{
+  "benchmark_id": "95_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "100_sankey_cm_01：Use calculate_conversion_rate with node_name equal to Cured & Discharged and then use highlight_path with path equal to Surgery Tx, Cured & Discharged. What is the inflow value (in patients) from Surgery Tx to Cured & Discharged?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Assembly Line A",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate conversion rates to analyze node flows"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight path to visualize flow to the highest node"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Assembly Line A"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Rubber",
+                  "Tire Plant",
+                  "Assembly Line A",
+                  "Consumer"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "95_sankey_supply",
+    "dataset_path": "datasets/95_sankey_supply.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/95_sankey_supply.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

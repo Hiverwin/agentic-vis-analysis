@@ -1,0 +1,67 @@
+{
+  "benchmark_id": "78_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What combination of role and skill has the highest and lowest demand score?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "It turns out that a CV Engineer with skill Computer Vision has the highest demand score of 98,while a Data Engineer with skill Computer Vision has the lowest demand score of 8.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use this tool to help us better find out the extremes in demand score."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "skill",
+            "y": "role",
+            "color": "demand"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "78_ai_job_dataset_heatmap",
+    "dataset_path": "datasets/78_ai_job_dataset_heatmap.json",
+    "row_count": 80,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

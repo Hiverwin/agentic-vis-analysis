@@ -1,0 +1,65 @@
+{
+  "benchmark_id": "14_line_cs_02",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_02",
+      "question": "Use filter_lines with lines_to_remove equal to [Avila Adobe, Chinese American Museum, America Tropical Interpretive Center] in order to know Which museum had the highest single-month visitor count?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Firehouse Museum",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "Use filter_lines to filter out other museums and identify which museum had the highest single-month visitor count"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Avila Adobe",
+                  "Chinese American Museum",
+                  "America Tropical Interpretive Center"
+                ],
+                "line_field": "lines_to_remove"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "14_museum_visitors_line_multi",
+    "dataset_path": "datasets/14_museum_visitors_line_multi.json",
+    "row_count": 236,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/14_museum_visitors_line_multi.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,88 @@
+{
+  "benchmark_id": "105_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use zoom_x_region with start equal to 1872-01-01, end equal to 1950-01-01 and use detect_anomalies with threshold equal to 2.0 in order to know How has lifespan inequality evolved across different developmental stages of countries, and what patterns emerge when comparing early-industrializing nations with developing economies?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The data reveals a clear convergence pattern where all countries show declining lifespan inequality over time, but with distinct starting points and trajectories. Early-industrializing nations like UK (starting 0.24 in 1872) and Italy (starting 0.56 in 1872) began with high inequality but achieved low levels by 2020 (UK: 0.08, Italy: 0.07). Developing economies like Egypt (max 0.52) and China (max 0.49) started their data collection later with initially high inequality but have shown rapid improvement. Japan and Austria demonstrate the most consistent low inequality throughout their recorded history (averaging 0.11 and 0.10). The pattern suggests that economic development and healthcare access systematically reduce lifespan inequality, with all countries converging toward similar low levels (0.07-0.10) by 2020 regardless of their starting point.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Italy had highest historical inequality at 0.56 in 1872",
+          "All countries converge to 0.07-0.10 by 2020",
+          "Japan and Austria have most consistent low inequality",
+          "Egypt and China show rapid improvement from high starting points"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into the early period to analyze historical patterns of industrializing nations"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "Detect anomalies to identify significant changes in lifespan inequality trends"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "analysis.anomalies.detect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "1872-01-01",
+                "end": "1950-01-01"
+              }
+            }
+          },
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "threshold": 2.0
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Gini coefficient of lifespan inequality - Sex: female",
+            "color": "Entity"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "105_gini_filter_line",
+    "dataset_path": "datasets/105_gini_filter_line.json",
+    "row_count": 705,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/105_gini_filter_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

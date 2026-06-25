@@ -1,0 +1,107 @@
+{
+  "benchmark_id": "49_heatmap_cm_04",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_04",
+      "question": "44_heatmap_cm_01：Use filter_cells with value between 0.3 and 0.7 to focus on moderate values, then use cluster_rows_cols to group similar patterns, then use adjust_color_scale with scheme equal to plasma to enhance visualization. Which cluster has the most uniform values?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Hot Chocolate, Night",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filter cells to focus on high sales"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Cluster rows and columns to identify patterns"
+          },
+          {
+            "iteration": 3,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "Adjust color scale to better visualize sales differences"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "analysis.clusters.identify",
+          "heatmap.colorScale.adjust"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 30.0,
+                "max_value": 36.0
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "cluster_rows": true,
+                "cluster_cols": true,
+                "method": "sum"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "viridis"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "clustering_order": {
+              "clustered": true
+            },
+            "color_scale": {
+              "scheme": "viridis"
+            }
+          }
+        },
+        "state_check_fields": [
+          "clustering_order",
+          "color_scale"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "49_coffee_sales_heatmap",
+    "dataset_path": "datasets/49_coffee_sales_heatmap.json",
+    "row_count": 3547,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/49_coffee_sales_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

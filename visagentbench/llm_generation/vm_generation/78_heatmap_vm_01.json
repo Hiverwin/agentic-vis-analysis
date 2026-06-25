@@ -1,0 +1,74 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "78_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use add_marginal_bars with show_top equal to True, show_right equal to True in order to know What patterns can you observe in AI job skill demand across different roles?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Python is the most in-demand skill overall (average 83.5), followed by Cloud (AWS/GCP) at 65.1 and LLM/GenAI at 63.1, 2) ML Engineer has the highest average demand score (77.8), while AI Product Manager has the lowest (35.7), 3) The highest demand combination is NLP Engineer with NLP skills (98.0), while the lowest is Data Engineer with Computer Vision (8.0), 4) Technical roles (ML Engineer, AI Researcher, NLP Engineer) have higher demand scores than managerial roles (AI Product Manager), 5) There is a clear specialization pattern where specific skills align with their corresponding roles (e.g., NLP with NLP Engineer, Computer Vision with CV Engineer).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Python is most in-demand skill",
+          "ML Engineer has highest role demand",
+          "NLP Engineer+NLP has highest combination",
+          "Technical roles higher than managerial",
+          "Specialization pattern between skills and roles"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Find extreme values to identify highest and lowest demand combinations"
+          },
+          {
+            "iteration": 2,
+            "tool": "add_marginal_bars",
+            "reasoning": "Add marginal bars to see overall trends by skill and role"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            },
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "op": "mean",
+                  "show_top": true,
+                  "show_right": true,
+                  "bar_size": 70,
+                  "bar_color": "#666666"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "skill",
+            "y": "role",
+            "color": "demand"
+          }
+        }
+      }
+    }
+  ]
+}

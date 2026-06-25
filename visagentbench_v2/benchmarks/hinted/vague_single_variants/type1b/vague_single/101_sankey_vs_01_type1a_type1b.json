@@ -1,0 +1,61 @@
+{
+  "benchmark_id": "101_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Using filter_flow, what is the overall trend of credit grade changes after one year for all the origination ratings?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "For all the origination ratings, the overall credit grade remained largely unchanged after one year."
+        },
+        "key_insights": [
+          "For all the initial ratings, the overall credit grade remained largely unchanged after one year."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "Use tools to eliminate the streams with smaller values and analyze the overall trend."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 50
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "101_sankey_credit",
+    "dataset_path": "datasets/101_sankey_credit.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/101_sankey_credit.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

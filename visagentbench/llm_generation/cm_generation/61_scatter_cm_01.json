@@ -1,0 +1,67 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "61_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/61_Berlin_crimes_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "22_scatter_cm_01：Use change_encoding to change y axis with field equal to YearsAtCompany, calculate_correlation with method equal to pearson. What is correlation between DistanceFromHome and YearsAtCompany.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Changing color encoding to District helps visualize the correlation patterns across different districts, showing consistent positive correlation",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to color by District to visualize district patterns"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between Robbery and Injury rates"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "District"
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Robbery",
+            "y": "Injury",
+            "color": "District"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

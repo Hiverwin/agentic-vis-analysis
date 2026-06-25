@@ -21,6 +21,7 @@ This folder groups the current repository development documents into one place s
 - [widgetva_kit_widget_first_plan.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_kit_widget_first_plan.md:1)
 - [widgetva_runtime_core_design.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_runtime_core_design.md:1)
 - [widgetva_runtime_core_design_clear_terms.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_runtime_core_design_clear_terms.md:1)
+- [widgetva_library_mainline_development_plan_20260625.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_library_mainline_development_plan_20260625.md:1)
 - [widgetva_widget_library_implementation_audit.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_widget_library_implementation_audit.md:1)
 - [widgetva_single_widget_core_development_plan.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_single_widget_core_development_plan.md:1)
 - [widgetva_single_widget_selection_primitive_spec.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_single_widget_selection_primitive_spec.md:1)
@@ -44,6 +45,10 @@ This folder groups the current repository development documents into one place s
 - [widgetva_multi_provider_rendering_development_plan.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_multi_provider_rendering_development_plan.md:1)
 - [widgetva_system_development_plan.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_system_development_plan.md:1)
 - [widgetva_vis_va_frontend_architecture.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_vis_va_frontend_architecture.md:1)
+- [widgetva_interaction_acceptance_checklist_zh.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_interaction_acceptance_checklist_zh.md:1)
+- [widgetva_vega_acceptance_issue_followup_dev_guide_zh.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_vega_acceptance_issue_followup_dev_guide_zh.md:1)
+- [widgetva_observable_d3_gallery_extension_dev_guide_zh.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_observable_d3_gallery_extension_dev_guide_zh.md:1)
+- [widgetva_observable_d3_acceptance_and_development_guide_zh.md](/Users/chenyutong/Desktop/agentic-visual-reframe/development_docs_20260623_093901/widgetva_observable_d3_acceptance_and_development_guide_zh.md:1)
 
 ## Multi-Widget / Interaction / Trace
 

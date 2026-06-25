@@ -1,0 +1,58 @@
+{
+  "task_type": "vague_single",
+  "task_id": "80_scatter_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/80_gym_members_exercise_tracking_scatter.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "What is the relationship between session duration and calories burned on the Yoga-only scatter plot, and what duration range do most sessions occupy?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Yoga sessions form a fairly tight upward sweep: longer classes burn markedly more calories, and the correlation on the filtered points is very strong (around 0.92). Durations mostly fall between about half an hour and two hours, while calorie burn spans a few hundred up to the mid‑1500s for the longest sessions—so the story is less about scattered outliers and more about a steady climb."
+        },
+        "key_insights": [
+          "Duration and calories move together strongly once other workout types are removed.",
+          "Most Yoga points sit in a mid‑range duration band with calorie totals scaling up the longer people stay on the mat."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Strips out other workout modalities so the scatter reflects Yoga-only behavior."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Workout_Type",
+                  "categories_to_remove": [
+                    "Cardio",
+                    "HIIT",
+                    "Strength"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Cardio\", \"HIIT\", \"Strength\"], datum['Workout_Type']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

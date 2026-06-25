@@ -1,0 +1,113 @@
+{
+  "benchmark_id": "109_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_03",
+      "question": "What long-tail paths are removed, which trunk paths remain, and what does this indicate about landing-page handoff quality after high-threshold filtering of Product Landing?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "With `min_value=3500`, many low-volume edges connected to `Product Landing` are removed, so the local neighborhood shifts from a dense long tail to a compact backbone. In the traced view, the strongest upstream and downstream trunks around `Product Landing` remain visible (for example, major channel-to-landing and landing-to-navigation routes), while weaker social/exit-like branches are reduced or dropped. This indicates that handoff quality at `Product Landing` is primarily determined by a small number of high-volume transitions rather than fragmented minor paths."
+        },
+        "key_insights": [
+          "`filter_flow(3500)` prunes long-tail links around `Product Landing`, exposing high-volume structure.",
+          "After pruning, trunk inbound and trunk outbound routes remain the dominant visible transitions.",
+          "The node behaves more like a concentrated routing step than a broad many-small-path junction at this threshold."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "First raise the threshold to 3500 so only high-volume transitions remain and trunk structure is readable."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Then trace `Product Landing` to compare retained vs. removed inbound/outbound edges and infer where handoff quality is concentrated."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 3500
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Product Landing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Google Organic",
+                "Direct",
+                "Newsletter",
+                "Social Media",
+                "Paid Ads",
+                "Blog Post A",
+                "Blog Post B",
+                "Homepage",
+                "Product Landing",
+                "Feature Page",
+                "Pricing Page",
+                "Demo Page",
+                "Related Article",
+                "Sidebar CTA",
+                "Nav Links",
+                "Exit (Bounce)",
+                "Ultimate Guide",
+                "Solutions Hub",
+                "Exit (Mid)",
+                "Pricing",
+                "Demo Request",
+                "Exit (Late)",
+                "Signup Success",
+                "Payment Success",
+                "Exit (Final)"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "109_sankey_seo",
+    "dataset_path": "datasets/109_sankey_seo.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/109_sankey_seo.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

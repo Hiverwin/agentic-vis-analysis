@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "91_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Does any product exhibit a high price while generating low revenue?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "YES",
+          "alternatives": [
+            "YES"
+          ]
+        },
+        "key_insights": [
+          "find it is indeed some price with low revenue"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "zoom the high price area"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  74.88889185587566,
+                  100
+                ],
+                "y_range": [
+                  0,
+                  9908.333587646484
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Price",
+            "y": "Revenue generated",
+            "color": "Product type"
+          },
+          "view": {
+            "xDomain": [
+              74.88889185587566,
+              100
+            ],
+            "yDomain": [
+              0,
+              9908.333587646484
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "91_supply_chain_data_scatter",
+    "dataset_path": "datasets/91_supply_chain_data_scatter.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/91_supply_chain_data_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

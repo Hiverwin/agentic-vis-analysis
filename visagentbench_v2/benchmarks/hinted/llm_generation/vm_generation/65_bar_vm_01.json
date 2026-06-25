@@ -1,0 +1,91 @@
+{
+  "benchmark_id": "65_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use filter_subcategories with subcategories_to_remove equal to Vegan in order to know How does vitamin C intake vary across different exercise levels and diet types? Analyze the patterns and identify which combinations show the highest and lowest levels.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Vitamin C intake shows interesting patterns across exercise levels and diet types. Overall, Active individuals have the highest average vitamin C intake (90.0%), while Sedentary individuals have the lowest (88.3%), suggesting a positive relationship between physical activity and vitamin C consumption. Among diet types, Omnivores lead with 90.1% average, followed closely by Vegetarian (89.3%) and Pescatarian (89.2%), with Vegans surprisingly showing the lowest average (88.3%). The most notable finding is the interaction between exercise and diet: Active Pescatarians have the highest vitamin C intake at 93.5%, while Moderate Vegans have the lowest at 85.0%. This reveals that diet type effects vary significantly by exercise level - for example, Vegans show high vitamin C (91.8%) in the Light exercise group but drop to 85.0% in the Moderate group. The data suggests that optimal vitamin C intake is achieved through a combination of active lifestyle and pescatarian or omnivore diet, while vegan diets may require more attention to vitamin C sources, especially for moderately active individuals.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Active individuals have highest vitamin C (90.0%)",
+          "Sedentary individuals have lowest vitamin C (88.3%)",
+          "Omnivores lead in vitamin C intake (90.1%)",
+          "Active Pescatarians have highest combination (93.5%)",
+          "Moderate Vegans have lowest combination (85.0%)",
+          "Diet effects vary significantly by exercise level"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to rank exercise levels by vitamin C intake"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter subcategories to focus on specific diet types"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Vegan"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "exercise_level",
+            "y": "vitamin_c_percent_rda",
+            "color": "diet_type"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "65_vitamin_deficiency_disease_dataset_bar",
+    "dataset_path": "datasets/65_vitamin_deficiency_disease_dataset_bar.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/65_vitamin_deficiency_disease_dataset_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,82 @@
+{
+  "benchmark_id": "108_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use filter_flow with min_value equal to 800.0 and use trace_node with node_name equal to Complex Manual in order to know First use filter_flow to filter low-value flows, then use trace_node to trace a specific node. Compare the node flow structure before and after filtering: which weak links disappear, which major links remain, and what that implies about the operational role of the node. Your answer must reference visible node/edge evidence rather than generic process claims.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After filtering low-value flows, the major flow paths become more prominent and easier to trace. The key nodes maintain their central role in the flow network, while minor connections are removed, revealing the core operational pathways. The remaining high-value flows highlight the primary relationships and dominant pathways in the insurance process flow.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Filtering low-value flows reveals major pathways more clearly",
+          "Key nodes maintain their central role in the network",
+          "Remaining high-value flows highlight primary relationships"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "Filter out low-value flows to focus on major pathways"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace a specific node to analyze its flow structure"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 800.0
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Complex Manual"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "108_insurance_sankey",
+    "dataset_path": "datasets/108_insurance_sankey.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/108_insurance_sankey.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

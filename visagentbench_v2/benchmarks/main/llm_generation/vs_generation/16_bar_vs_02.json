@@ -1,0 +1,100 @@
+{
+  "benchmark_id": "16_bar_vs_02",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_02",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "UK demonstrates the most consistent sales performance with the lowest coefficient of variation at 64.2%, indicating that its sales team has the most stable and predictable performance across all countries. While Canada has the highest average boxes shipped at 181.3, it also shows higher variability with a CV of 78.9%. Australia shows the highest variability at 79.5% CV.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "UK has the lowest coefficient of variation at 64.2% indicating most consistent performance",
+          "Australia has the highest coefficient of variation at 79.5% indicating least consistent performance",
+          "Canada has the highest average boxes shipped (181.3) but higher variability (CV 78.9%)",
+          "Lower CV values indicate more stable and predictable sales performance across team members"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Use sort_bars to visualize the distribution of average boxes shipped by sales person across different countries, which helps identify patterns in performance consistency and variability"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Karlen McCaffrey",
+                "Jan Morforth",
+                "Dotty Strutley",
+                "Marney O'Breen",
+                "Beverie Moffet",
+                "Dennison Crosswaite",
+                "Oby Sorrel",
+                "Camilla Castle",
+                "Husein Augar",
+                "Roddy Speechley",
+                "Curtice Advani",
+                "Jehu Rudeforth",
+                "Andria Kimpton",
+                "Kaine Padly",
+                "Ches Bonnell",
+                "Kelci Walkden",
+                "Gunar Cockshoot",
+                "Brien Boise",
+                "Barr Faughny",
+                "Madelene Upcott",
+                "Mallorie Waber",
+                "Gigi Bohling",
+                "Van Tuxwell",
+                "Rafaelita Blaksland",
+                "Wilone O'Kielt"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "16_bar_Chocolate Sales",
+    "dataset_path": "datasets/16_bar_Chocolate Sales.json",
+    "row_count": 3282,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

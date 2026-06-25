@@ -1,0 +1,52 @@
+{
+  "task_type": "clear_single",
+  "task_id": "93_sankey_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "What is the largest flow of traffic characterized by the specified color and nodes?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Payment",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "color_flows",
+            "reasoning": "color Alipay/WeChat Entry and we can see the traffic flowing to Payment is the biggest."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "color_flows",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "color": "#e74c3c",
+                  "nodes": [
+                    "Alipay/WeChat Entry"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "benchmark_id": "111_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using find_extremes, what is the combination of city and time of the year with the highest and lowest average temperature, respectively?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The results show that in August Dubai has the highest average temparature of 35.8 degrees Celsius while in January Moscow has the lowest average temparature of -9.4 degrees Celsius.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Using this tool helps us quickly find the maximum and minimum average temperatures among the many tiles."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "month",
+            "y": "city",
+            "color": "temp"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "111_heatmap_tmp",
+    "dataset_path": "datasets/111_heatmap_tmp.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

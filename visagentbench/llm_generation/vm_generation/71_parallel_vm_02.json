@@ -1,0 +1,77 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "71_parallel_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/71_one_person_ai_work_and_burnout_parallel.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use hide_dimensions with dimensions equal to Stress_Level_1_10, hide, mode equal to hide and use reorder_dimensions with dimension_order equal to AI_Tool_Usage_%, Hours_Coded, Code_Complexity_Score, Bugs_Introduced, Stress_Level_1_10 in order to know What patterns can you observe in the relationships between AI tool usage, coding hours, code complexity, bugs introduced, and stress levels among high burnout risk developers?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Higher AI tool usage correlates with more bugs introduced (0.623 vs 0.460), 2) Code complexity strongly correlates with bugs (r=0.592), 3) More coding hours correlate with higher stress levels (r=0.484), 4) Bugs introduced also correlate with stress (r=0.480). These patterns suggest complex interactions between work factors and burnout risk.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "AI tool usage correlates with more bugs introduced",
+          "Code complexity strongly correlates with bugs",
+          "Coding hours correlate with higher stress levels",
+          "Bugs introduced correlate with stress levels",
+          "Complex interactions exist between all work factors"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "hide_dimensions",
+            "reasoning": "Hide Stress_Level_1_10 to focus on work-related factors"
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to emphasize coding and bug relationships"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "hide_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimensions": [
+                    "Stress_Level_1_10",
+                    "hide"
+                  ],
+                  "mode": "hide"
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "AI_Tool_Usage_%",
+                    "Hours_Coded",
+                    "Code_Complexity_Score",
+                    "Bugs_Introduced",
+                    "Stress_Level_1_10"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension"
+          }
+        }
+      }
+    }
+  ]
+}

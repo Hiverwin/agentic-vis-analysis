@@ -1,0 +1,61 @@
+{
+  "benchmark_id": "62_parallel_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Using get_data_summary, how does the prevalence of violent crimes compare to property crimes in the criminal structure of Berlin?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Overall, it leans more towards violent crimes."
+        },
+        "key_insights": [
+          "The overall height of Injury and Threat is significantly different."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "Use tools to analyze which crimes have higher values"
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "62_Berlin_crimes_parallel",
+    "dataset_path": "datasets/62_Berlin_crimes_parallel.json",
+    "row_count": 7200,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/62_Berlin_crimes_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "31_line_vs_04",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_04",
+      "question": "Use highlight_trend in order to know What is the overall trend of Tesla stock price and what factors might have influenced this trend?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The Tesla stock price shows a generally upward trend with some volatility. The stock price has increased significantly over the observed period, though there are periods of decline and consolidation. Factors that might have influenced this trend include company performance, market sentiment, industry trends, and broader economic conditions.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Stock price shows upward trend",
+          "There are periods of volatility",
+          "Price has increased significantly over time"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.trend.highlight",
+            "rationale": "Highlight the trend to analyze the overall direction of Tesla stock price"
+          }
+        ],
+        "required_capabilities": [
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "31_TSLA_Stock_line",
+    "dataset_path": "datasets/31_TSLA_Stock_line.json",
+    "row_count": 254,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/31_TSLA_Stock_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

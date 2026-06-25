@@ -1,0 +1,75 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "88_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use add_marginal_bars with show_top equal to True, show_right equal to True in order to know What patterns can be observed in the relationship between gender, chronic disease status, and total bill amounts in this patient dataset?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The heatmap reveals that Female patients with chronic diseases have the highest average bill amount ($25,484), while Male patients without chronic diseases have the lowest ($23,456). Overall, Female patients tend to have higher average bills ($25,032) compared to Male patients ($23,848). Patients with chronic diseases also show slightly higher average bills ($24,878) compared to those without ($24,036). The differences across all groups are relatively small, suggesting that while gender and chronic disease status influence billing, the impact is moderate rather than dramatic.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Female patients with chronic diseases have highest average bills ($25",
+          "484)",
+          "Male patients without chronic diseases have lowest average bills ($23",
+          "456)",
+          "Gender shows a more pronounced effect on billing than chronic disease status",
+          "The billing differences across groups are relatively modest (about 8% range)"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Find the extreme values in the heatmap to identify the highest and lowest bill amounts across all gender and chronic disease combinations"
+          },
+          {
+            "iteration": 2,
+            "tool": "add_marginal_bars",
+            "reasoning": "Add marginal bars to visualize the overall distribution by gender and chronic disease status separately"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            },
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "op": "mean",
+                  "show_top": true,
+                  "show_right": true,
+                  "bar_size": 70,
+                  "bar_color": "#666666"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Gender",
+            "y": "Chronic_Disease",
+            "color": "Total_Bill_Amount"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "task_type": "vague_single",
+  "task_id": "93_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_path in order to know Which traffic entry to financial product path shows the most significant conversion volume?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The path from Alipay/WeChat Entry to Payment demonstrates the most significant conversion volume with 12000 transactions, representing 47.1% of all traffic from Alipay/WeChat Entry and being the largest single flow in the entire sankey diagram",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Alipay/WeChat Entry to Payment is the largest single flow at 12000",
+          "This path represents nearly half of Alipay/WeChat Entry traffic",
+          "Payment receives the highest total inflow among all financial products"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_path",
+            "reasoning": "Use highlight_path with path equal to Alipay/WeChat Entry, Payment to visualize this specific conversion path and compare its volume against other paths"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Alipay/WeChat Entry",
+                    "Payment"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

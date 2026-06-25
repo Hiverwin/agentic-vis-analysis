@@ -1,0 +1,109 @@
+{
+  "benchmark_id": "116_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Which industry contributes more to Germany's funding, E-commerce or Saas?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "E-commerce",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stack.expand",
+            "rationale": "Expand Germany's stacked bar to reveal industry-level funding breakdown."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort industries by funding amount to identify the top contributor."
+          }
+        ],
+        "required_capabilities": [
+          "view.stack.expand",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stack.expand",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "category": "Germany"
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Industry",
+            "y": "Amount Raised (USD)",
+            "color": "Industry"
+          },
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['Country'] == \"Germany\""
+              }
+            ],
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "AI",
+                "Health",
+                "Gaming",
+                "Tech",
+                "Education",
+                "Ecommerce",
+                "Saas",
+                "Finance"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "mark_mode",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "116_startup_funding_dataset_bar",
+    "dataset_path": "datasets/116_startup_funding_dataset_bar.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,120 @@
+{
+  "benchmark_id": "06_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_by_category with field equal to Species and values equal to Chinstrap and Gentoo, reorder_dimensions with dimension_order equal to  Beak Length (mm), Flipper Length (mm),Beak Depth (mm), Body Mass (g) to characterize whether the measurements of Adelie penguins that show the strongest negative correlation is the negative correlation between Beak Depth and Flipper length stronger, or is the negative correlation between Beak Depth and Body Mass weight stronger.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Beak Depth and Flipper Length",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Adelie penguins show a wide range in body weight, while beak length is relatively concentrated.",
+          "There is a positive correlation trend between body mass and beak depth.",
+          "Both beak depth and flipper length show negative correlations with beak length, but the negative correlation with beak depth is stronger."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filtering the data for Adelie penguins makes their characteristics more visually apparent."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "By reordering the dimensions, we can more easily explore the correlations between various characteristics of Adelie penguins."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Species",
+                "values": [
+                  "Chinstrap",
+                  "Gentoo"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "Beak Length (mm)",
+                  "Flipper Length (mm)",
+                  "Beak Depth (mm)",
+                  "Body Mass (g)"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Chinstrap\",\"Gentoo\"], datum['Species']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "axis_order": {
+              "dimension_order": [
+                "Beak Depth (mm)",
+                "Beak Length (mm)",
+                "Flipper Length (mm)",
+                "Body Mass (g)"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order",
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "06_parallel_penguins",
+    "dataset_path": "datasets/06_parallel_penguins.json",
+    "row_count": 30,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/06_parallel_penguins.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

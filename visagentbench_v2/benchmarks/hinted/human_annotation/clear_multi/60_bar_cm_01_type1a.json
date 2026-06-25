@@ -1,0 +1,105 @@
+{
+  "benchmark_id": "60_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Use change_encoding with channel1 equal to y and field equal to Roberry, and then use filter_categories with categories equal to , Treptow-Köpenick, Pankow, Charlottenburg-Wilmersdorf, Spandau, Steglitz-Zehlendorf, Tempelhof-Schöneberg, Neukölln, Marzahn-Hellersdorf, Lichtenberg, Reinickendorf, and then to see which district has the lowest robbery rate.（Mitte or Friedrichshain-Kreuzberg）",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Friedrichshain-Kreuzberg.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "To select the location, it's necessary to use the change encoding tool to switch the field to location."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "To compare robberies at different locations, it's necessary to use filter_categories to filter out all districts except Treptow-Köpenick district."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Robbery",
+                "channel": "y"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Treptow-Köpenick",
+                  "Pankow",
+                  "Charlottenburg-Wilmersdorf",
+                  "Spandau",
+                  "Steglitz-Zehlendorf",
+                  "Tempelhof-Schöneberg",
+                  "Neukölln",
+                  "Marzahn-Hellersdorf",
+                  "Lichtenberg",
+                  "Reinickendorf"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "District",
+            "y": "Fire",
+            "color": "Location"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Treptow-Köpenick\",\"Pankow\",\"Charlottenburg-Wilmersdorf\",\"Spandau\",\"Steglitz-Zehlendorf\",\"Tempelhof-Schöneberg\",\"Neukölln\",\"Marzahn-Hellersdorf\",\"Lichtenberg\",\"Reinickendorf\"], datum['District']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "60_Berlin_crimes_bar",
+    "dataset_path": "datasets/60_Berlin_crimes_bar.json",
+    "row_count": 1200,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/60_Berlin_crimes_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

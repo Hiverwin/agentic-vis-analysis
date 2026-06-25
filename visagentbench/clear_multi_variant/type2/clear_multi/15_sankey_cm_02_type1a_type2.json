@@ -1,0 +1,68 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "15_sankey_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What is the computed funding amount (in billions USD) that flowed from Defense through Military Operations to Defense Corp A?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "200",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_path",
+            "reasoning": "Highlight the path from Defense through Military Operations to Defense Corp A to trace defense funding flow."
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data",
+            "reasoning": "Retrieve the visible flow data to get the funding amount."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Defense",
+                    "Military Operations",
+                    "Defense Corp A"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "visible"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

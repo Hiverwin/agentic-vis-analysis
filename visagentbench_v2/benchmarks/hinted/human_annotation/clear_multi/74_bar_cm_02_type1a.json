@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "74_bar_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_categories with categories equal to group C, group A, group D, group E, expand_stack with category equal to group B to see which kinds of students have the secondhighest mean math score.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "parental level of education is master's degree",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "We focus on only group B's mean math score"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stack.expand",
+            "rationale": "We want to compare different kinds of students' mean math score directly."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.stack.expand"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "group C",
+                  "group A",
+                  "group D",
+                  "group E"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.stack.expand",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "category": "group B"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "parental level of education",
+            "y": "math score",
+            "color": "parental level of education"
+          },
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"group C\",\"group A\",\"group D\",\"group E\"], datum['race/ethnicity']) < 0"
+              },
+              {
+                "filter": "datum['race/ethnicity'] == \"group B\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "74_StudentsPerformance_bar",
+    "dataset_path": "datasets/74_StudentsPerformance_bar.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

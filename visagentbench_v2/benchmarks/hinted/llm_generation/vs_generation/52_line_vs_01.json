@@ -1,0 +1,72 @@
+{
+  "benchmark_id": "52_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_trend in order to know How has electricity access in Afghanistan changed over time?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Electricity access in Afghanistan has shown significant growth from 2000 to 2022, indicating substantial infrastructure development and improved energy accessibility",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Electricity access increased dramatically",
+          "Infrastructure development likely contributed",
+          "Significant progress in energy accessibility"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.trend.highlight",
+            "rationale": "Use highlight_trend with increasing type to visualize the upward trend in electricity access"
+          }
+        ],
+        "required_capabilities": [
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "52_years of economic new_line",
+    "dataset_path": "datasets/52_years of economic new_line.json",
+    "row_count": 23,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/52_years of economic new_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,75 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "06_parallel_cm_08",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/06_parallel_penguins.json",
+  "questions": [
+    {
+      "qid": "cm_08",
+      "question": "06_parallel_cm_01：Use filter_by_category with field equal to Species and values equal to Chinstrap and Gentoo, reorder_dimensions with dimension_order equal to Beak Length (mm), Flipper Length (mm),Beak Depth (mm), Body Mass (g) to characterize whether the measurements of Adelie penguins that show the strongest negative correlation is the negative correlation between Beak Depth and Flipper length stronger, or is the negative correlation between Beak Depth and Body Mass weight stronger.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Gentoo has higher Body Mass (4985g) compared to Adelie (3760g)",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Filter to show only Adelie and Gentoo species for comparison"
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to put Body Mass first for easier comparison"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "values",
+                  "values": "Chinstrap"
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "Body Mass (g)",
+                    "Flipper Length (mm)",
+                    "Beak Length (mm)",
+                    "Beak Depth (mm)"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "axis_order": {
+            "dimension_order": [
+              "Body Mass (g)",
+              "Flipper Length (mm)",
+              "Beak Length (mm)",
+              "Beak Depth (mm)"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

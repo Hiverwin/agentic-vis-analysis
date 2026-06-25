@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "01_scatter_cm_19",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_19",
+      "question": "47_scatter_cm_01：Use change_encoding with channel equal to x, field equal to pricepercent, show_regression with method equal to linear, calculate_correlation with method equal to pearson to decide whether the relationship between pricepercent and winpercent is weak or strong.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "strong negative",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change x-axis encoding to Weight_in_lbs"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.regression.show",
+            "rationale": "Show regression line"
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "analysis.regression.show",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "x",
+                "field": "Weight_in_lbs"
+              }
+            }
+          },
+          {
+            "capability": "analysis.regression.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "linear"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Horsepower",
+            "y": "Miles_per_Gallon",
+            "color": "Origin"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "encoding",
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "01_scatter_cars",
+    "dataset_path": "datasets/01_scatter_cars.json",
+    "row_count": 392,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/01_scatter_cars.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

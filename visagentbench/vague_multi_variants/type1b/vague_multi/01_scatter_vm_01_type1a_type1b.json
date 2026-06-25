@@ -1,0 +1,80 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "01_scatter_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/01_scatter_cars.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_categorical and brush_region, how do Japanese and American cars compare on miles per gallon?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Japanese models crowd the upper MPG half of the brush—several points push into the forties with a max near 47—while American cars only sprinkle into that band and top out closer to the high thirties. The brushed view therefore reads as a Japan-led efficiency cluster with the US entries sparser and lower on the MPG axis.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Japan supplies more of the high-MPG points inside the horsepower window.",
+          "American samples are fewer and rarely reach the extreme MPG values Japan hits."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Removes Europe so the comparison stays between Japan and the US."
+          },
+          {
+            "iteration": 2,
+            "tool": "brush_region",
+            "reasoning": "Selects the horsepower band where efficient cars concentrate."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Origin",
+                  "categories_to_remove": [
+                    "Europe"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "brush_region",
+              "param_eval": {
+                "type": "list",
+                "param": "x_range",
+                "target": [
+                  40.166664123535156,
+                  116.3888931274414
+                ]
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Europe\"], datum['Origin']) < 0"
+            }
+          ],
+          "visible_domain": {
+            "x": [
+              40.166664123535156,
+              116.3888931274414
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

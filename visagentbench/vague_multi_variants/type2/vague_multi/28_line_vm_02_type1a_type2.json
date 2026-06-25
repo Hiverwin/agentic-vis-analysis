@@ -1,0 +1,73 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "28_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/28_silver_prices_data_line.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "How can the monthly price fluctuation pattern in 2023 within this core trend be characterized?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The 2023 monthly pattern confirms no abnormal fluctuations."
+        },
+        "key_insights": [
+          "monthly price fluctuations between 28 and 35, with a mild upward trend and low volatility.",
+          "The 2023 monthly pattern shows no extreme spikes/drops,"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "drilldown line time then breaks down the 2023 sub-period into monthly granularity to explore fine-grained fluctuations"
+          },
+          {
+            "iteration": 2,
+            "tool": "drill_down_x_axis",
+            "reasoning": "drilldown line time then breaks down the 2023 sub-period into monthly granularity to explore fine-grained fluctuations"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2023/1/3",
+                  "end": "2023/12/29"
+                }
+              }
+            },
+            {
+              "tool": "drill_down_x_axis",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "parent": "{“Year”：2023}",
+                  "level": "year",
+                  "value": "2023"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "year(datum.Date) == 2023",
+              "_avs_tag": "line_drilldown_axis"
+            }
+          ],
+          "visible_domain": {}
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "benchmark_id": "61_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How do the distribution patterns of \"Injury\" differ in low and high \"Robbery\" areas?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Their distribution is different. In the case of low robbery rates, as the robbery rate increases, the injury rate also increases significantly. However, when the robbery rate reaches a high level, an increase in the robbery rate no longer affects the injury rate."
+        },
+        "key_insights": [
+          "Most of the data are concentrated in the low-injury category.",
+          "the more robbery, the more injury",
+          "The injury data are concentrated in the middle.",
+          "The injury data and the robbery data do not seem to be related."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "get the data in low robbery"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "get the data in high robbery"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.12999471028645834,
+                  60.79667460123698
+                ],
+                "y_range": [
+                  0,
+                  800.9999084472656
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  40.20033862965942,
+                  60.79667460123698
+                ],
+                "y_range": [
+                  0,
+                  793.3903726501507
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              0.12999471028645834,
+              60.79667460123698
+            ],
+            "yDomain": [
+              0,
+              800.9999084472656
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "61_Berlin_crimes_scatter",
+    "dataset_path": "datasets/61_Berlin_crimes_scatter.json",
+    "row_count": 1200,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/61_Berlin_crimes_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

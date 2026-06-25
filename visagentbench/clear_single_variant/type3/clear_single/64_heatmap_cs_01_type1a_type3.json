@@ -1,0 +1,57 @@
+{
+  "task_type": "clear_single",
+  "task_id": "64_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "What is the count of cells with a mean of Average Tree Price below 70?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "9",
+          "tolerance": 0
+        },
+        "key_insights": [
+          "9 cells' mean of Average Tree Price is less than 70."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region_by_value",
+            "reasoning": "Use this tool to find the cells with mean of Average Tree Price less than 50."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region_by_value",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "max_value": 50
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Type of tree",
+            "color": "Average Tree Price"
+          },
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

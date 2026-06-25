@@ -1,0 +1,98 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "18_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/18_Heart_Disease_Prediction_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What is the strength of the correlation between ST depression and Max HR compared to ST depression and Cholesterol?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "ST depression and maximum heart rate have the stronger correlation.",
+          "alternatives": [
+            "ST depression and Max HR",
+            "ST depression and Max HR have the stronger correlation"
+          ]
+        },
+        "key_insights": [
+          "Age ranges are mostly 45–65, with BP and cholesterol showing wider variation but generally above average values.",
+          "Most cases have Thallium = 7"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Filter to keep only the Absence (no heart disease) group for focused analysis."
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to place ST depression between Cholesterol and Max HR for visual comparison of the two correlations."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Heart Disease",
+                  "values": [
+                    "Presence"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "Age",
+                    "BP",
+                    "Cholesterol",
+                    "ST depression",
+                    "Max HR",
+                    "Thallium"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension",
+            "y": null,
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Presence\"], datum['Heart Disease']) < 0"
+            }
+          ],
+          "axis_order": {
+            "dimension_order": [
+              "Age",
+              "BP",
+              "Cholesterol",
+              "ST depression",
+              "Max HR",
+              "Thallium"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

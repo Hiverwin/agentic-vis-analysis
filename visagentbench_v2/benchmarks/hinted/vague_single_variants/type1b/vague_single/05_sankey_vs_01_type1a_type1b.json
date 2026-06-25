@@ -1,0 +1,86 @@
+{
+  "benchmark_id": "05_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Using collapse_nodes, how does advertising contribute to the sales of the product?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The fact that the majority of the traffic flows into the purchase process indicates that the advertisement has a positive impact on the purchase."
+        },
+        "key_insights": [
+          "It was found that the majority of the traffic was directed towards the purchase section."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.node.collapse",
+            "rationale": "Aggregate the flow directions of all users"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.node.collapse"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "aggregate_name": "Other",
+                "nodes_to_collapse": [
+                  "Google Ads",
+                  "Facebook",
+                  "Organic",
+                  "Email",
+                  "Landing Page",
+                  "Product List",
+                  "Search"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "hidden_nodes": [
+                "Google Ads",
+                "Facebook",
+                "Organic",
+                "Email",
+                "Landing Page",
+                "Product List",
+                "Search"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "05_sankey_ecommercial",
+    "dataset_path": "datasets/05_sankey_ecommercial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/05_sankey_ecommercial.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

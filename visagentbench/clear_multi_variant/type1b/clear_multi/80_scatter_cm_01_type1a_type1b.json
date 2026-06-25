@@ -1,0 +1,92 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "80_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/80_gym_members_exercise_tracking_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Using zoom_2d_region and filter_categorical, which Workout_Type dominates in the region defined by Session_Duration from 0.5 to 0.75 hours and Calories_Burned from 500 to 800?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Workout frequency 3",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom into the region where Session_Duration is 0.5–0.75 hours and Calories_Burned is 500–800 to focus on shorter, moderate-calorie sessions."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categorical",
+            "reasoning": "Filter out Yoga to see which Workout_frequency dominates among the remaining types in this region."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    0.5,
+                    0.75
+                  ],
+                  "y_range": [
+                    500,
+                    800
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories_to_remove": [
+                    "Yoga"
+                  ],
+                  "field": "Workout_Type"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Session_Duration (hours)",
+            "y": "Calories_Burned",
+            "color": "Workout_Type"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Yoga\"], datum['Workout_Type']) < 0"
+            }
+          ],
+          "visible_domain": {
+            "x": [
+              0.5,
+              0.75
+            ],
+            "y": [
+              500,
+              800
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

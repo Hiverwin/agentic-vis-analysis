@@ -1,0 +1,97 @@
+{
+  "benchmark_id": "14_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How do the series differ in trend shape, relative ranking, and local reversals or volatility in the updated view compared to the original view?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Focusing on the top three museums reveals a clear quarterly cycle previously masked by lower-volume lines. \nThe main Museum line leads other institutions by 2-3 weeks in trend direction changes, suggesting it functions as a market bellwether.\nA bi-annual pattern emerges specifically at America Tropical, likely tied to their exhibition rotation schedule every six months."
+        },
+        "key_insights": [
+          "The main Museum line leads other institutions by 2-3 weeks in trend direction changes, suggesting it functions as a market bellwether",
+          "The quarterly pattern suggests budgetary or curatorial planning cycles."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.focus",
+            "rationale": "Isolation reduces visual noise."
+          },
+          {
+            "iteration": 2,
+            "capability": "axis.x.resample",
+            "rationale": "Temporal granularity adjustment shifts analytical scale to reveal programming-driven cycles invisible in annual views."
+          }
+        ],
+        "required_capabilities": [
+          "line.series.focus",
+          "axis.x.resample"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.focus",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "dim",
+                "lines": [
+                  "America Tropical Interpretive Center",
+                  "Avila Adobe",
+                  "Firehouse Museum"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "axis.x.resample",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "granularity": "quarter",
+                "agg": "sum"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true
+            },
+            "time_unit": {
+              "has_time_unit": true,
+              "unit": "quarter"
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity",
+          "time_unit"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "14_museum_visitors_line_multi",
+    "dataset_path": "datasets/14_museum_visitors_line_multi.json",
+    "row_count": 236,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/14_museum_visitors_line_multi.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

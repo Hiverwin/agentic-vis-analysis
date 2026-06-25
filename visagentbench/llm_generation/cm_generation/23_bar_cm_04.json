@@ -1,0 +1,192 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "23_bar_cm_04",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/23_Mobiles Dataset (2025)_bar.json",
+  "questions": [
+    {
+      "qid": "cm_04",
+      "question": "60_bar_cm_01：Use change_encoding and filter_categories and change_encoding and filter_categories and change_encoding and filter_categories and change_encoding and filter_categories and change_encoding to analyze bar chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "iQOO",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to focus on battery capacity"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categories",
+            "reasoning": " Filter categories to show only recent two years data"
+          },
+          {
+            "iteration": 3,
+            "tool": "change_encoding",
+            "reasoning": " Change encoding to analyze company data"
+          },
+          {
+            "iteration": 4,
+            "tool": "filter_categories",
+            "reasoning": " Filter categories to focus on top companies"
+          },
+          {
+            "iteration": 5,
+            "tool": "change_encoding",
+            "reasoning": " Change encoding to compare battery capacities"
+          },
+          {
+            "iteration": 6,
+            "tool": "filter_categories",
+            "reasoning": " Filter categories to confirm results"
+          },
+          {
+            "iteration": 7,
+            "tool": "change_encoding",
+            "reasoning": " Change encoding to finalize analysis"
+          },
+          {
+            "iteration": 8,
+            "tool": "filter_categories",
+            "reasoning": " Filter categories to show relevant data"
+          },
+          {
+            "iteration": 9,
+            "tool": "change_encoding",
+            "reasoning": " Change encoding to present final ranking"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Battery Capacity(mAh)"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Launched Year",
+                    "Year 2024",
+                    "Year 2025"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Company Name"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Launched Year",
+                    "Year 2024",
+                    "Year 2025"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Battery Capacity(mAh)"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Company Name",
+                    "Poco",
+                    "iQOO"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Company Name"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Launched Year",
+                    "Year 2024",
+                    "Year 2025"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Battery Capacity(mAh)"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Company Name",
+            "y": "Battery Capacity(mAh)",
+            "color": "Launched Year"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

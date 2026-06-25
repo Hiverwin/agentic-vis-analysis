@@ -1,0 +1,62 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "32_scatter_cm_04",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_04",
+      "question": "10_scatter_cm_01：Use filter_categorical with categories_to_remove equal to good and poor to keep only average diet quality, then use calculate_correlation with method equal to pearson. What is the Pearson correlation coefficient (rounded to 3 decimals) between sleep_hours and screen_time for individuals with average diet quality?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Smokers have higher average charges ($32050.23 vs $8434.27)",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Filter out non-smokers to analyze smokers data"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between BMI and charges for smokers"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories_to_remove": [
+                    "no",
+                    "smoker"
+                  ],
+                  "field": "categories_to_remove"
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

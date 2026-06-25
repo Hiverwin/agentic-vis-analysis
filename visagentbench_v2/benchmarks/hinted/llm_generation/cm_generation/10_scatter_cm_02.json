@@ -1,0 +1,80 @@
+{
+  "benchmark_id": "10_scatter_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "10_scatter_cm_01：Use filter_categorical with categories_to_remove equal to good and poor to keep only average diet quality, then use calculate_correlation with method equal to pearson. What is the Pearson correlation coefficient (rounded to 3 decimals) between sleep_hours and screen_time for individuals with average diet quality?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "-0.017",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter out poor diet_quality to focus on average and good categories"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between sleep_hours and screen_time for filtered data"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "poor",
+                  "diet_quality"
+                ],
+                "field": "categories_to_remove"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "10_scatter_synthetic_mental_health",
+    "dataset_path": "datasets/10_scatter_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/10_scatter_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

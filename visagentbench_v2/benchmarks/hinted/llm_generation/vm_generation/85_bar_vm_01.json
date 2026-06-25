@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "85_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know What patterns can you observe in product pricing across different customer demographics and product types?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Unknown customer demographics show the highest average price ($56.40), followed by Male ($49.55), Non-binary ($46.50), and Female ($43.52), 2) Cosmetics has the highest average price ($57.36) among product types, significantly higher than skincare ($47.26) and haircare ($46.01), 3) The combination of Male customers and cosmetics products yields the highest average price ($67.24), while Female customers with haircare products have the lowest ($25.54), 4) There is a notable price gap of $12.88 between the highest (Unknown) and lowest (Female) customer demographics, 5) The price variation within each demographic is substantial (standard deviations around $30), indicating diverse pricing strategies or product mixes, 6) Male customers show a strong preference for higher-priced cosmetics, while Female customers tend toward lower-priced haircare products.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Unknown demographics have highest average price",
+          "Cosmetics is most expensive product type",
+          "Male+cosmetics is highest price combo",
+          "Female+haircare is lowest price combo",
+          "$12.88 gap between demographics",
+          "High price variation within groups"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to see ordering by price"
+          },
+          {
+            "iteration": 2,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top N to emphasize highest values"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Customer demographics",
+            "y": "Price",
+            "color": "Product type"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "85_supply_chain_data_bar",
+    "dataset_path": "datasets/85_supply_chain_data_bar.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/85_supply_chain_data_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

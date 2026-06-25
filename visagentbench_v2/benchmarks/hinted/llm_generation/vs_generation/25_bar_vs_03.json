@@ -1,0 +1,75 @@
+{
+  "benchmark_id": "25_bar_vs_03",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_03",
+      "question": "Use highlight_top_n in order to know How do different workout types and experience levels affect body fat percentage in this gym dataset?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the data analysis, workout type has a minimal impact on body fat percentage, with all types ranging between 24.46-25.46%. However, experience level shows a significant effect: individuals with Level 3 experience have a much lower average body fat percentage (14.79%) compared to Level 1 (27.63%) and Level 2 (27.31%). This suggests that training experience and consistency are more important factors in reducing body fat than the specific workout type chosen. The data also shows that body fat percentage ranges from 10.0-35.0% across the dataset, with similar distributions across all workout types.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "All workout types have similar average body fat percentages (24.46-25.46%)",
+          "Experience Level 3 has significantly lower body fat (14.79%) than Levels 1-2 (27.3-27.6%)",
+          "Body fat percentage ranges from 10.0-35.0% across the dataset",
+          "Experience level is a stronger predictor of body fat than workout type"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Analyze workout type and experience level effects on body fat percentage"
+          }
+        ],
+        "required_capabilities": [
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "25_gym_members_exercise_tracking_bar",
+    "dataset_path": "datasets/25_gym_members_exercise_tracking_bar.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/25_gym_members_exercise_tracking_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

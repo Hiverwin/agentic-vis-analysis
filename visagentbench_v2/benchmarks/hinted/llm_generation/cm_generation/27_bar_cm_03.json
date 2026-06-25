@@ -1,0 +1,114 @@
+{
+  "benchmark_id": "27_bar_cm_03",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "54_bar_cm_01：Use change_encoding and filter_subcategories and highlight_top_n to analyze bar chart data.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Latte",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to show sales by coffee type"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter subcategories to focus on specific time periods"
+          },
+          {
+            "iteration": 3,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top 3 selling coffees"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.subcategory",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "channel",
+                "field": "y"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Time_of_Day",
+                  "Morning",
+                  "Afternoon"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "coffee_name",
+            "y": "money",
+            "color": "Time_of_Day"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "encoding",
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "27_coffee_sales_data_bar",
+    "dataset_path": "datasets/27_coffee_sales_data_bar.json",
+    "row_count": 3547,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/27_coffee_sales_data_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

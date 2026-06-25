@@ -1,0 +1,123 @@
+{
+  "benchmark_id": "69_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Which company among the remaining ones has the maximum number of followers after excluding Google, Microsoft, IBM, Apple, and Tesla Motors?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Amazon",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Exclude the five specified companies to focus on the remaining set."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort by descending followers to identify the top company."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Google",
+                  "Microsoft",
+                  "IBM",
+                  "Apple",
+                  "Tesla Motors"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "company",
+            "y": "followers"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Google\", \"Microsoft\", \"IBM\", \"Apple\", \"Tesla Motors\"], datum['company']) < 0"
+              }
+            ],
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Google",
+                "Amazon",
+                "LinkedIn",
+                "Microsoft",
+                "Ted Conferences",
+                "Unilever",
+                "Deloitte",
+                "LinkedIn News",
+                "IBM",
+                "Apple",
+                "Forbes Magazine",
+                "Tata Consultancy Services",
+                "Nestle",
+                "Harvard Business Review",
+                "Accenture",
+                "The Economist",
+                "Tesla Motors",
+                "Meta",
+                "Netflix",
+                "Wipro"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "69_top_100_linkedin_companies_2026_bar",
+    "dataset_path": "datasets/69_top_100_linkedin_companies_2026_bar.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/69_top_100_linkedin_companies_2026_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

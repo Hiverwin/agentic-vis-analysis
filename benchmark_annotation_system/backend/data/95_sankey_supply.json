@@ -1,0 +1,317 @@
+{
+  "rawLinks": [
+    {
+      "source": "Rubber",
+      "target": "Tire Plant",
+      "value": 85
+    },
+    {
+      "source": "Steel",
+      "target": "Tire Plant",
+      "value": 25
+    },
+    {
+      "source": "Chips",
+      "target": "Display Factory",
+      "value": 160
+    },
+    {
+      "source": "Glass",
+      "target": "Display Factory",
+      "value": 95
+    },
+    {
+      "source": "Lithium",
+      "target": "Battery Plant",
+      "value": 140
+    },
+    {
+      "source": "Copper",
+      "target": "Battery Plant",
+      "value": 45
+    },
+    {
+      "source": "Steel",
+      "target": "Frame Plant",
+      "value": 180
+    },
+    {
+      "source": "Chips",
+      "target": "Frame Plant",
+      "value": 70
+    },
+    {
+      "source": "Tire Plant",
+      "target": "Assembly Line A",
+      "value": 65
+    },
+    {
+      "source": "Tire Plant",
+      "target": "Assembly Line B",
+      "value": 45
+    },
+    {
+      "source": "Display Factory",
+      "target": "Assembly Line A",
+      "value": 150
+    },
+    {
+      "source": "Display Factory",
+      "target": "Assembly Line B",
+      "value": 105
+    },
+    {
+      "source": "Battery Plant",
+      "target": "Assembly Line A",
+      "value": 110
+    },
+    {
+      "source": "Battery Plant",
+      "target": "Assembly Line B",
+      "value": 75
+    },
+    {
+      "source": "Frame Plant",
+      "target": "Assembly Line A",
+      "value": 145
+    },
+    {
+      "source": "Frame Plant",
+      "target": "Assembly Line B",
+      "value": 105
+    },
+    {
+      "source": "Assembly Line A",
+      "target": "East China DC",
+      "value": 195
+    },
+    {
+      "source": "Assembly Line A",
+      "target": "South China DC",
+      "value": 155
+    },
+    {
+      "source": "Assembly Line A",
+      "target": "North America DC",
+      "value": 120
+    },
+    {
+      "source": "Assembly Line B",
+      "target": "East China DC",
+      "value": 135
+    },
+    {
+      "source": "Assembly Line B",
+      "target": "South China DC",
+      "value": 110
+    },
+    {
+      "source": "Assembly Line B",
+      "target": "North America DC",
+      "value": 85
+    },
+    {
+      "source": "East China DC",
+      "target": "Direct Stores",
+      "value": 140
+    },
+    {
+      "source": "East China DC",
+      "target": "Dealers",
+      "value": 120
+    },
+    {
+      "source": "East China DC",
+      "target": "E-Commerce",
+      "value": 70
+    },
+    {
+      "source": "South China DC",
+      "target": "Direct Stores",
+      "value": 95
+    },
+    {
+      "source": "South China DC",
+      "target": "Dealers",
+      "value": 105
+    },
+    {
+      "source": "South China DC",
+      "target": "E-Commerce",
+      "value": 65
+    },
+    {
+      "source": "North America DC",
+      "target": "Direct Stores",
+      "value": 65
+    },
+    {
+      "source": "North America DC",
+      "target": "Dealers",
+      "value": 85
+    },
+    {
+      "source": "North America DC",
+      "target": "E-Commerce",
+      "value": 55
+    },
+    {
+      "source": "Direct Stores",
+      "target": "Enterprise",
+      "value": 110
+    },
+    {
+      "source": "Direct Stores",
+      "target": "Consumer",
+      "value": 190
+    },
+    {
+      "source": "Dealers",
+      "target": "Enterprise",
+      "value": 195
+    },
+    {
+      "source": "Dealers",
+      "target": "Consumer",
+      "value": 115
+    },
+    {
+      "source": "E-Commerce",
+      "target": "Enterprise",
+      "value": 55
+    },
+    {
+      "source": "E-Commerce",
+      "target": "Consumer",
+      "value": 135
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Rubber",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Chips",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Steel",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Glass",
+      "depth": 0,
+      "order": 3
+    },
+    {
+      "name": "Lithium",
+      "depth": 0,
+      "order": 4
+    },
+    {
+      "name": "Copper",
+      "depth": 0,
+      "order": 5
+    },
+    {
+      "name": "Tire Plant",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Display Factory",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Battery Plant",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "Frame Plant",
+      "depth": 1,
+      "order": 3
+    },
+    {
+      "name": "Assembly Line A",
+      "depth": 2,
+      "order": 0
+    },
+    {
+      "name": "Assembly Line B",
+      "depth": 2,
+      "order": 1
+    },
+    {
+      "name": "East China DC",
+      "depth": 3,
+      "order": 0
+    },
+    {
+      "name": "South China DC",
+      "depth": 3,
+      "order": 1
+    },
+    {
+      "name": "North America DC",
+      "depth": 3,
+      "order": 2
+    },
+    {
+      "name": "Direct Stores",
+      "depth": 4,
+      "order": 0
+    },
+    {
+      "name": "Dealers",
+      "depth": 4,
+      "order": 1
+    },
+    {
+      "name": "E-Commerce",
+      "depth": 4,
+      "order": 2
+    },
+    {
+      "name": "Enterprise",
+      "depth": 5,
+      "order": 0
+    },
+    {
+      "name": "Consumer",
+      "depth": 5,
+      "order": 1
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Raw Materials"
+    },
+    {
+      "depth": 1,
+      "label": "Components (Tier 1)"
+    },
+    {
+      "depth": 2,
+      "label": "Manufacturing"
+    },
+    {
+      "depth": 3,
+      "label": "Distribution Centers"
+    },
+    {
+      "depth": 4,
+      "label": "Sales Channels"
+    },
+    {
+      "depth": 5,
+      "label": "End Customers"
+    }
+  ]
+}

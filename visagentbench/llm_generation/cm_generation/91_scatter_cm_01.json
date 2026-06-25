@@ -1,0 +1,78 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "91_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/91_supply_chain_data_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "41_scatter_cm_01：Use zoom_2d_region with x_range equal to (1000, 3600) and y_range equal to (2400, 7700) to focus on dense area, then use calculate_correlation with method equal to pearson. What is the Pearson correlation coefficient (rounded to 2 decimals) between Chinese American Museum and America Tropical Interpretive Center visitor counts in this zoomed region?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "positive",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom in to high price range to analyze data"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between price and revenue in this region"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    50.0,
+                    100.0
+                  ],
+                  "y_range": [
+                    5000.0,
+                    10000.0
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              50.0,
+              100.0
+            ],
+            "y": [
+              5000.0,
+              10000.0
+            ]
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

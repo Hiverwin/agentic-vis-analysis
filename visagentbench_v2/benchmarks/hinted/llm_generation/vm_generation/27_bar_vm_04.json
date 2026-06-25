@@ -1,0 +1,107 @@
+{
+  "benchmark_id": "27_bar_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use change_encoding with field equal to money and use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know How do coffee sales patterns vary across different times of day, and which coffee types perform best in each period?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Coffee sales show distinct patterns across time periods. Night has the highest total sales at $38,186.34, followed closely by Afternoon at $38,130.04, with Morning slightly lower at $35,929.20. Different coffee types have peak performance at different times: Americano with Milk dominates Morning sales ($10,025.52, 40.5% of its total), Latte performs consistently well in both Afternoon and Night (around $9,600 each), Cappuccino peaks in Night ($7,201, 41.3%), Hot Chocolate is overwhelmingly popular at Night ($5,290, 53.3%), while Cortado is most popular in Morning ($3,605, 48.8%). This suggests customers prefer different coffee types based on time of day, with milky drinks favored in morning and richer options in evening.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Night period has highest total sales but only marginally ahead of Afternoon",
+          "Americano with Milk is the clear morning favorite with 40.5% of sales in morning",
+          "Hot Chocolate shows strongest time preference with 53.3% of sales at Night",
+          "Latte maintains consistent performance across Afternoon and Night periods",
+          "Cortado is primarily a morning drink with 48.8% of sales in morning",
+          "Cappuccino and Espresso show different time preferences with Cappuccino stronger at night and Espresso stronger in afternoon"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to Time_of_Day on x-axis to compare time periods"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars by sales to identify top performers in each period"
+          },
+          {
+            "iteration": 3,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top 5 coffees to see which types dominate sales"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "view.sort.encoding",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "Time_of_Day",
+                "field": "money"
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "coffee_name",
+            "y": "money",
+            "color": "Time_of_Day"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "27_coffee_sales_data_bar",
+    "dataset_path": "datasets/27_coffee_sales_data_bar.json",
+    "row_count": 3547,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/27_coffee_sales_data_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

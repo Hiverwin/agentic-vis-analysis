@@ -1,0 +1,107 @@
+{
+  "benchmark_id": "07_bar_vm_06",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_06",
+      "question": "Use change_encoding with field equal to weather and use filter_subcategories with subcategories_to_remove equal to sunny, cloudy and use sort_bars with order equal to descending in order to know How do different weather conditions and diet quality levels interact to affect sleep patterns, and what factors appear most influential?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Weather conditions show minimal impact on sleep hours, with rainy weather having slightly higher average sleep (7.10 hours) compared to cloudy (7.01 hours). Diet quality also shows small differences, with poor diet having 7.09 hours, good diet 7.07 hours, and average diet 7.06 hours. The interaction between weather and diet appears to be minimal, suggesting that other factors like stress level and exercise minutes may be more influential on sleep patterns than these two variables alone.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Weather has minimal impact on sleep hours with small variations across conditions",
+          "Diet quality shows very small differences in sleep duration",
+          "The interaction between weather and diet is not strongly correlated with sleep patterns",
+          "Other lifestyle factors may be more influential than weather and diet alone"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to analyze weather impact on sleep by switching x-axis to weather field"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter to focus on specific weather conditions for detailed comparison"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to compare sleep hours across different diet quality levels"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.subcategory",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "weather"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "sunny",
+                  "cloudy"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "diet_quality",
+            "y": "sleep_hours",
+            "color": "weather"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "07_bar_synthetic_mental_health",
+    "dataset_path": "datasets/07_bar_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/07_bar_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

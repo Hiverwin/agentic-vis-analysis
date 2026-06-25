@@ -1,0 +1,88 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "116_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Which industry contributes more to Germany's funding, E-commerce or Saas?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "E-commerce",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "expand_stack",
+            "reasoning": "Expand Germany's stacked bar to reveal industry-level funding breakdown."
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "Sort industries by funding amount to identify the top contributor."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "expand_stack",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "category": "Germany"
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Industry",
+            "y": "Amount Raised (USD)",
+            "color": "Industry"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['Country'] == \"Germany\""
+            }
+          ],
+          "mark_mode": {
+            "is_stacked": false
+          },
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "AI",
+              "Health",
+              "Gaming",
+              "Tech",
+              "Education",
+              "Ecommerce",
+              "Saas",
+              "Finance"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "mark_mode",
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

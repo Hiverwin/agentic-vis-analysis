@@ -1,0 +1,76 @@
+{
+  "task_type": "clear_single",
+  "task_id": "16_bar_cs_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json",
+  "questions": [
+    {
+      "qid": "cs_03",
+      "question": "Use sort_bars in order to know Which salesperson shipped the most boxes in total?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Karlen McCaffrey",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars in descending order to identify the salesperson who shipped the most boxes"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Karlen McCaffrey",
+              "Jan Morforth",
+              "Dotty Strutley",
+              "Marney O'Breen",
+              "Beverie Moffet",
+              "Dennison Crosswaite",
+              "Oby Sorrel",
+              "Camilla Castle",
+              "Husein Augar",
+              "Roddy Speechley",
+              "Curtice Advani",
+              "Jehu Rudeforth",
+              "Andria Kimpton",
+              "Kaine Padly",
+              "Ches Bonnell",
+              "Kelci Walkden",
+              "Gunar Cockshoot",
+              "Brien Boise",
+              "Barr Faughny",
+              "Madelene Upcott",
+              "Mallorie Waber",
+              "Gigi Bohling",
+              "Van Tuxwell",
+              "Rafaelita Blaksland",
+              "Wilone O'Kielt"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "benchmark_id": "29_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How can the AI usage differences between AI users and non-users in this subgroup be characterized?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "positive correlation between AI usage and academic performance."
+        },
+        "key_insights": [
+          "top post-AI grades are dominated by students combining AI usage with high study hours and balanced screen time",
+          "Resetting the highlight restores the full dataset’s density, validating the uniqueness of the high-achieving subgroup and the specificity of the observed interaction pattern."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.reset",
+            "rationale": "highlighting isolates the high post-AI grade subgroup, focusing analysis on a critical academic outcome group"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Then examining the subgroup unpacks the interplay of screen time and study hours with AI usage, addressing the vague multi-variable exploration goal."
+          }
+        ],
+        "required_capabilities": [
+          "view.reset",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.reset",
+            "param_eval": {}
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "uses_ai",
+                "values": [
+                  "No"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"No\"], datum['uses_ai']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "29_students_ai_usage_parallel",
+    "dataset_path": "datasets/29_students_ai_usage_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/29_students_ai_usage_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

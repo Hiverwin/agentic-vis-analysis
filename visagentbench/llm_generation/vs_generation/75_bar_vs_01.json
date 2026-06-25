@@ -1,0 +1,120 @@
+{
+  "task_type": "vague_single",
+  "task_id": "75_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/75_Refined_Employment_Telecom_Services_2024_bar.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The United States has the highest employment in telecom services, followed by China and India. North America and Asia have the highest overall employment, while Oceania has the lowest, showing a clear geographical distribution pattern in telecom employment",
+          "alternatives": []
+        },
+        "key_insights": [
+          "United States has highest telecom employment",
+          "China and India follow as top employers",
+          "North America and Asia dominate telecom employment",
+          "Oceania has lowest telecom employment",
+          "Geographical distribution shows strong regional variations"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars in descending order to analyze employment patterns across countries and continents"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "United States",
+              "India",
+              "Brazil",
+              "Mexico",
+              "Germany",
+              "United Kingdom",
+              "Colombia",
+              "Bangladesh",
+              "Spain",
+              "Italy",
+              "Argentina",
+              "France",
+              "Australia",
+              "Poland",
+              "Nigeria",
+              "Turkiye",
+              "Romania",
+              "Thailand",
+              "Peru",
+              "Ecuador",
+              "Netherlands",
+              "Greece",
+              "Portugal",
+              "Sweden",
+              "Belarus",
+              "Hungary",
+              "Ireland",
+              "Belgium",
+              "Dominican Republic",
+              "Israel",
+              "Czechia",
+              "Switzerland",
+              "Slovak Republic",
+              "Bulgaria",
+              "Norway",
+              "Austria",
+              "Finland",
+              "Denmark",
+              "Croatia",
+              "Singapore",
+              "Bolivia",
+              "Uruguay",
+              "Costa Rica",
+              "Senegal",
+              "Honduras",
+              "Panama",
+              "Lithuania",
+              "Estonia",
+              "North Macedonia",
+              "Slovenia",
+              "Luxembourg",
+              "Kosovo",
+              "Cyprus",
+              "Latvia",
+              "West Bank and Gaza",
+              "Botswana",
+              "Malta",
+              "Rwanda",
+              "Fiji",
+              "Lesotho",
+              "Bhutan",
+              "Iceland",
+              "Seychelles"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

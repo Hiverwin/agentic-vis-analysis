@@ -1,0 +1,102 @@
+{
+  "benchmark_id": "92_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use trace_node with node_name equal to Channel Partner and use highlight_path with path equal to Channel Partner, Customized Solution and use filter_flow with min_value equal to 3000.0 in order to know How do different sales lead sources contribute to the product line signing, and what are the key flow patterns?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Channel Partner is the largest lead source (13000) and primarily contributes to Customized Solution (6100) and Data Middleware Product (3200). Official Website SEO/SEM (10220) mainly drives Enterprise SaaS Platform (5400). The top flow is Channel Partner to Customized Solution (6100), followed by Official Website SEO/SEM to Enterprise SaaS Platform (5400). Enterprise SaaS Platform receives the most total value (15000), while API Open Platform receives the least (3900). SDR Cold Call is the smallest lead source (2850) with limited contribution to product lines.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Channel Partner is largest lead source",
+          "Enterprise SaaS Platform receives most value",
+          "Top flow is Channel Partner to Customized Solution",
+          "SDR Cold Call contributes least"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace the flow from Channel Partner to see its distribution"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the path from Channel Partner to Customized Solution to examine the largest flow"
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.flow.filter",
+            "rationale": "Filter flows with minimum value 3000 to see major flow patterns"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight",
+          "sankey.flow.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Channel Partner"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Channel Partner",
+                  "Customized Solution"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 3000.0
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "92_sankey_b2b",
+    "dataset_path": "datasets/92_sankey_b2b.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/92_sankey_b2b.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

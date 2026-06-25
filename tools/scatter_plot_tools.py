@@ -2,13 +2,14 @@
 散点图专用工具
 """
 
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 import numpy as np
 import copy
 import json
 from sklearn.cluster import KMeans
 from scipy.stats import pearsonr, spearmanr
 from state_manager import DataStore, tool_output
+from tools.common import _apply_filters, _get_spec_data
 
 
 def _datum_ref(field: str) -> str:
@@ -17,6 +18,24 @@ def _datum_ref(field: str) -> str:
         return "datum"
     s = str(field).replace("\\", "\\\\").replace("'", "\\'")
     return f"datum['{s}']"
+
+
+def _main_encoding_dict(state: Dict) -> Dict[str, Any]:
+    """Prefer layer[0].encoding after show_regression (layered spec)."""
+    if isinstance(state.get("layer"), list) and state["layer"]:
+        le = state["layer"][0].get("encoding")
+        if isinstance(le, dict) and le:
+            return le
+    enc = state.get("encoding")
+    return enc if isinstance(enc, dict) else {}
+
+
+def _set_main_encoding(state: Dict, encoding: Dict) -> None:
+    """Keep top-level encoding in sync with layer[0] for tools that only updated one."""
+    enc = copy.deepcopy(encoding)
+    if isinstance(state.get("layer"), list) and state["layer"] and isinstance(state["layer"][0], dict):
+        state["layer"][0]["encoding"] = copy.deepcopy(enc)
+    state["encoding"] = enc
 
 
 
@@ -29,8 +48,8 @@ def identify_clusters(state: Dict, n_clusters: int = 3, method: str = "kmeans") 
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find required fields'}
-    
-    data = _get_data_values(new_state)
+
+    data = _get_filtered_data(new_state)
     
     points = []
     valid_indices = []
@@ -80,25 +99,32 @@ def identify_clusters(state: Dict, n_clusters: int = 3, method: str = "kmeans") 
 
 def calculate_correlation(state: Dict, method: str = "pearson") -> Dict[str, Any]:
     """计算相关系数
-    
-    如果之前使用了 select_region 或 brush_region 选中了区域，
-    则只计算选中区域内的数据的相关系数。
+
+    支持在 filter / zoom / brush / change_encoding 之后对局部数据计算：
+    - filter_categorical：只对过滤后保留的数据计算
+    - zoom_2d_region：对缩放后可见的数据计算
+    - select_region / brush_region：只对选中区域内的数据计算
     """
     x_field = state.get('encoding', {}).get('x', {}).get('field')
     y_field = state.get('encoding', {}).get('y', {}).get('field')
-    
+    if isinstance(state.get('layer'), list) and state['layer']:
+        enc = state['layer'][0].get('encoding', {})
+        if enc:
+            x_field = x_field or enc.get('x', {}).get('field')
+            y_field = y_field or enc.get('y', {}).get('field')
+
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find required fields'}
-    
-    data = _get_data_values(state)
-    
-    # 检查是否有选中区域（来自 select_region 或 brush_region）
+
+    # 先应用 transform filter（filter_categorical 等），再应用选中区域
+    data = _get_filtered_data(state)
+
     selected = state.get('_selected_region')
     region_info = ""
     if selected:
         x_min, x_max = selected['x_range']
         y_min, y_max = selected['y_range']
-        data = [row for row in data 
+        data = [row for row in data
                 if row.get(x_field) is not None and row.get(y_field) is not None
                 and x_min <= row[x_field] <= x_max
                 and y_min <= row[y_field] <= y_max]
@@ -137,7 +163,7 @@ def calculate_correlation(state: Dict, method: str = "pearson") -> Dict[str, Any
     }
 
 
-def zoom_dense_area(state: Dict, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> Dict[str, Any]:
+def zoom_2d_region(state: Dict, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> Dict[str, Any]:
     """Zooms the specified view to a particular area by filtering data and adjusting axis scales.
     
     This focuses the visualization on a specific rectangular region.
@@ -152,15 +178,15 @@ def zoom_dense_area(state: Dict, x_range: Tuple[float, float], y_range: Tuple[fl
     """
     new_state = copy.deepcopy(state)
     
-    # Get field names
-    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
+    enc = _main_encoding_dict(new_state)
+    x_field = enc.get('x', {}).get('field')
+    y_field = enc.get('y', {}).get('field')
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find required x or y fields'}
     
-    # Get original data
-    data = _get_data_values(new_state)
+    # 使用 filter 后的数据（支持 filter_categorical 后再 zoom）
+    data = _get_filtered_data(new_state)
     if not data:
         return {'success': False, 'error': 'No data found in specification'}
     
@@ -188,20 +214,19 @@ def zoom_dense_area(state: Dict, x_range: Tuple[float, float], y_range: Tuple[fl
     # Update data in spec
     new_state['data'] = {'values': filtered_data}
     
-    # Adjust axis scales to the specified range
-    if 'encoding' not in new_state:
-        new_state['encoding'] = {}
-    
+    # Adjust axis scales to the specified range (sync layer[0] when present)
+    enc_update = copy.deepcopy(enc)
     for axis, vals in [('x', x_range), ('y', y_range)]:
-        if axis not in new_state['encoding']:
-            new_state['encoding'][axis] = {}
-        if 'scale' not in new_state['encoding'][axis]:
-            new_state['encoding'][axis]['scale'] = {}
-        new_state['encoding'][axis]['scale']['domain'] = [vals[0], vals[1]]
+        if axis not in enc_update:
+            enc_update[axis] = {}
+        if 'scale' not in enc_update[axis]:
+            enc_update[axis]['scale'] = {}
+        enc_update[axis]['scale']['domain'] = [vals[0], vals[1]]
+    _set_main_encoding(new_state, enc_update)
     
     return {
         'success': True,
-        'operation': 'zoom_dense_area',
+        'operation': 'zoom_2d_region',
         'vega_state': new_state,
         'original_count': original_count,
         'filtered_count': filtered_count,
@@ -242,20 +267,101 @@ def filter_categorical(state: Dict, categories_to_remove: List[str], field: str 
             'error': 'Cannot find categorical field. Please specify field parameter.'
         }
     
+    if not isinstance(categories_to_remove, list) or len(categories_to_remove) == 0:
+        return {
+            'success': False,
+            'error': 'categories_to_remove must be a non-empty list'
+        }
+
+    # Validate categories against current filtered view so no-op calls are not marked as success.
+    current_data = _get_filtered_data(new_state)
+    if not current_data:
+        return {
+            'success': False,
+            'error': 'No data available in current view'
+        }
+
+    unique_values = []
+    seen = set()
+    for row in current_data:
+        value = row.get(field)
+        key = json.dumps(value, ensure_ascii=False, default=str)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_values.append(value)
+
+    # Normalize common binary category aliases (yes/no, true/false, presence/absence).
+    alias_to_binary = {
+        'yes': 1, 'true': 1, 'presence': 1, 'present': 1, 'with': 1, 'disease': 1,
+        'no': 0, 'false': 0, 'absence': 0, 'absent': 0, 'without': 0, 'healthy': 0,
+    }
+
+    normalized_targets = []
+    for category in categories_to_remove:
+        normalized_targets.append(category)
+        if isinstance(category, str):
+            s = category.strip()
+            if not s:
+                continue
+            # numeric-like aliases
+            try:
+                n = float(s)
+                normalized_targets.append(int(n) if n.is_integer() else n)
+            except Exception:
+                pass
+            # yes/no -> 1/0 aliases
+            mapped = alias_to_binary.get(s.lower())
+            if mapped is not None:
+                normalized_targets.append(mapped)
+
+    matched_values = []
+    matched_seen = set()
+    for uv in unique_values:
+        for target in normalized_targets:
+            if uv == target:
+                mk = json.dumps(uv, ensure_ascii=False, default=str)
+                if mk not in matched_seen:
+                    matched_seen.add(mk)
+                    matched_values.append(uv)
+                break
+            if isinstance(uv, str) and isinstance(target, str) and uv.strip().lower() == target.strip().lower():
+                mk = json.dumps(uv, ensure_ascii=False, default=str)
+                if mk not in matched_seen:
+                    matched_seen.add(mk)
+                    matched_values.append(uv)
+                break
+
+    if not matched_values:
+        preview = unique_values[:8]
+        return {
+            'success': False,
+            'error': f'None of categories {categories_to_remove} match field "{field}" in current view. Available sample values: {preview}'
+        }
+
     # 添加 filter transform
     if 'transform' not in new_state:
         new_state['transform'] = []
     
-    categories_json = json.dumps(categories_to_remove)
+    categories_json = json.dumps(matched_values, ensure_ascii=False)
     new_state['transform'].append({
         'filter': f'indexof({categories_json}, {_datum_ref(field)}) < 0'
     })
+
+    removed_count = sum(1 for row in current_data if row.get(field) in matched_values)
+    if removed_count <= 0:
+        return {
+            'success': False,
+            'error': f'Filter is a no-op for field "{field}" with categories {categories_to_remove}'
+        }
     
     return {
         'success': True,
         'operation': 'filter_categorical',
         'vega_state': new_state,
-        'message': f'Filtered out categories: {categories_to_remove} from field {field}'
+        'removed_count': removed_count,
+        'resolved_categories': matched_values,
+        'message': f'Filtered out categories: {matched_values} from field {field} (matched from request {categories_to_remove})'
     }
 
 
@@ -271,11 +377,12 @@ def select_region(state: Dict, x_range: Tuple[float, float], y_range: Tuple[floa
         y_range: Y 轴范围 (min, max)
     """
     new_state = copy.deepcopy(state)
-    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
+    enc = _main_encoding_dict(new_state)
+    x_field = enc.get('x', {}).get('field')
+    y_field = enc.get('y', {}).get('field')
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find required fields'}
-    data = _get_data_values(new_state)
+    data = _get_filtered_data(new_state)
     selected_count = sum(
         1 for row in data
         if row.get(x_field) is not None and row.get(y_field) is not None
@@ -283,13 +390,15 @@ def select_region(state: Dict, x_range: Tuple[float, float], y_range: Tuple[floa
         and y_range[0] <= row[y_field] <= y_range[1]
     )
     xr, yr = _datum_ref(x_field), _datum_ref(y_field)
-    new_state['encoding']['opacity'] = {
+    enc_sel = copy.deepcopy(enc)
+    enc_sel['opacity'] = {
         'condition': {
             'test': f'{xr} >= {x_range[0]} && {xr} <= {x_range[1]} && {yr} >= {y_range[0]} && {yr} <= {y_range[1]}',
             'value': 1.0
         },
         'value': 0.2
     }
+    _set_main_encoding(new_state, enc_sel)
     # 保存选中区域元数据，供后续 calculate_correlation 使用
     new_state['_selected_region'] = {
         'x_range': list(x_range),
@@ -319,14 +428,15 @@ def brush_region(state: Dict, x_range: Tuple[float, float], y_range: Tuple[float
     """
     new_state = copy.deepcopy(state)
     
-    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
+    enc = _main_encoding_dict(new_state)
+    x_field = enc.get('x', {}).get('field')
+    y_field = enc.get('y', {}).get('field')
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find x or y fields'}
-    
-    # 统计刷选区域内的数据点数量
-    data = _get_data_values(new_state)
+
+    # 统计刷选区域内的数据点数量（使用 filter 后的数据）
+    data = _get_filtered_data(new_state)
     brushed_count = sum(
         1 for row in data
         if row.get(x_field) is not None and row.get(y_field) is not None
@@ -336,13 +446,15 @@ def brush_region(state: Dict, x_range: Tuple[float, float], y_range: Tuple[float
     
     # 通过 opacity 条件编码实现刷选效果（支持含空格的字段名）
     xr, yr = _datum_ref(x_field), _datum_ref(y_field)
-    new_state['encoding']['opacity'] = {
+    enc_brush = copy.deepcopy(enc)
+    enc_brush['opacity'] = {
         'condition': {
             'test': f'{xr} >= {x_range[0]} && {xr} <= {x_range[1]} && {yr} >= {y_range[0]} && {yr} <= {y_range[1]}',
             'value': 1.0
         },
         'value': 0.15
     }
+    _set_main_encoding(new_state, enc_brush)
     
     # 保存刷选区域元数据，供后续 calculate_correlation 使用
     new_state['_selected_region'] = {
@@ -361,7 +473,7 @@ def brush_region(state: Dict, x_range: Tuple[float, float], y_range: Tuple[float
     }
 
 
-def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
+def change_encoding(state: Dict, channel: str, field: str, type: Optional[str] = None) -> Dict[str, Any]:
     """
     Modify the field mapping of the specified encoding channel
     
@@ -372,48 +484,61 @@ def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
     """
     new_state = copy.deepcopy(state)
     
-    # 检查字段是否存在
+    # 检查字段是否存在（兼容大小写差异）
     data = _get_data_values(new_state)
-    if data and field not in data[0]:
-        available_fields = list(data[0].keys()) if data else []
-        return {
-            'success': False,
-            'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
-        }
-    
-    # 推断字段类型
-    field_type = 'nominal'
+    resolved_field = field
     if data:
-        sample_value = data[0].get(field)
-        if isinstance(sample_value, (int, float)):
-            field_type = 'quantitative'
-        elif isinstance(sample_value, str):
-            if any(sep in sample_value for sep in ['-', '/', ':']):
-                field_type = 'temporal'
+        available_fields = list(data[0].keys())
+        if field not in data[0]:
+            lowered = str(field).strip().lower()
+            for candidate in available_fields:
+                if str(candidate).strip().lower() == lowered:
+                    resolved_field = candidate
+                    break
+        if resolved_field not in data[0]:
+            return {
+                'success': False,
+                'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
+            }
     
-    # 更新指定通道的 encoding
-    if 'encoding' not in new_state:
-        new_state['encoding'] = {}
+    # 使用传入 type 或根据数据推断字段类型
+    valid_types = ('quantitative', 'nominal', 'ordinal', 'temporal')
+    if type and type in valid_types:
+        field_type = type
+    else:
+        field_type = 'nominal'
+        if data:
+            sample_value = data[0].get(resolved_field)
+            if isinstance(sample_value, (int, float)):
+                field_type = 'quantitative'
+            elif isinstance(sample_value, str):
+                if any(sep in sample_value for sep in ['-', '/', ':']):
+                    field_type = 'temporal'
     
-    new_state['encoding'][channel] = {
-        'field': field,
+    enc = _main_encoding_dict(new_state)
+    if not enc:
+        enc = {}
+    enc[channel] = {
+        'field': resolved_field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_state['encoding'][channel]['legend'] = {'title': field}
+        enc[channel]['legend'] = {'title': resolved_field}
         if field_type == 'quantitative':
-            new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
+            enc[channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
         if field_type == 'quantitative':
-            new_state['encoding'][channel]['scale'] = {'range': [50, 500]}
+            enc[channel]['scale'] = {'range': [50, 500]}
+    
+    _set_main_encoding(new_state, enc)
     
     return {
         'success': True,
         'operation': 'change_encoding',
         'vega_state': new_state,
-        'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
+        'message': f'Changed {channel} encoding to field "{resolved_field}" (type: {field_type})'
     }
 
 
@@ -427,8 +552,9 @@ def show_regression(state: Dict, method: str = "linear") -> Dict[str, Any]:
     """
     new_state = copy.deepcopy(state)
     
-    x_field = new_state.get('encoding', {}).get('x', {}).get('field')
-    y_field = new_state.get('encoding', {}).get('y', {}).get('field')
+    enc = _main_encoding_dict(new_state)
+    x_field = enc.get('x', {}).get('field')
+    y_field = enc.get('y', {}).get('field')
     
     if not x_field or not y_field:
         return {'success': False, 'error': 'Cannot find x or y fields'}
@@ -514,10 +640,23 @@ def _get_data_values(spec: Dict) -> List[Dict[str, Any]]:
     return values if isinstance(values, list) else []
 
 
+def _get_filtered_data(state: Dict) -> List[Dict[str, Any]]:
+    """获取应用 transform filter 后的数据，供 calculate_correlation / zoom / brush 等使用"""
+    data = _get_spec_data(state) or _get_data_values(state)
+    if not data:
+        return []
+    transforms = state.get("transform", [])
+    if isinstance(state.get("layer"), list):
+        for layer in state["layer"]:
+            if isinstance(layer, dict) and "transform" in layer:
+                transforms = transforms + layer.get("transform", [])
+    return _apply_filters(data, transforms)
+
+
 __all__ = [
     'identify_clusters',
     'calculate_correlation',
-    'zoom_dense_area',
+    'zoom_2d_region',
     'filter_categorical',
     'brush_region',
     'change_encoding',

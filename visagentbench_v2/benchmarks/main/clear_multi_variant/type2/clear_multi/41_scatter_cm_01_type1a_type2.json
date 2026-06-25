@@ -1,0 +1,102 @@
+{
+  "benchmark_id": "41_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "What is the Pearson correlation coefficient (rounded to 2 decimals) between Chinese American Museum and America Tropical Interpretive Center visitor counts in the specified dense area?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.261",
+          "tolerance": 0.15
+        },
+        "key_insights": [
+          "The correlation is about 0.261."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom to dense area for focused correlation analysis."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Compute Pearson correlation in zoomed region."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  1000,
+                  3600
+                ],
+                "y_range": [
+                  2400,
+                  7700
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Chinese American Museum",
+            "y": "America Tropical Interpretive Center"
+          },
+          "view": {
+            "xDomain": [
+              1000,
+              3600
+            ],
+            "yDomain": [
+              2400,
+              7700
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "41_museum_visitors_scatter",
+    "dataset_path": "datasets/41_museum_visitors_scatter.json",
+    "row_count": 59,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/41_museum_visitors_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

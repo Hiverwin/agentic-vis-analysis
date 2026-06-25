@@ -1,0 +1,151 @@
+{
+  "rawLinks": [
+    {
+      "source": "Industry Exhibition/Conference",
+      "target": "Enterprise SaaS Platform",
+      "value": 2800
+    },
+    {
+      "source": "Industry Exhibition/Conference",
+      "target": "Customized Solution",
+      "value": 4200
+    },
+    {
+      "source": "Industry Exhibition/Conference",
+      "target": "Data Middleware Product",
+      "value": 1600
+    },
+    {
+      "source": "Official Website SEO/SEM",
+      "target": "Enterprise SaaS Platform",
+      "value": 5400
+    },
+    {
+      "source": "Official Website SEO/SEM",
+      "target": "API Open Platform",
+      "value": 2100
+    },
+    {
+      "source": "Official Website SEO/SEM",
+      "target": "Data Middleware Product",
+      "value": 1800
+    },
+    {
+      "source": "Official Website SEO/SEM",
+      "target": "Customized Solution",
+      "value": 920
+    },
+    {
+      "source": "Channel Partner",
+      "target": "Customized Solution",
+      "value": 6100
+    },
+    {
+      "source": "Channel Partner",
+      "target": "Data Middleware Product",
+      "value": 3200
+    },
+    {
+      "source": "Channel Partner",
+      "target": "Enterprise SaaS Platform",
+      "value": 1400
+    },
+    {
+      "source": "Channel Partner",
+      "target": "Maintenance Service",
+      "value": 2300
+    },
+    {
+      "source": "Old Customer Referral",
+      "target": "Enterprise SaaS Platform",
+      "value": 3600
+    },
+    {
+      "source": "Old Customer Referral",
+      "target": "Maintenance Service",
+      "value": 1900
+    },
+    {
+      "source": "Old Customer Referral",
+      "target": "API Open Platform",
+      "value": 1200
+    },
+    {
+      "source": "SDR Cold Call",
+      "target": "Enterprise SaaS Platform",
+      "value": 1800
+    },
+    {
+      "source": "SDR Cold Call",
+      "target": "API Open Platform",
+      "value": 600
+    },
+    {
+      "source": "SDR Cold Call",
+      "target": "Customized Solution",
+      "value": 450
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Channel Partner",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Official Website SEO/SEM",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Industry Exhibition/Conference",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Old Customer Referral",
+      "depth": 0,
+      "order": 3
+    },
+    {
+      "name": "SDR Cold Call",
+      "depth": 0,
+      "order": 4
+    },
+    {
+      "name": "Enterprise SaaS Platform",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Customized Solution",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Data Middleware Product",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "Maintenance Service",
+      "depth": 1,
+      "order": 3
+    },
+    {
+      "name": "API Open Platform",
+      "depth": 1,
+      "order": 4
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Sales Leads Source"
+    },
+    {
+      "depth": 1,
+      "label": "Signed Product Line"
+    }
+  ]
+}

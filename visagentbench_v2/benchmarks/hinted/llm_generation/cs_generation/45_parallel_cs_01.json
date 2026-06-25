@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "45_parallel_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use highlight_category in order to know Use highlight_category with field equal to Platform, values equal to PlayStation Vita to highlight PlayStation Vita. Which dimension shows the highest normalized value for PlayStation Vita?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Adventure",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight PlayStation Vita to identify which dimension shows the highest normalized value"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field,values",
+                "values": [
+                  "Platform",
+                  "PlayStation Vita"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "45_ ign_scores_parallel",
+    "dataset_path": "datasets/45_ ign_scores_parallel.json",
+    "row_count": 105,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/45_ ign_scores_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

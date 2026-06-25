@@ -1,0 +1,60 @@
+{
+  "benchmark_id": "41_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use calculate_correlation in order to know Use calculate_correlation with method equal to pearson to compute the correlation between Chinese American Museum and America Tropical Interpretive Center.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "0.169",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate the Pearson correlation coefficient between Chinese American Museum and America Tropical Interpretive Center to determine their relationship"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "41_museum_visitors_scatter",
+    "dataset_path": "datasets/41_museum_visitors_scatter.json",
+    "row_count": 59,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/41_museum_visitors_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

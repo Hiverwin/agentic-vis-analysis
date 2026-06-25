@@ -1,0 +1,68 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "120_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/120_startup_Funding.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Which node contributes the least downstream flow to Tool & Software?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Engineering",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Engineering is the node contributing the least downstream flow to Tool & Software."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_flow",
+            "reasoning": "Filter small flows to focus on major funding paths."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace downstream from Tools & Software to find the largest flow (to Salaries: 12300)."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 800
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Tools & Software"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

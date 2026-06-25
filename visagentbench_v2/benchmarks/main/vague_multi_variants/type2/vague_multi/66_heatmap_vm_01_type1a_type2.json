@@ -1,0 +1,88 @@
+{
+  "benchmark_id": "66_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "What is the interaction between smoking status and alcohol consumption on vitamin C percent RDA, and do the observed patterns hold when considering different subgroups?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The negative impact of heavy alcohol consumption on vitamin C percent RDA is most pronounced for \"Current\" smokers."
+        },
+        "key_insights": [
+          "these low-value regions are predominantly in the \"Heavy\" alcohol row",
+          "smoking status is a significant modifier of the relationship between alcohol consumption and vitamin C intake."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.region.highlight",
+            "rationale": "highlighted low-value regions to see where the problem areas are"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.visible.summarize",
+            "rationale": "used the data summary to confirm these patterns statistically."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.region.highlight",
+          "data.visible.summarize"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 83.06,
+                "outside_opacity": 0.12
+              }
+            }
+          },
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "66_vitamin_deficiency_disease_dataset_heatmap",
+    "dataset_path": "datasets/66_vitamin_deficiency_disease_dataset_heatmap.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

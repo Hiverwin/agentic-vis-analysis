@@ -1,0 +1,76 @@
+{
+  "benchmark_id": "50_parallel_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "How do manufacturing lead time, cost, volume, and defect signals spread for the skincare subset?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Skincare polylines do not collapse to a single sweet spot: normalized lead times and costs sweep from near-zero up to the top of each axis, so you see both budget fast-turn items and slow, expensive runs. Production volume and defect rate add more spread—some SKUs hug high-volume / low-defect bundles, others drift toward low-volume tails. Overall it feels like several manufacturing strategies coexisting rather than one dominant cluster."
+        },
+        "key_insights": [
+          "Lead time and manufacturing cost show wide dispersion even after restricting to skincare.",
+          "Volume and defect axes contribute crossing lines, hinting at multiple operating models within the same product family."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Removes non-skincare categories so parallel coordinates reflect one product class."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Product type",
+                "values": [
+                  "haircare",
+                  "cosmetics"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"haircare\",\"cosmetics\"], datum['Product type']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "50_supply_chain_data_parallel",
+    "dataset_path": "datasets/50_supply_chain_data_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/50_supply_chain_data_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

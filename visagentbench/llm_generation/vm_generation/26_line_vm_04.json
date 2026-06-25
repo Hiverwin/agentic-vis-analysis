@@ -1,0 +1,92 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "26_line_vm_04",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/26_China_centra_death_rate_line.json",
+  "questions": [
+    {
+      "qid": "vm_04",
+      "question": "Use focus_lines with lines equal to Age: 0, Age: 80 and use detect_anomalies with threshold equal to 2.0 and use highlight_trend with trend_type equal to increasing in order to know How do the death rate trends differ across age groups, and what significant anomalies can be observed?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "All age groups show significant declining trends in death rates over time, with the most dramatic declines in younger age groups. Age: 0 group decreased by 96.1% from 145.22 to 5.68, Age: 10 decreased by 95.6%, and Age: 25 decreased by 90.8%. Older age groups also showed substantial but slightly less dramatic declines: Age: 45 decreased by 87.7%, Age: 65 decreased by 79.2%, and Age: 80 decreased by 64.7%. Notable anomalies were detected around 1959-1961 across all age groups, with death rates spiking significantly during this period, likely reflecting historical events.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Youngest age group (Age: 0) had the largest percentage decline at 96.1%",
+          "Oldest age group (Age: 80) consistently had the highest death rates but still declined significantly",
+          "All age groups showed anomalous spikes in death rates during 1959-1961 period",
+          "The gap between youngest and oldest death rates narrowed over time",
+          "Death rates for middle-aged groups (25",
+          "45",
+          "65) declined steadily without major fluctuations"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "focus_lines",
+            "reasoning": "Focus on Age: 0 and Age: 80 to compare youngest and oldest groups"
+          },
+          {
+            "iteration": 2,
+            "tool": "detect_anomalies",
+            "reasoning": "Detect anomalies across all age groups to identify unusual patterns"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight the overall decreasing trend across all age groups"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "focus_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines": [
+                    "Age: 0",
+                    "Age: 80"
+                  ],
+                  "line_field": "Age_Group",
+                  "mode": "dim",
+                  "dim_opacity": 0.08
+                }
+              }
+            },
+            {
+              "tool": "detect_anomalies",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "threshold": 2.0
+                }
+              }
+            },
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Central death rate",
+            "color": "Age_Group"
+          }
+        }
+      }
+    }
+  ]
+}

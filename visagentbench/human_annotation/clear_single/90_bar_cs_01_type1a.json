@@ -1,0 +1,56 @@
+{
+  "task_type": "clear_single",
+  "task_id": "89_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/90_Train_bar.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use toggle_stack_mode with mode equal to grouped to see among the Customer_care_calls equals 3, whcih Product importance(Low or Medium) has the higher Mean of Discount offered.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Low",
+          "alternatives": [
+            "low"
+          ]
+        },
+        "key_insights": [
+          "Among the Customer_care_calls equals 3, the Product importance of Low has the higher Mean of Discount offered."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "toggle_stack_mode",
+            "reasoning": "Use this tool to toggle the stack mode to grouped to see the comparison of Mean of Discount offered among the Customer_care_calls equals 3."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "categorical",
+                "param": "mode",
+                "target": "grouped"
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Product importance",
+            "y": "Mean of Discount offered",
+            "color": "Customer_care_calls"
+          },
+          "mark_mode": {
+            "is_stacked": false
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

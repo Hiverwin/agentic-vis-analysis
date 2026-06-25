@@ -1,0 +1,86 @@
+{
+  "benchmark_id": "109_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use highlight_path with path equal to Organic Search, First Page, Conversion and use filter_flow with min_value equal to 500.0 in order to know First highlight a key path, then remove low-value flows. Then analyze how the flow structure changes in the updated view: which links are pruned or retained, which trunk paths dominate, and what this implies about node role or funnel behavior compared with the original view. Cite node/edge evidence explicitly.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Highlighting a specific path reveals the detailed flow distribution through that pathway, while filtering low-value flows emphasizes the dominant traffic sources and conversion funnels. The updated view shows which paths are most significant, how major nodes serve as critical junctions, and where the highest-volume conversions occur. This reveals the core operational pathways and key performance drivers in the SEO funnel.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Highlighting specific paths reveals detailed flow distributions",
+          "Filtering emphasizes dominant traffic sources and conversion funnels",
+          "The view shows critical junctions and highest-volume conversions"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight a key path to analyze detailed flow"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.flow.filter",
+            "rationale": "Filter low-value flows to emphasize dominant pathways"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.flow.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Organic Search",
+                  "First Page",
+                  "Conversion"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 500.0
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "109_sankey_seo",
+    "dataset_path": "datasets/109_sankey_seo.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/109_sankey_seo.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

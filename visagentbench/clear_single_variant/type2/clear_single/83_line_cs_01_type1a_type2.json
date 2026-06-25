@@ -1,0 +1,65 @@
+{
+  "task_type": "clear_single",
+  "task_id": "83_line_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "What day exhibits the maximum revenue for electronics?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Apr 12,2024",
+          "alternatives": [
+            "2024 APr 12",
+            "April 12,2024"
+          ]
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_lines",
+            "reasoning": "filter the lies and find the highest point of the line of electronics"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "series_to_remove": [
+                    "Home Appliances",
+                    "Books",
+                    "Clothing",
+                    "Beauty Products",
+                    "Sports"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Date",
+            "y": "Total Revenue",
+            "color": "Product Category"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Home Appliances\", \"Books\", \"Clothing\", \"Beauty Products\", \"Sports\"], datum['Product Category']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

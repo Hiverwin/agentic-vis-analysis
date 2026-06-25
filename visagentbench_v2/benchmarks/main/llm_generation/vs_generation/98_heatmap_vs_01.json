@@ -1,0 +1,63 @@
+{
+  "benchmark_id": "98_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use find_extremes to identify Workout_Type and Experience_Level with highest value.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "通过find_extremes工具识别的BMI极值点显示，不同锻炼类型和经验水平的会员BMI分布存在明显差异。需要进一步分析这些极端值的分布模式，以了解锻炼类型对健康状况的影响。",
+          "alternatives": []
+        },
+        "key_insights": [
+          "通过识别BMI的极值点，可以分析不同锻炼类型和经验水平对会员健康状况的影响"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use find_extremes to answer the question."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "c:\\Users\\ROG\\Desktop\\skill_project\\data\\heatmap\\98_gym_members_exercise_tracking_heatmap",
+    "dataset_path": "datasets/c:\\Users\\ROG\\Desktop\\skill_project\\data\\heatmap\\98_gym_members_exercise_tracking_heatmap.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/c:\\Users\\ROG\\Desktop\\skill_project\\data\\heatmap\\98_gym_members_exercise_tracking_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

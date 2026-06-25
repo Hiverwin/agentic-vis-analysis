@@ -1,0 +1,86 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "107_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/107_survive_to_65_line.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Using zoom_x_region and filter_lines, in which year did Denmark's survival rate first surpass Germany's?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "2011",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom to 2000-2021 for focused comparison."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_lines",
+            "reasoning": "Filter to keep only Denmark and Germany."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2000",
+                  "end": "2021"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Belgium",
+                    "China",
+                    "India",
+                    "Russia",
+                    "United Kingdom",
+                    "United States"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "2000",
+              "2021"
+            ]
+          },
+          "encoding": {
+            "x": "Year",
+            "y": "Survival to age 65, male (% of cohort)",
+            "color": "Entity"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Belgium\", \"China\", \"India\", \"Russia\", \"United Kingdom\", \"United States\"], datum['Entity']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

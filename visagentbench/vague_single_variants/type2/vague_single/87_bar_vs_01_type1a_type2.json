@@ -1,0 +1,63 @@
+{
+  "task_type": "vague_single",
+  "task_id": "87_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/86_starbucks_bar.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Which categories rank highest for the lightest drinks on average?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Coffee, then Shaken Iced Beverages, then Classic Espresso Drinks",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Plain coffee categories cluster at the low-calorie end once bars are sorted ascending.",
+          "Blended and signature lines only appear after those lighter buckets."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Ascending sort lines categories up from the smallest mean calories upward."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "ascending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Coffee",
+              "Shaken Iced Beverages",
+              "Classic Espresso Drinks",
+              "Frappuccino® Light Blended Coffee",
+              "Tazo® Tea Drinks",
+              "Frappuccino® Blended Crème",
+              "Signature Espresso Drinks",
+              "Frappuccino® Blended Coffee",
+              "Smoothies"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

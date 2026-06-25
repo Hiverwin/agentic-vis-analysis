@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "29_parallel_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use filter_by_category with field equal to uses_ai, values equal to No and use highlight_category with field equal to uses_ai, values equal to Yes and use hide_dimensions with dimensions equal to study_hours_per_day, daily_screen_time_hours, mode equal to hide in order to know How does AI usage affect student academic performance across different dimensions?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "AI usage has a significant positive impact on student academic performance. Students who use AI showed substantial improvement in grades, increasing from 0.516 to 0.593 (14.8% improvement), while non-AI users experienced a dramatic decline from 0.470 to 0.276 (41.2% decline). The final average grade for AI users (0.593) is more than double that of non-AI users (0.276), representing a 0.316 difference. In terms of study habits, AI users have slightly lower study hours (0.458 vs 0.523) but higher screen time (0.495 vs 0.450), suggesting AI may help compensate for less study time. The data reveals a clear pattern: AI usage correlates with better academic outcomes, with AI users maintaining or improving their performance while non-AI users struggle significantly.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "AI users showed 14.8% grade improvement while non-AI users showed 41.2% decline",
+          "Final grades of AI users (0.593) are more than double non-AI users (0.276)",
+          "AI users study slightly less (0.458 vs 0.523) but have higher screen time (0.495 vs 0.450)",
+          "The 0.316 difference in final grades between AI and non-AI users is substantial",
+          "AI appears to help students maintain or improve academic performance despite less study time"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only AI users to analyze their performance"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight AI users to compare with non-AI users"
+          },
+          {
+            "iteration": 3,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide study_hours and screen_time dimensions to focus on grade changes"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "data.highlight.values",
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "uses_ai",
+                "values": "No"
+              }
+            }
+          },
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "uses_ai",
+                "values": "Yes"
+              }
+            }
+          },
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "study_hours_per_day",
+                  "daily_screen_time_hours"
+                ],
+                "mode": "hide"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "29_students_ai_usage_parallel",
+    "dataset_path": "datasets/29_students_ai_usage_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/29_students_ai_usage_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

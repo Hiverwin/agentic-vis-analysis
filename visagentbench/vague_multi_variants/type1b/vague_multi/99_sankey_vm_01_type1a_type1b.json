@@ -1,0 +1,91 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "99_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Using color_flows and find_bottleneck, how does the flow structure change in the updated view regarding which links are pruned or retained, which trunk paths dominate, and what this implies about node role or funnel behavior compared with the original view?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "converting On-Demand EC2 instances to Reserved instances or adopting the Savings Plan is expected to significantly reduce the overall cost."
+        },
+        "key_insights": [
+          "After using color coding, the cost flows of different procurement options show significant differences.",
+          "There is room for optimization in the cost conversion rate of certain projects (from procurement options to services)"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "color_flows",
+            "reasoning": "The Color Flows tool helps visualize the cost paths of different procurement options, making pattern recognition much easier."
+          },
+          {
+            "iteration": 2,
+            "tool": "find_bottleneck",
+            "reasoning": "The \"find bottleneck\" tool automatically analyzes the bottleneck points in the cost flow. Based on previous observations, it can be confirmed that EC2 and On-Demand purchasing are the areas that require focused optimization."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "color_flows",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "color": "#1E90FF",
+                  "nodes": [
+                    "Spot"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "find_bottleneck",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "On-Demand",
+              "Reserved",
+              "Spot",
+              "Savings Plan",
+              "EC2",
+              "RDS",
+              "Lambda",
+              "S3",
+              "K8s",
+              "Other Svc",
+              "us-east-1",
+              "eu-west-1",
+              "ap-northeast-1",
+              "Proj Alpha",
+              "Proj Beta",
+              "Shared Infra",
+              "Proj Gamma",
+              "Engineering",
+              "Data Team",
+              "Finance Dept",
+              "Platform Ops"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "benchmark_id": "06_parallel_vs_17",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_17",
+      "question": "Use highlight_category with field equal to field, values equal to Heavy to compare the consistency of vitamin intake types A, C, and D with the trend of changes in symptoms_count in order to know what is the consistency of vitamin intake types with the trend of changes in symptoms_count?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Gentoo penguins are the most distinctive species, characterized by the longest flippers (average 214.8 mm), highest body mass (average 4985.0 g), and uniquely shallow beak depth (average 14.6 mm). While Chinstrap penguins have the longest beaks, Gentoo shows the most consistent distinctiveness across multiple physical traits.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Gentoo has longest flippers and highest body mass",
+          "Gentoo has shallowest beak depth",
+          "Chinstrap has longest beaks",
+          "Adelie has intermediate characteristics"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Use highlight_category to compare physical characteristics across penguin species"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": "Species"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "06_parallel_penguins",
+    "dataset_path": "datasets/06_parallel_penguins.json",
+    "row_count": 30,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/06_parallel_penguins.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

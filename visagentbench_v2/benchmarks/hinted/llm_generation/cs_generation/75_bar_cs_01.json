@@ -1,0 +1,64 @@
+{
+  "benchmark_id": "75_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use filter_subcategories with subcategories_to_remove equal to Continent;North America, South America, Asia in order to know Use filter_subcategories with field equal to Continent, values equal to North America, South America, Asia to identify which continent has the highest average employment in telecom services.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "North America",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter to show only North America, South America, and Asia continents to identify which has the highest average employment"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Continent;North America",
+                  "South America",
+                  "Asia"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "75_Refined_Employment_Telecom_Services_2024_bar",
+    "dataset_path": "datasets/75_Refined_Employment_Telecom_Services_2024_bar.json",
+    "row_count": 63,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/75_Refined_Employment_Telecom_Services_2024_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

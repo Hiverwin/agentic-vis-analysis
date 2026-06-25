@@ -1,0 +1,105 @@
+{
+  "benchmark_id": "44_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use filter_cells with min_value equal to 50.0, max_value equal to 99.0 and use highlight_region and use find_extremes with top_n equal to 5, mode equal to both in order to know How do different soil nutrient pool types (fungi vs bacteria) respond to rainfall reduction across various grazing treatments (heavy, stable, destock), and which combinations show the highest sensitivity?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The heatmap reveals patterns in rainfall reduction sensitivity across fungi and bacteria types under different grazing treatments. Overall average rainfall reduction is 41.17 across all samples. For fungi, the stable grazing treatment shows highest sensitivity with average rainfall reduction of 42.25, followed by destock (40.71) and heavy (40.26). For bacteria, stable treatment also shows highest sensitivity with average rainfall reduction of 42.21, followed by destock (40.78) and heavy (40.83). Both fungi and bacteria types show similar patterns across grazing treatments, with stable treatment consistently showing the highest rainfall reduction values. The data suggests that stable grazing conditions are most sensitive to rainfall reduction for both microbial types, while heavy and destock treatments show slightly lower sensitivity. The rainfall reduction values range from 0 to 99 across all combinations, with fungi showing a range of 0-99 and bacteria also showing 0-99 range.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Stable grazing treatment shows highest rainfall reduction for both fungi and bacteria types",
+          "Overall average rainfall reduction is 41.17 across all samples",
+          "Fungi shows average rainfall reduction of 41.07",
+          "Bacteria shows average rainfall reduction of 41.26",
+          "Both types show similar patterns across grazing treatments",
+          "Rainfall reduction values range from 0 to 99 across all combinations"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Use filter_cells to focus on specific rainfall reduction ranges"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Use highlight_region to highlight specific type and treatment combinations"
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use find_extremes to identify highest and lowest sensitivity values"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "heatmap.region.highlight",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 50.0,
+                "max_value": 99.0
+              }
+            }
+          },
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "type",
+            "y": "grazing_treatment",
+            "color": "rainfall_reduction"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "44_Sensitivity_Soil_Nutrient_Pools new_heatmap",
+    "dataset_path": "datasets/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+    "row_count": 1006,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

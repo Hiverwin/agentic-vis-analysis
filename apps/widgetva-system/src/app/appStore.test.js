@@ -110,6 +110,7 @@ test('appStore exposes the active agent runtime contract and keeps it stable acr
     let contract = store.getState().getActiveAgentRuntimeContract()
     assert.equal(typeof contract?.describeWorkspace, 'function')
     assert.equal(typeof contract?.readObservation, 'function')
+    assert.equal(typeof contract?.readView, 'function')
     assert.equal(typeof contract?.describeAgentLoop, 'function')
     assert.equal(typeof contract?.describeActionUsage, 'function')
     assert.equal(typeof contract?.executeAction, 'function')

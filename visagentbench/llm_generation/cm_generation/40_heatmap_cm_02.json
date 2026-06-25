@@ -1,0 +1,65 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "40_heatmap_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/40_insurance_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "13_heatmap_cm_01：Use filter_cells with value greater than 50 to focus on high values, then use adjust_color_scale with scheme equal to viridis to better visualize the intensity. What is the range of values in the filtered heatmap?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Smokers with 2 children",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells",
+            "reasoning": "Filter cells with high charges"
+          },
+          {
+            "iteration": 2,
+            "tool": "adjust_color_scale",
+            "reasoning": "Adjust color scale to better visualize charge differences"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 30000.0,
+                  "max_value": 40000.0
+                }
+              }
+            },
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "color_scale": {
+            "scheme": "viridis"
+          }
+        },
+        "state_check_fields": [
+          "color_scale"
+        ]
+      }
+    }
+  ]
+}

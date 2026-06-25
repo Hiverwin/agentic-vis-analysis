@@ -1,0 +1,116 @@
+{
+  "benchmark_id": "16_bar_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "20_bar_cm_01：Use sort_bars with sort_order equal to ascending to sort bars from lowest to highest, then use toggle_stack_mode with mode equal to grouped to compare individual values. Which category has the lowest value?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Karlen McCaffrey",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars in descending order to see sales person ranking"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "Toggle stack mode to view stacked comparison"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "stacked"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "stacked"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Karlen McCaffrey",
+                "Jan Morforth",
+                "Dotty Strutley",
+                "Marney O'Breen",
+                "Beverie Moffet",
+                "Dennison Crosswaite",
+                "Oby Sorrel",
+                "Camilla Castle",
+                "Husein Augar",
+                "Roddy Speechley",
+                "Curtice Advani",
+                "Jehu Rudeforth",
+                "Andria Kimpton",
+                "Kaine Padly",
+                "Ches Bonnell",
+                "Kelci Walkden",
+                "Gunar Cockshoot",
+                "Brien Boise",
+                "Barr Faughny",
+                "Madelene Upcott",
+                "Mallorie Waber",
+                "Gigi Bohling",
+                "Van Tuxwell",
+                "Rafaelita Blaksland",
+                "Wilone O'Kielt"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "mark_mode",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "16_bar_Chocolate Sales",
+    "dataset_path": "datasets/16_bar_Chocolate Sales.json",
+    "row_count": 3282,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,119 @@
+{
+  "benchmark_id": "36_scatter_cm_07",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_07",
+      "question": "84_scatter_cm_01：Use filter_categorical with categories_to_remove equal to [Classic Espresso Drinks, Tazo® Tea Drinks, Signature Espresso Drinks, Shaken Iced Beverages, Smoothies, Frappuccino® Blended Coffee, Frappuccino® Light Blended Coffee, Frappuccino® Blended Crème] to keep only Coffee drinks, then use zoom_2d_region with x_range from 0 to 20 and y_range from 0 to 50 to zoom into the low-sugar low-calorie region. Use get_data with scope visible to find the minimum Calories value among Coffee drinks in this region. What is that value?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Higher Radius (mean) region",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to focus on specific data points"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into high Radius region"
+          },
+          {
+            "iteration": 3,
+            "capability": "data.rows.inspect",
+            "rationale": "Get data summary to calculate average Texture value"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.domain.zoom",
+          "data.rows.inspect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "Radius (mean)",
+                  "15",
+                  "20",
+                  "25",
+                  "30"
+                ],
+                "field": "field"
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  15.0,
+                  30.0
+                ],
+                "y_range": [
+                  15.0,
+                  40.0
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.rows.inspect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              15.0,
+              30.0
+            ],
+            "yDomain": [
+              15.0,
+              40.0
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "36_cancer_scatter",
+    "dataset_path": "datasets/36_cancer_scatter.json",
+    "row_count": 569,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/36_cancer_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

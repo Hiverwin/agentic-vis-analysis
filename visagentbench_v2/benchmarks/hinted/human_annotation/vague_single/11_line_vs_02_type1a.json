@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "11_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use focus_lines with mode equal to dim, lines equal to AirPods to characterize the distribution of the line of AirPods.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The line increased first, then stayed the same, then decreased, and then stayed the same again."
+        },
+        "key_insights": [
+          "Remained unchanged from 2022 to 2023,from 2024 to 2035.",
+          "increased since 2018",
+          "decreased from 2023 to 2024"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.focus",
+            "rationale": "focus on the AirPods,and we can see the changes had four steps"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.focus"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.focus",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "dim",
+                "lines": [
+                  "AirPods"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "11_apple_time_line",
+    "dataset_path": "datasets/11_apple_time_line.json",
+    "row_count": 133,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/11_apple_time_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

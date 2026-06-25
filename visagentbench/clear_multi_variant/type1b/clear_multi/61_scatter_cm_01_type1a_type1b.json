@@ -1,0 +1,80 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "61_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/61_Berlin_crimes_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_categorical and calculate_correlation, what is the Pearson correlation coefficient between Robbery and Injury for the Mitte district?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.85",
+          "tolerance": 0.2
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Remove other districts to focus on Mitte."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Compute Pearson correlation for Mitte district."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "District",
+                  "categories_to_remove": [
+                    "Charlottenburg-Wilmersdorf",
+                    "Friedrichshain-Kreuzberg",
+                    "Lichtenberg",
+                    "Marzahn-Hellersdorf",
+                    "Neukölln",
+                    "Pankow",
+                    "Reinickendorf"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Robbery",
+            "y": "Injury",
+            "color": "District"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Charlottenburg-Wilmersdorf\",\"Friedrichshain-Kreuzberg\",\"Lichtenberg\",\"Marzahn-Hellersdorf\",\"Neukölln\",\"Pankow\",\"Reinickendorf\"], datum['District']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

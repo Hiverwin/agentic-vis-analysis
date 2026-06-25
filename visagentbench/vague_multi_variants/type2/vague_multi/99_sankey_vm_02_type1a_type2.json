@@ -1,0 +1,95 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "99_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "How do the cost flows differ between engineering-focused and data-focused cost centers?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The Engineering cost center’s costs are driven mainly by Proj Alpha and Proj Beta in the us-east-1 region, with EC2 as the primary service"
+        },
+        "key_insights": [
+          "The Engineering cost center has the highest overall spend",
+          "Proj Alpha is the largest single contributor to Engineering costs, while Shared Infra is the largest for the Data Team."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_path",
+            "reasoning": "establishes the initial comparison"
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "identifies the project-level drivers"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Engineering",
+                    "Proj Alpha",
+                    "Proj Beta",
+                    "Shared Infra",
+                    "Proj Gamma",
+                    "Data Team"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Data Team"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "On-Demand",
+              "Reserved",
+              "Spot",
+              "Savings Plan",
+              "EC2",
+              "RDS",
+              "Lambda",
+              "S3",
+              "K8s",
+              "Other Svc",
+              "us-east-1",
+              "eu-west-1",
+              "ap-northeast-1",
+              "Proj Alpha",
+              "Proj Beta",
+              "Shared Infra",
+              "Proj Gamma",
+              "Engineering",
+              "Data Team",
+              "Finance Dept",
+              "Platform Ops"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

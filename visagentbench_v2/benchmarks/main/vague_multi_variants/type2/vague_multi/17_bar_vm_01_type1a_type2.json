@@ -1,0 +1,95 @@
+{
+  "benchmark_id": "17_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "What category-level pattern shifts are evident in the updated bar view after applying the filters?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "from type 1 to 4,the mean of cholesterol gets higher and higher.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "the mean of cholesterol grows higher and higher from type 1 to 4"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "filter the categories of people with heart disease"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "filter categories to find poeple with heart disease and toggle stack mode to show trend of mean of cholesterol"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Presence"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Absence\"], datum['Heart Disease']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "17_Heart_Disease_Prediction_bar",
+    "dataset_path": "datasets/17_Heart_Disease_Prediction_bar.json",
+    "row_count": 270,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/17_Heart_Disease_Prediction_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

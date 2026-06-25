@@ -1,0 +1,71 @@
+{
+  "benchmark_id": "79_bar_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use sort_bars with order equal to ascending to position the bars by the mean of action across different platforms.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "the maximum value is 7.703,the miminmum value is 5.9,the Median value is 6.719"
+        },
+        "key_insights": [
+          "the maximum value is 7.703(Xbox One)",
+          "the miminmum value is 5.9(Nintendo DS)",
+          "the Median value is 6.719(Xbox 360)"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sorted bars in ascending order,and we can see some feature of the data."
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "ascending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "y_sort": "ascending"
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "79_ign_scores_bar",
+    "dataset_path": "datasets/79_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

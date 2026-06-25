@@ -1,0 +1,110 @@
+{
+  "benchmark_id": "116_bar_vm_03",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_03",
+      "question": "Use filter_subcategories with subcategories_to_remove equal to E-commerce, Education, Gaming, SaaS and use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know How does the average startup funding vary across countries and industries? What patterns can you identify?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Germany leads in average startup funding at $173.9M, followed by USA ($153.8M) and France ($153.5M). All countries show balanced industry diversification with 8 industries each. AI industry attracts the highest average funding ($172.1M), while E-commerce has the lowest ($134.2M). The funding landscape shows developed markets (Germany, USA, France, Canada) attracting higher funding than emerging markets (Australia, UK), with consistent industry diversification across all countries.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Germany has highest average funding at $173.9M",
+          "All countries have balanced industry diversification with 8 industries each",
+          "AI industry attracts highest average funding ($172.1M)",
+          "Developed markets attract higher funding than emerging markets",
+          "Industry diversification is consistent across all countries"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter to focus on high-value industries (AI"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": " Finance"
+          },
+          {
+            "iteration": 3,
+            "capability": "ranking.topN.highlight",
+            "rationale": " Tech) to analyze funding patterns"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory",
+          "view.sort.encoding",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "E-commerce",
+                  "Education",
+                  "Gaming",
+                  "SaaS"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Country",
+            "y": "Amount Raised (USD)",
+            "color": "Industry"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "116_startup_funding_dataset_bar",
+    "dataset_path": "datasets/116_startup_funding_dataset_bar.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

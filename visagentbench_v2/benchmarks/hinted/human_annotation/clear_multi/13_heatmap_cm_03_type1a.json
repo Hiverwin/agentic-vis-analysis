@@ -1,0 +1,97 @@
+{
+  "benchmark_id": "13_heatmap_cm_03",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_cells_by_region with y_values equal to [Male, Female] to remove those rows and keep only Non-binary and Unknown gender, then use find_extremes with mode equal to max to get which category has the highest mean price",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "The sample that has highest mean price does not lies in the preserved categories since there is no red rectangle in the view.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Remove Male and Female to keep only Non-binary and Unknown gender."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find the category that has highest mean price."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_values": [
+                  "Male",
+                  "Female"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "max"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Product type",
+            "y": "Customer demographics",
+            "color": "Mean price"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "!(indexof([\"Male\",\"Female\"], datum['Customer demographics']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "13_supply_chain_data_heatmap",
+    "dataset_path": "datasets/13_supply_chain_data_heatmap.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

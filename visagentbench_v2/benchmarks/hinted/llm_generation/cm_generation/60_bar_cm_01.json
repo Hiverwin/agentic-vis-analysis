@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "60_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "20_bar_cm_01：Use sort_bars with sort_order equal to ascending to sort bars from lowest to highest, then use toggle_stack_mode with mode equal to grouped to compare individual values. Which category has the lowest value?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Friedrichshain-Kreuzberg",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to identify highest fire incidents"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "Toggle stack mode to better visualize data"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "Fire",
+                "by_subcategory": "false"
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "true"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "stacked"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Treptow-Köpenick",
+                "Charlottenburg-Wilmersdorf",
+                "Pankow",
+                "Lichtenberg",
+                "Reinickendorf",
+                "Steglitz-Zehlendorf",
+                "Spandau",
+                "Marzahn-Hellersdorf",
+                "Neukölln",
+                "Tempelhof-Schöneberg",
+                "Mitte",
+                "Friedrichshain-Kreuzberg"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "mark_mode",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "60_Berlin_crimes_bar",
+    "dataset_path": "datasets/60_Berlin_crimes_bar.json",
+    "row_count": 1200,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/60_Berlin_crimes_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

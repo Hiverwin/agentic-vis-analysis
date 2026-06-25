@@ -1,0 +1,69 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "98_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/98_gym_members_exercise_tracking_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "How does the distribution of mean BMI vary between low-intensity (Cardio, Yoga) and high-intensity (HIIT, Strength) Workout Types, and what is the impact of different Experience Levels on this distribution?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "High-intensity workouts have a higher overall mean BMI than low-intensity workouts."
+        },
+        "key_insights": [
+          "High-intensity workouts have a higher overall mean BMI.",
+          "The BMI difference between high and low intensity is largest at Level 2 and minimal at Level 1."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "the intensity effect peaks at medium experience."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells_by_region",
+            "reasoning": "to visualize the distribution more clearly."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_value": "Strength"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_value": "2"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"2\"], datum['Experience_Level']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "benchmark_id": "12_sankey_vs_02",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_02",
+      "question": "Use calculate_conversion_rate with node_name equal to target to compute the overall flow of patients through the system and identify which treatment plan has the highest rate of patients achieving Cured & Released in order to know which treatment plan has the highest rate of patients achieving Cured & Released?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Microsoft revenue flows through a structured financial pipeline. Starting with Products and Services, the largest contributor is Server Products at 19.6 billion, flowing into Intelligent Cloud. Total revenue reaches 52.7 billion, which then splits into Gross Profit (35.2 billion, 66.8% margin) and Cost of Revenue (17.5 billion). The Gross Profit further divides into Operating Profit (20.4 billion) and Operating Expenses (14.8 billion). Finally, Operating Profit becomes Net Profit of 16.4 billion after 3.9 billion in taxes, representing a 31.1% net margin. The Intelligent Cloud segment contributes the most to revenue at 21.5 billion, followed by Productivity at 17.0 billion and Personal Computing at 14.2 billion.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Total revenue is 52.7 billion with 66.8% gross margin",
+          "Intelligent Cloud is the largest revenue contributor at 21.5 billion",
+          "Net profit margin is 31.1% at 16.4 billion",
+          "Server Products is the largest single product at 19.6 billion",
+          "Operating expenses consume 14.8 billion from gross profit"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Use calculate_conversion_rate to analyze the conversion efficiency from Revenue to Net Profit through various business stages"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "12_sankey_micro",
+    "dataset_path": "datasets/12_sankey_micro.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/12_sankey_micro.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

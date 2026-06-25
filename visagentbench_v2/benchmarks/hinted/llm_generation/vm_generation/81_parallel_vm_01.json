@@ -1,0 +1,93 @@
+{
+  "benchmark_id": "81_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use hide_dimensions with dimensions equal to hide, mode equal to hide and use highlight_category with field equal to dimensions, values equal to Avg_BPM, Height (m) in order to know What patterns can you observe in the physical characteristics and workout performance across different workout types?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) HIIT workouts show the highest average session duration (0.525 normalized) and calories burned (0.421 normalized), indicating it is the most intensive workout type, 2) Strength training has the highest average BPM (0.496 normalized) but lowest weight (0.358 normalized), suggesting strength trainers tend to be leaner with higher intensity, 3) Yoga practitioners have the highest average height (0.470 normalized) and moderate session duration, 4) Cardio shows the highest weight (0.388 normalized) but lowest calories burned and session duration, 5) All workout types show similar overall normalized values (0.437-0.450), indicating no single workout type dominates across all dimensions, 6) The variations within each workout type are substantial (standard deviations around 0.24), showing high individual diversity.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "HIIT has highest session duration and calories",
+          "Strength has highest BPM but lowest weight",
+          "Yoga practitioners are tallest",
+          "Cardio has highest weight but lowest intensity",
+          "High individual diversity within each type"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide less relevant dimensions to focus on key metrics"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight specific workout types to compare their patterns"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide",
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "hide"
+                ],
+                "mode": "hide"
+              }
+            }
+          },
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "dimensions",
+                "values": [
+                  "Avg_BPM",
+                  "Height (m)"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "81_gym_members_exercise_tracking_parallel",
+    "dataset_path": "datasets/81_gym_members_exercise_tracking_parallel.json",
+    "row_count": 4865,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/81_gym_members_exercise_tracking_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,94 @@
+{
+  "benchmark_id": "16_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Which sales person has the largest total number of boxes shipped from Canada after removing the UK, Australia, New Zealand, and USA subcategories?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Marney O'Breen"
+        },
+        "key_insights": [
+          "Marney O'Breen's total number of boxes shipped is the largest."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "Use the \"filter subcategory\" function to retain data for Canada and India only."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "UK",
+                  "Australia",
+                  "New Zealand",
+                  "USA"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending",
+                "by_subcategory": "Canada"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Sales Person",
+            "y": "Boxes Shipped",
+            "color": "Country"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['Country'] != \"UK\" && datum['Country'] != \"Australia\" && datum['Country'] != \"New Zealand\" && datum['Country'] != \"USA\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "16_bar_Chocolate Sales",
+    "dataset_path": "datasets/16_bar_Chocolate Sales.json",
+    "row_count": 3282,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

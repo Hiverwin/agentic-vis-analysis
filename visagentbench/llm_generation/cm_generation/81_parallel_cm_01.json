@@ -1,0 +1,77 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "81_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/81_gym_members_exercise_tracking_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "18_parallel_cm_01：Use reorder_dimensions with dimension_order equal to Sepal Length, Sepal Width, Petal Length, Petal Width, then use filter_by_category with field equal to Species and values equal to setosa to focus on a single species. What is the pattern of measurements for setosa?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "HIIT",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to prioritize Calories_Burned"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_by_category",
+            "reasoning": "Filter by category to analyze each workout type separately"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "Calories_Burned",
+                    "Session_Duration (hours)",
+                    "Avg_BPM",
+                    "Height (m)",
+                    "Weight (kg)"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "category",
+                  "values": "Workout_Type"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "axis_order": {
+            "dimension_order": [
+              "Calories_Burned",
+              "Session_Duration (hours)",
+              "Avg_BPM",
+              "Height (m)",
+              "Weight (kg)"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "42_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/42_pokemon_stats_2025_bar.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `filter_categories`; then apply `filter_categories`. In the updated bar view, analyze category-level pattern shifts: ranking changes, widening or narrowing gaps, and standout groups. Explain what is newly visible after interaction versus the original chart, with explicit category evidence.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Yes,"
+        },
+        "key_insights": [
+          "The intuitive type is also relatively fast in terms of speed.",
+          "The intuitive type is also relatively slow in terms of speed."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "Use tools to identify the intuitive-fast types."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categories",
+            "reasoning": "Use tools to identify the intuitive-slow types."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "grass",
+                    "fire",
+                    "water",
+                    "bug",
+                    "normal",
+                    "ground",
+                    "fairy",
+                    "fighting",
+                    "rock",
+                    "ghost",
+                    "ice",
+                    "dragon",
+                    "dark",
+                    "steel"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "grass",
+                    "water",
+                    "bug",
+                    "normal",
+                    "electric",
+                    "poison",
+                    "ground",
+                    "fighting",
+                    "psychic",
+                    "rock",
+                    "ghost",
+                    "dragon",
+                    "dark",
+                    "fire"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "indexof([\"grass\",\"water\",\"bug\",\"normal\",\"electric\",\"poison\",\"ground\",\"fighting\",\"psychic\",\"rock\",\"ghost\",\"dragon\",\"dark\",\"fire\"], datum['type_1']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

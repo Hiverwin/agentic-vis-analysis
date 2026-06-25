@@ -1,0 +1,50 @@
+{
+  "task_type": "vague_single",
+  "task_id": "78_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use find_extremes in order to know Analyze the demand patterns for AI roles and skills. Which role-skill combinations show the highest demand, and what insights can be drawn about the current AI job market?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The highest demand is for NLP Engineer with NLP skills (98 demand score). ML Engineer shows consistently high demand across most skills (77.80 average), particularly with Python. Python is the most in-demand skill overall (83.50 average). The data suggests that specialized roles like ML Engineer and NLP Engineer are highly valued, while technical skills in Python, cloud platforms, and LLM/GenAI are critical for success in the current AI job market.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "ML Engineer has highest average demand across skills",
+          "Python is the most in-demand skill overall",
+          "NLP Engineer with NLP skills has the highest specific demand",
+          "AI Product Manager has lowest average demand",
+          "Technical skills are more in-demand than domain-specific skills"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Use find_extremes to identify the role-skill combinations with the highest and lowest demand scores, then analyze the patterns across roles and skills."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

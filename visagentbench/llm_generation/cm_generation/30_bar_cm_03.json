@@ -1,0 +1,69 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "30_bar_cm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "69_bar_cm_01：Use get_data_summary and sort_bars to analyze bar chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Pescatarian",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "Get data summary to analyze vitamin D levels by diet type"
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": " Sort bars by vitamin D percentage to identify highest diet type"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "High",
+              "Moderate",
+              "Low"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

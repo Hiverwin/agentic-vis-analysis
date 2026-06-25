@@ -1,0 +1,75 @@
+{
+  "benchmark_id": "43_parallel_vs_02",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_02",
+      "question": "Use filter_by_category with field equal to field, values equal to Species, Iris-virginica in order to know How do the three Iris species differ across all four physical dimensions (Sepal Length, Sepal Width, Petal Length, Petal Width), and which dimensions are most discriminative for species identification?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Iris-virginica shows highest values across all dimensions with average normalized values of 0.6356 (Sepal Length), 0.4058 (Sepal Width), 0.7715 (Petal Length), and 0.8025 (Petal Width). Iris-setosa demonstrates lowest values across all dimensions with averages of 0.1961 (Sepal Length), 0.5908 (Sepal Width), 0.0786 (Petal Length), and 0.0600 (Petal Width). Iris-versicolor shows intermediate values with averages of 0.4544 (Sepal Length), 0.3208 (Sepal Width), 0.5525 (Petal Length), and 0.5108 (Petal Width). Petal dimensions (Petal Length and Petal Width) are most discriminative features, showing largest differences between species. For example, in Petal Width, Iris-virginica (0.8025) is 13.4 times higher than Iris-setosa (0.0600). Sepal dimensions show smaller differences between species, making them less effective for species identification.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Iris-virginica has highest values across all dimensions",
+          "Iris-setosa has lowest values across all dimensions",
+          "Petal Length and Petal Width are most discriminative features",
+          "Petal Width shows largest difference: Iris-virginica (0.8025) vs Iris-setosa (0.0600)",
+          "Sepal dimensions show smaller differences between species",
+          "Iris-versicolor shows intermediate values across all dimensions"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Use filter_by_category to analyze each species separately across all dimensions"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": [
+                  "Species",
+                  "Iris-virginica"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "43_iris_parallel",
+    "dataset_path": "datasets/43_iris_parallel.json",
+    "row_count": 600,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/43_iris_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

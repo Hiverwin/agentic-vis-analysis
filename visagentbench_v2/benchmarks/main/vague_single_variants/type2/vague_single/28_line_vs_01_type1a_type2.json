@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "28_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What are the price points that deviate most from the typical trend and what patterns characterize these deviations?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Anomalies are clustered in the end of 2025 of the series, indicating increased volatility and momentum in this year."
+        },
+        "key_insights": [
+          "The late-2025 to 2026 price surge is the most significant anomaly, far exceeding the historical growth rate.",
+          "The 2020 price dip (to ~12) is the most notable downward anomaly, representing the lowest point in the series."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "The anomaly detection tool addresses the vague goal of exploring deviation patterns. The result identifies clear extreme points, providing actionable exploratory insights without needing precise numeric targets."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.anomalies.detect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "numeric",
+              "param": "threshold",
+              "target": 2,
+              "tolerance": 0.1
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "anomaly_markers": {
+              "has_markers": true,
+              "marker_type": "point"
+            }
+          }
+        },
+        "state_check_fields": [
+          "anomaly_markers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "28_silver_prices_data_line",
+    "dataset_path": "datasets/28_silver_prices_data_line.json",
+    "row_count": 2513,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/28_silver_prices_data_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

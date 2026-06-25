@@ -1,0 +1,67 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "94_sankey_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/94_samkey_retail.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use calculate_conversion_rate with node_name equal to Fresh Food and then use highlight_path with path equal to Fresh Supermarket (Offline Scan/Delivery), Fresh Food. What is the inflow value (in 10K CNY GMV) from Fresh Supermarket (Offline Scan/Delivery) to Fresh Food?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "4200",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Highlight the path from Fresh Supermarket to Fresh Food."
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_path",
+            "reasoning": "Get inflow value for Fresh Food from Fresh Supermarket."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Fresh Food"
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Fresh Supermarket (Offline Scan/Delivery)",
+                    "Fresh Food"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

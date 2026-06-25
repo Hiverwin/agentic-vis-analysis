@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "44_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using get_data_summary, what is the exact mean rainfall reduction for the grazing treatment 'heavy'?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "The mean rainfall reduction for the 'heavy' grazing treatment is 40 (units unspecified).",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "This tool extracts the underlying numerical data from the heatmap."
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "type",
+            "y": "grazing_treatment",
+            "color": "rainfall_reduction"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "44_Sensitivity_Soil_Nutrient_Pools new_heatmap",
+    "dataset_path": "datasets/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+    "row_count": 1006,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,128 @@
+{
+  "benchmark_id": "58_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `filter_by_category`; then apply `hide_dimensions`. In the updated parallel-coordinates view, analyze where trajectories converge or diverge across dimensions, which transitions drive separation, and what changed in readability after interaction. Support with visible path and dimension evidence.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is a negative correlation between the cost of the product and the number of customer cart calls"
+        },
+        "key_insights": [
+          "There is a distinct cluster of products characterized by low cost, low popularity, and low ratings: Many lines dip to the bottom (value 1) on the rating axis and also stay low on the Prior_purchases axis (value 2).",
+          "the heavy concentration of lines at the bottom of the Customer_rating axis (value 1).",
+          "There is a negative correlation between the cost of the product and the number of customer cart calls"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "We only ffocus on the group of medium importance product."
+          },
+          {
+            "iteration": 2,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "we care two dimensions: customer care call and cost"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Product_importance",
+                "values": [
+                  "low",
+                  "high"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "Customer_rating",
+                  "Prior_purchases",
+                  "Discount_offered"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "Customer_care_calls",
+              "Cost_of_the_Product"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Customer_care_calls\", \"Cost_of_the_Product\"], datum['dimension']) >= 0",
+                "_pc_hide_dimensions": true
+              },
+              {
+                "filter": "indexof([\"low\",\"high\"], datum['Product_importance']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "dimensions": {
+              "hidden_fields": [
+                "Customer_rating",
+                "Prior_purchases",
+                "Discount_offered"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "58_Train_parallel",
+    "dataset_path": "datasets/58_Train_parallel.json",
+    "row_count": 54995,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/58_Train_parallel.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

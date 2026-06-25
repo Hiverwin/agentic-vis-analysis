@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "08_heatmap_vs_02",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_02",
+      "question": "Use find_extremes in order to know Which combination of diet quality and weather conditions appears to have the most favorable impact on sleep duration based on the heatmap patterns?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The combination of poor diet quality and sunny weather shows the highest average sleep duration at approximately 7.21 hours, which is unexpected as poor diet quality typically correlates with worse sleep. This suggests that weather conditions may have a stronger influence on sleep duration than diet quality in this dataset.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Poor diet with sunny weather has highest sleep at 7.21 hours",
+          "Poor diet with cloudy weather has lowest sleep at 6.86 hours",
+          "Weather appears to have more impact on sleep than diet quality",
+          "Sunny weather consistently correlates with better sleep across all diet qualities"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use find_extremes to identify the cell with the highest sleep_hours value in the heatmap to determine which diet quality and weather combination yields the best sleep"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "08_heatmap_synthetic_mental_health",
+    "dataset_path": "datasets/08_heatmap_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/08_heatmap_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

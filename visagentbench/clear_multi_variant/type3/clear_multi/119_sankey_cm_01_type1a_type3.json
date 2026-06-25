@@ -1,0 +1,75 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "119_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/119_sankey_game.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Which node receives the largest downstream flow value from Gear Enhance?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Enhance Fee."
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_flow",
+            "reasoning": "Filter small flows to focus on major gold flows from Gear Enhance."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace downstream from Gear Enhance to find the largest flow (Enhance Fee: 10M gold)."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 6000000
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Gear Enhance"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "data_filtered": [
+          {
+            "filter": "datum['node'] == 'Gear Enhance'",
+            "_avs_tag": "trace_node"
+          },
+          {
+            "filter": "datum['value'] >= 6000000",
+            "_avs_tag": "filter_flow"
+          }
+        ],
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

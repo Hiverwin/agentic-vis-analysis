@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "51_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What is the Pearson correlation coefficient between Weight_in_gms and Cost_of_the_Product?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "-0.133",
+          "tolerance": 0.01
+        },
+        "key_insights": [
+          "The scatter plot displays Weight_in_gms on x-axis and Cost_of_the_Product on y-axis.",
+          "There is a weak negative correlation between the two variables.",
+          "The Pearson correlation coefficient is approximately -0.133."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Use calculate_correlation with pearson method to compute the correlation coefficient between x and y."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Weight_in_gms",
+            "y": "Cost_of_the_Product",
+            "color": "Mode_of_Shipment"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "51_Train_scatter",
+    "dataset_path": "datasets/51_Train_scatter.json",
+    "row_count": 10999,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/51_Train_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

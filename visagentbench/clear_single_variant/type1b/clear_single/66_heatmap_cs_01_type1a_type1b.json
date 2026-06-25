@@ -1,0 +1,50 @@
+{
+  "task_type": "clear_single",
+  "task_id": "66_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using find_extremes, what combination of smoking and drinking status corresponds to the lowest mean vitamin C percent RDA?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "When a person never smoke and drink alcohol moderately.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "By using the tool of finding extreme we obtain that the smallest value appears at a status where a person never smoke and drink alcohol moderately."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "min"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "smoking_status",
+            "y": "alcohol_consumption",
+            "color": "vitamin_c_percent_rda"
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

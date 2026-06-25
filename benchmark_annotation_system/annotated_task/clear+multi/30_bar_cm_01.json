@@ -1,0 +1,81 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "30_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Is the mean of vitamin D percent RDA for thefour diet types always pescatarian largest,omnivore second, vegetarian third, and veganfourth across all sun exposure levels?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "Yes"
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "First check whether 'high' follows this pattern"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categories",
+            "reasoning": "Next, examine 'moderate' and 'low' individually"
+          },
+          {
+            "iteration": 3,
+            "tool": "filter_categories",
+            "reasoning": "All three insolation levels adhere to the ranking: pescatarian first, omnivore second, vegetarian third, and vegan fourth. Therefore, our answer is yes."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Low",
+                    "Moderate"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "High",
+                    "Low"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {}
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "sun_exposure",
+            "y": "vitamin_d_percent_rda",
+            "color": "diet_type"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "114_parallel_vm_05",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_05",
+      "question": "Use filter_by_category with field equal to field, values equal to sales_channel and use hide_dimensions with dimensions equal to Online, mode equal to hide in order to know First use filter_by_category to filter specific sales channels, then use hide_dimensions to focus on key metrics. Analyze how different sales channels perform across the visible dimensions: which channels show the strongest performance in revenue and units sold, how pricing strategies differ between channels, and what patterns emerge in the relationship between size, pricing, and sales performance.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Different sales channels show distinct performance patterns across the visible dimensions. Some channels demonstrate higher revenue and units sold, indicating stronger market performance. Pricing strategies vary between channels, with some showing higher base prices and others focusing on competitive discounting. The relationship between size, pricing, and sales reveals that certain channels specialize in specific size categories with corresponding pricing strategies. Channels with balanced pricing and good discount strategies tend to show better overall sales performance.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Different channels show distinct performance patterns",
+          "Pricing strategies vary between channels",
+          "Channels specialize in specific size categories",
+          "Balanced pricing leads to better sales performance"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to compare specific sales channels"
+          },
+          {
+            "iteration": 2,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide dimensions to focus on key metrics"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": "sales_channel"
+              }
+            }
+          },
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "Online"
+                ],
+                "mode": "hide"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "114_sport_life_parallel",
+    "dataset_path": "datasets/114_sport_life_parallel.json",
+    "row_count": 36354,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/114_sport_life_parallel.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

@@ -1,0 +1,62 @@
+{
+  "benchmark_id": "99_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use trace_node with node_name equal to 'EC2' to see which industries contributes the most to EC2.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "通过trace_node工具分析EC2节点的成本流向显示，EC2成本主要分布在us-east-1、eu-west-1和ap-northeast-1三个区域，其中us-east-1占比最高。这些成本进一步流向Proj Alpha、Proj Beta、Shared Infra和Proj Gamma等项目，最终由Engineering、Data Team等部门承担。",
+          "alternatives": []
+        },
+        "key_insights": [
+          "通过分析EC2节点的成本流向，可以了解云成本在不同区域和项目间的分布情况，为成本优化提供依据"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use trace_node to answer the question."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "EC2"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "c:\\Users\\ROG\\Desktop\\skill_project\\data\\sankey\\99_sankey_cloud",
+    "dataset_path": "datasets/c:\\Users\\ROG\\Desktop\\skill_project\\data\\sankey\\99_sankey_cloud.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/c:\\Users\\ROG\\Desktop\\skill_project\\data\\sankey\\99_sankey_cloud.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

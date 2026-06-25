@@ -1,0 +1,81 @@
+{
+  "benchmark_id": "26_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "How does the death rate of Age 10 compare to that of Age 25?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "3",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "filter the data to keep only the Age 10 and Age 25 lines"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  " Age: 0",
+                  "Age: 80",
+                  "Age: 45",
+                  "Age: 65"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Central death rate",
+            "color": "Age_Group"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['Age_Group'] == \" Age: 0\" || datum['Age_Group'] == \"Age: 80\" || datum['Age_Group'] == \"Age: 45\" || datum['Age_Group'] == \"Age: 65\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "26_China_centra_death_rate_line",
+    "dataset_path": "datasets/26_China_centra_death_rate_line.json",
+    "row_count": 432,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/26_China_centra_death_rate_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

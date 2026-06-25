@@ -1,0 +1,79 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "78_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What is the skill with the highest mean demand among the roles of Data Scientist, ML Engineer, and MLOps Engineer?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Python",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Remove other roles to focus on Data Scientist, ML Engineer, MLOps Engineer."
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extremes",
+            "reasoning": "Find the skill with maximum mean demand in the filtered subset."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "AI Product Manager",
+                    "AI Researcher",
+                    "CV Engineer",
+                    "Data Engineer",
+                    "NLP Engineer"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "max"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "skill",
+            "y": "role",
+            "color": "demand"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"AI Product Manager\",\"AI Researcher\",\"CV Engineer\",\"Data Engineer\",\"NLP Engineer\"], datum['role']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

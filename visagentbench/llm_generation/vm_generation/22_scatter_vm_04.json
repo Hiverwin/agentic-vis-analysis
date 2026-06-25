@@ -1,0 +1,91 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "22_scatter_vm_04",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/22_Employee_Attrition_DataSet_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_04",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans and use zoom_2d_region with x_range from 10.0 to 30.0, y_range from 10000.0 to 20000.0 in order to know What patterns can be observed in the relationship between commute distance, income levels, and employee retention across different departments?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The scatter plot reveals several key patterns: Engineering and IT departments show higher income clusters ($10K-$21K) with moderate attrition rates around 9%. HR department has lower average income ($7K) but also lower attrition (7.3%). Distance from home shows minimal correlation with income across all departments, averaging around 10 miles. Employees with attrition tend to have slightly lower average income ($8,314 vs $9,033). Work-life balance scores are evenly distributed across income levels, suggesting it is not a primary income determinant.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Engineering and IT have highest income levels",
+          "Distance from home has weak correlation with income",
+          "Attrition is slightly higher among lower income employees"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between distance and income to verify relationship"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Identify clusters to find distinct employee groups"
+          },
+          {
+            "iteration": 3,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom into high-income region to analyze patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            },
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    10.0,
+                    30.0
+                  ],
+                  "y_range": [
+                    10000.0,
+                    20000.0
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "DistanceFromHome",
+            "y": "MonthlyIncome",
+            "color": "WorkLifeBalance",
+            "size": "YearsAtCompany"
+          }
+        }
+      }
+    }
+  ]
+}

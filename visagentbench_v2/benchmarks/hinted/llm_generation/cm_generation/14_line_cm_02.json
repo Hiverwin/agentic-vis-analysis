@@ -1,0 +1,94 @@
+{
+  "benchmark_id": "14_line_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "09_line_cm_01：Use zoom_x_region with start equal to 2017-07-01 and end equal to 2018-11-01 to focus on the latter half of the time series, then use show_moving_average with window_size equal to 5. What is the approximate visitor count (rounded to the nearest hundred) at the lowest point of the smoothed line in this zoomed period?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Avila Adobe",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into the first half of 2018 to analyze visitor patterns"
+          },
+          {
+            "iteration": 2,
+            "capability": "line.movingAverage.show",
+            "rationale": "Apply moving average to smooth the data and identify trends"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "line.movingAverage.show"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2018-01-01",
+                "end": "2018-06-01"
+              }
+            }
+          },
+          {
+            "capability": "line.movingAverage.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "window_size": 3
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "2018-01-01",
+              "2018-06-01"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "has_type": "line"
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "14_museum_visitors_line_multi",
+    "dataset_path": "datasets/14_museum_visitors_line_multi.json",
+    "row_count": 236,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/14_museum_visitors_line_multi.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

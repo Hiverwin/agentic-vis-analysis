@@ -1,0 +1,153 @@
+{
+  "benchmark_id": "91_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Using zoom_2d_region and show_regression, how does the impact of Price on Revenue generated vary between low-price and high-price ranges?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "It was discovered that the effects of the two regions were completely opposite. In the low-price area, the higher the product price, the lower the income. However, when the product price reached the high-price area, the higher the price, the higher the income."
+        },
+        "key_insights": [
+          "find when the price be more expansive, the revenue will decrease in the low price area",
+          "It is the opposite of the low-price area"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "get the charts with low price"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.regression.show",
+            "rationale": "get the regression"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.domain.zoom",
+            "rationale": "zoom the high price area"
+          },
+          {
+            "iteration": 4,
+            "capability": "analysis.regression.show",
+            "rationale": "get the regreesion"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "analysis.regression.show",
+          "view.reset",
+          "view.domain.zoom",
+          "analysis.regression.show"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0,
+                  29.666666666666668
+                ],
+                "y_range": [
+                  58.332824707031385,
+                  10000
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.regression.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "linear"
+              }
+            }
+          },
+          {
+            "capability": "view.reset",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {}
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  70.44444402058919,
+                  100
+                ],
+                "y_range": [
+                  0,
+                  9958.333587646484
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.regression.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "linear"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              0,
+              29.666666666666668
+            ],
+            "yDomain": [
+              58.332824707031385,
+              10000
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "91_supply_chain_data_scatter",
+    "dataset_path": "datasets/91_supply_chain_data_scatter.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/91_supply_chain_data_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

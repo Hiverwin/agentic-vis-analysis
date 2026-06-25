@@ -1,0 +1,73 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "111_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Use get_data_summary with scope equal to all to compute the average value for Moscow across all months and use filter_cells with min value equal to 0 and max value equal to the average. Then to identify how many cells are below the average in New York.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "7",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "get the average value for across all months"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells_by_region",
+            "reasoning": "filter the cells below the average "
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 0,
+                  "max_value": "16"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "month",
+            "y": "city",
+            "color": "temp"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['Ave Temp'] >= 0 && datum['Ave Temp'] <= 16",
+              "_avs_tag": "filter_cells"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

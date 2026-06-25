@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "106_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "First apply detect_anomalies(threshold=2). Which countries accumulate the most anomaly markers, and how does that compare with the long calm stretches on other series?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The detector lights up Zimbabwe more than any other entity, with China a distant second—those are the two series that keep dipping far below the global mean. Most wealthy nations hug a narrow band, so their lines rarely earn the red markers; the contrast is between those stable ribbons and the handful of countries whose female life expectancy swings low enough to exceed two standard deviations from the overall series mean."
+        },
+        "key_insights": [
+          "Zimbabwe contributes the bulk of flagged points; China shows the next-largest cluster.",
+          "Typical OECD-like curves stay inside the band, so anomalies read as country-specific stress rather than a worldwide blip."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "Highlights extreme departures from the pooled mean/std on the life-expectancy axis."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.anomalies.detect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "threshold": 2
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "types": [
+                "line",
+                "point"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "106_life expectancey_line",
+    "dataset_path": "datasets/106_life expectancey_line.json",
+    "row_count": 592,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/106_life expectancey_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

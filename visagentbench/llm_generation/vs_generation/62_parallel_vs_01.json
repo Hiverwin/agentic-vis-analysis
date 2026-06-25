@@ -1,0 +1,55 @@
+{
+  "task_type": "vague_single",
+  "task_id": "62_parallel_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/62_Berlin_crimes_parallel.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_category with field equal to District, values equal to Heavy to compare the consistency of vitamin intake types A, C, and D with the trend of changes in symptoms_count in order to know what is the consistency of vitamin intake types with the trend of changes in symptoms_count?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Mitte shows the most distinctive crime pattern with the highest overall average of 0.3168, particularly standing out in Threat (0.4635) and Injury (0.3447) dimensions, indicating it has the most severe and diverse crime profile among all districts",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Mitte has the highest overall average at 0.3168",
+          "Mitte has the highest Threat average at 0.4635",
+          "Mitte has the highest Injury average at 0.3447"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_category",
+            "reasoning": "Use highlight_category with field equal to District, values equal to Mitte to highlight Mitte district and observe its distinctive pattern across all crime dimensions"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "District",
+                  "values": "Mitte"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

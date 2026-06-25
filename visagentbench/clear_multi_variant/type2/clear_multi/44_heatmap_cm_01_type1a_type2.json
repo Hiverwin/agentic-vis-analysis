@@ -1,0 +1,75 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "44_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "What combination does the value fall in after filtering for destock and stable?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "stable and fungi",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "We filter the view of column (or row) corresponding to 'heavy' to keep only destock and stable."
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extreme",
+            "reasoning": "We use this tool to find the extreme value of the combination of type and grazing treatment."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "heavy"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "find_extreme",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "max",
+                  "n": 1
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "type",
+            "y": "grazing_treatment",
+            "color": "rainfall_reduction"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"heavy\"], datum['grazing_treatment']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

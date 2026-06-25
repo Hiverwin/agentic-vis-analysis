@@ -1,0 +1,64 @@
+{
+  "benchmark_id": "32_scatter_vs_04",
+  "task_type": "vague_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vs_04",
+      "question": "Use calculate_correlation in order to know What is the relationship between BMI and insurance charges, and how does smoking status affect this relationship?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is a positive correlation between BMI and insurance charges, meaning higher BMI is generally associated with higher insurance costs. Smoking status significantly affects this relationship, with smokers typically having higher insurance charges across all BMI levels compared to non-smokers.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Positive correlation between BMI and charges",
+          "Smokers have higher charges than non-smokers",
+          "Correlation is stronger for smokers"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate the correlation between BMI and insurance charges to understand their relationship"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "32_insurance_scatter",
+    "dataset_path": "datasets/32_insurance_scatter.json",
+    "row_count": 1338,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

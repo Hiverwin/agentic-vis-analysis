@@ -1,0 +1,53 @@
+{
+  "task_type": "clear_single",
+  "task_id": "61_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/61_Berlin_crimes_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using calculate_correlation, what is the correlation between Robbery and Injury?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "0.845",
+          "tolerance": 0.01
+        },
+        "key_insights": [
+          "The scatter plot displays Robbery on x-axis and Injury on y-axis.",
+          "There is a strong positive correlation between the two variables.",
+          "The Pearson correlation coefficient is approximately 0.845."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation with pearson method to compute the correlation coefficient between x and y."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Robbery",
+            "y": "Injury",
+            "color": "District"
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

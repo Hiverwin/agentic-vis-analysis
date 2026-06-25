@@ -1,0 +1,107 @@
+{
+  "benchmark_id": "62_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "48_parallel_cm_01：Use highlight_category and reorder_dimensions to analyze parallel chart data.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Friedrichshain-Kreuzberg shows the most consistent high crime pattern across all dimensions, with Robbery and Injury being the highest",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight Friedrichshain-Kreuzberg district to analyze its crime pattern"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Reorder dimensions by crime rate to compare their relative importance"
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": [
+                  "District",
+                  "Friedrichshain-Kreuzberg"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "Robbery",
+                  "Injury",
+                  "Threat",
+                  "Burglary",
+                  "Drugs",
+                  "Arson"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            },
+            "axis_order": {
+              "dimension_order": [
+                "Robbery",
+                "Injury",
+                "Threat",
+                "Burglary",
+                "Drugs",
+                "Arson"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order",
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "62_Berlin_crimes_parallel",
+    "dataset_path": "datasets/62_Berlin_crimes_parallel.json",
+    "row_count": 7200,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/62_Berlin_crimes_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

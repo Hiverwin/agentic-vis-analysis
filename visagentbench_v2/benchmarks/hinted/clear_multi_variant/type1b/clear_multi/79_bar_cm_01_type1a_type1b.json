@@ -1,0 +1,119 @@
+{
+  "benchmark_id": "79_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_categories and sort_bars, which platform is ranked second by activity score among PC, Nintendo 64, Nintendo DS, Nintendo DSi, and iPhone?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Nintendo 64",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The bar for Nintendo 64 is the second highest, whose value is 6.827."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sorted bars in ascending order,and then we filter other platform to choose the second active one from the five mentioned in the platform."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "now,after filtering we can see the bar for Nintendo 64 is the second highest,whose value is 6.827."
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "ascending"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Game Boy Advance",
+                  "Dreamcast",
+                  "Game Boy Color",
+                  "Wii",
+                  "GameCube",
+                  "Nintendo 3DS",
+                  "PlayStation 2",
+                  "PlayStation",
+                  "PlayStation 3",
+                  "PlayStation 4",
+                  "PlayStation Portable",
+                  "PlayStation Vita",
+                  "Wireless",
+                  "Xbox",
+                  "Xbox 360",
+                  "Xbox One"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Platform",
+            "y": "Action"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Game Boy Advance\",\"Dreamcast\",\"Game Boy Color\",\"Wii\",\"GameCube\",\"Nintendo 3DS\",\"PlayStation 2\",\"PlayStation\",\"PlayStation 3\",\"PlayStation 4\",\"PlayStation Portable\",\"PlayStation Vita\",\"Wireless\",\"Xbox\",\"Xbox 360\",\"Xbox One\"], datum['Platform']) < 0"
+              }
+            ],
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "iPhone",
+                "Nintendo 64",
+                "PC"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "79_ign_scores_bar",
+    "dataset_path": "datasets/79_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

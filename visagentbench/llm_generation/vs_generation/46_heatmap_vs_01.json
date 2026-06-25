@@ -1,0 +1,57 @@
+{
+  "task_type": "vague_single",
+  "task_id": "46_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/46_mxmh_survey_results_heatmap.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use add_marginal_bars in order to know How do instrumentalist and composer roles relate to anxiety levels?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Individuals who are both instrumentalists and composers tend to have higher anxiety levels compared to those who are only one or neither",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Instrumentalists and composers combination shows higher anxiety levels",
+          "Musical involvement may be associated with increased anxiety"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "add_marginal_bars",
+            "reasoning": "Add marginal bars to analyze the relationship between musical roles and anxiety levels"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "op": "mean",
+                  "show_top": true,
+                  "show_right": true,
+                  "bar_size": 70,
+                  "bar_color": "#666666"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "count": 3,
+            "has_type": "bar"
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

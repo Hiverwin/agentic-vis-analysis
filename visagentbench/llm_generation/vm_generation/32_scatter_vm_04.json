@@ -1,0 +1,85 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "32_scatter_vm_04",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_04",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans and use show_regression with method equal to linear in order to know How do smoking status, BMI, and number of children collectively influence insurance charges, and what patterns emerge from their interactions?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Smoking status has the most dramatic impact on insurance charges, with smokers averaging $32,050.23 compared to non-smokers at $8,434.27. BMI shows a positive correlation with charges, where higher BMI generally corresponds to higher insurance costs. The number of children has a more modest but still positive relationship with charges. The interaction between smoking and BMI appears particularly significant, as smokers with high BMI tend to have the highest charges overall, suggesting that smoking status acts as a primary cost multiplier while BMI and children contribute additional factors to the pricing model.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Smoking status is the dominant factor in insurance pricing with nearly 4x difference between smokers and non-smokers",
+          "BMI shows positive correlation with insurance charges indicating higher body mass index leads to higher costs",
+          "Number of children has moderate positive relationship with charges",
+          "The combination of smoking and high BMI results in the highest insurance charges overall"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation to measure the strength of relationship between BMI and insurance charges"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Use identify_clusters to discover natural groupings in the data based on all variables"
+          },
+          {
+            "iteration": 3,
+            "tool": "show_regression",
+            "reasoning": "Use show_regression to visualize the linear relationship between BMI and charges"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            },
+            {
+              "tool": "show_regression",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "linear"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "bmi",
+            "y": "charges",
+            "color": "smoker",
+            "size": "children"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "74_bar_cm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_subcategories and sort_bars, which ethnic group among students with master's degree parents has the highest average math score?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "group E",
+          "alternatives": [
+            "group E"
+          ]
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter to keep only master's degree parental education level."
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars by descending math score to identify the top ethnic group."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "bachelor's degree",
+                    "some college",
+                    "associate's degree",
+                    "high school",
+                    "some high school"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_sort": [
+                    "group E",
+                    "group D",
+                    "group B",
+                    "group C",
+                    "group A"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "race/ethnicity",
+            "y": "math score",
+            "color": "parental level of education"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['parental level of education'] != \"bachelor's degree\" && datum['parental level of education'] != \"some college\" && datum['parental level of education'] != \"associate's degree\" && datum['parental level of education'] != \"high school\" && datum['parental level of education'] != \"some high school\""
+            }
+          ],
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "group E",
+              "group D",
+              "group B",
+              "group C",
+              "group A"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

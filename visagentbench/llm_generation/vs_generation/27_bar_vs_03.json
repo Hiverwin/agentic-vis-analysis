@@ -1,0 +1,63 @@
+{
+  "task_type": "vague_single",
+  "task_id": "27_bar_vs_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/27_coffee_sales_data_bar.json",
+  "questions": [
+    {
+      "qid": "vs_03",
+      "question": "Use highlight_top_n in order to know What are the sales patterns and pricing differences among different coffee types?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the data analysis, coffee sales show distinct pricing tiers. Premium-priced coffees (Hot Chocolate, Cappuccino, Latte, Cocoa) average around 35-36 per cup, while mid-tier options (Americano with Milk) average 30.59, and budget options (Americano, Cortado, Espresso) range from 20.85-25.98. Latte is the top seller by volume with 757 transactions generating 26,875.30 in revenue. Sales are evenly distributed across time periods: Afternoon (1,205 transactions), Morning (1,181), and Night (1,161), with Night having the highest average transaction value (32.89). The data suggests customers prefer premium coffee options regardless of time of day.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Premium coffees (Hot Chocolate",
+          "Cappuccino",
+          "Latte) average 35-36 per cup",
+          "Budget options (Americano",
+          "Cortado",
+          "Espresso) range from 20.85-25.98",
+          "Latte is the top seller with 757 transactions and 26",
+          "875.30 revenue",
+          "Sales evenly distributed across Morning",
+          "Afternoon",
+          "and Night periods"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_top_n",
+            "reasoning": "Analyze coffee sales patterns and pricing across different types"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

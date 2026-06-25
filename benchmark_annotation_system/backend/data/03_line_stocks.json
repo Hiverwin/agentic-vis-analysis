@@ -1,0 +1,64 @@
+{
+  "values": [
+    {
+      "date": "2023-01-01",
+      "price": 150,
+      "company": "TechCorp"
+    },
+    {
+      "date": "2023-03-01",
+      "price": 165,
+      "company": "TechCorp"
+    },
+    {
+      "date": "2023-05-01",
+      "price": 185,
+      "company": "TechCorp"
+    },
+    {
+      "date": "2023-07-01",
+      "price": 188,
+      "company": "TechCorp"
+    },
+    {
+      "date": "2023-09-01",
+      "price": 210,
+      "company": "TechCorp"
+    },
+    {
+      "date": "2023-11-01",
+      "price": 218,
+      "company": "TechCorp"
+    },
+    {
+      "date": "2023-01-01",
+      "price": 80,
+      "company": "RetailInc"
+    },
+    {
+      "date": "2023-03-01",
+      "price": 78,
+      "company": "RetailInc"
+    },
+    {
+      "date": "2023-05-01",
+      "price": 90,
+      "company": "RetailInc"
+    },
+    {
+      "date": "2023-07-01",
+      "price": 88,
+      "company": "RetailInc"
+    },
+    {
+      "date": "2023-09-01",
+      "price": 98,
+      "company": "RetailInc"
+    },
+    {
+      "date": "2023-11-01",
+      "price": 108,
+      "company": "RetailInc"
+    }
+  ]
+}

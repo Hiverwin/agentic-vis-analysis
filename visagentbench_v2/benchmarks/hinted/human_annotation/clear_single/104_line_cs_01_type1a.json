@@ -1,0 +1,83 @@
+{
+  "benchmark_id": "104_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use filter_lines with lines_to_remove equal to Germany, Australia, Japan, New Zealand, Russia, United Kingdom to identify when the highest point of the United States occurred.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "in 1990.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "filter out other lines and the highest point was in 1990"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Germany",
+                  "Australia",
+                  "Japan",
+                  "New Zealand",
+                  "Russia",
+                  "United Kingdom"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Contribution of gender in life expectancy gap (years) - Age group: 15-39",
+            "color": "Entity"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Germany\", \"Australia\", \"Japan\", \"New Zealand\", \"Russia\", \"United Kingdom\"], datum['Entity']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "104_gender_gap_in_life_line",
+    "dataset_path": "datasets/104_gender_gap_in_life_line.json",
+    "row_count": 538,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/104_gender_gap_in_life_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

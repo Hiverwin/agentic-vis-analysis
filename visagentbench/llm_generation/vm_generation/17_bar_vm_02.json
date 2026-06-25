@@ -1,0 +1,102 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "17_bar_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/17_Heart_Disease_Prediction_bar.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use sort_bars with order equal to descending and use filter_subcategories with subcategories_to_remove equal to Presence and use highlight_top_n with n equal to 2 and use change_encoding with field equal to Chest pain type in order to know Analyze the relationship between heart disease status, chest pain type, and cholesterol levels, identifying key patterns and insights",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The data reveals that individuals with heart disease have higher average cholesterol levels (256.5 mg/dL) compared to those without (244.2 mg/dL). Among chest pain types, type 4 is associated with the highest cholesterol levels (254.6 mg/dL), followed by type 2 (247.6 mg/dL), type 3 (245.6 mg/dL), and type 1 (237.9 mg/dL). This suggests a potential correlation between higher cholesterol levels, more severe chest pain types, and the presence of heart disease. The consistent pattern across both heart disease status and chest pain types indicates that cholesterol levels may be an important factor in heart disease risk assessment.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Heart disease presence correlates with higher cholesterol",
+          "Type 4 chest pain has highest cholesterol levels",
+          "Consistent pattern across different heart disease statuses",
+          "Cholesterol may be important factor in heart disease risk"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort by cholesterol levels to identify patterns"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter by heart disease status to compare cholesterol levels"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top chest pain types by cholesterol levels"
+          },
+          {
+            "iteration": 4,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to view chest pain type distribution"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "Presence"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Chest pain type"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Heart Disease",
+            "y": "Cholesterol",
+            "color": "Chest pain type"
+          }
+        }
+      }
+    }
+  ]
+}

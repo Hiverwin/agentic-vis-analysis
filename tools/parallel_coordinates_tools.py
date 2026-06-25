@@ -127,7 +127,7 @@ def filter_by_category(state: Dict, field: str, values: Union[str, List[str]]) -
     Args:
         state: Vega-Lite规范
         field: 分类字段名（如 "Species", "product", "region"）
-        values: 要保留的值列表
+        values: 要排除的值列表
     """
     new_state = copy.deepcopy(state)
     

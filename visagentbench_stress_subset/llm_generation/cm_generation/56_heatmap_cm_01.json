@@ -1,0 +1,83 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "56_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/56_Ecommerce_Delivery_Analytics_New_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "46_heatmap_cm_01：Use cluster_rows_cols to group similar patterns, then use filter_cells with value greater than 0.5 to focus on significant values, then use adjust_color_scale with scheme equal to blues to visualize intensity. What is the pattern of the clustered heatmap?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "JioMart",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "cluster_rows_cols",
+            "reasoning": "Cluster rows and columns to identify patterns"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells",
+            "reasoning": "Filter cells to focus on service rating 5"
+          },
+          {
+            "iteration": 3,
+            "tool": "adjust_color_scale",
+            "reasoning": "Adjust color scale to better visualize differences"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "cluster_rows_cols",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "cluster_rows": true,
+                  "cluster_cols": true,
+                  "method": "sum"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {}
+              }
+            },
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "clustering_order": {
+            "clustered": true
+          },
+          "color_scale": {
+            "scheme": "viridis"
+          }
+        },
+        "state_check_fields": [
+          "clustering_order",
+          "color_scale"
+        ]
+      }
+    }
+  ]
+}

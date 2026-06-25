@@ -1,0 +1,90 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "87_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/87_museum_visitors_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "37_parallel_cm_01：Use reorder_dimensions with dimension_order equal to Speed, Acceleration, Fuel Efficiency, Price, then use filter_by_category with field equal to Brand and values equal to Toyota to focus on a single brand, then use calculate_correlation with method equal to pearson. What is the correlation between Speed and Fuel Efficiency for Toyota?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Avila Adobe",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to sort by visitor count"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_by_category",
+            "reasoning": "Filter out the smallest museum"
+          },
+          {
+            "iteration": 3,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between remaining dimensions"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "Avila Adobe",
+                    "Firehouse Museum",
+                    "America Tropical Interpretive Center",
+                    "Chinese American Museum"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": "dimension"
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "axis_order": {
+            "dimension_order": [
+              "Avila Adobe",
+              "Firehouse Museum",
+              "America Tropical Interpretive Center",
+              "Chinese American Museum"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

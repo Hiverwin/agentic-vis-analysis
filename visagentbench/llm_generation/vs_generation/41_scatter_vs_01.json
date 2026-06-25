@@ -1,0 +1,43 @@
+{
+  "task_type": "vague_single",
+  "task_id": "41_scatter_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/41_museum_visitors_scatter.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use calculate_correlation with method equal to pearson to compute the correlation between Chinese American Museum and America Tropical Interpretive Center.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "通过分析数据，我发现中国美国博物馆的访客数量在2016年3月达到峰值7702人，而美国热带解释中心的访客数量在2014年7月达到峰值13490人。两个博物馆的访客数据分布相对独立，没有显著的相关性。中国美国博物馆的访客数量整体较低，而美国热带解释中心的访客数量波动较大，夏季通常会有较高的访客量。",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation to answer the question."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "benchmark_id": "62_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use hide_dimensions with dimensions equal to Arson, Drugs, mode equal to hide and use highlight_category with field equal to field, values equal to District in order to know How do crime patterns differ across Berlin districts when considering multiple crime dimensions? Analyze which districts show distinct patterns and what crime types are most prevalent.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Berlin districts show clear differentiation in crime patterns across the six dimensions. Mitte stands out as the highest-crime district with an average normalized value of 0.317, particularly excelling in Threat (0.463) and Injury (0.345) dimensions. Friedrichshain-Kreuzberg follows closely (0.287) with notably high Arson (0.332) and Drugs (0.226) rates. Treptow-Kopenick emerges as the safest district (0.060), consistently low across all dimensions. The Threat dimension shows the highest overall average (0.220) and variability (std=0.163), while Drugs has the lowest average (0.050). Tempelhof-Schoneberg and Neukolln form a middle tier with moderate crime levels. Charlottenburg-Wilmersdorf, despite being a wealthy district, shows surprisingly low Drugs activity (0.030). The parallel coordinates reveal that Mitte and Friedrichshain-Kreuzberg maintain high values across all dimensions, indicating they are comprehensive high-crime areas rather than specializing in specific crime types.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Mitte has highest overall crime level (0.317)",
+          "Treptow-Kopenick is safest district (0.060)",
+          "Threat dimension has highest average (0.220)",
+          "Drugs dimension has lowest average (0.050)",
+          "Friedrichshain-Kreuzberg has highest Drugs rate (0.226)",
+          "High-crime districts maintain elevated levels across all dimensions"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide less important dimensions to focus on key crime types"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight high-crime districts to analyze their patterns"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide",
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "Arson",
+                  "Drugs"
+                ],
+                "mode": "hide"
+              }
+            }
+          },
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": "District"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "62_Berlin_crimes_parallel",
+    "dataset_path": "datasets/62_Berlin_crimes_parallel.json",
+    "row_count": 7200,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/62_Berlin_crimes_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

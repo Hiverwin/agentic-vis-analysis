@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "88_heatmap_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How does gender correlate with spending for chronic versus non-chronic patients within the specified mid-band?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Within the band, males spend a bit more than females when chronic disease is absent, and the gap widens once chronic disease is present—roughly a few hundred dollars in the non-chronic cells versus more than a thousand dollars in the chronic cells. That pattern is less about gender alone and more about chronic status amplifying the male–female gap."
+        },
+        "key_insights": [
+          "Chronic patients show higher bills overall, and the male–female gap is larger there than in the non-chronic row.",
+          "Non-chronic cells stay closer together across gender."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Restricts the heatmap to a clinically meaningful spend band."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.visible.summarize",
+            "rationale": "Quantifies the filtered cohort so gender contrasts can be compared numerically."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "data.visible.summarize"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 7146.61,
+                "max_value": 12473.72
+              }
+            }
+          },
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "filter"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['Total_Bill_Amount'] >= 7146.61 && datum['Total_Bill_Amount'] <= 12473.72"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "88_patient_churn_dataset_heatmap",
+    "dataset_path": "datasets/88_patient_churn_dataset_heatmap.json",
+    "row_count": 500,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

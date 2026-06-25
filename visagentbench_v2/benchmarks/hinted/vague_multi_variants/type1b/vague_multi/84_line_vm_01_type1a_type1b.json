@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "84_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_lines and change_encoding, how do China and the United States line up on renewables versus fossil intensity?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Both survivors are huge fossil-fuel generators, and the color scale makes that explicit: China’s points sit on the highest fossil values while still climbing on renewables, and the United States follows the same pattern at a slightly lower tier. You’re basically looking at two large-scale coal-and-gas systems that also built serious renewable capacity, but China’s fossil column stays the darker of the pair."
+        },
+        "key_insights": [
+          "Color shifts to fossil TWh highlights how much thermal generation still anchors each line.",
+          "China and the US both rise on renewables over time, yet China remains the heavier fossil producer in absolute terms."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "Pares the chart down to the two countries with large, comparable power sectors."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.encoding.change",
+            "rationale": "Maps fossil output onto color so the renewables trajectory can be read against fossil intensity."
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Austria",
+                  "Egypt",
+                  "France",
+                  "Germany",
+                  "Japan",
+                  "New Zealand",
+                  "United Kingdom"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Electricity from fossil fuels (TWh)",
+                "channel": "color"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Electricity from renewables (TWh)",
+            "color": "Electricity from fossil fuels (TWh)"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Austria\", \"Egypt\", \"France\", \"Germany\", \"Japan\", \"New Zealand\", \"United Kingdom\"], datum['Entity']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "83_global-data-on-sustainable-energy-filtered_line",
+    "dataset_path": "datasets/83_global-data-on-sustainable-energy-filtered_line.json",
+    "row_count": 189,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/83_global-data-on-sustainable-energy-filtered_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

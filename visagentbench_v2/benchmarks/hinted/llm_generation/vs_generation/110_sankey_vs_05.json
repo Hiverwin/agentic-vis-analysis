@@ -1,0 +1,64 @@
+{
+  "benchmark_id": "110_sankey_vs_05",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_05",
+      "question": "Use trace_node with node_name equal to Dry Waste Bin to rank treatments by overall utilization efficiency in order to know how do treatments rank by overall utilization efficiency?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Dry Waste Bin demonstrates highest recycling efficiency with 100% of its waste (5600 tons/day) being processed through recycling methods (Manual Sorting, Magnetic Sorting, and Optical Sorting), making it the most efficiently managed waste stream",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Dry Waste Bin achieves 100% recycling efficiency",
+          "Recyclable Bin also achieves 100% recycling efficiency",
+          "Other sources like Residential only achieve 16.92% recycling efficiency"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use trace_node to trace Dry Waste Bin node and analyze how its waste flows through recycling processes compared to other waste sources"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Dry Waste Bin"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "110_sankey_trash",
+    "dataset_path": "datasets/110_sankey_trash.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/110_sankey_trash.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

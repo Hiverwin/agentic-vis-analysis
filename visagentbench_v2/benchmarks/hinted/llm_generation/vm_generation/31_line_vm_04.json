@@ -1,0 +1,102 @@
+{
+  "benchmark_id": "31_line_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use detect_anomalies with threshold equal to 3.0 and use highlight_trend with trend_type equal to increasing and use show_moving_average in order to know How does TSLA stock price perform in terms of overall trend, volatility, and key turning points during period from March 2021 to March 2022?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "TSLA stock shows significant volatility with an overall upward trend, experiencing 137 up days versus 116 down days. The stock reached a peak of $409.97 and a low of $187.82, demonstrating substantial price swings with a volatility ratio of 81.92%. The maximum single-day gain was $47.67 while maximum single-day loss was $46.48, indicating high trading volatility throughout the year.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "TSLA demonstrates high volatility with 81.92% price fluctuation",
+          "Stock shows net positive momentum with more up days than down days",
+          "Peak price of $409.97 and trough of $187.82 indicate wide trading range",
+          "Moving average reveals underlying growth trend despite short-term volatility"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "Use detect_anomalies to identify significant price movements and abnormal trading days"
+          },
+          {
+            "iteration": 2,
+            "capability": "line.trend.highlight",
+            "rationale": "Use highlight_trend to visualize overall price direction and trend strength"
+          },
+          {
+            "iteration": 3,
+            "capability": "line.movingAverage.show",
+            "rationale": "Use show_moving_average to smooth out short-term fluctuations and reveal underlying trend"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.anomalies.detect",
+          "line.trend.highlight",
+          "line.movingAverage.show"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "threshold": 3.0
+              }
+            }
+          },
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          },
+          {
+            "capability": "line.movingAverage.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "window_size": 3
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Date",
+            "y": "Close"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "31_TSLA_Stock_line",
+    "dataset_path": "datasets/31_TSLA_Stock_line.json",
+    "row_count": 254,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/31_TSLA_Stock_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,96 @@
+{
+  "benchmark_id": "44_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Using filter_cells_by_region and find_extreme, which combination does the value fall in after filtering for destock and stable?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "stable and fungi",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "We filter the view of column (or row) corresponding to 'heavy' to keep only destock and stable."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.extremes.find",
+            "rationale": "We use this tool to find the extreme value of the combination of type and grazing treatment."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_values": [
+                  "heavy"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "max",
+                "n": 1
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "type",
+            "y": "grazing_treatment",
+            "color": "rainfall_reduction"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "!(indexof([\"heavy\"], datum['grazing_treatment']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "44_Sensitivity_Soil_Nutrient_Pools new_heatmap",
+    "dataset_path": "datasets/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+    "row_count": 1006,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,94 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "86_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/86_starbucks_bar.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "What is the beverage type among the remaining options with the highest mean calories?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Signature Expresso Drinks",
+          "alternatives": []
+        },
+        "key_insights": [
+          "After filtering out lower-calorie categories, it was found that among the remaining beverage types, Signature Expresso Drinks has the highest mean calories."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "Remove lower-calorie categories to focus on high-calorie beverage types."
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "Sort descending to identify the highest."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Coffee",
+                    "Shaken Iced Beverages",
+                    "Classic Espresso Drinks",
+                    "Tazo® Tea Drinks",
+                    "Frappuccino® Light Blended Coffee"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_order": [
+                    "Signature Expresso Drinks",
+                    "Frappuccino® Light Blended Coffee",
+                    "Frappuccino® Light Blended Crème",
+                    "Smoothies"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Beverage_category",
+            "y": "Calories",
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Coffee\",\"Shaken Iced Beverages\",\"Classic Espresso Drinks\",\"Tazo® Tea Drinks\",\"Frappuccino® Light Blended Coffee\"], datum['Beverage_category']) < 0"
+            }
+          ],
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Signature Expresso Drinks",
+              "Frappuccino® Light Blended Coffee",
+              "Frappuccino® Light Blended Crème",
+              "Smoothies"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

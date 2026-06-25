@@ -1,0 +1,51 @@
+{
+  "task_type": "vague_single",
+  "task_id": "19_scatter_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/19_Heart_Disease_Prediction_scatter.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "How does the fitted curve indicate the relationship between cholesterol levels and age, and what is the strength of that relationship based on the scatter?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The log fit bends gently upward: as age increases, predicted cholesterol inches higher, matching the weak positive correlation you would see from the raw points. It is hardly a lock-step law—dots spread widely at every age—but the red curve tilts the same direction, so the fair reading is a modest age-related uptick with plenty of individual noise."
+        },
+        "key_insights": [
+          "The regression line slopes upward on the log-age transform, signaling a slow climb rather than a flat plateau.",
+          "Scatter remains broad, so the trend is mild and easy to overread without looking at spread."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "show_regression",
+            "reasoning": "Adds a log-linear regression overlay so age–cholesterol curvature is explicit."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "show_regression",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "log"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "regression_line": true
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

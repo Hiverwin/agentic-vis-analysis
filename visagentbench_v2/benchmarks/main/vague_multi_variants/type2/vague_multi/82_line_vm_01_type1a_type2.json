@@ -1,0 +1,103 @@
+{
+  "benchmark_id": "82_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How can we characterize whether anomalous revenue points are isolated events or part of a broader weekly pattern?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The results confirm they are one-off events, completing the exploration."
+        },
+        "key_insights": [
+          "The most significant anomalies are the extreme revenue spikes for Electronics (3900 in April and 2400 in August) and Home Appliances (2600 in April).",
+          "Sports also has a notable anomaly in early January with a revenue of 1900, which is far above its typical range.",
+          "The weekly resampling shows that the April Electronics and Home Appliances spikes are isolated to a single week, confirming they are likely one-off events (e.g., a major sale).",
+          "The January Sports spike also appears as an isolated weekly peak.",
+          "The rest of the weekly data shows much more stable revenue, with no other weeks showing comparable levels of anomaly."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "This is a crucial first step in the exploration, as it pinpoints the specific events that need further investigation."
+          },
+          {
+            "iteration": 2,
+            "capability": "axis.x.resample",
+            "rationale": "This helps determine if the anomalies are part of a recurring weekly pattern or are truly isolated."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.anomalies.detect",
+          "axis.x.resample"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "threshold": 3
+              }
+            }
+          },
+          {
+            "capability": "axis.x.resample",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "granularity": "week",
+                "agg": "mean"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "types": [
+                "line",
+                "point"
+              ]
+            },
+            "anomaly_markers": {
+              "has_markers": true,
+              "marker_type": "point"
+            },
+            "time_unit": {
+              "has_time_unit": true,
+              "unit": "week"
+            }
+          }
+        },
+        "state_check_fields": [
+          "anomaly_markers",
+          "time_unit"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "82_Online Sales Data_line",
+    "dataset_path": "datasets/82_Online Sales Data_line.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

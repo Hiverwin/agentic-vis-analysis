@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "14_line_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "What is the day in April 2014 with the fewest visitors for America Tropical Interpretive Center?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Apr 1",
+          "alternatives": [
+            "2014-04-01",
+            "April 1, 2014",
+            "Apr 01 2014"
+          ]
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom to April 2014 to focus on the target time range."
+          },
+          {
+            "iteration": 2,
+            "capability": "line.series.filter",
+            "rationale": "Filter out other museums to isolate America Tropical Interpretive Center's visitor data."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2014/4/1",
+                "end": "2014/4/30"
+              }
+            }
+          },
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Firehouse Museum",
+                  "Chinese American Museum",
+                  "Avila Adobe"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Date",
+            "y": "Number of visitors",
+            "color": "Museum"
+          },
+          "view": {
+            "xDomain": [
+              "2014/4/1",
+              "2014/4/30"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Firehouse Museum\", \"Chinese American Museum\", \"Avila Adobe\"], datum['Museum']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "14_museum_visitors_line_multi",
+    "dataset_path": "datasets/14_museum_visitors_line_multi.json",
+    "row_count": 236,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/14_museum_visitors_line_multi.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

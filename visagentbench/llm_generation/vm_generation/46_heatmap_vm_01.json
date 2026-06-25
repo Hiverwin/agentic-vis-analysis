@@ -1,0 +1,85 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "46_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/46_mxmh_survey_results_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use filter_cells with min_value equal to 6.0, max_value equal to 10.0 and use highlight_region and use find_extremes with top_n equal to 5, mode equal to both in order to know How does anxiety levels vary between instrumentalists and composers, and what patterns emerge in the mental health survey results?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The heatmap reveals anxiety patterns across 727 survey respondents categorized by their instrumentalist and composer status. Overall average anxiety level is 5.83 out of 10. Instrumentalists show slightly higher anxiety (5.95) compared to non-instrumentalists (5.77). Composers have an average anxiety of 5.84, while non-composers average 5.82. The combination analysis shows that respondents who are both instrumentalists and composers have the highest anxiety at 6.02, while those who are non-instrumentalists but composers show the lowest anxiety at 5.33. Interestingly, instrumentalists who are not composers (5.91) and non-instrumentalists who are not composers (5.80) show moderate anxiety levels. The data suggests that the combination of being both an instrumentalist and composer is associated with the highest anxiety levels, while being a composer without being an instrumentalist correlates with lower anxiety. Anxiety values range from 0 to 10 across all categories.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Overall average anxiety is 5.83 out of 10",
+          "Instrumentalists show slightly higher anxiety (5.95) than non-instrumentalists (5.77)",
+          "Both instrumentalists and composers have highest anxiety (6.02)",
+          "Composers who are not instrumentalists have lowest anxiety (5.33)",
+          "Anxiety values range from 0 to 10 across all categories",
+          "The combination of instrumentalist and composer correlates with highest anxiety"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells",
+            "reasoning": "Use filter_cells to focus on specific anxiety ranges"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_region",
+            "reasoning": "Use highlight_region to highlight specific instrumentalist and composer combinations"
+          },
+          {
+            "iteration": 3,
+            "tool": "find_extremes",
+            "reasoning": "Use find_extremes to identify highest and lowest anxiety values"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 6.0,
+                  "max_value": 10.0
+                }
+              }
+            },
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {}
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Instrumentalist",
+            "y": "Composer",
+            "color": "Anxiety"
+          }
+        }
+      }
+    }
+  ]
+}

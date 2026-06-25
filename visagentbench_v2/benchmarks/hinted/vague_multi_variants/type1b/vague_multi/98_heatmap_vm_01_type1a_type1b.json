@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "98_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_cells_by_region, how does the distribution of mean BMI compare between low-intensity (Cardio, Yoga) and high-intensity (HIIT, Strength) Workout Types, and does this distribution shift with different Experience Levels?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "High-intensity workouts have a higher overall mean BMI than low-intensity workouts."
+        },
+        "key_insights": [
+          "High-intensity workouts have a higher overall mean BMI.",
+          "The BMI difference between high and low intensity is largest at Level 2 and minimal at Level 1."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "the intensity effect peaks at medium experience."
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.cells.filter",
+            "rationale": "to visualize the distribution more clearly."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "heatmap.cells.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_value": "Strength"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "2"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "!(indexof([\"2\"], datum['Experience_Level']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "98_gym_members_exercise_tracking_heatmap",
+    "dataset_path": "datasets/98_gym_members_exercise_tracking_heatmap.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/98_gym_members_exercise_tracking_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

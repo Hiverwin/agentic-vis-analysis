@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { runPagePortAgentLoop } from './pagePortAgentLoop.js'
+import { runPagePortAgentLoop, runPagePortAgentSession, runPagePortAgentTurn } from './pagePortAgentLoop.js'
 
 function createObservedPort(overrides = {}) {
   const observedCalls = []
@@ -160,6 +160,100 @@ test('runPagePortAgentLoop executes an explicit observe-plan-act-verify-reason l
     'executeVerifiedAction',
     'readLatestCoordinationResult',
   ])
+})
+
+test('runPagePortAgentTurn maps the page-port loop into the formal compact turn contract', async () => {
+  const { port } = createObservedPort()
+
+  const result = await runPagePortAgentTurn(port, {
+    objective: 'Focus the scatterplot on the local cluster.',
+    planner: async () => ({
+      assistantMessage: 'I will brush the local cluster.',
+      rationale: 'A brush is the most direct next step.',
+      operation: {
+        kind: 'action',
+        name: 'scatter.brushRegion',
+        queryScope: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+        params: {
+          xField: 'Horsepower',
+          yField: 'Miles_per_Gallon',
+          xRange: [80, 140],
+          yRange: [18, 30],
+        },
+      },
+    }),
+  })
+
+  assert.deepEqual(Object.keys(result), ['observe', 'plan', 'act', 'verify', 'reason'])
+  assert.equal(result.observe.query, 'Focus the scatterplot on the local cluster.')
+  assert.equal(result.plan.step.name, 'scatter.brushRegion')
+  assert.equal(result.act.ok, true)
+  assert.equal(result.verify.ok, true)
+  assert.equal(result.verify.nextStepHint.kind, 'answer')
+  assert.equal(typeof result.reason.answer, 'string')
+})
+
+test('runPagePortAgentSession returns a multi-turn session contract with formal turns', async () => {
+  const { port } = createObservedPort()
+
+  const result = await runPagePortAgentSession(port, {
+    objective: 'Focus the scatterplot on the local cluster.',
+    maxTurns: 3,
+    planner: async () => ({
+      assistantMessage: 'I will brush the local cluster.',
+      rationale: 'A brush is the most direct next step.',
+      operation: {
+        kind: 'action',
+        name: 'scatter.brushRegion',
+        queryScope: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+        params: {
+          xField: 'Horsepower',
+          yField: 'Miles_per_Gallon',
+          xRange: [80, 140],
+          yRange: [18, 30],
+        },
+      },
+    }),
+  })
+
+  assert.equal(result.ok, true)
+  assert.equal(result.stopReason, 'answered')
+  assert.equal(Array.isArray(result.turns), true)
+  assert.equal(result.turns.length, 1)
+  assert.deepEqual(Object.keys(result.turns[0]), ['observe', 'plan', 'act', 'verify', 'reason'])
+  assert.equal(typeof result.answer, 'string')
+})
+
+test('runPagePortAgentTurn prefers returned perception evidence in reason.answer', async () => {
+  const { port } = createObservedPort({
+    async queryPerception(call) {
+      return {
+        ok: true,
+        summary: 'Correlation between Horsepower and Miles_per_Gallon is -0.78.',
+        queryName: call.name,
+      }
+    },
+  })
+
+  const result = await runPagePortAgentTurn(port, {
+    objective: 'Compute the correlation in the scatterplot.',
+    planner: async () => ({
+      assistantMessage: 'I will compute the correlation.',
+      rationale: 'The query asks for a quantitative relationship.',
+      operation: {
+        kind: 'perception',
+        name: 'perception.computeCorrelation',
+        queryScope: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+        params: {
+          xField: 'Horsepower',
+          yField: 'Miles_per_Gallon',
+        },
+      },
+    }),
+  })
+
+  assert.equal(result.act.kind, 'perception')
+  assert.equal(result.reason.answer, 'Correlation between Horsepower and Miles_per_Gallon is -0.78.')
 })
 
 test('runPagePortAgentLoop falls back to executeAction and explicit verification when verified-action execution is unavailable', async () => {

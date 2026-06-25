@@ -1,0 +1,65 @@
+{
+  "benchmark_id": "04_heatmap_vs_07",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_07",
+      "question": "Use find_extremes in order to know Which city has the most consistent temperature pattern throughout the months?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Miami has the most consistent temperature pattern with a steady increase from 22C in January to 31C in June, showing a predictable and gradual warming trend. Seattle also shows a consistent upward trend but with more moderate temperatures, while Denver has the most variable pattern with a wider temperature range.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Miami has most consistent temperature pattern",
+          "Denver has widest temperature range",
+          "All cities show upward temperature trend from January to June"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use find_extremes to identify temperature patterns across cities and months"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "04_heatmap_temp",
+    "dataset_path": "datasets/04_heatmap_temp.json",
+    "row_count": 18,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/04_heatmap_temp.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

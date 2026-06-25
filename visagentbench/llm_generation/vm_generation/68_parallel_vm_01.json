@@ -1,0 +1,87 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "68_parallel_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/68_supply_chain_data_parallel.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use highlight_category with field equal to Product type, values equal to cosmetics and use highlight_category with field equal to Product type, values equal to haircare and use highlight_category with field equal to Product type, values equal to skincare in order to know How do cosmetics, haircare, and skincare products compare across price, sales, revenue, and shipping costs?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Cosmetics lead in Price (0.571), Revenue generated (0.585), and Shipping costs (0.566). Skincare has the highest Number of products sold (0.516) while maintaining strong Revenue (0.565) but lower Shipping costs (0.437). Haircare shows the lowest values across most dimensions: Price (0.455), Number of products sold (0.397), and Revenue generated (0.462), though Shipping costs are moderate (0.549). Cosmetics appear to be the most balanced product line with consistently high performance across all four dimensions.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Cosmetics lead in Price",
+          "Revenue",
+          "and Shipping costs",
+          "Skincare has highest products sold",
+          "moderate revenue",
+          "Haircare shows lowest values overall",
+          "Cosmetics are most balanced across dimensions"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_category",
+            "reasoning": "Highlight cosmetics to analyze their performance"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_category",
+            "reasoning": "Highlight haircare to compare"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_category",
+            "reasoning": "Highlight skincare to compare"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Product type",
+                  "values": "cosmetics"
+                }
+              }
+            },
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Product type",
+                  "values": "haircare"
+                }
+              }
+            },
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Product type",
+                  "values": "skincare"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension"
+          }
+        }
+      }
+    }
+  ]
+}

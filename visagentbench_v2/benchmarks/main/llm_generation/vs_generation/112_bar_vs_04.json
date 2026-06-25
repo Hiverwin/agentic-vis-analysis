@@ -1,0 +1,95 @@
+{
+  "benchmark_id": "112_bar_vs_04",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_04",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The popularity distribution shows significant variation with a clear gap between top-tier and mid-tier anime. The most popular anime (Aware! Meisaku-kun at 14880 and Warau Salesman Special Program at 14786) have nearly identical popularity scores and stand far above the rest. There is a steep drop-off after the top two, with popularity values declining gradually from around 11000 down to under 1000. The distribution suggests a few breakout hits while most titles have moderate to low popularity levels",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Top two anime have nearly identical popularity scores around 14800",
+          "There is a steep drop-off after the top two titles",
+          "Popularity gradually declines from 11000 to under 1000 for most titles",
+          "The distribution shows a few breakout hits with many moderate to low popularity titles"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Use sort_bars to arrange titles by popularity and observe the distribution patterns"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Aware! Meisaku-kun",
+                "Warau Salesman Special Program",
+                "Makasete Iruka!",
+                "Doupo Cangqiong 3rd Season",
+                "Ayashi no Ceres",
+                "Maken-Ki! OVA",
+                "Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack",
+                "R.O.D: Read or Die",
+                "Zuihou de Zhaohuan Shi",
+                "RahXephon",
+                "One Piece Fan Letter",
+                "Juuou Mujin no Fafnir",
+                "Gintama. Shirogane no Tamashii-hen - Kouhan-sen",
+                "Takopii no Genzai",
+                "Owarimonogatari 2nd Season",
+                "3-gatsu no Lion 2nd Season",
+                "Kizumonogatari III: Reiketsu-hen",
+                "Fruits Basket: The Final",
+                "Hajime no Ippo",
+                "Kusuriya no Hitorigoto"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "112_anmie_filter_bar",
+    "dataset_path": "datasets/112_anmie_filter_bar.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

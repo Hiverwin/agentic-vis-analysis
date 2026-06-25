@@ -1,0 +1,69 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "79_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know What patterns can you observe in action game scores across different gaming platforms?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Xbox One has the highest average action game score (7.70), followed closely by PlayStation 4 (7.55), 2) Modern consoles (Xbox One, PlayStation 4, PlayStation Vita) dominate the top positions, 3) Nintendo DS has the lowest average score (5.90), significantly below the overall average of 6.71, 4) There is a clear generation gap with newer platforms generally scoring higher than older ones, 5) The range between highest (7.70) and lowest (5.90) is 1.80 points, showing moderate variation across platforms.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Xbox One has highest score (7.70)",
+          "Modern consoles dominate top positions",
+          "Nintendo DS has lowest score (5.90)",
+          "Generation gap in scores",
+          "Moderate variation across platforms"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to see ordering of platforms"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top N to emphasize highest scoring platforms"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Platform",
+            "y": "Action"
+          }
+        }
+      }
+    }
+  ]
+}

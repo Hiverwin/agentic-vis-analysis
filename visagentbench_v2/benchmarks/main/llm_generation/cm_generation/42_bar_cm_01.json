@@ -1,0 +1,19 @@
+{
+  "benchmark_id": null,
+  "task_type": null,
+  "widget_kind": "bar",
+  "question_set": [],
+  "data_source": {
+    "kind": "unknown",
+    "dataset_id": null,
+    "dataset_path": null,
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": null
+    }
+  },
+  "benchmark_partition": "main"
+}

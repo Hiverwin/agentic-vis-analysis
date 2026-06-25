@@ -1,0 +1,92 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "57_scatter_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/57_health care diabetes_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use identify_clusters with n_clusters equal to 3, method equal to kmeans and use calculate_correlation with method equal to pearson and use zoom_2d_region with x_range from 0.8 to 2.5, y_range from 140.0 to 200.0 in order to know What are the key risk factors for diabetes based on this dataset? Analyze the relationship between glucose levels, diabetes pedigree function, and pregnancy history to identify patterns that distinguish diabetic from non-diabetic patients.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Glucose level is the strongest indicator of diabetes risk. Diabetic patients (Outcome=1) have significantly higher average glucose (141.26) compared to non-diabetic patients (109.98). The diabetes pedigree function (DPF) also shows a notable difference (0.550 vs 0.430). Patients with both high glucose (>140) and high DPF (>0.8) have a 75.8% diabetes rate, while those with low glucose (<100) and low DPF (<0.4) have only a 6.1% diabetes rate. Pregnancy history shows diabetic patients average 4.87 pregnancies vs 3.30 for non-diabetic. The weak correlation (0.137) between glucose and DPF suggests these are independent risk factors that combine multiplicatively rather than being directly related.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Glucose is the strongest diabetes indicator with 28.28 difference between outcomes",
+          "High glucose and high DPF combined show 75.8% diabetes rate",
+          "Low glucose and low DPF show only 6.1% diabetes rate",
+          "Glucose and DPF are independent risk factors with weak correlation"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "identify_clusters",
+            "reasoning": "Identify clusters to find distinct patient groups based on glucose and DPF"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between glucose and DPF to understand their relationship"
+          },
+          {
+            "iteration": 3,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom into high-risk region to analyze patients with elevated glucose and DPF values"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    0.8,
+                    2.5
+                  ],
+                  "y_range": [
+                    140.0,
+                    200.0
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "DiabetesPedigreeFunction",
+            "y": "Glucose",
+            "color": "Outcome",
+            "size": "Pregnancies"
+          }
+        }
+      }
+    }
+  ]
+}

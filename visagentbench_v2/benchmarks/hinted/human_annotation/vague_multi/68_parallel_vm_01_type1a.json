@@ -1,0 +1,126 @@
+{
+  "benchmark_id": "68_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `hide_dimensions`; then apply `filter_by_category`. In the updated parallel-coordinates view, analyze where trajectories converge or diverge across dimensions, which transitions drive separation, and what changed in readability after interaction. Support with visible path and dimension evidence.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The Skincare category demonstrates an efficient supply chain for top-performing products. High revenue is synonymous with low shipping costs, while poor sales performance correlates with expensive logistics."
+        },
+        "key_insights": [
+          "There is no strong positive correlation between revenue and shipping costs across the entire dataset.",
+          "Strong Negative Correlation：The vast majority of the blue lines show a distinct downward slope from left to right.",
+          "Conversely, lines starting at the bottom of the Revenue axis (near 1061.61) generally trend upwards towards the top of the Shipping costs axis (near 9.92)."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "We only care two dimensions:Revenue generated and shipping costs"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "We want to research the lines of skincare type"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "Price",
+                  "Number of products sold"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Product type",
+                "values": [
+                  "cosmetics",
+                  "haircare"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "Revenue generated",
+              "Shipping costs"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"cosmetics\",\"haircare\"], datum['Product type']) < 0"
+              },
+              {
+                "filter": "indexof([\"Revenue generated\", \"Shipping costs\"], datum['dimension']) >= 0",
+                "_pc_hide_dimensions": true
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "dimensions": {
+              "hidden_fields": [
+                "Price",
+                "Number of products sold"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "68_supply_chain_data_parallel",
+    "dataset_path": "datasets/68_supply_chain_data_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/68_supply_chain_data_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

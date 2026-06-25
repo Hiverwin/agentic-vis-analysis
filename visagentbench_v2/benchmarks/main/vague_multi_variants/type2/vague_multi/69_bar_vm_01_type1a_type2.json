@@ -1,0 +1,122 @@
+{
+  "benchmark_id": "69_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_03",
+      "question": "How can the companies with less than 15000000 followers be characterized?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Companies with less than 15 million followers are generally specialized in professional fields, B2B services, knowledge-based or enterprise technology-based brands. Their target audience is precise but narrow, lacking the attributes of mass consumption and platform dissemination. Therefore, the scale of their followers on social media is naturally limited.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "change the chart"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.encoding.change",
+            "rationale": "The same as the previous step"
+          },
+          {
+            "iteration": 3,
+            "capability": "data.filter.categorical",
+            "rationale": "get the charts which followers below 15000000"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "view.encoding.change",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "followers",
+                "channel": "x"
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "company",
+                "channel": "y"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  40000000,
+                  36000000,
+                  33000000,
+                  27000000,
+                  24000000,
+                  21000000,
+                  20000000,
+                  19000000,
+                  18000000,
+                  17000000,
+                  15000000
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "followers",
+            "y": "company"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"40000000\",\"36000000\",\"33000000\",\"27000000\",\"24000000\",\"21000000\",\"20000000\",\"19000000\",\"18000000\",\"17000000\",\"15000000\"], datum['followers']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "69_top_100_linkedin_companies_2026_bar",
+    "dataset_path": "datasets/69_top_100_linkedin_companies_2026_bar.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/69_top_100_linkedin_companies_2026_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

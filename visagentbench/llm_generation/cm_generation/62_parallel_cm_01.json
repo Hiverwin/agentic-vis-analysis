@@ -1,0 +1,87 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "62_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/62_Berlin_crimes_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "48_parallel_cm_01：Use highlight_category and reorder_dimensions to analyze parallel chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Friedrichshain-Kreuzberg shows the most consistent high crime pattern across all dimensions, with Robbery and Injury being the highest",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_category",
+            "reasoning": "Highlight Friedrichshain-Kreuzberg district to analyze its crime pattern"
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions by crime rate to compare their relative importance"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": [
+                    "District",
+                    "Friedrichshain-Kreuzberg"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "Robbery",
+                    "Injury",
+                    "Threat",
+                    "Burglary",
+                    "Drugs",
+                    "Arson"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          },
+          "axis_order": {
+            "dimension_order": [
+              "Robbery",
+              "Injury",
+              "Threat",
+              "Burglary",
+              "Drugs",
+              "Arson"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order",
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

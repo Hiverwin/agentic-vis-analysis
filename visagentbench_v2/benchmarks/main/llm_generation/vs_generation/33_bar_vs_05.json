@@ -1,0 +1,106 @@
+{
+  "benchmark_id": "33_bar_vs_05",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_05",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The BMW models with the best fuel efficiency are likely the ones with higher MPG values. Electric models (if present) would typically have higher efficiency, followed by hybrid models, and then gasoline models. The ranking shows which models are most fuel-efficient, with variations based on their fuel type.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Electric models have highest efficiency",
+          "Hybrid models are next in efficiency",
+          "Gasoline models have lower efficiency"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars by MPG to identify models with best fuel efficiency"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                " 3 Series",
+                " 1 Series",
+                " 2 Series",
+                " 5 Series",
+                " 4 Series",
+                " X1",
+                " X3",
+                " X5",
+                " i3",
+                " X2",
+                " X4",
+                " 6 Series",
+                " 7 Series",
+                " M4",
+                " Z4",
+                " X6",
+                " i8",
+                " X7",
+                " 8 Series",
+                " M3",
+                " M5",
+                " M2",
+                "3 Series",
+                "1 Series",
+                "5 Series",
+                " Z3",
+                " M6",
+                "X3",
+                "4 Series",
+                "2 Series",
+                "7 Series",
+                "6 Series"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "33_bmw_bar",
+    "dataset_path": "datasets/33_bmw_bar.json",
+    "row_count": 10781,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/33_bmw_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

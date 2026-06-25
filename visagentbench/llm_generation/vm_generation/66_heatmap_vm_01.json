@@ -1,0 +1,73 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "66_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use add_marginal_bars with show_top equal to True, show_right equal to True in order to know How do smoking status and alcohol consumption affect vitamin C intake?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Former smokers and those who never smoke show interesting vitamin C patterns. Former smokers with moderate alcohol consumption have the highest vitamin C intake (90.9%), while never smokers with moderate alcohol consumption have the lowest (85.3%). Heavy alcohol drinkers maintain relatively high vitamin C levels across all smoking categories, especially among never smokers (90.8%). No alcohol consumption is consistently moderate to high, peaking at 90.3% among former smokers.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Former smokers with moderate alcohol have highest vitamin C (90.9%)",
+          "Never smokers with moderate alcohol have lowest vitamin C (85.3%)",
+          "Heavy drinkers maintain high vitamin C across smoking categories",
+          "No alcohol consumption is consistently moderate to high"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Find the extreme values (highest and lowest) in the heatmap"
+          },
+          {
+            "iteration": 2,
+            "tool": "add_marginal_bars",
+            "reasoning": "Add marginal bars to show average values by row and column"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            },
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "op": "mean",
+                  "show_top": true,
+                  "show_right": true,
+                  "bar_size": 70,
+                  "bar_color": "#666666"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "smoking_status",
+            "y": "alcohol_consumption",
+            "color": "vitamin_c_percent_rda"
+          }
+        }
+      }
+    }
+  ]
+}

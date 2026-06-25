@@ -1,0 +1,71 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "34_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/34_bmw_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use change_encoding to change y axis with field equal to engineSize, then use calculate_correlation with method equal to pearson to compute the correlation between price and engineSize. What is the Pearson correlation coefficient (rounded to 3 decimals) between price and engineSize?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.460",
+          "tolerance": 0.1
+        },
+        "key_insights": [
+          "The scatter plot now displays price on x-axis and engineSize on y-axis.",
+          "There is a moderate positive correlation between price and engineSize.",
+          "The Pearson correlation coefficient is approximately 0.460."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Change y encoding to engineSize to show price vs engineSize relationship."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Compute Pearson correlation between price and engineSize."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "engineSize",
+                  "channel": "y"
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "price",
+            "y": "engineSize",
+            "color": "transmission"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

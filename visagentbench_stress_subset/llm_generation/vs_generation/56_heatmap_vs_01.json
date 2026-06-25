@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "56_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/56_Ecommerce_Delivery_Analytics_New_heatmap.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_region_by_value in order to know Which platform and service rating combination has the highest average order value?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Swiggy Instamart with 1-star service rating has the highest average order value of 601.35 INR",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Swiggy Instamart has highest order value at 1-star rating",
+          "All platforms show relatively consistent order values across different ratings",
+          "JioMart has highest order value at 3-star rating"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region_by_value",
+            "reasoning": "Use highlight_region_by_value to identify the platform and service rating with highest order value"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region_by_value",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "outside_opacity": 0.12
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

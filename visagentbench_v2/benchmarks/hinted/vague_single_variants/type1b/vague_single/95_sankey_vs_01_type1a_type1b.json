@@ -1,0 +1,62 @@
+{
+  "benchmark_id": "95_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Using trace_node, what are the upstream material sources and downstream sales destinations for the North America DC?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The North America DC has diverse upstream material dependencies and a dedicated downstream link to E-Commerce.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "North America DC receives inputs from both Assembly Line A and B, with a larger contribution from Assembly Line B."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "This single tool action uncovers both dependency and specialization, providing a concise snapshot of the DC’s strategic position."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "North America DC"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "95_sankey_supply",
+    "dataset_path": "datasets/95_sankey_supply.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/95_sankey_supply.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

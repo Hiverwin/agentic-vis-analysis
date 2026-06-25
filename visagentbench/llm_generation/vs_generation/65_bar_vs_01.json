@@ -1,0 +1,60 @@
+{
+  "task_type": "vague_single",
+  "task_id": "65_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/65_vitamin_deficiency_disease_dataset_bar.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Exercise level has minimal impact on vitamin C intake with all exercise levels showing similar averages around 88-90, suggesting that physical activity does not significantly influence vitamin C consumption regardless of dietary preferences",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Active exercise level has average vitamin C of 90.07",
+          "Light exercise level has average vitamin C of 89.65",
+          "Moderate exercise level has average vitamin C of 88.91",
+          "Sedentary exercise level has average vitamin C of 88.33"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Use sort_bars to order exercise levels and observe how vitamin C intake varies across different exercise levels"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Active",
+              "Light",
+              "Moderate",
+              "Sedentary"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

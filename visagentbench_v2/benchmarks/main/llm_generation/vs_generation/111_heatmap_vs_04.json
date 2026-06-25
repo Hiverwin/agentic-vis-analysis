@@ -1,0 +1,65 @@
+{
+  "benchmark_id": "111_heatmap_vs_04",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_04",
+      "question": "Use find_extremes in order to know Which city shows the most dramatic seasonal temperature variation throughout the year?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Beijing shows the most dramatic seasonal temperature variation with a range of 30.4C from its coldest month (-3.7C in January) to its warmest month (26.7C in July)",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Beijing has the largest temperature variation at 30.4C",
+          "Moscow has the second largest variation at 28.6C",
+          "Nanjing shows significant seasonal variation of 25.5C"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use find_extremes to identify the city with the largest temperature range between its coldest and warmest months"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "111_heatmap_tmp",
+    "dataset_path": "datasets/111_heatmap_tmp.json",
+    "row_count": 240,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

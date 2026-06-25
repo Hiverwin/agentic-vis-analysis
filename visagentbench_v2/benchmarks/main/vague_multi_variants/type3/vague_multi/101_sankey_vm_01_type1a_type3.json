@@ -1,0 +1,118 @@
+{
+  "benchmark_id": "101_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "What changes occur in the flow structure in the updated view, including which links are pruned or retained, which trunk paths dominate, and what implications arise for node roles or funnel behavior compared to the original view?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The credit rating of this loan shows no significant trend of improvement or deterioration in credit rating over a period of three years."
+        },
+        "key_insights": [
+          "The figure shows the flow direction of A.",
+          "The flow of A did not show any increase or decrease in credit rating."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use the tool to illuminate the flow of level A for easier analysis."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.flow.filter",
+            "rationale": "Use tools to eliminate the fluctuations in small samples and analyze the overall trend."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.flow.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "A Orig",
+                  "A Y1",
+                  "A Y2",
+                  "A Y3"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 50
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "AAA Orig",
+                "AA Orig",
+                "A Orig",
+                "BBB Orig",
+                "Junk Orig",
+                "AAA Y1",
+                "AA Y1",
+                "A Y1",
+                "BBB Y1",
+                "Junk Y1",
+                "Default Y1",
+                "Paid Off Y1",
+                "AAA Y2",
+                "AA Y2",
+                "A Y2",
+                "BBB Y2",
+                "Junk Y2",
+                "Default Y2",
+                "Paid Off Y2",
+                "AAA Y3",
+                "AA Y3",
+                "A Y3",
+                "BBB Y3",
+                "Junk Y3",
+                "Default Y3",
+                "Paid Off Y3"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "101_sankey_credit",
+    "dataset_path": "datasets/101_sankey_credit.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/101_sankey_credit.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,66 @@
+{
+  "benchmark_id": "80_scatter_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use calculate_correlation in order to know Analyze the relationship between session duration and calories burned. Which workout type is most effective for calorie burn, and what insights can be drawn about exercise intensity?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is a strong positive correlation (0.91) between session duration and calories burned, indicating that longer workouts generally result in more calories burned. HIIT is the most effective workout type for calorie burn (925.81 average), followed by Strength (910.70), Yoga (903.19), and Cardio (884.51). Despite similar session durations across workout types, HIIT's higher calorie burn suggests it has higher intensity, making it more time-efficient for calorie expenditure.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Strong positive correlation between session duration and calories burned",
+          "HIIT is most effective for calorie burn",
+          "Similar session durations across workout types",
+          "Higher intensity workouts like HIIT burn more calories per hour",
+          "Consistency in workout duration is important for calorie burn"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Use calculate_correlation to analyze the relationship between session duration and calories burned, then compare calorie burn across different workout types."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "80_gym_members_exercise_tracking_scatter",
+    "dataset_path": "datasets/80_gym_members_exercise_tracking_scatter.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/80_gym_members_exercise_tracking_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

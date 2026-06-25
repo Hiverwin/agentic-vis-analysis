@@ -1,0 +1,100 @@
+{
+  "benchmark_id": "22_scatter_cm_04",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_04",
+      "question": "61_scatter_cm_01：Use filter_categorical with field equal to District and categories_to_remove equal to Charlottenburg-Wilmersdorf, Friedrichshain-Kreuzberg, Lichtenberg, Marzahn-Hellersdorf, Neukölln, Pankow, and Reinickendorf to keep only Mitte, then use calculate_correlation with method equal to pearson. What is the Pearson correlation coefficient (rounded to 2 decimals) between Robbery and Injury for Mitte district?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "1",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter by work life balance level 1"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter by work life balance level 4"
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between distance from home and income"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "data.filter.categorical",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "WorkLifeBalance",
+                  "1"
+                ],
+                "field": "field"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "WorkLifeBalance",
+                  "4"
+                ],
+                "field": "value"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "22_Employee_Attrition_DataSet_scatter",
+    "dataset_path": "datasets/22_Employee_Attrition_DataSet_scatter.json",
+    "row_count": 10000,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/22_Employee_Attrition_DataSet_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

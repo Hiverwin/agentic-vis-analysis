@@ -1,0 +1,48 @@
+{
+  "task_type": "vague_single",
+  "task_id": "68_parallel_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/68_supply_chain_data_parallel.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_category with field equal to field, values equal to Heavy to compare the consistency of vitamin intake types A, C, and D with the trend of changes in symptoms_count in order to know what is the consistency of vitamin intake types with the trend of changes in symptoms_count?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "All supply chain dimensions show very similar average values around 25, indicating a balanced relationship between price, product volume, revenue generation, and shipping costs in this dataset",
+          "alternatives": []
+        },
+        "key_insights": [
+          "All dimensions have similar average values around 25",
+          "Balanced relationship between price and shipping costs",
+          "Consistent revenue generation across different product volumes"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Use filter_by_category to analyze the relationship between different supply chain dimensions"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": "dimension"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

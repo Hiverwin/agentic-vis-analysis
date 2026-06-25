@@ -1,0 +1,115 @@
+{
+  "benchmark_id": "115_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Which brand ranks highest in units sold among high-income customers?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "ASICS",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter to keep only high-income customers by removing Medium and Low income levels."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "Switch to grouped mode to compare brand totals side by side."
+          },
+          {
+            "iteration": 3,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars by descending value to identify the top-selling brand."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory",
+          "view.stackMode.set",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Medium",
+                  "Low"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "brand",
+            "y": "units_sold",
+            "color": "customer_income_level"
+          },
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['customer_income_level'] != \"Medium\" && datum['customer_income_level'] != \"Low\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "115_sport_life_bar",
+    "dataset_path": "datasets/115_sport_life_bar.json",
+    "row_count": 6059,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/115_sport_life_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

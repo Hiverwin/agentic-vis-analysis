@@ -1,0 +1,71 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "47_scatter_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/47_candy_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans in order to know How does sugar percentage relate to winning percentage in candy competition, and what differences exist between chocolate and non-chocolate candies?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The scatter plot analysis reveals a weak positive correlation of 0.2076 between sugar percentage and winning percentage across 83 candy varieties. Overall average sugar percentage is 0.49 and winning percentage is 50.58. Chocolate candies (37 varieties) show significantly higher performance with average winning percentage of 60.92 compared to non-chocolate candies (46 varieties) with average winning percentage of 42.27. Chocolate candies have slightly higher average sugar percentage (0.51) than non-chocolate candies (0.47). The winning percentage ranges from 22.45 to 84.18, with chocolate candies showing the highest winning percentage at 84.18. Sugar percentage ranges from 0.03 to 0.99 across all candies. The data suggests that chocolate is a strong predictor of candy popularity and winning percentage, while sugar content shows only a weak positive relationship with winning percentage.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Weak positive correlation of 0.2076 between sugar and winning percentage",
+          "Chocolate candies have higher average winning percentage (60.92 vs 42.27)",
+          "Chocolate candies show slightly higher sugar percentage (0.51 vs 0.47)",
+          "Winning percentage ranges from 22.45 to 84.18",
+          "Sugar percentage ranges from 0.03 to 0.99",
+          "Chocolate is a strong predictor of candy popularity"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation to measure relationship between sugar and winning percentage"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Use identify_clusters to discover natural groupings in candy data"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "sugarpercent",
+            "y": "winpercent",
+            "color": "chocolate"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "benchmark_id": "74_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Which ethnic group (group A through E) ranks third in average math score among students with master's degree parents?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "C",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.stackMode.set",
+            "rationale": "get the groped bar"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "get the chart only have master's degree"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.sort.encoding",
+            "rationale": "get the third one"
+          }
+        ],
+        "required_capabilities": [
+          "view.stackMode.set",
+          "data.filter.subcategory",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "bachelor's degree",
+                  "some college",
+                  "associate's degree",
+                  "high school",
+                  "some high school"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "race/ethnicity",
+            "y": "math score",
+            "color": "parental level of education"
+          },
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['parental level of education'] != \"bachelor's degree\" && datum['parental level of education'] != \"some college\" && datum['parental level of education'] != \"associate's degree\" && datum['parental level of education'] != \"high school\" && datum['parental level of education'] != \"some high school\""
+              }
+            ],
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "group E",
+                "group D",
+                "group C",
+                "group B",
+                "group A"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "74_StudentsPerformance_bar",
+    "dataset_path": "datasets/74_StudentsPerformance_bar.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

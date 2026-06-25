@@ -1,0 +1,73 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "40_heatmap_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/40_insurance_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to row and use highlight_region in order to know How do insurance charges vary between smokers and non-smokers across different numbers of children, and what patterns emerge regarding the relationship between smoking, family size, and healthcare costs?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The data reveals a dramatic difference in insurance charges between smokers and non-smokers. Smokers pay on average $32,050.23, which is 3.80 times higher than non-smokers who pay $8,434.27 on average. Among smokers, charges remain consistently high across all family sizes, ranging from $19,023.26 to $33,844.24 depending on number of children. Interestingly, smokers with 2 children have the highest average charges at $33,844.24. Non-smokers show relatively stable and lower charges across all family sizes, ranging from $7,611.79 to $12,121.34. The number of children has minimal impact on charges for smokers, but shows a slight increasing trend for non-smokers from 0 to 4 children before dropping for 5 children. This data clearly demonstrates that smoking status is the primary driver of insurance costs, far outweighing the impact of family size.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Smokers pay 3.80 times more than non-smokers on average ($32",
+          "050 vs $8",
+          "434)",
+          "Smokers with 2 children have highest average charges at $33",
+          "844",
+          "Non-smoker charges remain stable across family sizes ranging $7",
+          "612-$12",
+          "121",
+          "Smoking status is the primary cost driver regardless of family size",
+          "Number of children has minimal impact on smoker charges but slight increasing trend for non-smokers"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Use find_extremes to identify the highest and lowest cost segments in the heatmap"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_region",
+            "reasoning": "Use highlight_region to focus on specific smoking status groups for comparison"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "row"
+                }
+              }
+            },
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {}
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "children",
+            "y": "smoker",
+            "color": "charges"
+          }
+        }
+      }
+    }
+  ]
+}

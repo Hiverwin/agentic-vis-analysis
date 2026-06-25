@@ -1,0 +1,90 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "117_parallel_vm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/117_startup_funding_dataset_parallel.json",
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Use filter_by_category with field equal to Funding Stage, values equal to Seed, Series A and use hide_dimensions with dimensions equal to Number of Employees, mode equal to hide and use highlight_category with field equal to Funding Stage, values equal to IPO in order to know How do different funding stages vary in terms of amount raised and number of employees? What patterns emerge across the startup lifecycle?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "IPO stage shows the highest average normalized amount raised (0.5814), significantly higher than other stages. Series C has moderate funding (0.1266), while earlier stages (Series B, Series A, Seed) show progressively lower amounts. Interestingly, all funding stages show similar employee counts (around 0.50 normalized), suggesting employee growth is relatively independent of funding stage. The data reveals a clear progression: as startups mature from Seed to IPO, their funding amounts increase dramatically, but employee counts remain relatively stable across all stages.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "IPO stage has highest average funding (0.5814 normalized)",
+          "Funding increases dramatically from Seed to IPO",
+          "Employee counts remain stable across all funding stages",
+          "Employee growth is independent of funding stage",
+          "Clear progression pattern from early to late-stage funding"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Filter out early-stage startups (Seed"
+          },
+          {
+            "iteration": 2,
+            "tool": "hide_dimensions",
+            "reasoning": " Series A) to focus on mature companies"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_category",
+            "reasoning": "Hide Number of Employees dimension to focus on funding amount patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Funding Stage",
+                  "values": [
+                    "Seed",
+                    "Series A"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "hide_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimensions": [
+                    "Number of Employees"
+                  ],
+                  "mode": "hide"
+                }
+              }
+            },
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Funding Stage",
+                  "values": "IPO"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension"
+          }
+        }
+      }
+    }
+  ]
+}

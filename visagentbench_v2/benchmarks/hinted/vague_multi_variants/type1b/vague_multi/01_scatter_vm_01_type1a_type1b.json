@@ -1,0 +1,101 @@
+{
+  "benchmark_id": "01_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_categorical and brush_region, how do Japanese and American cars compare on miles per gallon?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Japanese models crowd the upper MPG half of the brush—several points push into the forties with a max near 47—while American cars only sprinkle into that band and top out closer to the high thirties. The brushed view therefore reads as a Japan-led efficiency cluster with the US entries sparser and lower on the MPG axis.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Japan supplies more of the high-MPG points inside the horsepower window.",
+          "American samples are fewer and rarely reach the extreme MPG values Japan hits."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Removes Europe so the comparison stays between Japan and the US."
+          },
+          {
+            "iteration": 2,
+            "capability": "selection.region.set",
+            "rationale": "Selects the horsepower band where efficient cars concentrate."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "selection.region.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Origin",
+                "categories_to_remove": [
+                  "Europe"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "selection.region.set",
+            "param_eval": {
+              "type": "list",
+              "param": "x_range",
+              "target": [
+                40.166664123535156,
+                116.3888931274414
+              ]
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              40.166664123535156,
+              116.3888931274414
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Europe\"], datum['Origin']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "01_scatter_cars",
+    "dataset_path": "datasets/01_scatter_cars.json",
+    "row_count": 392,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/01_scatter_cars.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,88 @@
+{
+  "benchmark_id": "53_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "What is the computed correlation between price and grade using the Pearson method?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.667",
+          "tolerance": 0.01
+        },
+        "key_insights": [
+          "The data shows a positive relationship between price and grade.",
+          "The correlation is about 0.667"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "We want to take insight on grade and price, so we should change the encoding to show the data."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "The question ask us to do the calculation of correlation."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "grade",
+                "channel": "x"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "grade",
+            "y": "price",
+            "color": "floors"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "53_Housing_scatter",
+    "dataset_path": "datasets/53_Housing_scatter.json",
+    "row_count": 21613,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/53_Housing_scatter.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

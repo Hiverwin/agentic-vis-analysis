@@ -1,0 +1,89 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "08_heatmap_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/08_heatmap_synthetic_mental_health.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use highlight_region_by_value with min_value equal to 7.0 and use add_marginal_bars with show_top equal to True, show_right equal to True in order to know What patterns emerge from analyzing the interaction between diet quality and weather conditions on sleep hours, and which combinations suggest optimal or suboptimal sleep conditions?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The heatmap reveals interesting patterns: poor diet combined with sunny weather yields the highest average sleep (7.21 hours), while poor diet with cloudy weather shows the lowest (6.86 hours). Good diet with cloudy weather also performs well (7.20 hours). Surprisingly, poor diet does not consistently lead to worse sleep - it depends on weather conditions. Average diet shows moderate and consistent results across weather types (6.98-7.15 hours). The optimal sleep condition appears to be poor diet + sunny weather, while the suboptimal is poor diet + cloudy weather.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Poor diet with sunny weather yields highest sleep (7.21 hours)",
+          "Poor diet with cloudy weather shows lowest sleep (6.86 hours)",
+          "Good diet with cloudy weather also performs well (7.20 hours)",
+          "Weather impact varies significantly depending on diet quality"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Find extreme values to identify best and worst sleep conditions in the heatmap"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_region_by_value",
+            "reasoning": "Highlight regions with high sleep values to analyze optimal combinations"
+          },
+          {
+            "iteration": 3,
+            "tool": "add_marginal_bars",
+            "reasoning": "Add marginal bars to see overall patterns for diet quality and weather separately"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            },
+            {
+              "tool": "highlight_region_by_value",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 7.0,
+                  "outside_opacity": 0.12
+                }
+              }
+            },
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "op": "mean",
+                  "show_top": true,
+                  "show_right": true,
+                  "bar_size": 70,
+                  "bar_color": "#666666"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "diet_quality",
+            "y": "weather",
+            "color": "sleep_hours"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "task_type": "vague_single",
+  "task_id": "88_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use find_extremes in order to know How does the presence of chronic disease affect total bill amounts across different genders?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Patients with chronic disease consistently show higher total bill amounts compared to those without chronic disease across both genders. For female patients, those with chronic disease have an average bill of 25,483.63 compared to 24,615.97 for those without. Similarly, male patients with chronic disease have an average bill of 24,271.49 compared to 23,456.29 for those without. This pattern suggests that chronic disease is associated with higher healthcare costs regardless of gender.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Patients with chronic disease have higher total bill amounts",
+          "Female patients generally have higher bills than male patients",
+          "The pattern is consistent across both genders",
+          "Chronic disease appears to be a significant factor in healthcare costs"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Use find_extremes to identify the cells with highest and lowest total bill amounts and observe the pattern between chronic disease status and bill amounts"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

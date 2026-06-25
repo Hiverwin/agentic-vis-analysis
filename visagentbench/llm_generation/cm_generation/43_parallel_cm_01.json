@@ -1,0 +1,33 @@
+{
+  "id": "43_parallel_cm_01",
+  "image": "43_iris_parallel.json",
+  "question": "Which species has the highest normalized value for Sepal Length (cm)?",
+  "answer": "Iris-virginica",
+  "answer_type": "categorical",
+  "is_objective": true,
+  "tools": [
+    {
+      "tool": "filter_by_category",
+      "params": {
+        "field": "Species",
+        "values": ["Iris-virginica"]
+      },
+      "reasoning": "Filter to show only Iris-virginica"
+    },
+    {
+      "tool": "reorder_dimensions",
+      "params": {
+        "dimension_order": ["Sepal Length (cm)", "Sepal Width (cm)", "Petal Length (cm)", "Petal Width (cm)"]
+      },
+      "reasoning": "Reorder dimensions to put Sepal Length first"
+    },
+    {
+      "tool": "calculate_correlation",
+      "params": {
+        "method": "pearson"
+      },
+      "reasoning": "Calculate correlation between dimensions"
+    }
+  ],
+  "can_ask_max_min": true
+}

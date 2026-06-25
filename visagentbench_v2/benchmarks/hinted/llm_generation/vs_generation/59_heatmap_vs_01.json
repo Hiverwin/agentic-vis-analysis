@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "59_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_region_by_value in order to know What patterns can be observed in blood pressure across different pregnancy counts and diabetes outcomes?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The highest average blood pressure (82.06) is observed in women with 9 pregnancies and diabetes. Generally, diabetic women tend to have higher blood pressure than non-diabetic women, especially at higher pregnancy counts. Blood pressure shows an increasing trend with more pregnancies for both diabetic and non-diabetic women",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Highest blood pressure occurs in women with 9 pregnancies and diabetes",
+          "Diabetic women tend to have higher blood pressure than non-diabetic women",
+          "Blood pressure increases with more pregnancies",
+          "Non-diabetic women with 11 pregnancies also show high blood pressure"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Use highlight_region_by_value to identify patterns in blood pressure across pregnancy counts and diabetes outcomes"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.region.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "outside_opacity": 0.12
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "59_health care diabetes_heatmap",
+    "dataset_path": "datasets/59_health care diabetes_heatmap.json",
+    "row_count": 768,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/59_health care diabetes_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

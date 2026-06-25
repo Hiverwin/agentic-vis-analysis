@@ -1,0 +1,77 @@
+{
+  "benchmark_id": "16_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Which country contributes the most shipped boxes among the top five salespeople?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Australia",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Among the top 5 salespeople, none have New Zealand and UK as their largest contributing country."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "ranking.topN.highlight",
+            "rationale": "I used the highlight top n tool to isolate the top 5 salespeople, which removes the visual clutter from the full list and makes it easier to compare contributions by country"
+          }
+        ],
+        "required_capabilities": [
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 5
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Sales Person",
+            "y": "Boxes Shipped",
+            "color": "Country"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "16_bar_Chocolate Sales",
+    "dataset_path": "datasets/16_bar_Chocolate Sales.json",
+    "row_count": 3282,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

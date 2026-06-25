@@ -1,0 +1,75 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "26_line_cm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/26_China_centra_death_rate_line.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "14_line_cm_01：Use zoom_x_region and filter_lines to analyze line chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Age: 80",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom to focus on recent years"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_lines",
+            "reasoning": "Filter lines to focus on high death rate age groups"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "1980",
+                  "end": "2021"
+                }
+              }
+            },
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Age: 10",
+                    "Age: 25",
+                    "Age: 45",
+                    "Age: 65",
+                    "Age: 0"
+                  ],
+                  "line_field": "end;lines_to_remove"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "1980",
+              "2021"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

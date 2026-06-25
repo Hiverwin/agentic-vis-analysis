@@ -1,0 +1,109 @@
+{
+  "benchmark_id": "47_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Use change_encoding with channel equal to x, field equal to pricepercent, show_regression with method equal to linear, calculate_correlation with method equal to pearson to decide whether the relationship between pricepercent and winpercent is weak or strong.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "weak"
+        },
+        "key_insights": [
+          "The correlation is 0.3338611144196428, showing the relationship is weak."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "We care about pricepercent and winpercent, so we change encoding."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.regression.show",
+            "rationale": "We want to find the relationship, so we draw the regression line"
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.correlation.compute",
+            "rationale": "We want to detect whether the relationship is strong or not."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "analysis.regression.show",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "x",
+                "field": "pricepercent"
+              }
+            }
+          },
+          {
+            "capability": "analysis.regression.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "linear"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "pricepercent",
+            "y": "winpercent",
+            "color": "chocolate"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "encoding",
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "47_candy_scatter",
+    "dataset_path": "datasets/47_candy_scatter.json",
+    "row_count": 83,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/47_candy_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

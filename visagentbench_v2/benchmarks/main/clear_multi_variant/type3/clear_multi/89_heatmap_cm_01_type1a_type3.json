@@ -1,0 +1,149 @@
+{
+  "benchmark_id": "89_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_05",
+      "question": "What is the average value, and how many regions have values below this average?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "9",
+          "tolerance": 2
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.rows.inspect",
+            "rationale": "Use this tool to obtain the precise numerical dataset behind the heatmap. This provides the mean sleep duration values for every cell (BMI Category x Stress Level combination)."
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.cells.filter",
+            "rationale": "To isolate the data for the 'Obese' BMI category. This filters the view (and any subsequent data operations) to only the row for 'Obese', making comparisons within this category clearer."
+          },
+          {
+            "iteration": 3,
+            "capability": "heatmap.cells.filter",
+            "rationale": "To isolate the data for the 'Obese' BMI category. This filters the view (and any subsequent data operations) to only the row for 'Obese', making comparisons within this category clearer."
+          },
+          {
+            "iteration": 4,
+            "capability": "heatmap.cells.filter",
+            "rationale": "To isolate the data for the 'Obese' BMI category. This filters the view (and any subsequent data operations) to only the row for 'Obese', making comparisons within this category clearer."
+          },
+          {
+            "iteration": 5,
+            "capability": "data.visible.summarize",
+            "rationale": "To calculate the overall average for the filtered 'Obese' row. This provides the benchmark for comparison."
+          }
+        ],
+        "required_capabilities": [
+          "data.rows.inspect",
+          "heatmap.cells.filter",
+          "heatmap.cells.filter",
+          "heatmap.cells.filter",
+          "data.visible.summarize"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.rows.inspect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Overweight"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Normal"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Normal Weight"
+              }
+            }
+          },
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "visible"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Stress Level",
+            "y": "BMI Category",
+            "color": "Sleep Duration"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "!(indexof([\"Overweight\"], datum['BMI Category']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              },
+              {
+                "filter": "!(indexof([\"Normal\"], datum['BMI Category']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              },
+              {
+                "filter": "!(indexof([\"Normal Weight\"], datum['BMI Category']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "89_Sleep_health_and_lifestyle_dataset_heatmap",
+    "dataset_path": "datasets/89_Sleep_health_and_lifestyle_dataset_heatmap.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/89_Sleep_health_and_lifestyle_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

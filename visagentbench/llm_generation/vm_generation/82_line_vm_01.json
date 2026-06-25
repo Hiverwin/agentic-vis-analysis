@@ -1,0 +1,74 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "82_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use filter_lines with lines_to_remove equal to Books, Beauty Products and use highlight_trend with trend_type equal to decreasing in order to know What patterns can you observe in online sales revenue trends across different product categories?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Electronics dominates with the highest total revenue ($34,982) and average revenue ($875), followed by Home Appliances ($18,646 total, $466 average), 2) Books has the lowest total revenue ($1,862) and average revenue ($47), indicating it is the least profitable category, 3) Most categories show declining trends from start to end, with Electronics dropping 85%, Home Appliances 68%, and Sports 60%, 4) Interestingly, Clothing is the only category showing growth (+29%), suggesting shifting consumer preferences, 5) There is a clear revenue hierarchy with Electronics and Home Appliances in the top tier, Sports and Clothing in the middle, and Beauty Products and Books at the bottom, 6) The overall revenue decline of 97% suggests seasonal patterns or market changes affecting all categories except Clothing.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Electronics dominates revenue",
+          "Books has lowest revenue",
+          "Most categories show declining trends",
+          "Clothing shows growth (+29%)",
+          "Clear revenue hierarchy",
+          "Overall 97% decline suggests seasonal patterns"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_lines",
+            "reasoning": "Filter lines to focus on specific categories"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight trend to see overall patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Books",
+                    "Beauty Products"
+                  ],
+                  "line_field": "lines_to_remove"
+                }
+              }
+            },
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "decreasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Date",
+            "y": "Total Revenue",
+            "color": "Product Category"
+          }
+        }
+      }
+    }
+  ]
+}

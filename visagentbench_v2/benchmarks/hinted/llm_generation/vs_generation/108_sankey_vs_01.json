@@ -1,0 +1,64 @@
+{
+  "benchmark_id": "108_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use trace_node with node_name equal to Auto-Approve to rank treatments by overall utilization efficiency in order to know how do treatments rank by overall utilization efficiency?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Partner API demonstrates the highest auto-approval efficiency with 60.00% of its claims being auto-approved (900 out of 1500 total claims), significantly outperforming other channels",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Partner API has the highest auto-approval rate at 60.00%",
+          "App Self-Service has the second highest rate at 51.43%",
+          "Partner API processes fewer total claims but achieves higher efficiency"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Use trace_node to trace the Auto-Approve node and analyze which FNOL channel contributes the highest proportion of auto-approved claims"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Auto-Approve"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "108_insurance_sankey",
+    "dataset_path": "datasets/108_insurance_sankey.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/108_insurance_sankey.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

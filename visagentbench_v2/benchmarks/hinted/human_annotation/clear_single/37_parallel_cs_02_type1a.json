@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "37_parallel_cs_02",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use hide_dimensions with mode equal to hide, dimensions equal to Area (mean), Texture (mean), Smoothness (mean) to compare which had the higher value of Radius(mean).",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "diagnosis M",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "hide dimensions and we can see the orange lines(M) were higher than blue lines(B)."
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "Area (mean)",
+                  "Texture (mean)",
+                  "Smoothness (mean)"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          },
+          "view": {
+            "xDomain": [
+              "Radius (mean)",
+              "Fractal dimension (mean)"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Radius (mean)\", \"Fractal dimension (mean)\"], datum['dimension']) >= 0",
+                "_pc_hide_dimensions": true
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "dimensions": {
+              "hidden_fields": [
+                "Area (mean)",
+                "Texture (mean)",
+                "Smoothness (mean)"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "37_cancer_parallel ",
+    "dataset_path": "datasets/37_cancer_parallel .json",
+    "row_count": 2845,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/37_cancer_parallel .json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

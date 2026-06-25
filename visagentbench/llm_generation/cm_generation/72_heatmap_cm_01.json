@@ -1,0 +1,60 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "72_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/72_StudentsPerformance_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "08_heatmap_cm_01：Use find_extremes and find_extremes to analyze heatmap chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "group E - master's degree",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Find the top 3 cells with highest writing scores"
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extremes",
+            "reasoning": "Find the top 1 cell with highest writing score"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 3,
+                  "mode": "max"
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 5,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

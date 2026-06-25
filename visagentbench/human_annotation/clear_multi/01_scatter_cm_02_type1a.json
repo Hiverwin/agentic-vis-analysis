@@ -1,0 +1,71 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "01_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/01_scatter_cars.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_categorical with field equal to Origin and categories_to_remove equal to [USA] to exclude US cars, then use calculate_correlation with x_field equal to Horsepower and y_field equal to Miles_per_Gallon and method equal to spearman. Among non-US cars only, is there a negative correlation between Horsepower and Miles_per_Gallon?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "Yes"
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categorical",
+            "reasoning": "Filter out USA to compute correlation only for Japan and Europe cars."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Compute Spearman correlation on the filtered subset; the baseline cannot compute this without tools."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Origin",
+                  "categories_to_remove": [
+                    "USA"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "categorical",
+                "param": "method",
+                "target": "spearman"
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Horsepower",
+            "y": "Miles_per_Gallon",
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"USA\"], datum['Origin']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

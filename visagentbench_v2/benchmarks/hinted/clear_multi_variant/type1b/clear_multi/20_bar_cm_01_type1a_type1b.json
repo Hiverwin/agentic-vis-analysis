@@ -1,0 +1,114 @@
+{
+  "benchmark_id": "20_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "Using filter_categories and sort_bars, which product is positioned first when ranking Xbox brand products by mean RPG score after removing specified platforms?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Xbox One",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Remove non-Xbox platforms to focus on Xbox brand products only."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort by descending RPG score to identify the top product."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Dreamcast",
+                  "Game Boy Advance",
+                  "Game Boy Color",
+                  "GameCube",
+                  "Nintendo 3DS",
+                  "Nintendo 64",
+                  "Nintendo DS",
+                  "Nintendo DSi",
+                  "PC",
+                  "PlayStation",
+                  "PlayStation 2",
+                  "PlayStation 3",
+                  "PlayStation 4",
+                  "PlayStation Portable",
+                  "PlayStation Vita",
+                  "Wii",
+                  "Wireless",
+                  "iPhone"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Platform",
+            "y": "RPG"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Dreamcast\",\"Game Boy Advance\",\"Game Boy Color\",\"GameCube\",\"Nintendo 3DS\",\"Nintendo 64\",\"Nintendo DS\",\"Nintendo DSi\",\"PC\",\"PlayStation\",\"PlayStation 2\",\"PlayStation 3\",\"PlayStation 4\",\"PlayStation Portable\",\"PlayStation Vita\",\"Wii\",\"Wireless\",\"iPhone\"], datum['Platform']) < 0"
+              }
+            ],
+            "sorting": {
+              "has_sort": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "20_ign_scores_bar",
+    "dataset_path": "datasets/20_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/20_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,79 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "96_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/96_sankey_energy.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use trace_node with node_name equal to Rejected Energy and use trace_node with node_name equal to Generation Loss and use calculate_conversion_rate with node_name equal to Power Generation in order to know Analyze the energy loss distribution in the national energy system and discuss which stages have the greatest potential for energy conservation.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The national energy system shows significant losses at multiple stages. Power Generation is the largest loss point with 103 EJ lost (62% of its 165 EJ input), resulting in only 37.6% generation efficiency. The second major loss is Rejected Energy at end-use stage (73 EJ), primarily from Motive Power (38 EJ), Other Uses (14 EJ), and Heating (11 EJ). The overall system efficiency is only 31.2% (89 EJ useful output from 285 EJ input). The greatest conservation potential lies in: (1) improving power generation efficiency, (2) enhancing motive power efficiency in transport and industry, and (3) reducing heating losses through better insulation and heat recovery systems.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Power Generation loses 103 EJ (62% of input)",
+          "Rejected Energy totals 73 EJ mainly from Motive Power",
+          "Overall system efficiency is only 31.2%",
+          "Greatest conservation potential in power generation and motive power sectors"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace the sources of Rejected Energy to identify end-use losses"
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace the sources of Generation Loss to understand power sector inefficiency"
+          },
+          {
+            "iteration": 3,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Calculate conversion rate at Power Generation to quantify generation efficiency"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Rejected Energy"
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Generation Loss"
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Power Generation"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

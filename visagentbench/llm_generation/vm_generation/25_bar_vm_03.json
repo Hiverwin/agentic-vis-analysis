@@ -1,0 +1,86 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "25_bar_vm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/25_gym_members_exercise_tracking_bar.json",
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Use sort_bars with order equal to descending and use filter_subcategories with subcategories_to_remove equal to 1, 2 and use highlight_top_n with n equal to 2 in order to know How do different workout types compare in terms of fat percentage and what role does experience level play?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Different workout types show surprisingly similar fat percentages, with Strength training at 25.5%, Cardio at 25.4%, and both HIIT and Yoga at 24.5%. However, experience level reveals dramatic differences: beginners (Level 1) average 27.6% body fat, intermediate (Level 2) at 27.3%, while advanced practitioners (Level 3) show significantly lower fat at 14.8%. This suggests that workout type matters less than consistent experience and dedication. Gender also plays a role, with females averaging 27.7% vs males at 22.6%.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Workout types show minimal difference in fat percentage",
+          "Experience level 3 shows dramatically lower fat",
+          "Gender differences are more pronounced than workout type differences"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to compare fat percentages across workout types"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter by experience level to see how it affects results"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top performers to identify best practices"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "1",
+                    "2"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Workout_Type",
+            "y": "Fat_Percentage",
+            "color": "Experience_Level"
+          }
+        }
+      }
+    }
+  ]
+}

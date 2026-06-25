@@ -1,0 +1,99 @@
+{
+  "benchmark_id": "105_line_vm_03",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use focus_lines with mode equal to dim, zoom_x_region with start from 1950 to end 1970 to characterize the different trends.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "China had an increasing and an decreasing between 1958 and 1962."
+        },
+        "key_insights": [
+          "There is a country with a different trend.",
+          "Presented  as a sharp corner",
+          "China had an increasing and an decreasing between 1958 and 1962."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoomed to time range: 1950 to 1970."
+          },
+          {
+            "iteration": 2,
+            "capability": "line.series.focus",
+            "rationale": "Focused on line:China,since it was the only one whose trends were different from each other."
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "line.series.focus"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "1950",
+                "end": "1970"
+              }
+            }
+          },
+          {
+            "capability": "line.series.focus",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "dim",
+                "lines": [
+                  "China"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "1950",
+              "1970"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "105_gini_filter_line",
+    "dataset_path": "datasets/105_gini_filter_line.json",
+    "row_count": 705,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/105_gini_filter_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

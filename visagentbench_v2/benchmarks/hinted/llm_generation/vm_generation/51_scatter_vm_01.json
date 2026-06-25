@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "51_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use identify_clusters with n_clusters equal to 3, method equal to kmeans and use calculate_correlation with method equal to pearson in order to know What patterns can you observe in the relationship between product weight and cost, and how do different shipping modes distribute across the weight-cost space?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The data shows a weak negative correlation between weight and cost. Ship is the dominant shipping mode with the most data points spread across all weight ranges. Flight and Road have similar distributions. Customer ratings are evenly distributed across all shipping modes and weight-cost combinations.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Weak negative correlation between weight and cost",
+          "Ship is dominant shipping mode with 7462 items",
+          "Flight and Road have similar distributions",
+          "Customer ratings evenly distributed across all modes"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Identify clusters to understand data distribution patterns"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between weight and cost"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.clusters.identify",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Weight_in_gms",
+            "y": "Cost_of_the_Product",
+            "color": "Mode_of_Shipment",
+            "size": "Customer_rating"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "51_Train_scatter",
+    "dataset_path": "datasets/51_Train_scatter.json",
+    "row_count": 10999,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/51_Train_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

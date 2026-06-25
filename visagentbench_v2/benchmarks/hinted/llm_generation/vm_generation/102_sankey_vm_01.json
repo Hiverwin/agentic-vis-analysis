@@ -1,0 +1,83 @@
+{
+  "benchmark_id": "102_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_conversion_rate with node_name equal to Referral and use filter_flow with min_value equal to 100.0 in order to know Which acquisition channel demonstrates the most effective user engagement and retention journey, and what factors contribute to its success?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Referral channel demonstrates the most effective user engagement with 60% high-activity rate in Month 1 (240/400 users), the lowest early churn at only 7.5% inactive in M1 (30/400), and strong conversion to upgraded plans. This success stems from pre-qualified leads who already trust the product through word-of-mouth, resulting in higher initial engagement and better long-term retention compared to paid channels like Google Ads (32.7% high-activity, 20% inactive) or Social Media (23.3% high-activity, 30% inactive).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Referral has 60% high-activity rate",
+          "Referral has lowest early churn at 7.5%",
+          "Organic also performs well with 51.7% high-activity",
+          "Social Media has highest early churn at 30%"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate conversion rate for Referral channel to understand its effectiveness"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.flow.filter",
+            "rationale": "Filter flows to see which channels contribute most to high-engagement users"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate",
+          "sankey.flow.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Referral"
+              }
+            }
+          },
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 100.0
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "102_sankey_saas",
+    "dataset_path": "datasets/102_sankey_saas.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/102_sankey_saas.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

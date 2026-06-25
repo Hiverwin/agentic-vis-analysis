@@ -1,0 +1,90 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "37_parallel_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/37_cancer_parallel .json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_by_category with field equal to Diagnosis and values equal to B to remove benign and keep only malignant (M), then use reorder_dimensions with dimension_order equal to Radius (mean), Smoothness (mean), Texture (mean), Area(mean), Fractal_Dimension_(mean). Among malignant samples, is the correlation between Radius (mean) and Smoothness (mean) positive or negative?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "positive",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Remove B to focus on malignant (M) samples."
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Place Radius and Smoothness adjacent for correlation assessment."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Diagnosis",
+                  "values": [
+                    "B"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "Radius (mean)",
+                    "Smoothness (mean)",
+                    "Texture (mean)",
+                    "Area(mean)",
+                    "Fractal_Dimension_(mean)"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension",
+            "y": null,
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"B\"], datum['Diagnosis']) < 0"
+            }
+          ],
+          "axis_order": {
+            "dimension_order": [
+              "Radius (mean)",
+              "Smoothness (mean)",
+              "Texture (mean)",
+              "Area(mean)",
+              "Fractal_Dimension_(mean)"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

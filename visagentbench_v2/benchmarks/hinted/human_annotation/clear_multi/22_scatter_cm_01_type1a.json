@@ -1,0 +1,85 @@
+{
+  "benchmark_id": "22_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use change_encoding to change y axis with field equal to YearsAtCompany, calculate_correlation with method equal to pearson. What is the correlation between DistanceFromHome and YearsAtCompany.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "-0.012",
+          "tolerance": 0.005
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Because I need to calculate the correlation between yearsatcompany and monthlyincome"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "It seems that there is a positive correlation in the graph, so I use the tool to verify it. pearson correlation: 0.850 (strong positive)"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "YearsAtCompany",
+                "channel": "x"
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "DistanceFromHome",
+            "y": "YearsAtCompany",
+            "color": "WorkLifeBalance"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "22_Employee_Attrition_DataSet_scatter",
+    "dataset_path": "datasets/22_Employee_Attrition_DataSet_scatter.json",
+    "row_count": 10000,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/22_Employee_Attrition_DataSet_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

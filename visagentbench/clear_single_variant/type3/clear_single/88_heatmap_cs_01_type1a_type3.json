@@ -1,0 +1,53 @@
+{
+  "task_type": "clear_single",
+  "task_id": "89_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Which insurance type and gender combination has the highest mean of total bill amount?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Private and Female"
+        },
+        "key_insights": [
+          "Private and Female combination has the highest mean of total bill amount."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Use this tool to change the encoding of the Insurance Type and Gender columns to see the combination with the highest mean of total bill amount."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Insurance Type",
+                  "channel": "y"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Gender",
+            "y": "Insurance Type",
+            "color": "Total_Bill_Amount"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

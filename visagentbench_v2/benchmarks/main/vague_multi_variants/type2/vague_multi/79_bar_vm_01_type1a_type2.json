@@ -1,0 +1,134 @@
+{
+  "benchmark_id": "79_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "What are the category-level pattern shifts in terms of ranking changes, widening or narrowing gaps, and standout groups after applying filters and sorting?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "maximum is 7.70,minimum is 6.72,mean is 7.08 and median is 6.82."
+        },
+        "key_insights": [
+          "there are three platforms",
+          "the max value is Xbox one,the min value Xbox 360 and median is Xbox."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filtered 18 categories,and we can see three Xbox platforms."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Sorted those three bars in descending order,and we can calculate their maximum,minimum,mean and median."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "PlayStation 3",
+                  "PlayStation 4",
+                  "PlayStation Portable",
+                  "PlayStation Vita",
+                  "Wii",
+                  "Wireless",
+                  "iPhone",
+                  "PlayStation 2",
+                  "PlayStation",
+                  "Dreamcast",
+                  "Game Boy Advance",
+                  "Game Boy Color",
+                  "GameCube",
+                  "Nintendo 3DS",
+                  "Nintendo 64",
+                  "Nintendo DS",
+                  "Nintendo DSi",
+                  "PC"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"PlayStation 3\",\"PlayStation 4\",\"PlayStation Portable\",\"PlayStation Vita\",\"Wii\",\"Wireless\",\"iPhone\",\"PlayStation 2\",\"PlayStation\",\"Dreamcast\",\"Game Boy Advance\",\"Game Boy Color\",\"GameCube\",\"Nintendo 3DS\",\"Nintendo 64\",\"Nintendo DS\",\"Nintendo DSi\",\"PC\"], datum['Platform']) < 0"
+              }
+            ],
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Xbox One",
+                "PlayStation 4",
+                "PlayStation Vita",
+                "Wireless",
+                "Dreamcast",
+                "iPhone",
+                "PlayStation 3",
+                "Nintendo DSi",
+                "Xbox",
+                "PC",
+                "Xbox 360",
+                "Nintendo 3DS",
+                "Nintendo 64",
+                "GameCube",
+                "PlayStation Portable",
+                "PlayStation 2",
+                "Game Boy Advance",
+                "Game Boy Color",
+                "Wii",
+                "PlayStation",
+                "Nintendo DS"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "79_ign_scores_bar",
+    "dataset_path": "datasets/79_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

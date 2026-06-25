@@ -1,0 +1,80 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "92_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/92_sankey_b2b.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "How do the contribution patterns compare across high-value product lines?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Channel Partner leads are more evenly split between Enterprise SaaS Platform and Customized Solution."
+        },
+        "key_insights": [
+          "The Enterprise SaaS Platform and Customized Solution are the two highest-value product lines",
+          "Official Website SEO/SEM leads favor the Enterprise SaaS Platform."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "identify which product lines have the highest total signed value."
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_path",
+            "reasoning": "the original view’s overlapping flows make it difficult to discern these patterns without targeted exploration."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Official Website SEO/SEM",
+                    "Enterprise SaaS Platform"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "Channel Partner",
+              "Official Website SEO/SEM",
+              "Industry Exhibition/Conference",
+              "Old Customer Referral",
+              "SDR Cold Call",
+              "Enterprise SaaS Platform",
+              "Customized Solution",
+              "Data Middleware Product",
+              "Maintenance Service",
+              "API Open Platform"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

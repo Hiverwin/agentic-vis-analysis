@@ -1,0 +1,78 @@
+{
+  "benchmark_id": "66_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use add marginal bar with show right, and then to see which alcohol_consumption status has the least mean of vitamin_c_percent_rda.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Moderate",
+          "alternatives": [
+            "moderate"
+          ]
+        },
+        "key_insights": [
+          "Moderate alcohol consumption has the least mean of vitamin_c_percent_rda."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.marginals.add",
+            "rationale": "Filtering by \"Former\" smoking status isolates this subgroup, making it easy to see the variation in vitamin C levels across alcohol consumption"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "show_right": true,
+                "op": "mean"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "smoking_status",
+            "y": "alcohol_consumption",
+            "color": "vitamin_c_percent_rda"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 3,
+              "has_type": "bar"
+            }
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "66_vitamin_deficiency_disease_dataset_heatmap",
+    "dataset_path": "datasets/66_vitamin_deficiency_disease_dataset_heatmap.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

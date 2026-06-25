@@ -1,0 +1,50 @@
+{
+  "task_type": "clear_single",
+  "task_id": "40_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/40_insurance_heatmap.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Which combination of smoker and children corresponds to the highest charges value?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "2 children and smoker",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Use this tool to find the combination with the highest charges value."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "max"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "children",
+            "y": "smoker",
+            "color": "charges"
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

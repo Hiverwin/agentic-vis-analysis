@@ -1,0 +1,191 @@
+{
+  "benchmark_counts": {
+    "by_partition": {
+      "hinted": 1183,
+      "main": 1349,
+      "stress": 116
+    },
+    "by_widget_kind": {
+      "scatter": 424,
+      "bar": 556,
+      "heatmap": 412,
+      "sankey": 480,
+      "parallelCoordinates": 372,
+      "line": 404
+    },
+    "by_question_style": {
+      "tool_hinted": 1250,
+      "natural_language": 1393
+    }
+  },
+  "partition_widget_counts": {
+    "hinted": {
+      "scatter": 194,
+      "bar": 243,
+      "heatmap": 132,
+      "sankey": 204,
+      "parallelCoordinates": 178,
+      "line": 232
+    },
+    "main": {
+      "heatmap": 276,
+      "bar": 301,
+      "scatter": 198,
+      "sankey": 276,
+      "parallelCoordinates": 126,
+      "line": 172
+    },
+    "stress": {
+      "parallelCoordinates": 68,
+      "scatter": 32,
+      "bar": 12,
+      "heatmap": 4
+    }
+  },
+  "top_required_capabilities": [
+    {
+      "capability": "data.filter.categorical",
+      "count": 547
+    },
+    {
+      "capability": "sankey.path.highlight",
+      "count": 382
+    },
+    {
+      "capability": "view.domain.zoom",
+      "count": 342
+    },
+    {
+      "capability": "view.sort.encoding",
+      "count": 315
+    },
+    {
+      "capability": "view.encoding.change",
+      "count": 308
+    },
+    {
+      "capability": "analysis.correlation.compute",
+      "count": 251
+    },
+    {
+      "capability": "sankey.conversionRate.calculate",
+      "count": 183
+    },
+    {
+      "capability": "analysis.extremes.find",
+      "count": 174
+    },
+    {
+      "capability": "view.stackMode.set",
+      "count": 152
+    },
+    {
+      "capability": "heatmap.cells.filter",
+      "count": 149
+    },
+    {
+      "capability": "data.filter.subcategory",
+      "count": 144
+    },
+    {
+      "capability": "line.series.filter",
+      "count": 139
+    },
+    {
+      "capability": "data.visible.summarize",
+      "count": 118
+    },
+    {
+      "capability": "data.highlight.values",
+      "count": 106
+    },
+    {
+      "capability": "analysis.clusters.identify",
+      "count": 103
+    },
+    {
+      "capability": "parallel.dimensions.hide",
+      "count": 98
+    },
+    {
+      "capability": "heatmap.region.highlight",
+      "count": 88
+    },
+    {
+      "capability": "sankey.flow.filter",
+      "count": 81
+    },
+    {
+      "capability": "sankey.node.collapse",
+      "count": 74
+    },
+    {
+      "capability": "heatmap.colorScale.adjust",
+      "count": 65
+    },
+    {
+      "capability": "ranking.topN.highlight",
+      "count": 60
+    },
+    {
+      "capability": "line.trend.highlight",
+      "count": 57
+    },
+    {
+      "capability": "line.movingAverage.show",
+      "count": 53
+    },
+    {
+      "capability": "analysis.anomalies.detect",
+      "count": 52
+    },
+    {
+      "capability": "heatmap.marginals.add",
+      "count": 46
+    },
+    {
+      "capability": "axis.x.resample",
+      "count": 45
+    },
+    {
+      "capability": "analysis.regression.show",
+      "count": 42
+    },
+    {
+      "capability": "data.rows.inspect",
+      "count": 39
+    },
+    {
+      "capability": "line.series.focus",
+      "count": 29
+    },
+    {
+      "capability": "view.reset",
+      "count": 24
+    },
+    {
+      "capability": "selection.region.set",
+      "count": 16
+    },
+    {
+      "capability": "view.stack.expand",
+      "count": 12
+    },
+    {
+      "capability": "sankey.bottleneck.find",
+      "count": 8
+    },
+    {
+      "capability": "view.inspect",
+      "count": 8
+    },
+    {
+      "capability": "axis.x.drilldown",
+      "count": 4
+    },
+    {
+      "capability": "history.undo",
+      "count": 1
+    }
+  ]
+}

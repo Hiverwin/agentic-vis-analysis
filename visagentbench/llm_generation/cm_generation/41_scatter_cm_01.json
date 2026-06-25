@@ -1,0 +1,54 @@
+{
+  "question_type": "clear_multi",
+  "question_text": "What is the correlation between Chinese American Museum and America Tropical Interpretive Center, and how many distinct clusters can be identified in the data?",
+  "answer_value": "0.17, 2",
+  "reasoning_steps": [
+    {
+      "iteration": 1,
+      "tool": "calculate_correlation",
+      "reasoning": "Calculate correlation between the two museums"
+    },
+    {
+      "iteration": 2,
+      "tool": "identify_clusters",
+      "reasoning": "Identify distinct clusters in the data"
+    }
+  ],
+  "tool_evals": [
+    {
+      "tool": "calculate_correlation",
+      "param_eval": {
+        "type": "object",
+        "param": "all_params",
+        "target": {
+          "method": "pearson"
+        }
+      }
+    },
+    {
+      "tool": "identify_clusters",
+      "param_eval": {
+        "type": "object",
+        "param": "all_params",
+        "target": {
+          "n_clusters": 2
+        }
+      }
+    }
+  ],
+  "state_eval": {
+    "encoding": {
+      "x": {
+        "field": "Chinese American Museum",
+        "type": "quantitative"
+      },
+      "y": {
+        "field": "America Tropical Interpretive Center",
+        "type": "quantitative"
+      }
+    },
+    "data_filtered": []
+  },
+  "is_objective": true,
+  "answer_type": "categorical"
+}

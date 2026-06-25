@@ -1,0 +1,68 @@
+{
+  "benchmark_id": "40_heatmap_vs_02",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_02",
+      "question": "Use find_extremes in order to know How does smoking status affect insurance charges across different numbers of children?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Smokers consistently show significantly higher charges than non-smokers across all numbers of children, with smokers averaging 32050.23 compared to non-smokers at 8434.27, indicating smoking status is a major factor in insurance costs",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Smokers have average charges of 32050.23 vs non-smokers at 8434.27",
+          "The highest average charge is for children=2",
+          "smoker=yes (33844.24)",
+          "The lowest average charge is for children=0",
+          "smoker=no (7611.79)",
+          "Smoking status has much larger impact on charges than number of children"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Use find_extremes to identify highest and lowest average charges in heatmap and observe pattern related to smoking status"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "40_insurance_heatmap",
+    "dataset_path": "datasets/40_insurance_heatmap.json",
+    "row_count": 1338,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/40_insurance_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

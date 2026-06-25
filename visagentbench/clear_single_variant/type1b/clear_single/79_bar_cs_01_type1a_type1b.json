@@ -1,0 +1,77 @@
+{
+  "task_type": "clear_single",
+  "task_id": "79_bar_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using sort_bars, which platform ranks as the most active based on activity level?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Xbox One",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "sort the bars in descending order,and we can see the bar of Xbox One is the highest"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Platform",
+            "y": "Action",
+            "color": null
+          },
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Xbox One",
+              "PlayStation 4",
+              "PlayStation Vita",
+              "Wireless",
+              "Dreamcast",
+              "iPhone",
+              "PlayStation 3",
+              "Nintendo DSi",
+              "Xbox",
+              "PC",
+              "Xbox 360",
+              "Nintendo 3DS",
+              "Nintendo 64",
+              "GameCube",
+              "PlayStation Portable",
+              "PlayStation 2",
+              "Game Boy Advance",
+              "Game Boy Color",
+              "Wii",
+              "PlayStation",
+              "Nintendo DS"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

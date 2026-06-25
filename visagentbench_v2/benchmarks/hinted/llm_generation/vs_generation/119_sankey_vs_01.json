@@ -1,0 +1,65 @@
+{
+  "benchmark_id": "119_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use trace_node with node_name equal to Player Wallet to rank treatments by overall utilization efficiency in order to know how do treatments rank by overall utilization efficiency?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The game economy is primarily driven by two major income sources: Daily Quests and Dungeon Drops, each contributing 17,000,000 units (34% of total income each), followed by IAP Exchange at 10,000,000 (20%), System Rewards at 5,000,000 (10%), and Bot Farming at 1,000,000 (2%), showing a balanced mix of gameplay activities and monetization",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Daily Quests and Dungeon Drops are equal largest sources at 17M each",
+          "IAP Exchange provides significant revenue at 10M",
+          "Total economy flow is 50M units",
+          "Income sources are well diversified across gameplay and monetization"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace flow from income source nodes to understand their distribution across the economy"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Player Wallet"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "119_sankey_game",
+    "dataset_path": "datasets/119_sankey_game.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/119_sankey_game.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

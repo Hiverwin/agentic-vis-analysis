@@ -1,0 +1,53 @@
+{
+  "task_type": "clear_single",
+  "task_id": "51_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/51_Train_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using calculate_correlation, what is the correlation between Weight_in_gms and Cost_of_the_Product?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "-0.133",
+          "tolerance": 0.01
+        },
+        "key_insights": [
+          "The scatter plot displays Weight_in_gms on x-axis and Cost_of_the_Product on y-axis.",
+          "There is a weak negative correlation between the two variables.",
+          "The Pearson correlation coefficient is approximately -0.133."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation with pearson method to compute the correlation coefficient between x and y."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Weight_in_gms",
+            "y": "Cost_of_the_Product",
+            "color": "Mode_of_Shipment"
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

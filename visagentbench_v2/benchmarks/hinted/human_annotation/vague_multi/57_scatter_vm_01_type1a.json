@@ -1,0 +1,87 @@
+{
+  "benchmark_id": "57_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `change_encoding(field='Pregnancies', channel='x')`; then apply `change_encoding(field='Outcome', channel='y')`. Then assess whether blood-sugar outcome patterns differ by pregnancy count, and justify your conclusion with visible spread/overlap across pregnancy levels.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Regardless of whether one is pregnant or not, and regardless of the duration of pregnancy, the distribution pattern of high blood sugar is consistent. Therefore, it is believed that the two are unrelated."
+        },
+        "key_insights": [
+          "The distribution pattern of high blood sugar is consistent regardless of whether one is pregnant or not, and regardless of the duration of pregnancy."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "change the encoding to match the question"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.encoding.change",
+            "rationale": "change the encoding to match the question"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Pregnancies",
+                "channel": "x"
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Outcome",
+                "channel": "y"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Pregnancies",
+            "y": "Outcome",
+            "color": "Outcome"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "57_health care diabetes_scatter",
+    "dataset_path": "datasets/57_health care diabetes_scatter.json",
+    "row_count": 768,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/57_health care diabetes_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

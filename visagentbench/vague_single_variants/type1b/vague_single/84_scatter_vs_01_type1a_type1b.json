@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "84_scatter_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/84_starbucks_scatter.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Using change_encoding, how do calories vary within and across beverage categories, and what role do sugar-related encodings play if they are visible?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "With x = Beverage_category and y = Calories (color still Beverage_category), each category forms a vertical band of points: within category, calories spread widely (e.g. Frappuccino® Blended Coffee and Signature Espresso Drinks span from roughly ~100–500 kcal in the data; Coffee stays ~3–5). Across categories, Coffee is uniformly low-calorie; Smoothies and Frappuccino® families sit highest on average. Sugar (g) is no longer on an axis after the encoding change; it remains available in tooltips for spot checks but does not drive x/y position in this final view."
+        },
+        "key_insights": [
+          "Within-category calorie dispersion is large for blended and signature drink categories; Coffee is a tight low band.",
+          "Cross-category ordering: blended/smoothie-style categories sit highest on the calorie axis; coffee lowest."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Remap x to Beverage_category so category-level and within-category calorie patterns can be read from the scatter."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Beverage_category",
+                  "channel": "x"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Beverage_category",
+            "y": "Calories",
+            "color": "Beverage_category"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "107_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/107_survive_to_65_line.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "What is the evolution of male survival-to-65 by country, including ranking stability, gap dynamics, and whether there is catch-up or overtaking?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "With Russia, India, China, and Denmark removed, the 2000-2020 view shows that all remaining countries improve in male survival-to-65, but not at the same pace. One or more lines rise more smoothly, while another exhibits stronger slope change in the mid-to-late years. The leading country remains ahead for most of the window, yet lower-ranked countries reduce part of the distance, which is a catch-up pattern rather than a full ranking reversal. This interpretation depends on the filtered and zoomed comparison."
+        },
+        "key_insights": [
+          "The four retained countries rise overall in 2000-2020, but their slope profiles differ by phase.",
+          "Higher-ranked lines generally stay on top, while lower-ranked lines show measurable catch-up in spacing.",
+          "The zoomed segment is required to evaluate ranking persistence and potential overtaking windows credibly."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_lines",
+            "reasoning": "Remove Russia, India, China, and Denmark first to create a cleaner four-line comparison set."
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_x_region",
+            "reasoning": "Then focus on 2000-2020 to inspect trend pace, rank ordering, and narrowing/widening gaps for catch-up or overtaking evidence."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    "Russia",
+                    "India",
+                    "China",
+                    "Denmark"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2000",
+                  "end": "2020"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "2000",
+              "2020"
+            ]
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Russia\", \"India\", \"China\", \"Denmark\"], datum['Entity']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "benchmark_id": "04_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "What cities and months fall into the range of temperature greater than 25 degrees Celsius?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Miami in Mar, Apr, May, Jun",
+          "alternatives": [
+            "Miami in March, April, May, and June"
+          ]
+        },
+        "key_insights": [
+          "Groups the rows and columns by temperature similarity. Miami is clustered alone due to its consistently high temperatures, while Denver and Seattle are grouped together as their temperature patterns are more similar.",
+          "After filtering for temperatures >25°C, the only cells that remain are those for Miami in Jan, Apr, May, and Jun, with Jun being the hottest at ~30°C."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Clustering helps simplify the heatmap by organizing cities and months with similar temperature behavior, making it easier to spot the high-temperature group (Miami)."
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filtering then narrows down the exact cells that meet the 25°C threshold, providing a precise, objective answer to the question."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.clusters.identify",
+          "heatmap.cells.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "categorical",
+              "param": "cluster_rows",
+              "target": true
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "numeric",
+              "param": "min_value",
+              "target": 25,
+              "tolerance": 0.1
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "month",
+            "y": "city",
+            "color": "temp"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['temp'] >= 25 && datum['temp'] <= 30"
+              }
+            ],
+            "clustering_order": {
+              "clustered": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "clustering_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "04_heatmap_temp",
+    "dataset_path": "datasets/04_heatmap_temp.json",
+    "row_count": 18,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/04_heatmap_temp.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

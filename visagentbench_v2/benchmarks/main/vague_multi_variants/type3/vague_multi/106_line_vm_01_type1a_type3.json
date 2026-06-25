@@ -1,0 +1,102 @@
+{
+  "benchmark_id": "106_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "What are the life-expectancy trajectories of the remaining four countries in terms of trend shape, relative ranking, convergence or catch-up, and clarity of potential crossings?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After excluding Zimbabwe, Brazil, and Australia, the 2000-2020 zoom shows four remaining lines that generally increase, but with different slope regimes. One trajectory appears consistently smoother, while another shows a steeper middle segment followed by visible flattening. Ranking is not fully reshuffled, yet the gap between the middle lines narrows in part of the interval, indicating partial catch-up rather than complete overtaking. This evidence is more legible in the zoomed view than in the full timeline."
+        },
+        "key_insights": [
+          "In 2000-2020, the four retained countries all trend upward, but their slope intensity and phase changes are not identical.",
+          "Top-vs-bottom ordering remains distinguishable, while mid-tier spacing narrows during part of the interval (catch-up signal).",
+          "Filtering plus zooming is necessary to observe local slope transitions and near-crossing behavior with confidence."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "First remove Zimbabwe, Brazil, and Australia to reduce visual clutter and isolate four comparable trajectories."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "Then zoom to 2000-2020 to compare slope changes, ranking persistence, and convergence signals in a focused time window."
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Zimbabwe",
+                  "Brazil",
+                  "Australia"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2000",
+                "end": "2020"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "2000",
+              "2020"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Zimbabwe\", \"Brazil\", \"Australia\"], datum['Entity']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "106_life expectancey_line",
+    "dataset_path": "datasets/106_life expectancey_line.json",
+    "row_count": 592,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/106_life expectancey_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

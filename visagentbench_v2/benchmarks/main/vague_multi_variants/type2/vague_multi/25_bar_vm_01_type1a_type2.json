@@ -1,0 +1,96 @@
+{
+  "benchmark_id": "25_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "What category-level pattern shifts, including ranking changes, widening or narrowing gaps, and standout groups, are observable in the updated bar view?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The changes in the experience levels of two projects with similar fat percentage have the same effect on the changes in fat percentage."
+        },
+        "key_insights": [
+          "The fat percentage of HIIT and Yoga is the similar.",
+          "The chart shows that the fat percentage of both projects decreases as the level increases."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Use the filter to select two items with similar fat percentage."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.stackMode.set",
+            "rationale": "Using tools to group horizontally can help us more intuitively study whether the changes in the levels of the two projects have the same effect on the changes in fat content."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.stackMode.set"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Cardio",
+                  "Strength"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.stackMode.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "grouped"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "viewMode": {
+            "stackMode": "grouped"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Cardio\",\"Strength\"], datum['Workout_Type']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "25_gym_members_exercise_tracking_bar",
+    "dataset_path": "datasets/25_gym_members_exercise_tracking_bar.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/25_gym_members_exercise_tracking_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

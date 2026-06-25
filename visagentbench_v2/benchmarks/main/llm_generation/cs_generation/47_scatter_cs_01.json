@@ -1,0 +1,80 @@
+{
+  "benchmark_id": "47_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use zoom_2d_region with x_range from 0.5 to 1.0, y_range from 60.0 to 85.0 in order to know Use zoom_2d_region with x_range from 0.5 to 1.0, y_range from 60.0 to 85.0 to determine which chocolate category has more data points in this region.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Yes",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into the specified region to count data points by chocolate category"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.5,
+                  1.0
+                ],
+                "y_range": [
+                  60.0,
+                  85.0
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              0.5,
+              1.0
+            ],
+            "yDomain": [
+              60.0,
+              85.0
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "47_candy_scatter",
+    "dataset_path": "datasets/47_candy_scatter.json",
+    "row_count": 83,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/47_candy_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

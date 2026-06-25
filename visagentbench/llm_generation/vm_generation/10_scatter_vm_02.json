@@ -1,0 +1,85 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "10_scatter_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/10_scatter_synthetic_mental_health.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans and use get_data_summary in order to know What relationships exist between sleep hours, screen time, and exercise minutes across different diet quality groups, and what lifestyle insights can be derived?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The scatter plot reveals weak correlations between variables: sleep hours and screen time show almost no correlation (-0.018), sleep hours and exercise have weak negative correlation (-0.045), and screen time and exercise show weak positive correlation (0.033). Across diet quality groups, poor diet individuals tend to have slightly higher screen time (5.10 hours) compared to good diet (5.00 hours) and average diet (4.94 hours). Exercise minutes are similar across groups, with good diet showing slightly higher average (20.24 min) than poor diet (18.58 min). The data suggests that diet quality has minimal impact on sleep-screen-exercise patterns in this dataset.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Weak correlation between sleep hours and screen time across all groups",
+          "Poor diet group shows slightly higher screen time on average",
+          "Exercise minutes are relatively consistent across diet quality groups",
+          "Diet quality appears to have minimal impact on sleep-screen-exercise patterns"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between sleep hours and screen time to understand their relationship"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Identify clusters to analyze data point distribution and grouping patterns"
+          },
+          {
+            "iteration": 3,
+            "tool": "get_data_summary",
+            "reasoning": "Get data summary to analyze statistical distribution across different metrics"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            },
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "sleep_hours",
+            "y": "screen_time",
+            "color": "diet_quality",
+            "size": "exercise_minutes"
+          }
+        }
+      }
+    }
+  ]
+}

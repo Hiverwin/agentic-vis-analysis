@@ -1,0 +1,61 @@
+{
+  "task_type": "clear_single",
+  "task_id": "26_line_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/26_China_centra_death_rate_line.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using filter_lines, how many years is the death rate of Age 10 higher than that of Age 25?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "3",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_lines",
+            "reasoning": "filter the data to keep only the Age 10 and Age 25 lines"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines_to_remove": [
+                    " Age: 0",
+                    "Age: 80",
+                    "Age: 45",
+                    "Age: 65"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Central death rate",
+            "color": "Age_Group"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['Age_Group'] == \" Age: 0\" || datum['Age_Group'] == \"Age: 80\" || datum['Age_Group'] == \"Age: 45\" || datum['Age_Group'] == \"Age: 65\""
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

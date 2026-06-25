@@ -1,0 +1,67 @@
+{
+  "benchmark_id": "26_line_cs_03",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_03",
+      "question": "Use filter_lines with lines_to_remove equal to [Age: 0, Age: 10, Age: 25, Age: 45, Age: 65] in order to know Use filter_lines with lines_to_remove equal to Age: 0, Age: 10, Age: 25, Age: 45, Age: 65 to show only Age: 80. What is the maximum central death rate for Age: 80 group?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "233.62",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "Filter to show only Age: 80 group, then identify the maximum central death rate"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Age: 0",
+                  "Age: 10",
+                  "Age: 25",
+                  "Age: 45",
+                  "Age: 65"
+                ],
+                "line_field": "lines_to_remove"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "26_China_centra_death_rate_line",
+    "dataset_path": "datasets/26_China_centra_death_rate_line.json",
+    "row_count": 432,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/26_China_centra_death_rate_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "113_parallel_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Using reorder_dimensions, what is the assessment of whether the program will be continued for the next season based on its popularity?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "No, because find that no matter how many popularity is, most of them have about 1 episode"
+        },
+        "key_insights": [
+          "find no matter how many popularity is, most of them have about 1 episode"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "easier to obtain the data"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "score",
+                  "members",
+                  "popularity",
+                  "episodes"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "axis_order": {
+              "dimension_order": [
+                "score",
+                "members",
+                "popularity",
+                "episodes"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "113_nime_less_parallel",
+    "dataset_path": "datasets/113_nime_less_parallel.json",
+    "row_count": 2076,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/113_nime_less_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

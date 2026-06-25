@@ -1,0 +1,84 @@
+{
+  "benchmark_id": "109_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Use highlight_path with path equal to [Ultimate Guide, Pricing, Payment Success] and get_data with scope equal to visible to determine how many sessions flowed from Ultimate Guide through Pricing to Payment Success. What is the session count?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "4500",
+          "tolerance": 0
+        },
+        "key_insights": [
+          "4500 sessions converted from Ultimate Guide via Pricing to Payment Success (bottleneck at Pricing to Payment Success)."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the conversion path from Ultimate Guide to Pricing to Payment Success."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.rows.inspect",
+            "rationale": "Retrieve the visible flow data to count sessions on this path."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "data.rows.inspect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Ultimate Guide",
+                  "Pricing",
+                  "Payment Success"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.rows.inspect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "visible"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "109_sankey_seo",
+    "dataset_path": "datasets/109_sankey_seo.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/109_sankey_seo.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

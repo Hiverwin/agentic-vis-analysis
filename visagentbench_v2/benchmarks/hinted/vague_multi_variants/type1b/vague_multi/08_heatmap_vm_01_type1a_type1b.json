@@ -1,0 +1,97 @@
+{
+  "benchmark_id": "08_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Using change_encoding and add_marginal_bars, what is the hotspot/coldspot structure, row-column contrasts, and local anomalies in the updated heatmap compared to the original view?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "On rainy days, people tend to sleep the most. Therefore, this can indicate that the sound of rain is beneficial for sleep.It can be seen that sleeping on a sunny day is the worst, so it can be concluded that the sun is not conducive to sleep."
+        },
+        "key_insights": [
+          "find the hours are very different in different weather",
+          "find there are only little different in different weather"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "obtain the chart of weather and sleep_hours"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.marginals.add",
+            "rationale": "get the data in different weather"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "sleep_hours",
+                "channel": "x"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "show_top": false,
+                "show_right": true,
+                "op": "mean"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "diet_quality",
+            "y": "weather",
+            "color": "sleep_hours"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "has_type": "bar"
+            }
+          }
+        },
+        "state_check_fields": [
+          "encoding",
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "08_heatmap_synthetic_mental_health",
+    "dataset_path": "datasets/08_heatmap_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/08_heatmap_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

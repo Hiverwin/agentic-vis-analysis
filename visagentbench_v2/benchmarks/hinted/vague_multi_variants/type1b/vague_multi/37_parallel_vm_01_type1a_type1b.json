@@ -1,0 +1,80 @@
+{
+  "benchmark_id": "37_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Using filter_by_category, how do the trajectories converge or diverge across dimensions in the updated parallel-coordinates view?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "(0.03415,0.6496)",
+          "alternatives": []
+        },
+        "key_insights": [
+          "zxc"
+        ],
+        "reasoning_trace": [],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Diagnosis",
+                "values": [
+                  "M"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"M\"], datum['Diagnosis']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "37_cancer_parallel ",
+    "dataset_path": "datasets/37_cancer_parallel .json",
+    "row_count": 2845,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/37_cancer_parallel .json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

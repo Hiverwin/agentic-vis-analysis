@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "30_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "How are sun exposure levels related to the mean vitamin D percentage of RDA?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "higher sunlight levels correspond to higher mean vitamin D percent RDA"
+        },
+        "key_insights": [
+          "Sun exposure follows the order from high to moderate to low",
+          "indicating that higher sunlight levels correspond to higher mean vitamin D percent RDA, showing a positive correlation between the two."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Arrange the bars in descending order of mean vitamin D percent RDA values, then observe the trend exhibited by sun exposure as vitamin levels decline"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "sun_exposure",
+            "y": "vitamin_d_percent_rda",
+            "color": "diet_type"
+          }
+        }
+      }
+    }
+  ]
+}

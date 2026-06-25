@@ -1,0 +1,102 @@
+{
+  "benchmark_id": "32_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Using filter_categorical and calculate_correlation, what is the Pearson correlation coefficient (rounded to 3 decimals) between bmi and charges for non-smokers?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.084",
+          "tolerance": 0.005
+        },
+        "key_insights": [
+          "Most non-smokers' premiums are concentrated below 20,000, with only a small portion falling between 25,000 and 35,000.",
+          "The points are most densely clustered in the 25-30 BMI range, with some overlapping areas requiring closer inspection when magnified.",
+          "Upon magnifying the region where BMI falls between 25 and 35, it was observed that the majority of data points' charges are concentrated below 15,000.",
+          "The correlation is not readily apparent from the view.",
+          "Since the data are continuous values, the Pearson correlation coefficient was used, yielding a correlation coefficient of approximately 0.018.",
+          "Compared to the initial view, it can be inferred that BMI has a smaller impact on charges than smoking status does."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Remove smokers to focus on non-smokers."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Compute Pearson correlation between bmi and charges."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "smoker",
+                "categories_to_remove": [
+                  "yes"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "bmi",
+            "y": "charges",
+            "color": "smoker"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"yes\"], datum['smoker']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "32_insurance_scatter",
+    "dataset_path": "datasets/32_insurance_scatter.json",
+    "row_count": 1338,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/32_insurance_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

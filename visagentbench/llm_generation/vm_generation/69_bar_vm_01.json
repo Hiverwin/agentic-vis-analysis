@@ -1,0 +1,68 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "69_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/69_top_100_linkedin_companies_2026_bar.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know Which companies have the strongest and weakest presence on LinkedIn, and what patterns emerge?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Google leads with 40 million followers, followed closely by Amazon (36 million) and LinkedIn itself (33 million). The tech sector dominates the top positions, with Microsoft (27 million) and Apple (18 million) also in the top 10. At the bottom, Wipro has the lowest at 11 million, with Tesla, Meta, and Netflix all tied at 12 million. Deloitte and Unilever share sixth place with 21 million. The overall average is 20.05 million followers. Technology and tech companies hold 4 of the top 5 positions.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Google leads with 40 million followers",
+          "Amazon and LinkedIn follow at 36M and 33M",
+          "Tech sector dominates top positions",
+          "Overall average is 20.05 million followers"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars in descending order to see company rankings"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top 5 companies to identify leaders"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "company",
+            "y": "followers"
+          }
+        }
+      }
+    }
+  ]
+}

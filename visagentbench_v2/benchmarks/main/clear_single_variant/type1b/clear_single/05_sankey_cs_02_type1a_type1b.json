@@ -1,0 +1,85 @@
+{
+  "benchmark_id": "05_sankey_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using auto_collapse_by_rank, what is the advertiser positioned first when ranking by traffic?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Google Ads",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.node.collapse",
+            "rationale": "Select the largest one."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.node.collapse"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "visible_nodes": [
+              "Google Ads",
+              "Others (Layer 0)",
+              "Landing Page",
+              "Others (Layer 1)",
+              "Product Detail",
+              "Others (Layer 2)",
+              "Add to Cart",
+              "Others (Layer 3)",
+              "Purchase"
+            ],
+            "collapsed_nodes": [
+              "Others (Layer 0)",
+              "Others (Layer 1)",
+              "Others (Layer 2)",
+              "Others (Layer 3)"
+            ],
+            "node_visibility": {}
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "05_sankey_ecommercial",
+    "dataset_path": "datasets/05_sankey_ecommercial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/05_sankey_ecommercial.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

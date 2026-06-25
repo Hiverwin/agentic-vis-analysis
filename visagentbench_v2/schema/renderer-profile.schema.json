@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://visagentbench.dev/schema/renderer-profile.schema.json",
+  "title": "VisAgentBench v2 Renderer Profile",
+  "$defs": {
+    "materializationEntry": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "spec_path": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["ready", "contract_ready", "planned"]
+        },
+        "renderer": { "type": "string" }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["renderers"],
+  "properties": {
+    "renderers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "renderer",
+          "status",
+          "adapter_family",
+          "transport_options",
+          "required_benchmark_fields"
+        ],
+        "properties": {
+          "renderer": {
+            "type": "string",
+            "enum": ["vega", "d3", "echarts", "custom"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ready", "contract_ready", "planned"]
+          },
+          "adapter_family": { "type": "string" },
+          "transport_options": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "required_benchmark_fields": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

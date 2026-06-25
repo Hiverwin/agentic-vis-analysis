@@ -1,0 +1,52 @@
+{
+  "task_type": "vague_single",
+  "task_id": "120_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/120_startup_Funding_sankey.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use trace_node with node_name equal to Operating Fund to rank treatments by overall utilization efficiency in order to know how do treatments rank by overall utilization efficiency?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The startup demonstrates a balanced funding allocation strategy with Series B VC (35,000) as the primary funding source, followed by Series A (10,000) and Revenue (4,500). The funds are strategically distributed with Team Growth receiving the largest allocation (15,930), followed by Talent Retention (9,900) and Cash Runway (6,300), indicating a strong focus on human capital and operational sustainability while maintaining strategic reserves",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Series B VC is the dominant funding source at 35",
+          "000",
+          "Team Growth receives highest allocation at 15",
+          "930",
+          "Human capital investments (Team Growth + Talent Retention) total 25",
+          "830",
+          "Operating Fund serves as central hub distributing 41",
+          "000 across all operational areas"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace flow from funding sources to understand allocation across strategic priorities"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Operating Fund"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

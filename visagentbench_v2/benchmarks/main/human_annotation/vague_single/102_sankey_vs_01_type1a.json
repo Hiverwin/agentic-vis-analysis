@@ -1,0 +1,86 @@
+{
+  "benchmark_id": "102_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use auto_collapse_by_rank with top_n equal to 2 to collapse the \"Month 1 Engagement\" layer and explore how this simplified view changes the perceived importance of different engagement states in driving long-term retention.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "This reveals a key tradeoff in data visualization: simplification can enhance clarity, but it can also mask important nuance in user risk and retention, shaping how we interpret the drivers of long-term success."
+        },
+        "key_insights": [
+          "The simplified view makes Active (High) (800 users) and Active (Low) (750 users) appear as the dominant engagement states in Month 1. The critical \"Inactive M1\" state is folded into the \"Others (Layer 1)\" category (300 users), making it visually de-emphasized and seem less important.",
+          "his visual simplification is misleading: while \"Inactive M1\" has fewer total users, the chart explicitly notes it has an 87% conversion rate to Churned M3, making it the strongest early predictor of user loss. The collapsed view hides this high-risk signal, leading to the false perception that early inactivity is a minor issue."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.node.collapse",
+            "rationale": "simplified the \"Month 1 Engagement\" layer by folding the low-volume \"Inactive M1\" state into an \"Others\" category."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.node.collapse"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 2
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Google Ads",
+                "Organic",
+                "Referral",
+                "Social Media",
+                "Active (High)",
+                "Active (Low)",
+                "Inactive M1",
+                "Upgraded (Pro)",
+                "Retained (Basic)",
+                "Churned M3",
+                "Loyal",
+                "Downgraded",
+                "Churned M6",
+                "Renewed",
+                "Churned Y1"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "102_sankey_saas",
+    "dataset_path": "datasets/102_sankey_saas.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/102_sankey_saas.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

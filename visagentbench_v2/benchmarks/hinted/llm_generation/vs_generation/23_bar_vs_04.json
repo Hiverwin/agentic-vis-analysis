@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "23_bar_vs_04",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_04",
+      "question": "Use highlight_top_n in order to know Which companies have the highest average battery capacity, and how has battery capacity evolved over the years?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the data analysis, Poco has the highest average battery capacity at 10000 mAh, followed by iQOO at 8040 mAh. Samsung and OnePlus also offer high-capacity batteries (up to 11200 mAh and 11000 mAh respectively). Looking at the yearly trend, battery capacity has been steadily increasing from an average of 4958.59 mAh in 2020 to 5716.67 mAh in 2025, indicating a clear upward trend in battery technology.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Poco has the highest average battery capacity (10000 mAh)",
+          "Battery capacity has been steadily increasing from 2020 to 2025",
+          "Samsung and OnePlus offer the highest maximum battery capacities (11200 mAh and 11000 mAh)"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Analyze company-wise battery capacity and yearly trends"
+          }
+        ],
+        "required_capabilities": [
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "23_Mobiles Dataset (2025)_bar",
+    "dataset_path": "datasets/23_Mobiles Dataset (2025)_bar.json",
+    "row_count": 847,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/23_Mobiles Dataset (2025)_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

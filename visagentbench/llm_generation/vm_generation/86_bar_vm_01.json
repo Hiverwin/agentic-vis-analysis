@@ -1,0 +1,71 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "86_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/86_starbucks_bar.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know What are the key characteristics of calorie distribution across Starbucks beverage categories, and which categories show the most significant differences?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Starbucks beverage categories show a wide range of average calories, from Coffee at only 4.2 calories to Smoothies at 282.2 calories. The top 5 highest-calorie categories (Smoothies, Frappuccino Blended Coffee, Signature Espresso Drinks, Frappuccino Blended Crème, and Tazo Tea Drinks) all average above 177 calories, while Coffee stands out as exceptionally low-calorie. The most significant differences exist between blended/creamy beverages (high calories) and plain coffee (very low calories).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Smoothies have the highest average calories (282.2)",
+          "followed by Frappuccino Blended Coffee (276.9)",
+          "Coffee has exceptionally low average calories (4.2)",
+          "significantly lower than all other categories",
+          "Blended and creamy beverages tend to have higher calorie content",
+          "The calorie range spans 278 calories",
+          "showing significant variation across categories"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars in descending order to visualize the calorie distribution across all beverage categories"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight the top 5 categories to focus on the highest-calorie beverages for detailed analysis"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Beverage_category",
+            "y": "Calories"
+          }
+        }
+      }
+    }
+  ]
+}

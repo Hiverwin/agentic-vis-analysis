@@ -1,0 +1,144 @@
+{
+  "benchmark_id": "47_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Using zoom_2d_region and filter_categorical, what is the relationship pattern in the updated scatter view regarding direction and strength, subgroup overlap versus separation, and what insights become clearer after interaction compared to the original chart?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "It seems to be two groups. One group is sugarpercent lower than 0.32 and other group is sugarpercent higher than 0.40. However, it does not show research value yet."
+        },
+        "key_insights": [
+          "It seems identify clusters tool don't do well"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "As the question mentions the tool of zoom and zoomed place"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "The question cares about non-chocolate candies, so we decide to filter chocolate."
+          },
+          {
+            "iteration": 3,
+            "capability": "selection.region.set",
+            "rationale": "Select thd data point in zoomed area for following steps"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "data.filter.categorical",
+          "selection.region.set",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.1998333231608073,
+                  0.5024999491373698
+                ],
+                "y_range": [
+                  19.48499450683594,
+                  79.9649917602539
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "chocolate",
+                "categories_to_remove": [
+                  "Yes"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "selection.region.set",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.20664332224527995,
+                  0.4899393026326473
+                ],
+                "y_range": [
+                  20.573636303100503,
+                  69.56243407836905
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 2,
+                "method": "kmeans"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              0.20664332224527995,
+              0.4899393026326473
+            ],
+            "yDomain": [
+              20.573636303100503,
+              69.56243407836905
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Yes\"], datum['chocolate']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "47_candy_scatter",
+    "dataset_path": "datasets/47_candy_scatter.json",
+    "row_count": 83,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/47_candy_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,125 @@
+{
+  "benchmark_id": "20_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use filter_categories with categories equal to Dreamcast, PC, Nintendo 3DS, Nintendo 64, Nintendo DS, Nintendo DSi, Game Boy Advance, Game Boy Color, GameCube, sort_bars with order equal to descending to analyze the common features of high-scoring home game consoles.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The platforms with higher mean of RPG are all very popular and have new and user-friendly products."
+        },
+        "key_insights": [
+          "Select the household game consoles with generally high ratings",
+          "The higher-ranked ones are all very popular and innovative products."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "It was discovered that the home game consoles received high ratings. Tools were used to select and study them."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Using tools to study the common characteristics of the higher-ranked ones."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Dreamcast",
+                  "PC",
+                  "Nintendo 3DS",
+                  "Nintendo 64",
+                  "Nintendo DS",
+                  "Nintendo DSi",
+                  "Game Boy Advance",
+                  "Game Boy Color",
+                  "GameCube"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Dreamcast\",\"PC\",\"Nintendo 3DS\",\"Nintendo 64\",\"Nintendo DS\",\"Nintendo DSi\",\"Game Boy Advance\",\"Game Boy Color\",\"GameCube\"], datum['Platform']) < 0"
+              }
+            ],
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Xbox One",
+                "Xbox",
+                "Wireless",
+                "PlayStation 4",
+                "PlayStation",
+                "GameCube",
+                "PC",
+                "Nintendo 3DS",
+                "Dreamcast",
+                "Xbox 360",
+                "Game Boy Advance",
+                "PlayStation 2",
+                "PlayStation 3",
+                "Wii",
+                "PlayStation Vita",
+                "Game Boy Color",
+                "Nintendo DS",
+                "iPhone",
+                "Nintendo DSi",
+                "PlayStation Portable",
+                "Nintendo 64"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "20_ign_scores_bar",
+    "dataset_path": "datasets/20_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/20_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

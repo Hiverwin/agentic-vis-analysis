@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "24_parallel_cs_08",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_08",
+      "question": "Use hide_dimensions in order to know Use hide_dimensions with mode equal to hide, dimensions equal to vitamin_a_percent_rda, vitamin_c_percent_rda, vitamin_d_percent_rda to focus on BMI and symptoms count. Which alcohol consumption group shows the highest mean symptoms count?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Heavy",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide vitamin dimensions to focus on BMI and symptoms count, then identify which alcohol consumption group has the highest mean symptoms count"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "hide",
+                  "vitamin_a_percent_rda",
+                  "vitamin_c_percent_rda",
+                  "vitamin_d_percent_rda"
+                ],
+                "mode": "hide"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "dimensions": {
+              "hidden_fields": [
+                "hide",
+                "vitamin_a_percent_rda",
+                "vitamin_c_percent_rda",
+                "vitamin_d_percent_rda"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "24_vitamin_deficiency_disease_dataset_20260123_parallel (3)",
+    "dataset_path": "datasets/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json",
+    "row_count": 20000,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/24_vitamin_deficiency_disease_dataset_20260123_parallel (3).json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

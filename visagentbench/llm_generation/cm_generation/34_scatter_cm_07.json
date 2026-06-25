@@ -1,0 +1,82 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "34_scatter_cm_07",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/34_bmw_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_07",
+      "question": "80_scatter_cm_01：Use zoom_2d_region with x_range from 0.5 to 0.75 and y_range from 500 to 800, then use filter_categorical with categories_to_remove equal to [Yoga] to see which Workout_Type dominates in this region (Session_Duration 0.5–0.75 hours, Calories_Burned 500–800). What is the dominant Workout_Frequency?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Semi-Auto has highest average price ($27359.75) but lowest average MPG (51.25), Manual has lowest average price ($14637.45) with moderate MPG (58.56), Automatic has balanced price ($22419.02) and highest MPG (61.57)",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom into price and MPG region to analyze relationship"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categorical",
+            "reasoning": "Filter by transmission type to compare different groups"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    10000.0,
+                    40000.0
+                  ],
+                  "y_range": [
+                    40.0,
+                    70.0
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_categorical",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories_to_remove": [
+                    "Manual",
+                    "transmission"
+                  ],
+                  "field": "y_range"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              10000.0,
+              40000.0
+            ],
+            "y": [
+              40.0,
+              70.0
+            ]
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

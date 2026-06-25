@@ -1,0 +1,95 @@
+{
+  "benchmark_id": "65_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_subcategories and change_encoding, how do symptoms compare between vegan individuals who exercise actively and those who are sedentary?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Yes.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.subcategory",
+            "rationale": "The question focuses on vegan individuals, so it is necessary to use the filter subcategories tool to filter out vegetarian, omnivore, and pescatarian types."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.encoding.change",
+            "rationale": "The focus of the question lies on the symptoms of vegan individuals. Therefore, the \"change encoding\" tool was used to set the channel as \"y\" and the field as \"symptoms_count\" to compare the symptom counts among different exercise level groups."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.subcategory",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Vegetarian",
+                  "Omnivore",
+                  "Pescatarian"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "symptoms_count",
+                "channel": "y"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "exercise_level",
+            "y": "symptoms_count",
+            "color": "diet_type"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['diet_type'] != \"Vegetarian\" && datum['diet_type'] != \"Omnivore\" && datum['diet_type'] != \"Pescatarian\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "65_vitamin_deficiency_disease_dataset_bar",
+    "dataset_path": "datasets/65_vitamin_deficiency_disease_dataset_bar.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/65_vitamin_deficiency_disease_dataset_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

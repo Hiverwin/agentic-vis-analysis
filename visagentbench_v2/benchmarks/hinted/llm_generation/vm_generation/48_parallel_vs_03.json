@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "48_parallel_vs_03",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_03",
+      "question": "Use filter_by_category with field equal to field, values equal to chocolate, Yes in order to know How do chocolate and non-chocolate candies differ across three key dimensions (sugar percentage, price percentage, and winning percentage), and which dimensions show the greatest differences between the two categories?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The parallel coordinates analysis reveals significant differences between chocolate (Yes) and non-chocolate (No) candies across three dimensions. Chocolate candies (111 data points) show consistently higher values across all dimensions with overall average of 0.5893, compared to non-chocolate candies (138 data points) with overall average of 0.3753. In price dimension, chocolate candies average 0.6437 versus non-chocolate at 0.3454, showing nearly double the price. In sugar percentage, chocolate candies average 0.5010 versus non-chocolate at 0.4593, showing a smaller but still notable difference. Most significantly, in winning percentage, chocolate candies average 0.6232 versus non-chocolate at 0.3211, showing almost double the winning percentage. The data suggests that chocolate is the primary differentiator, with chocolate candies consistently outperforming non-chocolate candies across all measured dimensions, especially in winning percentage where the difference is most pronounced.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Chocolate candies show higher average values across all dimensions (0.5893 vs 0.3753)",
+          "Price dimension shows largest difference: chocolate (0.6437) vs non-chocolate (0.3454)",
+          "Winning percentage shows significant difference: chocolate (0.6232) vs non-chocolate (0.3211)",
+          "Sugar percentage shows smaller difference: chocolate (0.5010) vs non-chocolate (0.4593)",
+          "Chocolate is the primary differentiator across all dimensions"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Use filter_by_category to analyze chocolate and non-chocolate candies separately across all dimensions"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": [
+                  "chocolate",
+                  "Yes"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "48_candy_parallel ",
+    "dataset_path": "datasets/48_candy_parallel .json",
+    "row_count": 249,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/48_candy_parallel .json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

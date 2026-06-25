@@ -1,0 +1,57 @@
+{
+  "task_type": "vague_single",
+  "task_id": "50_parallel_vs_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/50_supply_chain_data_parallel.json",
+  "questions": [
+    {
+      "qid": "vs_02",
+      "question": "Use filter_by_category with field equal to field, values equal to Product type, skincare in order to know How do different product types (skincare, cosmetics, haircare) perform across four key supply chain dimensions (manufacturing lead time, manufacturing costs, production volumes, defect rates), and which dimensions show greatest variation between product categories?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The parallel coordinates analysis reveals performance patterns across 3 product types and 4 supply chain dimensions with 400 total data points. Haircare products show highest overall performance with average of 0.5211, followed by skincare (0.4929) and cosmetics (0.4158). In Production volumes dimension, skincare shows highest average at 0.5734, followed by haircare (0.5482) and cosmetics (0.4260). In Manufacturing lead time, haircare has highest average at 0.5538, while skincare (0.4405) and cosmetics (0.4244) show lower values. Manufacturing costs show relatively balanced performance with skincare (0.4870), haircare (0.4815), and cosmetics (0.4266). Defect rates show lowest overall variation with haircare (0.5009), skincare (0.4707), and cosmetics (0.3863). The data suggests that skincare excels in production volumes, haircare performs well in lead time, while cosmetics shows generally lower performance across most dimensions.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Haircare shows highest overall performance (0.5211)",
+          "Skincare excels in Production volumes (0.5734)",
+          "Haircare performs well in Manufacturing lead time (0.5538)",
+          "Cosmetics shows lower performance across most dimensions (0.4158)",
+          "Production volumes shows greatest variation between product types",
+          "Defect rates show lowest overall variation"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Use filter_by_category to analyze each product type separately across all dimensions"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": [
+                    "Product type",
+                    "skincare"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension"
+          }
+        }
+      }
+    }
+  ]
+}

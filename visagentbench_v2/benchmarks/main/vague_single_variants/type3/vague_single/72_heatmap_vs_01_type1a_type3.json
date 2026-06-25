@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "72_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Which corners of the race × education grid still read as strong after low scores fade, and which cell looks like a weak spot next to its neighbors?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "A 70-point floor knocks most of group A into the background while leaving a constellation of brighter cells around group E and group D, especially where parental education reaches bachelor’s or master’s levels (group E tops out near 80 on that master’s cell). The awkward neighbor is group B at the high-school education level: it dims more sharply than B’s associate’s or bachelor’s columns, so the eye catches a local trough there even as other groups still show mid‑70s pockets."
+        },
+        "key_insights": [
+          "Bright cells cluster toward higher parental education and skew toward groups D and E rather than spanning every race evenly.",
+          "Group B’s high-school column is a visible low point relative to B’s other education stacks."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.region.highlight",
+            "rationale": "Dims low scores so strong cells and anomalies stand out without recomputing aggregates by hand."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.region.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 70,
+                "max_value": 100,
+                "outside_opacity": 0.12
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "72_StudentsPerformance_heatmap",
+    "dataset_path": "datasets/72_StudentsPerformance_heatmap.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/72_StudentsPerformance_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

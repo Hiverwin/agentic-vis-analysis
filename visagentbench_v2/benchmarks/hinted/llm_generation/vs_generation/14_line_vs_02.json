@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "14_line_vs_02",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_02",
+      "question": "Use highlight_trend in order to know How do visitor patterns differ across the four museums, and what factors might explain the significant disparity in attendance between Avila Adobe and other venues?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The visitor data reveals stark disparities across the four museums. Avila Adobe dominates with 1,419,638 total visitors and an average of 24,062 per period, significantly outperforming all others. America Tropical Interpretive Center follows with 419,314 total visitors (7,107 average), Firehouse Museum with 381,897 (6,473 average), and Chinese American Museum with only 160,554 (2,721 average). Avila Adobes visitor count is more than 3 times higher than the second-place museum. The data suggests Avila Adobe has exceptional drawing power, possibly due to its historical significance, location, or programming. Firehouse Museum shows the highest volatility with a maximum of 61,192 visitors in a single period, indicating potential for spikes during special events. Chinese American Museums consistently lower numbers may reflect niche appeal or location challenges.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Avila Adobe has 1",
+          "419",
+          "638 total visitors with 24",
+          "062 average",
+          "Chinese American Museum has the lowest with 160",
+          "554 total visitors",
+          "Firehouse Museum shows highest volatility with max 61",
+          "192 visitors",
+          "Avila Adobe outperforms second place by more than 3x",
+          "Four museums show distinct visitor patterns and scales"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.trend.highlight",
+            "rationale": "Use highlight_trend to analyze and compare visitor trends across the four museums, particularly highlighting the exceptional performance of Avila Adobe"
+          }
+        ],
+        "required_capabilities": [
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "14_museum_visitors_line_multi",
+    "dataset_path": "datasets/14_museum_visitors_line_multi.json",
+    "row_count": 236,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/14_museum_visitors_line_multi.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

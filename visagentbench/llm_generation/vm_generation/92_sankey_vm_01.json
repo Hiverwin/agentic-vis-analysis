@@ -1,0 +1,82 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "92_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/92_sankey_b2b.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use trace_node with node_name equal to Channel Partner and use highlight_path with path equal to Channel Partner, Customized Solution and use filter_flow with min_value equal to 3000.0 in order to know How do different sales lead sources contribute to the product line signing, and what are the key flow patterns?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Channel Partner is the largest lead source (13000) and primarily contributes to Customized Solution (6100) and Data Middleware Product (3200). Official Website SEO/SEM (10220) mainly drives Enterprise SaaS Platform (5400). The top flow is Channel Partner to Customized Solution (6100), followed by Official Website SEO/SEM to Enterprise SaaS Platform (5400). Enterprise SaaS Platform receives the most total value (15000), while API Open Platform receives the least (3900). SDR Cold Call is the smallest lead source (2850) with limited contribution to product lines.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Channel Partner is largest lead source",
+          "Enterprise SaaS Platform receives most value",
+          "Top flow is Channel Partner to Customized Solution",
+          "SDR Cold Call contributes least"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace the flow from Channel Partner to see its distribution"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_path",
+            "reasoning": "Highlight the path from Channel Partner to Customized Solution to examine the largest flow"
+          },
+          {
+            "iteration": 3,
+            "tool": "filter_flow",
+            "reasoning": "Filter flows with minimum value 3000 to see major flow patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Channel Partner"
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Channel Partner",
+                    "Customized Solution"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 3000.0
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

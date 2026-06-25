@@ -783,9 +783,15 @@ function buildVerifyPayload({
 }
 
 function buildReasonPayload({ operation, act, verify }) {
+  const prefersRuntimeSummary = act?.kind === 'perception' || act?.kind === 'data_query'
   if (verify?.ok) {
+    const assistantText = operation?.assistantMessage || null
+    const runtimeText = act?.outputSummary || null
     return {
-      answer: operation?.assistantMessage || act?.outputSummary || 'Completed one agent step.',
+      answer: prefersRuntimeSummary
+        ? [assistantText, runtimeText].filter((part, index, array) => typeof part === 'string' && part.length > 0 && array.indexOf(part) === index).join(' ')
+          || 'Completed one agent step.'
+        : assistantText || runtimeText || 'Completed one agent step.',
     }
   }
   return {

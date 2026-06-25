@@ -1,0 +1,93 @@
+{
+  "benchmark_id": "49_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How do the hotspots and coldspots, row-column contrasts, and local anomalies in the updated heatmap compare to the original view?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on marginal bars, the 'Afternoon' appears to be the most profitable period overall. Upon adjusting the color scale, 'Espresso' shows a very strong performance uniquely in the 'Morning' compared to other times, while 'Hot Chocolate' is a clear standout performer exclusively during the 'Night.'"
+        },
+        "key_insights": [
+          "This helps subjectively identify if a specific coffee has a strikingly darker color in one column compared to its performance in others, indicating a unique time-based preference.",
+          "The column marginal bar will quickly show which Time_of_Day (Morning, Afternoon, Night) has the longest bar, indicating the highest total revenue. This answers the first part of the question subjectively."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "To enhance the contrast within the heatmap to better spot unique drivers. By adjusting the scale (e.g., changing the color range to accentuate differences), cells that stand out in a particular column become more visually apparent."
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.marginals.add",
+            "rationale": "To get a high-level, visual summary of profitability by time and product. Adding bars to the margins (sums for each row and column) provides an immediate visual indicator of totals."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.colorScale.adjust",
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "viridis"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "show_top": true,
+                "show_right": true,
+                "op": "sum"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "color_scale": {
+              "scheme": "viridis"
+            },
+            "layers": {
+              "count": 3,
+              "has_type": "bar"
+            }
+          }
+        },
+        "state_check_fields": [
+          "color_scale",
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "49_coffee_sales_heatmap",
+    "dataset_path": "datasets/49_coffee_sales_heatmap.json",
+    "row_count": 3547,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/49_coffee_sales_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

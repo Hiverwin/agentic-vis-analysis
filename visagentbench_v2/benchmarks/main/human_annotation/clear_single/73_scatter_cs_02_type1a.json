@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "73_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use zoom_2d_region with x_range from 60.1 to 70.2, y_range from 59.6 to 79.6 to evaluate which test preparation course status has the highest reading score.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "completed",
+          "alternatives": [
+            "Completed"
+          ]
+        },
+        "key_insights": [
+          "The completed test preparation course status has the highest reading score."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "find weather there are some point in this area"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.08333333333333334,
+                  36.61666361490886
+                ],
+                "y_range": [
+                  59.650001525878906,
+                  99.6500015258789
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "math score",
+            "y": "reading score",
+            "color": "test preparation course"
+          },
+          "view": {
+            "xDomain": [
+              0.08333333333333334,
+              36.61666361490886
+            ],
+            "yDomain": [
+              59.650001525878906,
+              99.6500015258789
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "73_StudentsPerformance_scatter",
+    "dataset_path": "datasets/73_StudentsPerformance_scatter.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/73_StudentsPerformance_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

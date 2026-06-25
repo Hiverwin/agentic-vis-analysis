@@ -1,0 +1,65 @@
+{
+  "benchmark_id": "118_sankey_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use trace_node with node_name equal to Final Good to rank treatments by overall utilization efficiency in order to know how do treatments rank by overall utilization efficiency?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The semiconductor manufacturing process shows 23% overall yield loss (2300 wafers lost from 10000 input), with the most significant losses occurring at multiple stages: Scrap nodes across Litho (200), Etch (220), and CP (450) totaling 870 wafers, plus Package Loss (430) and Downgrade Ship (1000), indicating that final testing and packaging stages contribute substantially to the total yield reduction",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Overall yield is 77% with 2300 wafers lost from 10000 input",
+          "Scrap (CP) has highest single loss at 450 wafers",
+          "Downgrade Ship and Package Loss contribute 1430 wafers combined",
+          "Final Good output is 7700 wafers from initial 10000"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace the flow from initial batches through all production stages to identify where most wafers are lost"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Final Good"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "118_sankey_semiconducto",
+    "dataset_path": "datasets/118_sankey_semiconducto.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/118_sankey_semiconducto.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

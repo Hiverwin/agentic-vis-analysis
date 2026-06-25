@@ -1,0 +1,184 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "77_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/77_gym_bar_sum.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "60_bar_cm_01：Use change_encoding and filter_categories and change_encoding and filter_categories and change_encoding and filter_categories and change_encoding and filter_categories and change_encoding to analyze bar chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Level 1",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to show Experience Level on x-axis"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categories",
+            "reasoning": "Filter to show only Level 1"
+          },
+          {
+            "iteration": 3,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to show Experience Level on x-axis"
+          },
+          {
+            "iteration": 4,
+            "tool": "filter_categories",
+            "reasoning": "Filter to show only Level 2"
+          },
+          {
+            "iteration": 5,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to show Experience Level on x-axis"
+          },
+          {
+            "iteration": 6,
+            "tool": "filter_categories",
+            "reasoning": "Filter to show only Level 3"
+          },
+          {
+            "iteration": 7,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to show Experience Level on x-axis"
+          },
+          {
+            "iteration": 8,
+            "tool": "filter_categories",
+            "reasoning": "Filter to show only Level 1"
+          },
+          {
+            "iteration": 9,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to show Experience Level on x-axis"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Experience_Level"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Experience_Level"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "2"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Experience_Level"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "3"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Experience_Level"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "1"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "field",
+                  "field": "Experience_Level"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Workout_Type",
+            "y": "Fat_Percentage",
+            "color": "Experience_Level"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

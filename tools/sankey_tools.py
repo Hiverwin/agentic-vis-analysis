@@ -19,7 +19,17 @@
 from typing import Dict, Any, List, Optional, Tuple, Union
 import copy
 import json
-from state_manager import DataStore, tool_output
+from state_manager import DataStore, StateManager, tool_output
+
+
+def _ensure_state_has_data(state: Dict) -> Dict:
+    data = state.get("data")
+    if isinstance(data, list) and len(data) > 0:
+        return state
+    stored = DataStore.get()
+    if isinstance(stored, list) and len(stored) > 0:
+        return StateManager.reconstruct(copy.deepcopy(state), stored)
+    return state
 
 
 # ═══════════════════════════════════════════════════════════
@@ -52,12 +62,7 @@ def _find_data_source(state: Dict, name: str) -> Tuple[Optional[List], Optional[
     data = state.get("data", [])
     if not isinstance(data, list):
         store_data = DataStore.get()
-        if isinstance(store_data, list):
-            data = store_data
-        elif isinstance(store_data, dict) and isinstance(store_data.get("data"), list):
-            data = store_data.get("data", [])
-        else:
-            data = []
+        data = store_data if isinstance(store_data, list) else []
     if not isinstance(data, list):
         return None, None
     for i, d in enumerate(data):
@@ -72,6 +77,92 @@ def _get_raw_links(state: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
 
 def _get_node_config(state: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
     return _find_data_source(state, "nodeConfig")
+
+
+def _get_links(state: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
+    """csv_to_vega 格式：name='links', source/target 为节点索引"""
+    return _find_data_source(state, "links")
+
+
+def _get_nodes(state: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
+    """csv_to_vega 格式：name='nodes', values=[{name: "A"}, ...]"""
+    return _find_data_source(state, "nodes")
+
+
+def _normalize_sankey_state(state: Dict) -> Dict:
+    """
+    若 spec 仅有 nodes/links（csv_to_vega 输出），则补全 rawLinks 与 nodeConfig，
+    使后续工具能按 rawLinks/nodeConfig 读写。返回新 state，不修改入参。
+    """
+    state = _ensure_state_has_data(state)
+    links, _ = _find_data_source(state, "rawLinks")
+    if links is not None:
+        return state
+    links_data, links_idx = _get_links(state)
+    nodes_data, nodes_idx = _get_nodes(state)
+    if not links_data or not nodes_data or links_idx is None or nodes_idx is None:
+        return state
+    # 索引 -> 节点名
+    id_to_name = {}
+    for i, n in enumerate(nodes_data):
+        name = n.get("name", "")
+        id_to_name[i] = name
+    raw_links = []
+    for link in links_data:
+        src = link.get("source", 0)
+        tgt = link.get("target", 0)
+        val = float(link.get("value", 0))
+        raw_links.append({
+            "source": id_to_name.get(src, str(src)),
+            "target": id_to_name.get(tgt, str(tgt)),
+            "value": val
+        })
+    node_config = [
+        {"name": n.get("name", ""), "depth": 0, "order": i}
+        for i, n in enumerate(nodes_data)
+    ]
+    new_state = copy.deepcopy(state)
+    _ensure_working_data(new_state)
+    data = new_state.get("data", [])
+    if not isinstance(data, list):
+        return state
+    new_state["data"] = list(data)
+    new_state["data"].append({"name": "rawLinks", "values": raw_links})
+    new_state["data"].append({"name": "nodeConfig", "values": node_config})
+    return new_state
+
+
+def _sync_sankey_state(state: Dict) -> Dict:
+    """
+    若 state 中同时存在 links/nodes 与 rawLinks/nodeConfig（由 _normalize 补全），
+    将 rawLinks/nodeConfig 写回 links/nodes（rawLinks 的 source/target 转回索引），并移除 rawLinks/nodeConfig。
+    """
+    raw_links, raw_links_idx = _get_raw_links(state)
+    node_config, nc_idx = _get_node_config(state)
+    links_data, links_idx = _get_links(state)
+    nodes_data, nodes_idx = _get_nodes(state)
+    if raw_links is None or node_config is None or links_data is None or nodes_data is None:
+        return state
+    name_to_idx = {n.get("name", ""): i for i, n in enumerate(node_config)}
+    new_links = []
+    for link in raw_links:
+        src = link.get("source", "")
+        tgt = link.get("target", "")
+        val = float(link.get("value", 0))
+        new_links.append({
+            "source": name_to_idx.get(src, 0),
+            "target": name_to_idx.get(tgt, 0),
+            "value": val
+        })
+    new_nodes = [{"name": n.get("name", "")} for n in node_config]
+    new_state = copy.deepcopy(state)
+    data = new_state.get("data", [])
+    if not isinstance(data, list) or links_idx >= len(data) or nodes_idx >= len(data):
+        return state
+    new_state["data"][links_idx]["values"] = new_links
+    new_state["data"][nodes_idx]["values"] = new_nodes
+    new_state["data"] = [d for d in new_state["data"] if d.get("name") not in ("rawLinks", "nodeConfig")]
+    return new_state
 
 
 def _get_depth_labels(state: Dict) -> Tuple[Optional[List[Dict]], Optional[int]]:
@@ -120,13 +211,6 @@ def _find_mark(state: Dict, mark_name: str) -> Optional[Dict]:
     return None
 
 
-def _update_x_scale_domain(state: Dict, max_depth: int):
-    for scale in state.get("scales", []):
-        if scale.get("name") == "x":
-            scale["domain"] = list(range(max_depth + 1))
-            return
-
-
 def _make_error(msg: str) -> Dict[str, Any]:
     return {"success": False, "error": msg}
 
@@ -134,7 +218,7 @@ def _make_error(msg: str) -> Dict[str, Any]:
 def _make_success(operation: str, message: str, state: Dict = None, **extra) -> Dict[str, Any]:
     result = {"success": True, "operation": operation, "message": message}
     if state is not None:
-        result["vega_state"] = state
+        result["vega_state"] = _sync_sankey_state(state)
     result.update(extra)
     return result
 
@@ -313,6 +397,7 @@ def get_node_options(state: Dict) -> Dict[str, Any]:
     Returns:
         包含 all_nodes, nodes_by_depth, adjacency, edges, collapsed_groups, value_range 等字段的字典。
     """
+    state = _normalize_sankey_state(state)
     nodes, _ = _get_node_config(state)
     if not nodes:
         return _make_error("Cannot find nodeConfig data source")
@@ -339,6 +424,7 @@ def filter_flow(state: Dict, min_value: float) -> Dict[str, Any]:
         state: Vega 规范
         min_value:  最小流量阈值
     """
+    state = _normalize_sankey_state(state)
     links, links_idx = _get_raw_links(state)
     if links is None:
         return _make_error("Cannot find rawLinks data source")
@@ -398,6 +484,7 @@ def collapse_nodes(
         nodes_to_collapse:  要折叠的节点名称列表
         aggregate_name:     聚合后的节点名称（默认 "Other"）
     """
+    state = _normalize_sankey_state(state)
     links, links_idx = _get_raw_links(state)
     nodes, nodes_idx = _get_node_config(state)
     if links is None or nodes is None:
@@ -473,17 +560,18 @@ def expand_node(state: Dict, aggregate_name: str) -> Dict[str, Any]:
         state:       Vega 规范
         aggregate_name:  要展开的聚合节点名称
     """
-    state = state.get("_sankey_state", {})
-    collapsed_groups = state.get("collapsed_groups", {})
+    state = _normalize_sankey_state(state)
+    sankey_state = state.get("_sankey_state", {})
+    collapsed_groups = sankey_state.get("collapsed_groups", {})
 
-    if not state:
+    if not sankey_state:
         return _make_error("No _sankey_state found. The chart has no collapsed nodes.")
     if aggregate_name not in collapsed_groups:
         available = list(collapsed_groups.keys())
         return _make_error(f'"{aggregate_name}" is not a collapsed group. Available: {available}')
 
-    original_nodes = state.get("original_nodes")
-    original_links = state.get("original_links")
+    original_nodes = sankey_state.get("original_nodes")
+    original_links = sankey_state.get("original_links")
     if not original_nodes or not original_links:
         return _make_error("Original data lost, cannot expand")
 
@@ -525,7 +613,8 @@ def expand_node(state: Dict, aggregate_name: str) -> Dict[str, Any]:
 
     new_state["data"][nodes_idx]["values"] = new_nodes
     new_state["data"][links_idx]["values"] = restored_links
-    del new_state["_sankey_state"]["collapsed_groups"][aggregate_name]
+    if "_sankey_state" in new_state and "collapsed_groups" in new_state["_sankey_state"]:
+        del new_state["_sankey_state"]["collapsed_groups"][aggregate_name]
 
     result = _make_success(
         "expand_node",
@@ -544,6 +633,7 @@ def auto_collapse_by_rank(state: Dict, top_n: int = 5) -> Dict[str, Any]:
         state: Vega 规范
         top_n:     每层保留的 top 节点数量（默认 5）
     """
+    state = _normalize_sankey_state(state)
     links, links_idx = _get_raw_links(state)
     nodes, nodes_idx = _get_node_config(state)
     if links is None or nodes is None:
@@ -664,6 +754,7 @@ def reorder_nodes_in_layer(
     if order is not None and sort_by is not None:
         return _make_error('Cannot specify both "order" and "sort_by"')
 
+    state = _normalize_sankey_state(state)
     links, _ = _get_raw_links(state)
     nodes, nodes_idx = _get_node_config(state)
     if nodes is None:
@@ -731,6 +822,7 @@ def highlight_path(state: Dict, path: Union[str, List[str]]) -> Dict[str, Any]:
         state: Vega 规范
         path:      节点路径列表。支持 ["A","B","C"]、'["A","B","C"]'、'A,B,C'
     """
+    state = _normalize_sankey_state(state)
     path = _parse_path_arg(path)
     if not path or len(path) < 2:
         return _make_error("Path must contain at least 2 nodes")
@@ -797,6 +889,7 @@ def trace_node(state: Dict, node_name: str) -> Dict[str, Any]:
         state: Vega 规范
         node_name: 节点名称
     """
+    state = _normalize_sankey_state(state)
     links, _ = _get_raw_links(state)
     if links is None:
         return _make_error("Cannot find rawLinks data source")
@@ -853,6 +946,7 @@ def color_flows(state: Dict, nodes: List[str], color: str = "#e74c3c") -> Dict[s
         nodes:     节点名称列表
         color:     着色颜色（默认红色 #e74c3c）
     """
+    state = _normalize_sankey_state(state)
     links_data, _ = _get_raw_links(state)
     if links_data is None:
         return _make_error("Cannot find rawLinks data source")
@@ -925,6 +1019,7 @@ def calculate_conversion_rate(
         state: Vega 规范
         node_name: 指定节点名称（可选）。不指定则返回所有节点的转化率。
     """
+    state = _normalize_sankey_state(state)
     links, _ = _get_raw_links(state)
     if links is None:
         return _make_error("Cannot find rawLinks data source")
@@ -1022,6 +1117,7 @@ def find_bottleneck(state: Dict, top_n: int = 3) -> Dict[str, Any]:
         state: Vega 规范
         top_n:     返回流失最严重的前 N 个节点
     """
+    state = _normalize_sankey_state(state)
     links, _ = _get_raw_links(state)
     if links is None:
         return _make_error("Cannot find rawLinks data source")

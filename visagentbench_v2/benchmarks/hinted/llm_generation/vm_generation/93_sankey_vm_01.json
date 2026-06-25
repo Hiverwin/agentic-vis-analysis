@@ -1,0 +1,105 @@
+{
+  "benchmark_id": "93_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_conversion_rate with node_name equal to Alipay/WeChat Entry and use color_flows with nodes equal to Alipay/WeChat Entry, color equal to #e74c3c and use highlight_path with path equal to Alipay/WeChat Entry, Payment in order to know What are the main traffic entry channels and how do they convert to different financial products?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Alipay/WeChat Entry is the dominant traffic source (25500) with the largest flow going to Payment (12000) and Consumer Credit (8500). Bank App Push (13000) primarily drives Wealth Products (5600). Consumer Credit receives the most total transactions (17400), followed by Wealth Products (16080). The top flow is Alipay/WeChat Entry to Payment (12000), indicating strong payment usage through mobile platforms. Offline Branch/Field Sales (9200) contributes mainly to Wealth Products (4100) and Insurance (3500), showing traditional channels still matter for complex products.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Alipay/WeChat Entry is dominant traffic source",
+          "Payment has largest single flow",
+          "Consumer Credit receives most total transactions",
+          "Traditional channels serve complex products"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate conversion rate for Alipay/WeChat Entry"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Color flows from Alipay/WeChat Entry to see distribution"
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the path from Alipay/WeChat Entry to Payment"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate",
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Alipay/WeChat Entry"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "nodes": [
+                  "Alipay/WeChat Entry"
+                ],
+                "color": "#e74c3c"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Alipay/WeChat Entry",
+                  "Payment"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "93_sankey_financial",
+    "dataset_path": "datasets/93_sankey_financial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,89 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "81_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/81_gym_members_exercise_tracking_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "Using filter_by_category and hide_dimensions, which workout type typically burns more calories with the same weights?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Strength",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "filter the categories of HIIT, Cardio and hide dimension except for weights and Calories_Burned"
+          },
+          {
+            "iteration": 2,
+            "tool": "hide_dimensions",
+            "reasoning": "hide dimension except for weights and Calories_Burned"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Workout_Type",
+                  "values": [
+                    "HIIT",
+                    "Cardio"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "hide_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimensions": [
+                    "Workout_Type",
+                    "Session_Duration (hours)",
+                    "Experience_Level"
+                  ],
+                  "mode": "hide"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "weight(kg)",
+              "Calories_Burned"
+            ],
+            "y": null
+          },
+          "encoding": {
+            "x": "Session_Duration (hours)",
+            "y": "Calories_Burned",
+            "color": "Workout_Type"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"HIIT\", \"Cardio\"], datum['Workout_Type']) < 0"
+            }
+          ],
+          "hidden_dimensions": [
+            "Workout_Type",
+            "Session_Duration (hours)",
+            "Experience_Level"
+          ]
+        }
+      }
+    }
+  ]
+}

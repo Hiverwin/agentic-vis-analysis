@@ -1,0 +1,47 @@
+{
+  "task_type": "vague_single",
+  "task_id": "15_sankey_vs_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json",
+  "questions": [
+    {
+      "qid": "vs_02",
+      "question": "Use calculate_conversion_rate with node_name equal to target to compute the overall flow of patients through the system and identify which treatment plan has the highest rate of patients achieving Cured & Released in order to know which treatment plan has the highest rate of patients achieving Cured & Released?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The government budget of 3000 is sourced from Personal Income Tax (1100), Corporate Tax (900), Bond Issuance (600), and Fees & Fines (400). The budget flows through five major departments: Education receives the largest allocation at 700, followed by Transport at 700, Defense at 600, Healthcare at 600, and Social Welfare at 400. The funds ultimately flow into six major expenditure categories: Salaries receives the most at 700, followed by Equipment Purchases at 660, Infrastructure at 550, Citizen Benefits at 400, R&D Expense at 380, and Operations at 310. Notable programs include K-12 Funding (400), Highway Projects (380), Military Operations (360), and Medicare Subsidy (360). The largest single flow is Education to K-12 Funding at 400, highlighting the priority placed on primary and secondary education.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Total budget is 3000 from four revenue sources",
+          "Education and Transport each receive 700 as largest departments",
+          "Salaries is the largest expenditure at 700",
+          "K-12 Funding receives 400 as the largest single program allocation",
+          "Infrastructure spending totals 550 across all programs"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Use calculate_conversion_rate to analyze how budget flows from revenue sources through departments to final expenditure categories"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {}
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

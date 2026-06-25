@@ -1,0 +1,58 @@
+{
+  "task_type": "clear_single",
+  "task_id": "31_line_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/31_TSLA_Stock_line.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "What is the maximum closing price of TSLA stock within the date range from 2021-10-01 to 2021-12-31?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "410",
+          "tolerance": 0.05
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Using the zoom action isolates this high-volatility period, allowing for precise identification of the peak price."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2021-10-01",
+                  "end": "2021-12-31"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "2021-10-01",
+              "2021-12-31"
+            ]
+          },
+          "encoding": {
+            "x": "Date",
+            "y": "Close",
+            "color": null
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

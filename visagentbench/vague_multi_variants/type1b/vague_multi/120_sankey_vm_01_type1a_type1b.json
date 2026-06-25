@@ -1,0 +1,111 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "120_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/120_startup_Funding.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Using color_flows and highlight_path, where does money flow into marketing spend and which downstream slice from Sales & Marketing looks like the dominant line item?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Series A cash feeds the operating pool (about 8k in the graph), and the operating pool pushes a much larger 12.3k chunk straight into Sales & Marketing—so that trunk is the main artery into GTM. Once you land inside Sales & Marketing, Paid Ads pulls the biggest single ribbon (roughly 3.7k) compared with events or tools, which matches the yellow highlight: acquisition channels—not back-office widgets—eat most of the marketing envelope."
+        },
+        "key_insights": [
+          "Operating Fund → Sales & Marketing is the heavy bridge out of the Series A tranche.",
+          "Within Sales & Marketing, Paid Ads outweighs the other outgoing splits."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "color_flows",
+            "reasoning": "Paints acquisition-related links so funnel plumbing stands out."
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_path",
+            "reasoning": "Walks the funding path into the marketing bucket for quantitative context."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "color_flows",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "color": "#f1c40f",
+                  "nodes": [
+                    "Paid Ads",
+                    "Lead Generation"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Series A (Prior)",
+                    "Operating Fund",
+                    "Sales & Marketing"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "Series B VC",
+              "Series A (Prior)",
+              "Revenue",
+              "Grants & Credits",
+              "Operating Fund",
+              "Reserve Fund",
+              "Engineering",
+              "Sales & Marketing",
+              "G&A",
+              "Product",
+              "Customer Success",
+              "Emergency Buffer",
+              "M&A Fund",
+              "Runway Extension",
+              "Salaries",
+              "Cloud & Infra",
+              "Paid Ads",
+              "Events & Travel",
+              "Tools & Software",
+              "Office & Rent",
+              "Legal & Compliance",
+              "Insurance",
+              "User Research",
+              "Contractors",
+              "Team Growth",
+              "Talent Retention",
+              "Product Scale",
+              "Lead Generation",
+              "Brand Awareness",
+              "Productivity",
+              "Workspace",
+              "Risk Mitigation",
+              "Product Insights",
+              "Flexible Capacity",
+              "Cash Runway",
+              "Strategic Options"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

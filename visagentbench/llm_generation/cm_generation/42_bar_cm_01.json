@@ -1,0 +1,74 @@
+{
+  "question_type": "clear_multi",
+  "question_text": "Which Pokémon type has the highest average speed, and how does it compare to the lowest speed type?",
+  "answer_value": "electric, rock",
+  "reasoning_steps": [
+    {
+      "iteration": 1,
+      "tool": "sort_bars",
+      "reasoning": "Sort Pokémon types by average speed to identify the fastest and slowest types"
+    },
+    {
+      "iteration": 2,
+      "tool": "filter_categories",
+      "reasoning": "Filter out types with average speed below 60 to focus on faster types"
+    },
+    {
+      "iteration": 3,
+      "tool": "highlight_top_n",
+      "reasoning": "Highlight the top 3 fastest Pokémon types"
+    }
+  ],
+  "tool_evals": [
+    {
+      "tool": "sort_bars",
+      "param_eval": {
+        "type": "object",
+        "param": "all_params",
+        "target": {
+          "sort_by": "speed",
+          "ascending": false
+        }
+      }
+    },
+    {
+      "tool": "filter_categories",
+      "param_eval": {
+        "type": "object",
+        "param": "all_params",
+        "target": {
+          "field": "type_1",
+          "condition": "greater_than",
+          "value": 60
+        }
+      }
+    },
+    {
+      "tool": "highlight_top_n",
+      "param_eval": {
+        "type": "object",
+        "param": "all_params",
+        "target": {
+          "n": 3,
+          "field": "speed"
+        }
+      }
+    }
+  ],
+  "state_eval": {
+    "encoding": {
+      "x": {
+        "field": "type_1",
+        "type": "nominal"
+      },
+      "y": {
+        "field": "speed",
+        "type": "quantitative",
+        "aggregate": "mean"
+      }
+    },
+    "data_filtered": []
+  },
+  "is_objective": true,
+  "answer_type": "categorical"
+}

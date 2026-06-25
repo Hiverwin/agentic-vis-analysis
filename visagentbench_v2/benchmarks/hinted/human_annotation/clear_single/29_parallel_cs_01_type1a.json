@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "29_parallel_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use hide_dimensions with mode equal to hide, hide_dimensions with dimensions equal to grades_before_ai, grades_after_ai to characterize the categorical distribution of AI usage status within the peak segment of daily screen time hours.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "AI usage and non-usage are nearly equal",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The zoomed view resolves line overlap, clarifying the threshold effect of screen time on AI usage behavior."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "This single zoom action isolates the high-impact range, bridging the gap between the dense original view and targeted categorical distribution analysis."
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "grades_before_ai",
+                  "grades_after_ai"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          },
+          "view": {
+            "xDomain": [
+              "study_hours_per_day",
+              "daily_screen_time_hours"
+            ],
+            "yDomain": null
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"study_hours_per_day\", \"daily_screen_time_hours\"], datum['dimension']) >= 0",
+                "_pc_hide_dimensions": true
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            },
+            "dimensions": {
+              "hidden_fields": [
+                "grades_before_ai",
+                "grades_after_ai"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "dimensions"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "29_students_ai_usage_parallel",
+    "dataset_path": "datasets/29_students_ai_usage_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/29_students_ai_usage_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

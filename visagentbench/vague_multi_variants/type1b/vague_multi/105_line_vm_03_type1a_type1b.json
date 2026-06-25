@@ -1,0 +1,78 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "105_line_vm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/105_gini_filter_line.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Using focus_lines and zoom_x_region, what are the different trends characterized during the period from 1950 to 1970?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "China had an increasing and an decreasing between 1958 and 1962."
+        },
+        "key_insights": [
+          "There is a country with a different trend.",
+          "Presented  as a sharp corner",
+          "China had an increasing and an decreasing between 1958 and 1962."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoomed to time range: 1950 to 1970."
+          },
+          {
+            "iteration": 2,
+            "tool": "focus_lines",
+            "reasoning": "Focused on line:China,since it was the only one whose trends were different from each other."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "1950",
+                  "end": "1970"
+                }
+              }
+            },
+            {
+              "tool": "focus_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "dim",
+                  "lines": [
+                    "China"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "1950",
+              "1970"
+            ]
+          },
+          "opacity": {
+            "has_opacity": true
+          }
+        },
+        "state_check_fields": [
+          "opacity",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

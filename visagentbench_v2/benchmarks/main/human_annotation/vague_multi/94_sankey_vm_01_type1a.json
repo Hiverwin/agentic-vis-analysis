@@ -1,0 +1,84 @@
+{
+  "benchmark_id": "94_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First inspect node `Brand Ads (Elevator/Official)`; then collapse low-rank nodes (keep top 4). Then analyze how the flow structure changes in the updated view: which links are pruned or retained, which trunk paths dominate, and what this implies about node role or funnel behavior compared with the original view. Cite node/edge evidence explicitly.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": " Brand Ads has a disproportionate focus on Electronics & Appliances, and Beauty & Skincare shows a strong dependency on Live Streaming."
+        },
+        "key_insights": [
+          "Brand Ads sends the largest share of its GMV to Electronics & Appliances",
+          "Fresh Food is the highest-GMV category, supported by multiple channels, while Beauty & Skincare relies heavily on Live Streaming."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "The first step of channel-by-channel filtering uncovers hidden dependencies"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.node.collapse",
+            "rationale": "Reordering categories then shows which business lines are most significant overall and which rely on a single channel."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.node.collapse"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Brand Ads (Elevator/Official)"
+              }
+            }
+          },
+          {
+            "capability": "sankey.node.collapse",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 4
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {}
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "94_samkey_retail",
+    "dataset_path": "datasets/94_samkey_retail.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/94_samkey_retail.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

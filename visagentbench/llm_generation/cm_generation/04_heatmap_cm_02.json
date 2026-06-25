@@ -1,0 +1,67 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "04_heatmap_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/04_heatmap_temp.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "04_heatmap_cm_01：Use filter_cells with temperature greater than 25 degrees Celsius, cluster_rows_cols to group similar temperature patterns and identify which cities and months fall into this range.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Miami",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells",
+            "reasoning": "Filter cells to focus on temperature values above 20C"
+          },
+          {
+            "iteration": 2,
+            "tool": "cluster_rows_cols",
+            "reasoning": "Cluster rows and columns to group similar temperature patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 20.0,
+                  "max_value": 35.0
+                }
+              }
+            },
+            {
+              "tool": "cluster_rows_cols",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "cluster_rows": true,
+                  "cluster_cols": true,
+                  "method": "sum"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "clustering_order": {
+            "clustered": true
+          }
+        },
+        "state_check_fields": [
+          "clustering_order"
+        ]
+      }
+    }
+  ]
+}

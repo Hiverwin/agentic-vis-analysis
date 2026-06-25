@@ -1,0 +1,86 @@
+{
+  "benchmark_id": "84_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Does a beverage exist with low sugar content and relatively high calorie count?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "boolean",
+          "value": "NO"
+        },
+        "key_insights": [
+          "find that when the data of sugars are low, their calories are low likewise"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "get the answer"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0,
+                  24.675001144409176
+                ],
+                "y_range": [
+                  6.874999999999975,
+                  550
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": " Sugars (g)",
+            "y": "Calories",
+            "color": "Beverage_category"
+          },
+          "view": {
+            "xDomain": [
+              0,
+              24.675001144409176
+            ],
+            "yDomain": [
+              6.874999999999975,
+              550
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "84_starbucks_scatter",
+    "dataset_path": "datasets/84_starbucks_scatter.json",
+    "row_count": 242,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/84_starbucks_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

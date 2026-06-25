@@ -1,0 +1,69 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "88_heatmap_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Using filter_cells and get_data_summary, how does gender align with spending for chronic versus non-chronic patients within the specified mid-band?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Within the band, males spend a bit more than females when chronic disease is absent, and the gap widens once chronic disease is present—roughly a few hundred dollars in the non-chronic cells versus more than a thousand dollars in the chronic cells. That pattern is less about gender alone and more about chronic status amplifying the male–female gap."
+        },
+        "key_insights": [
+          "Chronic patients show higher bills overall, and the male–female gap is larger there than in the non-chronic row.",
+          "Non-chronic cells stay closer together across gender."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells",
+            "reasoning": "Restricts the heatmap to a clinically meaningful spend band."
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data_summary",
+            "reasoning": "Quantifies the filtered cohort so gender contrasts can be compared numerically."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 7146.61,
+                  "max_value": 12473.72
+                }
+              }
+            },
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "filter"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "datum['Total_Bill_Amount'] >= 7146.61 && datum['Total_Bill_Amount'] <= 12473.72"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

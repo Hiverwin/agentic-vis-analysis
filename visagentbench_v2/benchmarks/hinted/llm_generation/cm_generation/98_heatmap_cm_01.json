@@ -1,0 +1,86 @@
+{
+  "benchmark_id": "98_heatmap_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "04_heatmap_cm_01：Use filter_cells with temperature greater than 25 degrees Celsius, cluster_rows_cols to group similar temperature patterns and identify which cities and months fall into this range.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Cardio - 2",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filter cells with BMI above 25 to focus on higher BMI values"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Cluster rows and columns to reveal patterns"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 25.0
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "cluster_rows": true,
+                "cluster_cols": true,
+                "method": "sum"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "clustering_order": {
+              "clustered": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "clustering_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "98_gym_members_exercise_tracking_heatmap",
+    "dataset_path": "datasets/98_gym_members_exercise_tracking_heatmap.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/98_gym_members_exercise_tracking_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

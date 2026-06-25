@@ -1,0 +1,91 @@
+{
+  "benchmark_id": "87_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use hide_dimensions with dimensions equal to Chinese American Museum, Firehouse Museum, mode equal to hide and use highlight_category with field equal to field, values equal to dimension in order to know How do the visitor patterns differ across the four museums, and what insights can be drawn about their relative popularity?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Avila Adobe is by far the most popular museum with an average of 24,062 visitors, significantly higher than the other three museums. America Tropical Interpretive Center ranks second with 7,107 average visitors, followed by Firehouse Museum at 6,473 and Chinese American Museum at 2,721. The data shows a clear hierarchy with Avila Adobe dominating visitor numbers, while Chinese American Museum consistently receives the lowest attendance across all time periods.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Avila Adobe has the highest average visitors (24",
+          "062)",
+          "significantly more than others",
+          "Chinese American Museum has the lowest average visitors (2",
+          "721)",
+          "The visitor gap between Avila Adobe and other museums is substantial (3-9 times difference)",
+          "All museums show 59 time points of visitor data"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "Hide the Chinese American Museum and Firehouse Museum dimensions to focus on comparing the two most visited museums"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.highlight.values",
+            "rationale": "Highlight the Avila Adobe dimension to emphasize its visitor pattern and compare with others"
+          }
+        ],
+        "required_capabilities": [
+          "parallel.dimensions.hide",
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimensions": [
+                  "Chinese American Museum",
+                  "Firehouse Museum"
+                ],
+                "mode": "hide"
+              }
+            }
+          },
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": "dimension"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "87_museum_visitors_parallel",
+    "dataset_path": "datasets/87_museum_visitors_parallel.json",
+    "row_count": 236,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/87_museum_visitors_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

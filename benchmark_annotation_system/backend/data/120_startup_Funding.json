@@ -1,0 +1,453 @@
+{
+  "rawLinks": [
+    {
+      "source": "Series B VC",
+      "target": "Operating Fund",
+      "value": 28000
+    },
+    {
+      "source": "Series B VC",
+      "target": "Reserve Fund",
+      "value": 7000
+    },
+    {
+      "source": "Series A (Prior)",
+      "target": "Operating Fund",
+      "value": 8000
+    },
+    {
+      "source": "Series A (Prior)",
+      "target": "Reserve Fund",
+      "value": 2000
+    },
+    {
+      "source": "Revenue",
+      "target": "Operating Fund",
+      "value": 4500
+    },
+    {
+      "source": "Grants & Credits",
+      "target": "Operating Fund",
+      "value": 500
+    },
+    {
+      "source": "Operating Fund",
+      "target": "Engineering",
+      "value": 16400
+    },
+    {
+      "source": "Operating Fund",
+      "target": "Sales & Marketing",
+      "value": 12300
+    },
+    {
+      "source": "Operating Fund",
+      "target": "G&A",
+      "value": 6150
+    },
+    {
+      "source": "Operating Fund",
+      "target": "Product",
+      "value": 4100
+    },
+    {
+      "source": "Operating Fund",
+      "target": "Customer Success",
+      "value": 2050
+    },
+    {
+      "source": "Reserve Fund",
+      "target": "Emergency Buffer",
+      "value": 5400
+    },
+    {
+      "source": "Reserve Fund",
+      "target": "M&A Fund",
+      "value": 2700
+    },
+    {
+      "source": "Reserve Fund",
+      "target": "Runway Extension",
+      "value": 900
+    },
+    {
+      "source": "Engineering",
+      "target": "Salaries",
+      "value": 12300
+    },
+    {
+      "source": "Engineering",
+      "target": "Cloud & Infra",
+      "value": 2870
+    },
+    {
+      "source": "Engineering",
+      "target": "Tools & Software",
+      "value": 820
+    },
+    {
+      "source": "Engineering",
+      "target": "Contractors",
+      "value": 410
+    },
+    {
+      "source": "Sales & Marketing",
+      "target": "Salaries",
+      "value": 6150
+    },
+    {
+      "source": "Sales & Marketing",
+      "target": "Paid Ads",
+      "value": 3690
+    },
+    {
+      "source": "Sales & Marketing",
+      "target": "Events & Travel",
+      "value": 1230
+    },
+    {
+      "source": "Sales & Marketing",
+      "target": "Tools & Software",
+      "value": 1230
+    },
+    {
+      "source": "G&A",
+      "target": "Salaries",
+      "value": 2460
+    },
+    {
+      "source": "G&A",
+      "target": "Office & Rent",
+      "value": 1845
+    },
+    {
+      "source": "G&A",
+      "target": "Legal & Compliance",
+      "value": 923
+    },
+    {
+      "source": "G&A",
+      "target": "Insurance",
+      "value": 615
+    },
+    {
+      "source": "G&A",
+      "target": "Tools & Software",
+      "value": 307
+    },
+    {
+      "source": "Product",
+      "target": "Salaries",
+      "value": 3280
+    },
+    {
+      "source": "Product",
+      "target": "User Research",
+      "value": 410
+    },
+    {
+      "source": "Product",
+      "target": "Tools & Software",
+      "value": 410
+    },
+    {
+      "source": "Customer Success",
+      "target": "Salaries",
+      "value": 1640
+    },
+    {
+      "source": "Customer Success",
+      "target": "Tools & Software",
+      "value": 205
+    },
+    {
+      "source": "Customer Success",
+      "target": "Events & Travel",
+      "value": 205
+    },
+    {
+      "source": "Salaries",
+      "target": "Team Growth",
+      "value": 15930
+    },
+    {
+      "source": "Salaries",
+      "target": "Talent Retention",
+      "value": 9900
+    },
+    {
+      "source": "Cloud & Infra",
+      "target": "Product Scale",
+      "value": 2870
+    },
+    {
+      "source": "Paid Ads",
+      "target": "Lead Generation",
+      "value": 2952
+    },
+    {
+      "source": "Paid Ads",
+      "target": "Brand Awareness",
+      "value": 738
+    },
+    {
+      "source": "Events & Travel",
+      "target": "Lead Generation",
+      "value": 861
+    },
+    {
+      "source": "Events & Travel",
+      "target": "Brand Awareness",
+      "value": 574
+    },
+    {
+      "source": "Tools & Software",
+      "target": "Productivity",
+      "value": 2972
+    },
+    {
+      "source": "Office & Rent",
+      "target": "Workspace",
+      "value": 1845
+    },
+    {
+      "source": "Legal & Compliance",
+      "target": "Risk Mitigation",
+      "value": 923
+    },
+    {
+      "source": "Insurance",
+      "target": "Risk Mitigation",
+      "value": 615
+    },
+    {
+      "source": "User Research",
+      "target": "Product Insights",
+      "value": 410
+    },
+    {
+      "source": "Contractors",
+      "target": "Flexible Capacity",
+      "value": 410
+    },
+    {
+      "source": "Emergency Buffer",
+      "target": "Cash Runway",
+      "value": 5400
+    },
+    {
+      "source": "M&A Fund",
+      "target": "Strategic Options",
+      "value": 2700
+    },
+    {
+      "source": "Runway Extension",
+      "target": "Cash Runway",
+      "value": 900
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Series B VC",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Series A (Prior)",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Revenue",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Grants & Credits",
+      "depth": 0,
+      "order": 3
+    },
+    {
+      "name": "Operating Fund",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Reserve Fund",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Engineering",
+      "depth": 2,
+      "order": 0
+    },
+    {
+      "name": "Sales & Marketing",
+      "depth": 2,
+      "order": 1
+    },
+    {
+      "name": "G&A",
+      "depth": 2,
+      "order": 2
+    },
+    {
+      "name": "Product",
+      "depth": 2,
+      "order": 3
+    },
+    {
+      "name": "Customer Success",
+      "depth": 2,
+      "order": 4
+    },
+    {
+      "name": "Emergency Buffer",
+      "depth": 2,
+      "order": 5
+    },
+    {
+      "name": "M&A Fund",
+      "depth": 2,
+      "order": 6
+    },
+    {
+      "name": "Runway Extension",
+      "depth": 2,
+      "order": 7
+    },
+    {
+      "name": "Salaries",
+      "depth": 3,
+      "order": 0
+    },
+    {
+      "name": "Cloud & Infra",
+      "depth": 3,
+      "order": 1
+    },
+    {
+      "name": "Paid Ads",
+      "depth": 3,
+      "order": 2
+    },
+    {
+      "name": "Events & Travel",
+      "depth": 3,
+      "order": 3
+    },
+    {
+      "name": "Tools & Software",
+      "depth": 3,
+      "order": 4
+    },
+    {
+      "name": "Office & Rent",
+      "depth": 3,
+      "order": 5
+    },
+    {
+      "name": "Legal & Compliance",
+      "depth": 3,
+      "order": 6
+    },
+    {
+      "name": "Insurance",
+      "depth": 3,
+      "order": 7
+    },
+    {
+      "name": "User Research",
+      "depth": 3,
+      "order": 8
+    },
+    {
+      "name": "Contractors",
+      "depth": 3,
+      "order": 9
+    },
+    {
+      "name": "Team Growth",
+      "depth": 4,
+      "order": 0
+    },
+    {
+      "name": "Talent Retention",
+      "depth": 4,
+      "order": 1
+    },
+    {
+      "name": "Product Scale",
+      "depth": 4,
+      "order": 2
+    },
+    {
+      "name": "Lead Generation",
+      "depth": 4,
+      "order": 3
+    },
+    {
+      "name": "Brand Awareness",
+      "depth": 4,
+      "order": 4
+    },
+    {
+      "name": "Productivity",
+      "depth": 4,
+      "order": 5
+    },
+    {
+      "name": "Workspace",
+      "depth": 4,
+      "order": 6
+    },
+    {
+      "name": "Risk Mitigation",
+      "depth": 4,
+      "order": 7
+    },
+    {
+      "name": "Product Insights",
+      "depth": 4,
+      "order": 8
+    },
+    {
+      "name": "Flexible Capacity",
+      "depth": 4,
+      "order": 9
+    },
+    {
+      "name": "Cash Runway",
+      "depth": 4,
+      "order": 10
+    },
+    {
+      "name": "Strategic Options",
+      "depth": 4,
+      "order": 11
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Funding Source"
+    },
+    {
+      "depth": 1,
+      "label": "Capital Pool"
+    },
+    {
+      "depth": 2,
+      "label": "Department"
+    },
+    {
+      "depth": 3,
+      "label": "Expense Type"
+    },
+    {
+      "depth": 4,
+      "label": "Outcome"
+    }
+  ]
+}

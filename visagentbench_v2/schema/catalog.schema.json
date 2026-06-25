@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://visagentbench.dev/schema/catalog.schema.json",
+  "title": "VisAgentBench v2 Benchmark Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["benchmark_counts", "partition_widget_counts", "top_required_capabilities"],
+  "properties": {
+    "benchmark_counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "integer"
+        }
+      }
+    },
+    "partition_widget_counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "integer"
+        }
+      }
+    },
+    "top_required_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability", "count"],
+        "properties": {
+          "capability": { "type": "string" },
+          "count": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

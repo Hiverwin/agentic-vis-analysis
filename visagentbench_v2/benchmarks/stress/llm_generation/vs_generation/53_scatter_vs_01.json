@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "53_scatter_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use identify_clusters in order to know What patterns can be observed in the relationship between living space and price?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The scatter plot shows patterns in how living space relates to price, with potential clusters indicating different market segments or property types",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Different clusters may represent different property types",
+          "Price and living space show correlation patterns",
+          "Market segmentation can be observed"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Use identify_clusters with 3 clusters to identify patterns in housing data"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "cluster_field": {
+              "color_field_contains": "cluster"
+            }
+          }
+        },
+        "state_check_fields": [
+          "cluster_field"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "53_Housing_scatter",
+    "dataset_path": "datasets/53_Housing_scatter.json",
+    "row_count": 21613,
+    "dataset_scale_tag": "stress"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/53_Housing_scatter.json"
+    }
+  },
+  "benchmark_partition": "stress"
+}

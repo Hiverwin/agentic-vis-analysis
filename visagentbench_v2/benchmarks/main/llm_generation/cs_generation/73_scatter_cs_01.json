@@ -1,0 +1,80 @@
+{
+  "benchmark_id": "73_scatter_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use zoom_2d_region with x_range from 80.0 to 100.0, y_range from 80.0 to 100.0 in order to know Use zoom_2d_region with xStart equal to 80, xEnd equal to 100, yStart equal to 80, yEnd equal to 100 to identify how many students have both math and reading scores above 80.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "106",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into the top-right region to count students with high scores in both subjects"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  80.0,
+                  100.0
+                ],
+                "y_range": [
+                  80.0,
+                  100.0
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              80.0,
+              100.0
+            ],
+            "yDomain": [
+              80.0,
+              100.0
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "73_StudentsPerformance_scatter",
+    "dataset_path": "datasets/73_StudentsPerformance_scatter.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/73_StudentsPerformance_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

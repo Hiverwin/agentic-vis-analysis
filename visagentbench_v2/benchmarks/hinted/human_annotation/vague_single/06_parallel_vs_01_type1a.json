@@ -1,0 +1,81 @@
+{
+  "benchmark_id": "06_parallel_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_category with field equal to Species, values equal to Adelie, Chinstrap to compare the significant differences in their characteristics.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Although the data for beak depth, body mass, and flipper length are relatively concentrated and uniform between Adelie and Chinstrap penguins, the beak length of Chinstrap is significantly longer than that of Adelie."
+        },
+        "key_insights": [
+          "Adelie and Chinstrap penguins exhibit similar data for beak depth, body mass, and flipper length.",
+          "They show significant differences in the beak length characteristic."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.highlight.values",
+            "rationale": "By comparing the characteristic differences among penguin species, I noticed that the similarities and differences between Adelie and Chinstrap penguins are quite pronounced. I adopted the highlight_category tool and analyzed the new view."
+          }
+        ],
+        "required_capabilities": [
+          "data.highlight.values"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.highlight.values",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Species",
+                "values": [
+                  "Adelie",
+                  "Chinstrap"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "06_parallel_penguins",
+    "dataset_path": "datasets/06_parallel_penguins.json",
+    "row_count": 30,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/06_parallel_penguins.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

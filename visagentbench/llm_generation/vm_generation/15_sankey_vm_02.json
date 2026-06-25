@@ -1,0 +1,98 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "15_sankey_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use calculate_conversion_rate with node_name equal to Personal Income Tax and use trace_node with node_name equal to Education and use filter_flow with min_value equal to 300.0 and use highlight_path with path equal to Education, K-12 Funding, School Districts in order to know Analyze the government budget flow and identify the most significant funding patterns across different sectors",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The government budget shows a complex flow where Personal Income Tax is the largest revenue source ($1100B), primarily funding Education and Healthcare. Major expenditure patterns include Education  K-12 Funding ($400B), Direct Transfer  Citizen Benefit ($400B), and Transport  Highway Projects ($380B). Bond Issuance heavily supports Transport infrastructure, while Defense receives substantial funding for Military Operations. The budget demonstrates balanced allocation across key sectors with education and infrastructure receiving significant attention.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Personal Income Tax is the largest revenue source ($1100B)",
+          "Education receives significant funding ($700B)",
+          "Transport gets major bond funding",
+          "Budget is balanced across key sectors"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Calculate conversion rates for all nodes to identify major funding sources"
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace node flows from Personal Income Tax to understand primary funding destinations"
+          },
+          {
+            "iteration": 3,
+            "tool": "filter_flow",
+            "reasoning": "Filter flows above $300B to identify significant budget movements"
+          },
+          {
+            "iteration": 4,
+            "tool": "highlight_path",
+            "reasoning": "Highlight key paths to visualize major funding patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Personal Income Tax"
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Education"
+                }
+              }
+            },
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 300.0
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Education",
+                    "K-12 Funding",
+                    "School Districts"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

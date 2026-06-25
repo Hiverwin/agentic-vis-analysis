@@ -1,0 +1,55 @@
+{
+  "task_type": "vague_single",
+  "task_id": "83_line_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/83_global-data-on-sustainable-energy-filtered_line.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_trend in order to know How has the trend of renewable electricity generation evolved for major countries over time?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "China shows the most significant growth in renewable electricity generation, consistently increasing over the years and far surpassing other countries. The United States also shows steady growth but at a slower pace. Japan, Germany, and France follow with moderate growth, while smaller countries like Austria, New Zealand, and Egypt have more modest increases",
+          "alternatives": []
+        },
+        "key_insights": [
+          "China shows the most significant growth",
+          "United States has steady but slower growth",
+          "Japan",
+          "Germany",
+          "and France follow with moderate growth"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight increasing trend to analyze renewable electricity generation growth over time"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "regression_line": true
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

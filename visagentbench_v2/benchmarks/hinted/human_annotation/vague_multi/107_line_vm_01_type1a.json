@@ -1,0 +1,103 @@
+{
+  "benchmark_id": "107_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First use `filter_lines` to remove Russia, India, China, and Denmark, then use `zoom_x_region` for 2000-2020. Based on the four remaining lines, analyze how male survival-to-65 evolves by country, including ranking stability, gap dynamics, and whether there is catch-up or overtaking. Cite visible evidence anchors (country names and trend/rank changes over time).",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "With Russia, India, China, and Denmark removed, the 2000-2020 view shows that all remaining countries improve in male survival-to-65, but not at the same pace. One or more lines rise more smoothly, while another exhibits stronger slope change in the mid-to-late years. The leading country remains ahead for most of the window, yet lower-ranked countries reduce part of the distance, which is a catch-up pattern rather than a full ranking reversal. This interpretation depends on the filtered and zoomed comparison."
+        },
+        "key_insights": [
+          "The four retained countries rise overall in 2000-2020, but their slope profiles differ by phase.",
+          "Higher-ranked lines generally stay on top, while lower-ranked lines show measurable catch-up in spacing.",
+          "The zoomed segment is required to evaluate ranking persistence and potential overtaking windows credibly."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "Remove Russia, India, China, and Denmark first to create a cleaner four-line comparison set."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "Then focus on 2000-2020 to inspect trend pace, rank ordering, and narrowing/widening gaps for catch-up or overtaking evidence."
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "Russia",
+                  "India",
+                  "China",
+                  "Denmark"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2000",
+                "end": "2020"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              "2000",
+              "2020"
+            ]
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Russia\", \"India\", \"China\", \"Denmark\"], datum['Entity']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "107_survive_to_65_line",
+    "dataset_path": "datasets/107_survive_to_65_line.json",
+    "row_count": 496,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/107_survive_to_65_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,94 @@
+{
+  "benchmark_id": "78_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use cluster_rows_cols with cluster_rows equal to True, cluster_cols equal to True, method equal to mean, highlight_region with x_values equal to Cloud (AWS/GCP), Docker/K8s, and SQL to characterize the hierarchical characteristics of the demand patterns for engineering skills across different positions.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "It was discovered that there is a connection between cloud and Docker. For all engineers, when using cloud frequently, Docker is also used more; when using cloud less frequently, Docker is used less as well. It can be clearly seen that engineers who are more inclined towards AI, such as AI product managers, do not have such high requirements for these three technologies. On the contrary, engineers who are more focused on data use these three technologies more frequently."
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.clusters.identify",
+            "rationale": "rearrangement"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.region.highlight",
+            "rationale": "highlight data in these three line"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.clusters.identify",
+          "heatmap.region.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "cluster_rows": true,
+                "cluster_cols": true,
+                "method": "mean"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.region.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_values": [
+                  "Cloud (AWS/GCP)",
+                  "Docker/K8s",
+                  "SQL"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "clustering_order": {
+              "clustered": true
+            },
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "clustering_order",
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "78_ai_job_dataset_heatmap",
+    "dataset_path": "datasets/78_ai_job_dataset_heatmap.json",
+    "row_count": 80,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

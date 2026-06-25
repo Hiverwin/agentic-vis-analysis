@@ -1,0 +1,83 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "90_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/90_Train_bar.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What is the product_importance with the highest mean of Discount_offered among Customer_care_calls equal to 7?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "medium.",
+          "alternatives": [
+            "Medium"
+          ]
+        },
+        "key_insights": [
+          "For Obese individuals, sleep duration decreases as stress level rises, with a linear negative correlation.",
+          "Stress Level 1 for Obese individuals has the highest mean sleep duration among their subgroup, nearly matching Normal BMI Category at low stress levels."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "Filtering the High level of Customer_care_calls"
+          },
+          {
+            "iteration": 2,
+            "tool": "toggle_stack_mode",
+            "reasoning": "Use the tool to switch to the group mode to visually compare the differences in those product_importance that are the greatest."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "High"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Product_importance",
+            "y": "Mean of Discount_offered",
+            "color": "Customer_care_calls"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['Product_importance'] == 'Medium'"
+            }
+          ]
+        },
+        "mark_mode": {
+          "is_stacked": false
+        },
+        "state_check_fields": [
+          "encoding",
+          "mark_mode",
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

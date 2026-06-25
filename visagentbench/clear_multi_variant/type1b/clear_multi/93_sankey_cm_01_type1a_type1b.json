@@ -1,0 +1,71 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "93_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_flow and trace_node, which node contributes the least inflow to Wealth Products?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Short Video Feed Ads",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Alipay/WeChat Entry and Bank App Push are the dominant sources of traffic for Wealth Products."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_path",
+            "reasoning": "Highlight the path from Alipay/WeChat Entry to Wealth Products."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Get inflow details for Wealth Products from upstream list."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Alipay/WeChat Entry",
+                    "Wealth Products"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Wealth Products"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

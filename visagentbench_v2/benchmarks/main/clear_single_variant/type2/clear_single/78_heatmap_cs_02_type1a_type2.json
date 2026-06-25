@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "78_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What skill has the highest average demand across all positions?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Python",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.marginals.add",
+            "rationale": "get data"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "show_top": true,
+                "show_right": true,
+                "op": "mean"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 3,
+              "has_type": "bar"
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "78_ai_job_dataset_heatmap",
+    "dataset_path": "datasets/78_ai_job_dataset_heatmap.json",
+    "row_count": 80,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

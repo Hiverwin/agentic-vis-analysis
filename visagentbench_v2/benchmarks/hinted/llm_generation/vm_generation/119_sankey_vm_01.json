@@ -1,0 +1,107 @@
+{
+  "benchmark_id": "119_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use highlight_path with path equal to Daily Quests, Player Wallet, Gear Enhance and use trace_node with node_name equal to Player Wallet and use color_flows with nodes equal to #e74c3c, color equal to #e74c3c in order to know How does the in-game currency flow through the game economy system? What are the primary sources and sinks of gold coins?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The game economy shows a balanced currency circulation of approximately 50M gold/day. Primary income sources include Daily Quests (17M gold, 34%), Dungeon Drops (17M gold, 34%), and IAP Exchange (10M gold, 20%). The Player Wallet serves as the central hub with 39.5M total flow. Major gold sinks are Gear Enhance (16M, 32% of total sinks), Pet Training (9.5M, 19%), and Gem Synthesis (6M, 12%). The system includes fees at multiple stages: Enhance Fee (10M), Training Fee (6M), and Transaction Tax (3M, 6% of circulation). Bot Farming contributes only 1M gold (2%), indicating minimal automated farming impact. The economy maintains balance with income sources matching consumption patterns, ensuring sustainable player progression.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Daily Quests and Dungeon Drops each contribute 34% of gold income",
+          "Gear Enhance is the largest gold sink at 32%",
+          "Player Wallet is central hub with 39.5M total flow",
+          "Transaction Tax removes 6% from circulation",
+          "Bot Farming has minimal impact at only 2% of income"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the main income path from Daily Quests to Player Wallet to Gear Enhance"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace the Player Wallet node to understand all inflow and outflow sources"
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.path.highlight",
+            "rationale": "Color flows related to Bot Farming to analyze its impact on the economy"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Daily Quests",
+                  "Player Wallet",
+                  "Gear Enhance"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Player Wallet"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "nodes": [
+                  "#e74c3c"
+                ],
+                "color": "#e74c3c"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "119_sankey_game",
+    "dataset_path": "datasets/119_sankey_game.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/119_sankey_game.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

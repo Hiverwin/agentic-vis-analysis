@@ -1,0 +1,86 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "05_sankey_vm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/05_sankey.json",
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Use calculate_conversion_rate with node_name equal to Purchase and use trace_node with node_name equal to Google Ads and use highlight_path with path equal to Google Ads, Landing Page, Product Detail, Add to Cart, Purchase in order to know How do users flow through e-commerce journey from traffic sources to purchase, and what insights can be drawn about conversion patterns?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The e-commerce journey shows a 30.19% overall conversion rate from 26,500 total visitors to 8,000 purchases. Google Ads is the largest traffic source (9,000), followed by Facebook (7,000), Organic (6,000), and Email (4,500). The journey reveals significant drop-offs: 9,500 users exit directly from entry points, and 7,000 bounce from product details. Product Detail is a critical engagement point with 17,000 users, where users either add to cart (10,000) or bounce (7,000). The final conversion from Add to Cart to Purchase is 80% (8,000 of 10,000), indicating strong purchase intent once users reach cart stage. The data suggests optimizing early-stage engagement and reducing bounce rates could significantly improve overall conversion.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Overall conversion rate is 30.19%",
+          "Google Ads is largest traffic source",
+          "Product Detail is critical engagement point",
+          "Add to Cart to Purchase conversion is 80%",
+          "Significant drop-offs occur at entry and product detail stages"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Calculate conversion rate for key nodes to understand funnel efficiency"
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Trace Purchase node to see all incoming flows"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_path",
+            "reasoning": "Highlight path from Google Ads to Purchase to analyze major conversion route"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Purchase"
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Google Ads"
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Google Ads",
+                    "Landing Page",
+                    "Product Detail",
+                    "Add to Cart",
+                    "Purchase"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

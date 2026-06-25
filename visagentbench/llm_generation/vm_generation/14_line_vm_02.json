@@ -1,0 +1,65 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "14_line_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/14_museum_visitors_line_multi.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Analyze the museum visitor data to identify key trends and differences between museums.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The museum visitor data reveals significant differences in popularity and visitation patterns: 1) Avila Adobe is the most popular museum with 1,419,638 total visitors (24,061.66 average monthly), followed by America Tropical Interpretive Center (419,314), Firehouse Museum (381,897), and Chinese American Museum (160,554). 2) Avila Adobe's visitor numbers are more than three times higher than the next museum, indicating its dominant position. 3) Firehouse Museum shows a significant outlier in September 2014 with 61,192 visitors, possibly due to a special event. 4) All museums show seasonal patterns with higher visitation in spring and summer months. 5) Chinese American Museum has the lowest overall visitation but shows growth potential with peaks in March 2016 (7,702 visitors).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Avila Adobe is the most popular museum with 1,419,638 total visitors",
+          "Firehouse Museum had a significant outlier in September 2014 with 61,192 visitors",
+          "All museums show seasonal patterns with higher visitation in spring and summer",
+          "Chinese American Museum has the lowest overall visitation but shows growth potential"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom into specific time periods to analyze seasonal patterns"
+          },
+          {
+            "iteration": 2,
+            "tool": "focus_lines",
+            "reasoning": "Focus on specific museum lines to compare visitor trends"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_field": "Date"
+                }
+              }
+            },
+            {
+              "tool": "focus_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Museum"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {},
+          "data_filtered": []
+        }
+      }
+    }
+  ]
+}

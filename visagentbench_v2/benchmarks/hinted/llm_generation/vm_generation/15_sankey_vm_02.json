@@ -1,0 +1,119 @@
+{
+  "benchmark_id": "15_sankey_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use calculate_conversion_rate with node_name equal to Personal Income Tax and use trace_node with node_name equal to Education and use filter_flow with min_value equal to 300.0 and use highlight_path with path equal to Education, K-12 Funding, School Districts in order to know Analyze the government budget flow and identify the most significant funding patterns across different sectors",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The government budget shows a complex flow where Personal Income Tax is the largest revenue source ($1100B), primarily funding Education and Healthcare. Major expenditure patterns include Education  K-12 Funding ($400B), Direct Transfer  Citizen Benefit ($400B), and Transport  Highway Projects ($380B). Bond Issuance heavily supports Transport infrastructure, while Defense receives substantial funding for Military Operations. The budget demonstrates balanced allocation across key sectors with education and infrastructure receiving significant attention.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Personal Income Tax is the largest revenue source ($1100B)",
+          "Education receives significant funding ($700B)",
+          "Transport gets major bond funding",
+          "Budget is balanced across key sectors"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate conversion rates for all nodes to identify major funding sources"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace node flows from Personal Income Tax to understand primary funding destinations"
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.flow.filter",
+            "rationale": "Filter flows above $300B to identify significant budget movements"
+          },
+          {
+            "iteration": 4,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight key paths to visualize major funding patterns"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate",
+          "sankey.path.highlight",
+          "sankey.flow.filter",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Personal Income Tax"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Education"
+              }
+            }
+          },
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 300.0
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Education",
+                  "K-12 Funding",
+                  "School Districts"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "15_sankey_government",
+    "dataset_path": "datasets/15_sankey_government.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

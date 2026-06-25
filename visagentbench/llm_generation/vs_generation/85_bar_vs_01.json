@@ -1,0 +1,59 @@
+{
+  "task_type": "vague_single",
+  "task_id": "85_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/85_supply_chain_data_bar.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Prices vary significantly across customer demographics, with Unknown and Male customers having higher average prices overall. Cosmetics consistently has the highest average price across all demographics, followed by skincare and haircare. Non-binary and Male customers show higher prices for haircare and skincare compared to Female customers",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Unknown and Male customers have higher average prices",
+          "Cosmetics has the highest average price across all demographics",
+          "Non-binary and Male customers show higher prices for haircare and skincare"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars in descending order to analyze price variations across demographics and product types"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Unknown",
+              "Male",
+              "Non-binary",
+              "Female"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

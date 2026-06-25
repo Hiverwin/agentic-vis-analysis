@@ -1,0 +1,95 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "33_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/33_bmw_bar.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What is the dominant fuel type within the single most fuel-efficient model series?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Petrol.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The view was successfully sorted, identifying the 3 Series as the top model by total fuel efficiency.",
+          "This step achieved the goal of establishing a performance ranking.",
+          "Within the cluster for the top-ranked 3 Series, the Diesel bar is the tallest, indicating Diesel models contribute the most to its total fuel efficiency sum.",
+          "This view allows for direct comparison of fuel type dominance across different series without the need for a stacked percentage view."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "Filter out the data from other model series to focus on the data for M2, M3, M4,M5, M6."
+          },
+          {
+            "iteration": 2,
+            "tool": "toggle_stack_mode",
+            "reasoning": "The grouped view successfully answers the question by revealing the internal composition. The dominant fuel type for the 3 Series is Diesel. The multi-tool operation is complete."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "1 Series",
+                    "2 Series",
+                    "3 Series",
+                    "4 Series",
+                    "5 Series",
+                    "6 Series",
+                    "7 Series",
+                    "8 Series",
+                    "X2",
+                    "X3",
+                    "X4",
+                    "X5",
+                    "X6",
+                    "X7",
+                    "i3",
+                    "i8",
+                    "Z3",
+                    "Z4"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "categorical",
+                "param": "mode",
+                "target": "grouped"
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "model",
+            "y": "mpg",
+            "color": "fuelType"
+          },
+          "data_filtered": {
+            "filter": "indexof([\"M 3\", \"M 5\", \"M 2\",\"M 6\",\"M 4\"], datum['model']) >= 0"
+          },
+          "mark_mode": {
+            "is_stacked": false
+          }
+        },
+        "state_check_fields": [
+          "mark_mode",
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

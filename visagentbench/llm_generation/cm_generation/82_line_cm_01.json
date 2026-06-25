@@ -1,0 +1,73 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "82_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/82_Online Sales Data_line.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "11_line_cm_01：Use show_moving_average with window_size equal to 7 to smooth the line, then use zoom_x_region with start equal to 2020-01-01 and end equal to 2020-12-31 to focus on a single year. What is the trend of the smoothed line during this period?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Electronics",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "show_moving_average",
+            "reasoning": "Show moving average to identify overall trends"
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_x_region",
+            "reasoning": "Zoom to view the entire time period"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "show_moving_average",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "window_size": 3
+                }
+              }
+            },
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2024-01",
+                  "end": "2024-08"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "2024-01",
+              "2024-08"
+            ]
+          },
+          "layers": {
+            "count": 2,
+            "has_type": "line"
+          }
+        },
+        "state_check_fields": [
+          "layers",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

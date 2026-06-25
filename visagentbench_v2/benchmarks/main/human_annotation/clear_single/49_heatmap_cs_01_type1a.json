@@ -1,0 +1,69 @@
+{
+  "benchmark_id": "49_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use find_extremes with top_n equal to 1, mode equal to max to identify the combination of time_of_day and coffee_name that represents the highest mean of money.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The result shows that buying hot chocolate in the afternoon usually costs most money with mean of 35.76.",
+          "alternatives": [
+            "The result shows that buying hot chocolate in the afternoon usually costs most money with mean of 35.76."
+          ]
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "By using the tool,we observe thet people usually spends more money on hot chocolate in the afternoon."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1,
+                "mode": "max"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "coffee_name",
+            "y": "Time_of_Day",
+            "color": "money"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "49_coffee_sales_heatmap",
+    "dataset_path": "datasets/49_coffee_sales_heatmap.json",
+    "row_count": 3547,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/49_coffee_sales_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

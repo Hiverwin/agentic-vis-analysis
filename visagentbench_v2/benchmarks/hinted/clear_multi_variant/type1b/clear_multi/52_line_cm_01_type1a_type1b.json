@@ -1,0 +1,93 @@
+{
+  "benchmark_id": "52_line_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using highlight_trend and show_moving_average, what does the moving average line indicate about the trend of electricity access over time?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "increasing"
+        },
+        "key_insights": [
+          "The moving average line shows a consistent upward trajectory from 2000 to 2021, with only minor deviations."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.movingAverage.show",
+            "rationale": "The smoothed trend reveals a consistent upward trajectory from 2000 to 2021, with only minor deviations."
+          },
+          {
+            "iteration": 2,
+            "capability": "line.trend.highlight",
+            "rationale": "Highlighting the trend then makes the long-term direction unmistakable."
+          }
+        ],
+        "required_capabilities": [
+          "line.movingAverage.show",
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.movingAverage.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "window_size": 5
+              }
+            }
+          },
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "year",
+            "y": "electricity_access",
+            "color": "Entity"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 3,
+              "has_type": "line",
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "52_years of economic new_line",
+    "dataset_path": "datasets/52_years of economic new_line.json",
+    "row_count": 23,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/52_years of economic new_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

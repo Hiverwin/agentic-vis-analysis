@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "07_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/07_bar_synthetic_mental_health.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Using filter_categories, how does the relationship pattern exhibited by the 'average' and 'good' dietary quality categories correspond in terms of sleep duration?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The group with average dietary quality has significantly higher sleep duration than the group with good dietary quality, with a clear gap between the two."
+        },
+        "key_insights": [
+          "The group with average dietary quality actually has longer sleep duration, indicating that the relationship between dietary quality and sleep duration is not a simple positive correlation."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "To better compare the relationship between 'average' and 'good', I filtered out the 'poor' bars"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "poor"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "indexof([\"poor\"], datum['diet_quality']) < 0"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "benchmark_id": "91_scatter_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use identify_clusters in order to know Which product type shows the most distinct clustering pattern in terms of price and revenue?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Cosmetics products tend to cluster in the higher revenue range with more consistent price points, while skincare and haircare show more scattered distributions across different price and revenue combinations",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Cluster 1 contains mostly high-revenue products across all types",
+          "Cosmetics appear more concentrated in higher-revenue clusters",
+          "Skincare and haircare show more diverse distribution across clusters"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Use identify_clusters with n_clusters equal to 3 to identify natural groupings in the data and analyze which product type shows the most distinct clustering pattern"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "cluster_field": {
+              "color_field_contains": "cluster"
+            }
+          }
+        },
+        "state_check_fields": [
+          "cluster_field"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "91_supply_chain_data_scatter",
+    "dataset_path": "datasets/91_supply_chain_data_scatter.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/91_supply_chain_data_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

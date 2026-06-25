@@ -1,0 +1,52 @@
+{
+  "task_type": "clear_single",
+  "task_id": "41_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/41_museum_visitors_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Using calculate_correlation, what is the strength of the correlation between Chinese American Museum and America Tropical Interpretive Center visitor counts?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "0.169",
+          "tolerance": 0.05
+        },
+        "key_insights": [
+          "The Pearson correlation coefficient of approximately 0.169 indicates a weak positive relationship between the two museums' visitor counts.",
+          "The weak correlation suggests they do not share strong visitation patterns despite being cultural institutions in proximity.",
+          "External factors like different target audiences or exhibition schedules may drive their visitor numbers independently."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation with method pearson to quantify the relationship between the two museums' visitor counts. The tool returns the correlation coefficient, which indicates a weak association."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Chinese American Museum",
+            "y": "America Tropical Interpretive Center",
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

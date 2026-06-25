@@ -1,0 +1,78 @@
+{
+  "task_type": "vague_single",
+  "task_id": "79_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Xbox One has the highest average action game score (7.70), followed closely by PlayStation 4 (7.55). PlayStation Vita (7.17) and Wireless (7.04) also perform well. The lowest scores are seen on Nintendo DS (5.90), PlayStation (6.02), and Wii (6.26). These differences likely reflect platform capabilities, developer support, and target audiences. Modern consoles like Xbox One and PS4 offer more advanced hardware for high-quality action games, while older or more casual platforms may have less demanding titles.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Xbox One has highest average action game score",
+          "PlayStation 4 is close second",
+          "Modern platforms generally have higher scores",
+          "Older platforms like Nintendo DS and PlayStation have lower scores",
+          "Wireless platforms perform surprisingly well"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Use sort_bars to rank gaming platforms by their average action game scores and identify which platforms perform best and worst."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Xbox One",
+              "PlayStation 4",
+              "PlayStation Vita",
+              "Wireless",
+              "Dreamcast",
+              "iPhone",
+              "PlayStation 3",
+              "Nintendo DSi",
+              "Xbox",
+              "PC",
+              "Xbox 360",
+              "Nintendo 3DS",
+              "Nintendo 64",
+              "GameCube",
+              "PlayStation Portable",
+              "PlayStation 2",
+              "Game Boy Advance",
+              "Game Boy Color",
+              "Wii",
+              "PlayStation",
+              "Nintendo DS"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

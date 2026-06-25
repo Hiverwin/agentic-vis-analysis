@@ -1,0 +1,78 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "114_parallel_cm_05",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/114_sport_life_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_05",
+      "question": "29_parallel_cm_01：Use reorder_dimensions with dimension_order equal to Age, Income, Education, Debt, then use calculate_correlation with method equal to pearson to analyze relationships between variables. What is the correlation between Income and Education?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Online",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "reorder_dimensions",
+            "reasoning": "Use reorder_dimensions to prioritize revenue dimension"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation to analyze revenue relationship"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "revenue_usd",
+                    "units_sold",
+                    "size",
+                    "base_price_usd",
+                    "discount_percent",
+                    "final_price_usd"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "axis_order": {
+            "dimension_order": [
+              "revenue_usd",
+              "units_sold",
+              "size",
+              "base_price_usd",
+              "discount_percent",
+              "final_price_usd"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

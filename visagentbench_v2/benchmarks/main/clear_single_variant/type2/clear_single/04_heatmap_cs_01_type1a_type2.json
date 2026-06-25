@@ -1,0 +1,68 @@
+{
+  "benchmark_id": "04_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What city and month correspond to the maximum temperature?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Miami, June.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "After using the find extremes tool, the highest temperature of approximately 30°C occurred in Miami, June.",
+          "Miami consistently shows the highest temperatures across all months, with its June value being the clear peak."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "The original heatmap shows color differences, but exact extreme values and their locations aren’t obvious without the tool.\nUsing find extremes directly pinpoints the maximum value, which is the most efficient way to answer this objective question.\nThe result is categorical and precise, with no gap between the goal and the outcome, so no further tool use is needed."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "numeric",
+              "param": "top_n",
+              "target": 1,
+              "tolerance": 0.1
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "month",
+            "y": "city",
+            "color": "temp"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "04_heatmap_temp",
+    "dataset_path": "datasets/04_heatmap_temp.json",
+    "row_count": 18,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/04_heatmap_temp.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

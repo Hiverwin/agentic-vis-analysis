@@ -1,0 +1,72 @@
+{
+  "task_type": "clear_single",
+  "task_id": "73_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/73_StudentsPerformance_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Which test preparation course status has the highest reading score?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "completed",
+          "alternatives": [
+            "Completed"
+          ]
+        },
+        "key_insights": [
+          "The completed test preparation course status has the highest reading score."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "find weather there are some point in this area"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    0.08333333333333334,
+                    36.61666361490886
+                  ],
+                  "y_range": [
+                    59.650001525878906,
+                    99.6500015258789
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              0.08333333333333334,
+              36.61666361490886
+            ],
+            "y": [
+              59.650001525878906,
+              99.6500015258789
+            ]
+          },
+          "encoding": {
+            "x": "math score",
+            "y": "reading score",
+            "color": "test preparation course"
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

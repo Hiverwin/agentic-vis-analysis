@@ -1,0 +1,79 @@
+{
+  "benchmark_id": "77_bar_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The average body fat percentages across workout types are very similar: HIIT (24.46%), Yoga (24.48%), Cardio (25.40%), and Strength (25.46%). HIIT appears slightly more effective, followed closely by Yoga. This could be explained by HIIT's high-intensity intervals that maximize calorie burn and boost metabolism, while Yoga combines strength training with mindfulness that may support sustainable fat loss through stress reduction and improved body awareness.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "HIIT has slightly lower average body fat percentage",
+          "Yoga is very close to HIIT in effectiveness",
+          "All workout types show similar body fat reduction results",
+          "Small differences suggest consistency and intensity may be more important than specific workout type"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Use sort_bars to rank workout types by their average body fat percentage and identify which type is most effective for fat reduction."
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Strength",
+                "Cardio",
+                "Yoga",
+                "HIIT"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "77_gym_bar_sum",
+    "dataset_path": "datasets/77_gym_bar_sum.json",
+    "row_count": 973,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/77_gym_bar_sum.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

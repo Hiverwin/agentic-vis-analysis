@@ -1,0 +1,94 @@
+{
+  "benchmark_id": "83_line_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use focus_lines with lines equal to dim and use highlight_trend with trend_type equal to China in order to know What patterns can you observe in renewable electricity generation trends across different countries from 2000 to 2020?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) China shows the most dramatic growth with an 869% increase, becoming the largest renewable electricity producer (2,185 TWh in 2020), 2) All nine countries show increasing trends, indicating global commitment to renewable energy, 3) The United Kingdom achieved the highest growth rate (1,220%), though from a low base, 4) Germany also shows remarkable growth (609%), reaching 251 TWh, 5) There is a clear hierarchy with China and USA as leaders, Japan and Germany in the middle tier, and smaller countries like Egypt and New Zealand at lower levels, 6) The gap between China and other countries has widened significantly, with China now producing more than double the US output, 7) Smaller countries show more stable growth patterns with less variability (e.g., New Zealand, Austria), while larger economies show more dramatic changes.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "China shows dramatic 869% growth",
+          "All countries show increasing trends",
+          "UK has highest growth rate (1220%)",
+          "Clear hierarchy among countries",
+          "Gap between China and others widened",
+          "Smaller countries show stable growth"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.focus",
+            "rationale": "Focus on specific countries to compare"
+          },
+          {
+            "iteration": 2,
+            "capability": "line.trend.highlight",
+            "rationale": "Highlight trend to see overall patterns"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.focus",
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.focus",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines": [
+                  "dim"
+                ],
+                "line_field": "mode",
+                "mode": "dim",
+                "dim_opacity": 0.08
+              }
+            }
+          },
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "China"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Electricity from renewables (TWh)",
+            "color": "Entity"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "83_global-data-on-sustainable-energy-filtered_line",
+    "dataset_path": "datasets/83_global-data-on-sustainable-energy-filtered_line.json",
+    "row_count": 189,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/83_global-data-on-sustainable-energy-filtered_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

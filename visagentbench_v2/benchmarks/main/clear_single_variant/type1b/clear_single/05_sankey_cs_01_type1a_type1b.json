@@ -1,0 +1,80 @@
+{
+  "benchmark_id": "05_sankey_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Using calculate_conversion_rate, what is the number of users redirected via Google Ads?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "4000",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "get the data to obtain the answer"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Product List"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "visible_nodes": [
+              "Google Ads",
+              "Facebook",
+              "Organic",
+              "Email",
+              "Landing Page",
+              "Product List",
+              "Search",
+              "Product Detail",
+              "Exit",
+              "Add to Cart",
+              "Bounce",
+              "Purchase"
+            ],
+            "collapsed_nodes": []
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "05_sankey_ecommercial",
+    "dataset_path": "datasets/05_sankey_ecommercial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/05_sankey_ecommercial.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

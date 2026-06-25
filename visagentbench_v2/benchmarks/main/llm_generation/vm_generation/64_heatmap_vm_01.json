@@ -1,0 +1,94 @@
+{
+  "benchmark_id": "64_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use find_extremes with top_n equal to 5, mode equal to both and use add_marginal_bars with show_top equal to True, show_right equal to True in order to know What patterns can be observed in Christmas tree prices over time? Analyze the differences between real and fake trees and identify pricing trends.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Christmas tree prices show clear patterns across tree types and years. Fake trees command a significant premium over real trees, with an average price of $74.38 compared to $44.52 for real trees - a 67% price difference. There is a strong upward price trend over time, with average prices increasing from $50.36 in 2010 to $86.70 in 2016, representing a 72.1% increase. The highest recorded price was $98.70 for fake trees in 2016, while the lowest prices consistently occur for real trees in earlier years. The price gap between fake and real trees has widened over time - in 2010 the difference was around $20, but by 2016 it reached $24. Fake trees show more price volatility year-to-year, while real tree prices have been more stable. The data suggests that consumers are willing to pay significantly more for the convenience and reusability of artificial trees, and overall market prices have been rising substantially.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Fake trees cost 67% more than real trees on average",
+          "72.1% price increase from 2010 to 2016",
+          "Highest price: Fake tree 2016 at $98.70",
+          "Price gap between types widened over time",
+          "Fake trees show more price volatility",
+          "Real tree prices more stable year-to-year"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.extremes.find",
+            "rationale": "Find extreme values to identify highest and lowest prices"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.marginals.add",
+            "rationale": "Add marginal bars to see overall type and year patterns"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.extremes.find",
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.extremes.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 5,
+                "mode": "both"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "op": "mean",
+                "show_top": true,
+                "show_right": true,
+                "bar_size": 70,
+                "bar_color": "#666666"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Type of tree",
+            "color": "Average Tree Price"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "64_US Christmas Tree Sales _heatmap",
+    "dataset_path": "datasets/64_US Christmas Tree Sales _heatmap.json",
+    "row_count": 14,
+    "dataset_scale_tag": "demo_tiny"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,86 @@
+{
+  "benchmark_id": "88_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "What is the overall pattern of healthcare costs and does adjusting the color scale highlight any subtle differences?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The overall pattern shows that Chronic Disease is the primary driver of higher healthcare costs, with gender acting as a secondary factor"
+        },
+        "key_insights": [
+          "The data is heavily skewed, with a small number of high-value cells dominating the range.",
+          "After adjusting the color scale, the differences between males and females without chronic disease become more distinct."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "to understand the data's distribution"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "to improve the visualization"
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize",
+          "heatmap.colorScale.adjust"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "reds"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "color_scale": {
+              "scheme": "reds"
+            }
+          }
+        },
+        "state_check_fields": [
+          "color_scale"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "88_patient_churn_dataset_heatmap",
+    "dataset_path": "datasets/88_patient_churn_dataset_heatmap.json",
+    "row_count": 500,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

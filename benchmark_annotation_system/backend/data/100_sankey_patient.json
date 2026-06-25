@@ -1,0 +1,398 @@
+{
+  "rawLinks": [
+    {
+      "source": "Emergency",
+      "target": "Internal Med",
+      "value": 320
+    },
+    {
+      "source": "Emergency",
+      "target": "Surgery",
+      "value": 260
+    },
+    {
+      "source": "Emergency",
+      "target": "Pediatrics",
+      "value": 85
+    },
+    {
+      "source": "Emergency",
+      "target": "Cardiology",
+      "value": 135
+    },
+    {
+      "source": "Outpatient Appt",
+      "target": "Internal Med",
+      "value": 480
+    },
+    {
+      "source": "Outpatient Appt",
+      "target": "Surgery",
+      "value": 150
+    },
+    {
+      "source": "Outpatient Appt",
+      "target": "Pediatrics",
+      "value": 170
+    },
+    {
+      "source": "Outpatient Appt",
+      "target": "Cardiology",
+      "value": 200
+    },
+    {
+      "source": "Referral-In",
+      "target": "Internal Med",
+      "value": 100
+    },
+    {
+      "source": "Referral-In",
+      "target": "Surgery",
+      "value": 140
+    },
+    {
+      "source": "Referral-In",
+      "target": "Cardiology",
+      "value": 60
+    },
+    {
+      "source": "Internal Med",
+      "target": "Blood Panel",
+      "value": 380
+    },
+    {
+      "source": "Internal Med",
+      "target": "CT Scan",
+      "value": 220
+    },
+    {
+      "source": "Internal Med",
+      "target": "MRI",
+      "value": 120
+    },
+    {
+      "source": "Internal Med",
+      "target": "Ultrasound",
+      "value": 180
+    },
+    {
+      "source": "Surgery",
+      "target": "CT Scan",
+      "value": 260
+    },
+    {
+      "source": "Surgery",
+      "target": "MRI",
+      "value": 180
+    },
+    {
+      "source": "Surgery",
+      "target": "Blood Panel",
+      "value": 110
+    },
+    {
+      "source": "Pediatrics",
+      "target": "Blood Panel",
+      "value": 120
+    },
+    {
+      "source": "Pediatrics",
+      "target": "Ultrasound",
+      "value": 95
+    },
+    {
+      "source": "Pediatrics",
+      "target": "X-Ray",
+      "value": 40
+    },
+    {
+      "source": "Cardiology",
+      "target": "Blood Panel",
+      "value": 130
+    },
+    {
+      "source": "Cardiology",
+      "target": "CT Scan",
+      "value": 120
+    },
+    {
+      "source": "Cardiology",
+      "target": "MRI",
+      "value": 100
+    },
+    {
+      "source": "Cardiology",
+      "target": "Ultrasound",
+      "value": 45
+    },
+    {
+      "source": "Blood Panel",
+      "target": "Medication",
+      "value": 380
+    },
+    {
+      "source": "Blood Panel",
+      "target": "Surgery Tx",
+      "value": 140
+    },
+    {
+      "source": "Blood Panel",
+      "target": "Observation",
+      "value": 220
+    },
+    {
+      "source": "CT Scan",
+      "target": "Surgery Tx",
+      "value": 310
+    },
+    {
+      "source": "CT Scan",
+      "target": "Medication",
+      "value": 180
+    },
+    {
+      "source": "CT Scan",
+      "target": "Observation",
+      "value": 110
+    },
+    {
+      "source": "MRI",
+      "target": "Surgery Tx",
+      "value": 200
+    },
+    {
+      "source": "MRI",
+      "target": "Physical Therapy",
+      "value": 120
+    },
+    {
+      "source": "MRI",
+      "target": "Medication",
+      "value": 80
+    },
+    {
+      "source": "Ultrasound",
+      "target": "Medication",
+      "value": 160
+    },
+    {
+      "source": "Ultrasound",
+      "target": "Observation",
+      "value": 120
+    },
+    {
+      "source": "Ultrasound",
+      "target": "Physical Therapy",
+      "value": 40
+    },
+    {
+      "source": "X-Ray",
+      "target": "Medication",
+      "value": 20
+    },
+    {
+      "source": "X-Ray",
+      "target": "Physical Therapy",
+      "value": 15
+    },
+    {
+      "source": "X-Ray",
+      "target": "Observation",
+      "value": 5
+    },
+    {
+      "source": "Medication",
+      "target": "Cured & Discharged",
+      "value": 520
+    },
+    {
+      "source": "Medication",
+      "target": "Home Recovery",
+      "value": 210
+    },
+    {
+      "source": "Medication",
+      "target": "Transfer to Rehab",
+      "value": 60
+    },
+    {
+      "source": "Medication",
+      "target": "Transfer to ICU",
+      "value": 30
+    },
+    {
+      "source": "Surgery Tx",
+      "target": "Cured & Discharged",
+      "value": 330
+    },
+    {
+      "source": "Surgery Tx",
+      "target": "Transfer to ICU",
+      "value": 120
+    },
+    {
+      "source": "Surgery Tx",
+      "target": "Transfer to Rehab",
+      "value": 150
+    },
+    {
+      "source": "Surgery Tx",
+      "target": "Home Recovery",
+      "value": 50
+    },
+    {
+      "source": "Observation",
+      "target": "Cured & Discharged",
+      "value": 310
+    },
+    {
+      "source": "Observation",
+      "target": "Home Recovery",
+      "value": 115
+    },
+    {
+      "source": "Observation",
+      "target": "Transfer to ICU",
+      "value": 30
+    },
+    {
+      "source": "Physical Therapy",
+      "target": "Cured & Discharged",
+      "value": 55
+    },
+    {
+      "source": "Physical Therapy",
+      "target": "Home Recovery",
+      "value": 85
+    },
+    {
+      "source": "Physical Therapy",
+      "target": "Transfer to Rehab",
+      "value": 35
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Emergency",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Outpatient Appt",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Referral-In",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Internal Med",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Surgery",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Pediatrics",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "Cardiology",
+      "depth": 1,
+      "order": 3
+    },
+    {
+      "name": "Blood Panel",
+      "depth": 2,
+      "order": 0
+    },
+    {
+      "name": "CT Scan",
+      "depth": 2,
+      "order": 1
+    },
+    {
+      "name": "MRI",
+      "depth": 2,
+      "order": 2
+    },
+    {
+      "name": "Ultrasound",
+      "depth": 2,
+      "order": 3
+    },
+    {
+      "name": "X-Ray",
+      "depth": 2,
+      "order": 4
+    },
+    {
+      "name": "Medication",
+      "depth": 3,
+      "order": 0
+    },
+    {
+      "name": "Surgery Tx",
+      "depth": 3,
+      "order": 1
+    },
+    {
+      "name": "Observation",
+      "depth": 3,
+      "order": 2
+    },
+    {
+      "name": "Physical Therapy",
+      "depth": 3,
+      "order": 3
+    },
+    {
+      "name": "Cured & Discharged",
+      "depth": 4,
+      "order": 0
+    },
+    {
+      "name": "Home Recovery",
+      "depth": 4,
+      "order": 1
+    },
+    {
+      "name": "Transfer to Rehab",
+      "depth": 4,
+      "order": 2
+    },
+    {
+      "name": "Transfer to ICU",
+      "depth": 4,
+      "order": 3
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Registration Source"
+    },
+    {
+      "depth": 1,
+      "label": "Department"
+    },
+    {
+      "depth": 2,
+      "label": "Diagnostics"
+    },
+    {
+      "depth": 3,
+      "label": "Treatment Plan"
+    },
+    {
+      "depth": 4,
+      "label": "Outcome"
+    }
+  ]
+}

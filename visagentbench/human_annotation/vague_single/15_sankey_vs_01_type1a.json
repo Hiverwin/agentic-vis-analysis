@@ -1,0 +1,100 @@
+{
+  "task_type": "vague_single",
+  "task_id": "15_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use collapse_nodes with aggregate_name equal to public services, nodes_to_collapse with values Equipment Purch, Infrastructure, and Salaries to compare the overall fiscal expenditure inclination towards public services and capital investment.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Public services."
+        },
+        "key_insights": [
+          "Public services is the mainly part in the expense type."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "collapse_nodes",
+            "reasoning": "Aggregate public service nodes using tools."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "collapse_nodes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "aggregate_name": "public services",
+                  "nodes_to_collapse": [
+                    "Equipment Purch",
+                    "Infrastructure",
+                    "Salaries"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "Personal Income Tax",
+              "Corporate Tax",
+              "Bond Issuance",
+              "Fees & Fines",
+              "Defense",
+              "Education",
+              "Healthcare",
+              "Transport",
+              "Social Welfare",
+              "Military Operations",
+              "Defense R&D",
+              "Veterans Affairs",
+              "K-12 Funding",
+              "Higher Education",
+              "Research Grants",
+              "Medicare Subsidy",
+              "Hospital Funding",
+              "Pharma Programs",
+              "Highway Projects",
+              "Rail Projects",
+              "Aviation Safety",
+              "Pension Payments",
+              "Unemployment Aid",
+              "Housing Subsidy",
+              "Defense Corp A",
+              "Defense Corp B",
+              "Research Inst",
+              "Personnel Costs",
+              "Healthcare Prov",
+              "Pharma Co",
+              "School Districts",
+              "Textbook Publ",
+              "State Univ",
+              "Equipment Vendor",
+              "Construct Co A",
+              "Construct Co B",
+              "Aviation Corp",
+              "Direct Transfer",
+              "Equipment Purch",
+              "Infrastructure",
+              "R&D Expense",
+              "Salaries",
+              "Operations",
+              "Citizen Benefit"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

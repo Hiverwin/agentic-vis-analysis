@@ -1,0 +1,55 @@
+{
+  "task_type": "vague_single",
+  "task_id": "12_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/12_sankey_micro.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Which group of users, individual users or enterprise users, constitutes the main user base for Microsoft?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "It is clearly evident that Microsoft earns much more money from enterprise users than from individual users. Therefore, it is believed that enterprise users are the main users of Microsoft."
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "collapse_nodes",
+            "reasoning": "obtain the income from enterprise users"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "collapse_nodes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "aggregate_name": "company",
+                  "nodes_to_collapse": [
+                    "Intelligent Cloud",
+                    "Productivity"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "hidden_nodes": [
+              "Intelligent Cloud",
+              "Productivity"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

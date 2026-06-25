@@ -1,0 +1,83 @@
+{
+  "benchmark_id": "108_sankey_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cm_04",
+      "question": "What is the computed count of claims from App Self-Service that were auto-approved?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "1800",
+          "tolerance": 0
+        },
+        "key_insights": [
+          "1800 claims submitted via App Self-Service were auto-approved."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the path from App Self-Service to Auto-Approve to focus on claims that were auto-approved via the app."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.rows.inspect",
+            "rationale": "Retrieve the visible flow data to count claims on this path."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "data.rows.inspect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "App Self-Service",
+                  "Auto-Approve"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.rows.inspect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "visible"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "108_insurance_sankey",
+    "dataset_path": "datasets/108_insurance_sankey.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/108_insurance_sankey.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

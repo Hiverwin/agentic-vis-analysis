@@ -1,0 +1,111 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "15_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "What is the comparison of the importance of different expense types in the flow of funds of the contractor?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Overall, equipment purchase has received greater attention."
+        },
+        "key_insights": [
+          "Equipment purchase funds have increased, with multiple sources of inflow.",
+          "Equipment purchase funds have increased, but the sources of inflow little than equipment purch."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Analyze the inflow of funds for equipment purchases, as well as the sources of the inflow."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Analyze the inflow of funds for salaries, as well as the sources of the inflow."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Equipment Purch"
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Salaries"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "Personal Income Tax",
+              "Corporate Tax",
+              "Bond Issuance",
+              "Fees & Fines",
+              "Defense",
+              "Education",
+              "Healthcare",
+              "Transport",
+              "Social Welfare",
+              "Military Operations",
+              "Defense R&D",
+              "Veterans Affairs",
+              "K-12 Funding",
+              "Higher Education",
+              "Research Grants",
+              "Medicare Subsidy",
+              "Hospital Funding",
+              "Pharma Programs",
+              "Highway Projects",
+              "Rail Projects",
+              "Aviation Safety",
+              "Pension Payments",
+              "Unemployment Aid",
+              "Housing Subsidy",
+              "Defense Corp A",
+              "Defense Corp B",
+              "Research Inst",
+              "Personnel Costs",
+              "Healthcare Prov",
+              "Pharma Co",
+              "School Districts",
+              "Textbook Publ",
+              "State Univ",
+              "Equipment Vendor",
+              "Construct Co A",
+              "Construct Co B",
+              "Aviation Corp",
+              "Direct Transfer",
+              "Equipment Purch",
+              "Infrastructure",
+              "R&D Expense",
+              "Salaries",
+              "Operations",
+              "Citizen Benefit"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

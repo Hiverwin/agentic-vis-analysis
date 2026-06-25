@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "09_line_vs_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/09_museum_visitors_line.json",
+  "questions": [
+    {
+      "qid": "vs_02",
+      "question": "Use highlight_trend in order to know What overall trend can be observed in visitor numbers to the America Tropical Interpretive Center from 2014 to 2018?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The visitor numbers show a clear declining trend from 2014 to 2018. The highest average visitor count was in 2015 with 9046 visitors per month, but this steadily decreased to only 4686 visitors per month by 2018. The overall average dropped from 8076 in 2014 to 4686 in 2018, representing a significant 42% decline over this five-year period.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Visitor numbers peaked in 2015 at 9046 average monthly visitors",
+          "There is a consistent downward trend from 2015 to 2018",
+          "2018 shows the lowest average at 4686 visitors per month",
+          "The decline represents approximately 42% decrease from 2014 to 2018"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Use highlight_trend to visualize the overall decreasing pattern in visitor numbers over the five-year period from 2014 to 2018"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "layers": {
+            "regression_line": true
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

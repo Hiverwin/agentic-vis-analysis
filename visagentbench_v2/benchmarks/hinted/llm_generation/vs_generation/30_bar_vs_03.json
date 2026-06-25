@@ -1,0 +1,75 @@
+{
+  "benchmark_id": "30_bar_vs_03",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_03",
+      "question": "Use highlight_top_n in order to know How does sun exposure affect vitamin D levels in this population?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the data analysis, sun exposure has a strong positive correlation with vitamin D levels. Individuals with high sun exposure have significantly higher average vitamin D levels (94.51%) compared to those with moderate (72.43%) and low (49.48%) sun exposure. This represents a 91% difference between high and low sun exposure groups. The data shows a clear dose-response relationship: as sun exposure increases, vitamin D levels consistently rise. Interestingly, gender shows minimal impact on vitamin D levels, with males (72.72%) and females (71.70%) having nearly identical averages. The vitamin D range spans from 7.0% to 275.6% across all participants, with high sun exposure individuals reaching the highest levels.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "High sun exposure: 94.51% vitamin D (91% higher than low exposure)",
+          "Low sun exposure: 49.48% vitamin D",
+          "Moderate sun exposure: 72.43% vitamin D",
+          "Gender has minimal impact (males 72.72% vs females 71.70%)"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Analyze the relationship between sun exposure and vitamin D levels"
+          }
+        ],
+        "required_capabilities": [
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "30_vitamin_deficiency_disease_dataset_20260123_bar",
+    "dataset_path": "datasets/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

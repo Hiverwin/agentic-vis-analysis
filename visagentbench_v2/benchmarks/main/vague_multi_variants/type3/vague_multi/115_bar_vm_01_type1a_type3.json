@@ -1,0 +1,139 @@
+{
+  "benchmark_id": "115_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "What is newly visible in the updated bar view compared to the original chart regarding category-level pattern shifts?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Among their sales figures, what is consistently clear is that Adidas has the lowest sales volume, but the highest one varies. People with lower incomes prefer to buy Puma, while those with middle to high incomes have the same preference, all preferring Asics."
+        },
+        "key_insights": [
+          "puma most",
+          "adidas least",
+          "asics most",
+          "adidas least",
+          "asics most",
+          "adidas least"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "ranking.topN.highlight",
+            "rationale": "get the top 3 brands"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "obtain data in low income group"
+          },
+          {
+            "iteration": 3,
+            "capability": "data.filter.subcategory",
+            "rationale": "analyse medium one"
+          },
+          {
+            "iteration": 4,
+            "capability": "data.filter.subcategory",
+            "rationale": "get data of high income level"
+          }
+        ],
+        "required_capabilities": [
+          "ranking.topN.highlight",
+          "data.filter.subcategory",
+          "data.filter.subcategory",
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 3,
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Medium",
+                  "High"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Low",
+                  "High"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Medium",
+                  "Low"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['customer_income_level'] != \"Medium\" && datum['customer_income_level'] != \"Low\""
+              }
+            ],
+            "opacity": {
+              "has_opacity": true,
+              "has_condition": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "opacity"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "115_sport_life_bar",
+    "dataset_path": "datasets/115_sport_life_bar.json",
+    "row_count": 6059,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/115_sport_life_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

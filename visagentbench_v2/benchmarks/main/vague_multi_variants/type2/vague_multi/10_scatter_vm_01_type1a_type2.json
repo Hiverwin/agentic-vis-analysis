@@ -1,0 +1,94 @@
+{
+  "benchmark_id": "10_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How is higher diet quality associated with higher exercise minutes?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After remapping to `diet_quality` (x) and `exercise_minutes` (y), the chart suggests at most a weak tendency, with substantial overlap among poor/average/good groups. Higher-quality groups can include somewhat more high-exercise points, but separation is not clean enough for a strong claim. Therefore the pattern is best interpreted as weak and noisy rather than strongly predictive."
+        },
+        "key_insights": [
+          "Encoding changes make `diet_quality` vs. `exercise_minutes` directly observable in the same coordinate frame.",
+          "Visible overlap and within-group spread imply only weak association at best.",
+          "The evidence supports a cautious, noise-aware interpretation rather than a strong deterministic relationship."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Map `x` to `diet_quality` so diet-level ordering can be evaluated along the horizontal axis."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.encoding.change",
+            "rationale": "Map `y` to `exercise_minutes` to create the target relationship view for behavioral comparison."
+          },
+          {
+            "iteration": 3,
+            "capability": "analysis.distribution.inspect",
+            "rationale": "Compare overlap and spread across diet groups in the remapped view, then provide a conservative conclusion about trend strength."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "diet_quality",
+                "channel": "x"
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "exercise_minutes",
+                "channel": "y"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "diet_quality",
+            "y": "exercise_minutes",
+            "color": "diet_quality"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "10_scatter_synthetic_mental_health",
+    "dataset_path": "datasets/10_scatter_synthetic_mental_health.json",
+    "row_count": 2000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/10_scatter_synthetic_mental_health.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

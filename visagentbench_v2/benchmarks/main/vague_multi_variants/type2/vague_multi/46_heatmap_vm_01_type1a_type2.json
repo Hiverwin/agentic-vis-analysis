@@ -1,0 +1,93 @@
+{
+  "benchmark_id": "46_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How does the updated heatmap's hotspot and coldspot structure, row-column contrasts, and local anomalies compare to the original view?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After enhancing contrast and examining marginal bars, a pattern emerges. While being a Composer is generally linked to higher anxiety, this effect appears to be stronger (or more detrimental) for individuals who are not Instrumentalists. Being an Instrumentalist seems to attenuate the anxiety associated with being a Composer."
+        },
+        "key_insights": [
+          "A good adjustment might make it clear if the jump in anxiety from non-composer to composer is much steeper for non-instrumentalists than for instrumentalists.",
+          "The marginal bars might show that Composers on average have higher anxiety than Non-Composers, and Instrumentalists have lower anxiety than Non-Instrumentalists. This sets the stage for understanding their combined effect."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "To enhance the visual contrast between the four anxiety values. Making differences more pronounced helps in subjectively evaluating the \"pattern\" or \"interaction effect\" between the two factors."
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.marginals.add",
+            "rationale": "To see the main effects of each factor independently. Adding bars that show the average anxiety for Instrumentalist (Yes/No) and Composer (Yes/No) provides context."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.colorScale.adjust",
+          "heatmap.marginals.add"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "viridis"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.marginals.add",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "show_top": true,
+                "show_right": true,
+                "op": "mean"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "color_scale": {
+              "scheme": "viridis"
+            },
+            "layers": {
+              "count": 3,
+              "has_type": "bar"
+            }
+          }
+        },
+        "state_check_fields": [
+          "color_scale",
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "46_mxmh_survey_results_heatmap",
+    "dataset_path": "datasets/46_mxmh_survey_results_heatmap.json",
+    "row_count": 727,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/46_mxmh_survey_results_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

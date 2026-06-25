@@ -1,0 +1,59 @@
+{
+  "benchmark_id": "13_heatmap_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use adjust_color_scale with scheme equal to magma to modify the color mapping of the heatmap in a way that better reflects our visual interpretation of the price distribution.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": null
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "The adjust color scale tool allows you to subjectively change the color gradient, color range, or segmentation applied to the heatmap’s values. You might, for example, switch from a continuous gradient to a discrete three‑color scheme, shift the hue toward cooler or warmer tones, or adjust the breakpoints between colors. The outcome depends on your personal perception of clarity, emphasis, or visual appeal, and there is no objectively correct setting."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.colorScale.adjust"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "magma"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "13_supply_chain_data_heatmap",
+    "dataset_path": "datasets/13_supply_chain_data_heatmap.json",
+    "row_count": 100,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

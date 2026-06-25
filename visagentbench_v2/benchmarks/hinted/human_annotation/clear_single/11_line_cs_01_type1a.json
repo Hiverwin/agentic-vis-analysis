@@ -1,0 +1,84 @@
+{
+  "benchmark_id": "11_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use filter_lines with lines_to_remove equal to MacBook, iPad, Revenue_Billions, Watch, AirPods, Services, Other_Products to determine in which year the revenue of iPhone reached its historical peak.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "2023",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.series.filter",
+            "rationale": "get the chart only have iphone line"
+          }
+        ],
+        "required_capabilities": [
+          "line.series.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.series.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "lines_to_remove": [
+                  "MacBook",
+                  "iPad",
+                  "Revenue_Billions",
+                  "Watch",
+                  "AirPods",
+                  "Services",
+                  "Other_Products"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Year",
+            "y": "Revenue_Billions",
+            "color": "Product"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"MacBook\", \"iPad\", \"Revenue_Billions\", \"Watch\", \"AirPods\", \"Services\", \"Other_Products\"], datum['Product']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "11_apple_time_line",
+    "dataset_path": "datasets/11_apple_time_line.json",
+    "row_count": 133,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/11_apple_time_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

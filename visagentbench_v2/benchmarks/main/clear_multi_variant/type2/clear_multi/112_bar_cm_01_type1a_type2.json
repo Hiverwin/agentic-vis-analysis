@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "112_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "What is the computed number of titles that exceed the average popularity when sorted in descending order?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "4",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "get the mean popularity is 3643"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "much easier to watch the number"
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "title",
+            "y": "popularity"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Aware! Meisaku-kun",
+                "Warau Salesman Special Program",
+                "Makasete Iruka!",
+                "Doupo Cangqiong 3rd Season",
+                "Ayashi no Ceres",
+                "Maken-Ki! OVA",
+                "Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack",
+                "R.O.D: Read or Die",
+                "Zuihou de Zhaohuan Shi",
+                "RahXephon",
+                "One Piece Fan Letter",
+                "Juuou Mujin no Fafnir",
+                "Gintama. Shirogane no Tamashii-hen - Kouhan-sen",
+                "Takopii no Genzai",
+                "Owarimonogatari 2nd Season",
+                "3-gatsu no Lion 2nd Season",
+                "Kizumonogatari III: Reiketsu-hen",
+                "Fruits Basket: The Final",
+                "Hajime no Ippo",
+                "Kusuriya no Hitorigoto"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "112_anmie_filter_bar",
+    "dataset_path": "datasets/112_anmie_filter_bar.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

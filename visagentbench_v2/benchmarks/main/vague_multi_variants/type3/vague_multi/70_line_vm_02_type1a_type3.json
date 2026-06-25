@@ -1,0 +1,92 @@
+{
+  "benchmark_id": "70_line_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "What is the change in AI tool usage over the 180-day period?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "The smoothed trend reveals a slight upward trajectory in AI tool usage from day 0 to day 60, followed by a period of high volatility.\nAfter day 120, there is a notable downward trend that bottoms out around day 140, before a final recovery.The long-term trend shows initial growth, mid-period stabilization with high volatility, and a late-period decline and recovery.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.movingAverage.show",
+            "rationale": "The moving average filters out daily noise, making the underlying phases of growth and decline much easier to identify."
+          },
+          {
+            "iteration": 2,
+            "capability": "line.trend.highlight",
+            "rationale": "Highlighting the trend then makes the phases of growth, volatility, decline, and recovery explicit."
+          }
+        ],
+        "required_capabilities": [
+          "line.movingAverage.show",
+          "line.trend.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.movingAverage.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "window_size": 5
+              }
+            }
+          },
+          {
+            "capability": "line.trend.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "trend_type": "increasing"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Day",
+            "y": "AI_Tool_Usage_%",
+            "color": "Bugs_Introduced"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 3,
+              "has_type": "line",
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "70_one_person_ai_work_and_burnout_line",
+    "dataset_path": "datasets/70_one_person_ai_work_and_burnout_line.json",
+    "row_count": 180,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/70_one_person_ai_work_and_burnout_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

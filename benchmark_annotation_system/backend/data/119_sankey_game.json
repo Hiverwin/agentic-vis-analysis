@@ -1,0 +1,289 @@
+{
+  "rawLinks": [
+    {
+      "source": "Daily Quests",
+      "target": "Player Wallet",
+      "value": 15000000
+    },
+    {
+      "source": "Daily Quests",
+      "target": "Guild Treasury",
+      "value": 2000000
+    },
+    {
+      "source": "Dungeon Drops",
+      "target": "Player Wallet",
+      "value": 12000000
+    },
+    {
+      "source": "Dungeon Drops",
+      "target": "Auction House",
+      "value": 5000000
+    },
+    {
+      "source": "IAP Exchange",
+      "target": "Player Wallet",
+      "value": 8000000
+    },
+    {
+      "source": "IAP Exchange",
+      "target": "Gift Mail",
+      "value": 2000000
+    },
+    {
+      "source": "System Rewards",
+      "target": "Player Wallet",
+      "value": 3500000
+    },
+    {
+      "source": "System Rewards",
+      "target": "Gift Mail",
+      "value": 1500000
+    },
+    {
+      "source": "Bot Farming",
+      "target": "Player Wallet",
+      "value": 1000000
+    },
+    {
+      "source": "Player Wallet",
+      "target": "Gear Enhance",
+      "value": 14000000
+    },
+    {
+      "source": "Player Wallet",
+      "target": "Pet Training",
+      "value": 8000000
+    },
+    {
+      "source": "Player Wallet",
+      "target": "Gem Synthesis",
+      "value": 6000000
+    },
+    {
+      "source": "Player Wallet",
+      "target": "Skill Upgrade",
+      "value": 5500000
+    },
+    {
+      "source": "Player Wallet",
+      "target": "Market Purchase",
+      "value": 6000000
+    },
+    {
+      "source": "Auction House",
+      "target": "Market Purchase",
+      "value": 5000000
+    },
+    {
+      "source": "Guild Treasury",
+      "target": "Guild Upgrades",
+      "value": 2000000
+    },
+    {
+      "source": "Gift Mail",
+      "target": "Gear Enhance",
+      "value": 2000000
+    },
+    {
+      "source": "Gift Mail",
+      "target": "Pet Training",
+      "value": 1500000
+    },
+    {
+      "source": "Gear Enhance",
+      "target": "Enhance Fee",
+      "value": 10000000
+    },
+    {
+      "source": "Gear Enhance",
+      "target": "Material Cost",
+      "value": 6000000
+    },
+    {
+      "source": "Pet Training",
+      "target": "Training Fee",
+      "value": 6000000
+    },
+    {
+      "source": "Pet Training",
+      "target": "Material Cost",
+      "value": 3500000
+    },
+    {
+      "source": "Gem Synthesis",
+      "target": "Synthesis Fee",
+      "value": 4000000
+    },
+    {
+      "source": "Gem Synthesis",
+      "target": "Material Cost",
+      "value": 2000000
+    },
+    {
+      "source": "Skill Upgrade",
+      "target": "Skill Book Cost",
+      "value": 5500000
+    },
+    {
+      "source": "Market Purchase",
+      "target": "Cosmetic Shop",
+      "value": 6000000
+    },
+    {
+      "source": "Market Purchase",
+      "target": "Transaction Tax",
+      "value": 3000000
+    },
+    {
+      "source": "Market Purchase",
+      "target": "NPC Vendor",
+      "value": 2000000
+    },
+    {
+      "source": "Guild Upgrades",
+      "target": "Guild Building",
+      "value": 2000000
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Daily Quests",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Dungeon Drops",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "IAP Exchange",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "System Rewards",
+      "depth": 0,
+      "order": 3
+    },
+    {
+      "name": "Bot Farming",
+      "depth": 0,
+      "order": 4
+    },
+    {
+      "name": "Player Wallet",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Auction House",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Guild Treasury",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "Gift Mail",
+      "depth": 1,
+      "order": 3
+    },
+    {
+      "name": "Gear Enhance",
+      "depth": 2,
+      "order": 0
+    },
+    {
+      "name": "Pet Training",
+      "depth": 2,
+      "order": 1
+    },
+    {
+      "name": "Gem Synthesis",
+      "depth": 2,
+      "order": 2
+    },
+    {
+      "name": "Skill Upgrade",
+      "depth": 2,
+      "order": 3
+    },
+    {
+      "name": "Market Purchase",
+      "depth": 2,
+      "order": 4
+    },
+    {
+      "name": "Guild Upgrades",
+      "depth": 2,
+      "order": 5
+    },
+    {
+      "name": "Enhance Fee",
+      "depth": 3,
+      "order": 0
+    },
+    {
+      "name": "Training Fee",
+      "depth": 3,
+      "order": 1
+    },
+    {
+      "name": "Synthesis Fee",
+      "depth": 3,
+      "order": 2
+    },
+    {
+      "name": "Material Cost",
+      "depth": 3,
+      "order": 3
+    },
+    {
+      "name": "Skill Book Cost",
+      "depth": 3,
+      "order": 4
+    },
+    {
+      "name": "Cosmetic Shop",
+      "depth": 3,
+      "order": 5
+    },
+    {
+      "name": "Transaction Tax",
+      "depth": 3,
+      "order": 6
+    },
+    {
+      "name": "NPC Vendor",
+      "depth": 3,
+      "order": 7
+    },
+    {
+      "name": "Guild Building",
+      "depth": 3,
+      "order": 8
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Sources (产出)"
+    },
+    {
+      "depth": 1,
+      "label": "Circulation (流转)"
+    },
+    {
+      "depth": 2,
+      "label": "Core Loop (玩法)"
+    },
+    {
+      "depth": 3,
+      "label": "Sinks (消耗)"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "89_heatmap_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use change_encoding with field equal to Insurance Type and channel equal to x to see which insurance type and gender combination has the highest mean of total bill amount.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Private and Female"
+        },
+        "key_insights": [
+          "Private and Female combination has the highest mean of total bill amount."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Use this tool to change the encoding of the Insurance Type and Gender columns to see the combination with the highest mean of total bill amount."
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Insurance Type",
+                "channel": "y"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Gender",
+            "y": "Insurance Type",
+            "color": "Total_Bill_Amount"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "88_patient_churn_dataset_heatmap",
+    "dataset_path": "datasets/88_patient_churn_dataset_heatmap.json",
+    "row_count": 500,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

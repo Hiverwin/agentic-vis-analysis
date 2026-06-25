@@ -1,0 +1,92 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "27_bar_cm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/27_coffee_sales_data_bar.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "54_bar_cm_01：Use change_encoding and filter_subcategories and highlight_top_n to analyze bar chart data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Latte",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Change encoding to show sales by coffee type"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter subcategories to focus on specific time periods"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_top_n",
+            "reasoning": "Highlight top 3 selling coffees"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "channel": "channel",
+                  "field": "y"
+                }
+              }
+            },
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "Time_of_Day",
+                    "Morning",
+                    "Afternoon"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "coffee_name",
+            "y": "money",
+            "color": "Time_of_Day"
+          },
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "encoding",
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

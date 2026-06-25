@@ -1,0 +1,45 @@
+{
+  "task_type": "vague_single",
+  "task_id": "42_bar_vs_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/42_pokemon_stats_2025_bar.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Is speed balanced across types or clearly skewed?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "After get_data_summary(scope=all) plus the type_1 × speed bars, speed is clearly skewed across types, not balanced. Global speed in the dataset spans about 5–150 with mean ≈ 66; type means range from roughly 35 (fairy) up to the 90s (ghost), while electric reaches the maximum single speed (150). Some types show wide internal spread (e.g. water, normal), others are thin samples (steel). The bar heights are uneven, so treating speed as uniform across type_1 would misread the chart."
+        },
+        "key_insights": [
+          "Between-type means differ by tens of points; ghost/electric/psychic skew high, fairy low.",
+          "Overall min/max speed (5 vs 150) shows heavy tails versus the global mean bar level."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "Global summary complements the bar view for judging whether speed differs materially by type_1."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

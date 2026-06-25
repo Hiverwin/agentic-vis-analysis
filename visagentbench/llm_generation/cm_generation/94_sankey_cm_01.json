@@ -1,0 +1,69 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "94_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/94_sankey_retail.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "96_sankey_cm_01：Use collapse_nodes with aggregate_name equal to Overall conversion process, nodes_to_collapse with values Power Generation, Fuel Processing, Direct Heat, and Generation Loss, calculate_conversion_rate with node_name equal to Overall conversion process to compute the overall energy conversion efficiency of this aggregated node.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Fresh Food",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "collapse_nodes",
+            "reasoning": "Collapse smaller nodes to focus on main flows"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Calculate conversion rates to analyze node flows"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "collapse_nodes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "nodes_to_collapse": [
+                    "Electronics & Appliances"
+                  ],
+                  "aggregate_name": "Other"
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Fresh Food"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "hidden_nodes": [
+              "Electronics & Appliances"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "benchmark_id": "99_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use trace_node with node_name equal to Engineering and use color_flows with nodes equal to #e74c3c, color equal to #e74c3c and use calculate_conversion_rate with node_name equal to On-Demand in order to know Analyze the cloud cost allocation patterns and identify optimization opportunities for reducing AWS spending.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The AWS cost allocation analysis reveals several optimization opportunities: (1) EC2 dominates costs at $275K/month (55% of total), with significant On-Demand usage ($82K) that could be converted to Reserved or Savings Plans. (2) On-Demand pricing accounts for $175K (35%), the second largest purchase model, indicating potential for commitment-based discounts. (3) us-east-1 region consumes $242K (48.4%), suggesting consolidation opportunities. (4) Engineering department bears the highest cost burden at $235K (47%), primarily from Proj Alpha ($95K). (5) Proj Alpha is the most expensive project at $145K/month. Recommendations: (a) Convert On-Demand EC2 instances to Reserved Instances for potential 30-60% savings, (b) Implement auto-scaling for us-east-1 workloads, (c) Review Proj Alpha architecture for cost optimization, (d) Consider Spot instances for non-critical workloads to leverage the $78K already spent on Spot, (e) Evaluate Shared Infra costs ($127K) for potential multi-tenant optimization.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "EC2 costs $275K/month (55% of total)",
+          "On-Demand accounts for $175K (35%)",
+          "Engineering bears 47% of total costs",
+          "us-east-1 region consumes 48.4% of costs",
+          "Proj Alpha is most expensive at $145K/month"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Trace the Engineering node to understand department cost sources"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Color flows for EC2 to visualize the largest service cost"
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate conversion rate at On-Demand to understand commitment efficiency"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Engineering"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "nodes": [
+                  "#e74c3c"
+                ],
+                "color": "#e74c3c"
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "On-Demand"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "99_sankey_cloud",
+    "dataset_path": "datasets/99_sankey_cloud.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

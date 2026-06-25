@@ -1,0 +1,85 @@
+{
+  "benchmark_id": "40_heatmap_cm_02",
+  "task_type": "clear_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "13_heatmap_cm_01：Use filter_cells with value greater than 50 to focus on high values, then use adjust_color_scale with scheme equal to viridis to better visualize the intensity. What is the range of values in the filtered heatmap?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Smokers with 2 children",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Filter cells with high charges"
+          },
+          {
+            "iteration": 2,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "Adjust color scale to better visualize charge differences"
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.cells.filter",
+          "heatmap.colorScale.adjust"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 30000.0,
+                "max_value": 40000.0
+              }
+            }
+          },
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "viridis"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "color_scale": {
+              "scheme": "viridis"
+            }
+          }
+        },
+        "state_check_fields": [
+          "color_scale"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "40_insurance_heatmap",
+    "dataset_path": "datasets/40_insurance_heatmap.json",
+    "row_count": 1338,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/40_insurance_heatmap.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

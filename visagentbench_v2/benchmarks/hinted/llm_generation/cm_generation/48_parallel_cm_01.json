@@ -1,0 +1,112 @@
+{
+  "benchmark_id": "48_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "43_parallel_cm_01：Use reorder_dimensions with dimension_order equal to Math, Science, Reading, Writing, then use calculate_correlation with method equal to pearson to analyze test score relationships, then use filter_by_category with field equal to Grade and values equal to 12th to focus on high school seniors. What is the correlation between Math and Science scores for 12th graders?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "winpercent",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Reorder dimensions to compare differences"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between chocolate and normalized values"
+          },
+          {
+            "iteration": 3,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to show only chocolate candies"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "analysis.correlation.compute",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "winpercent",
+                  "pricepercent",
+                  "sugarpercent"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": [
+                  "chocolate",
+                  "Yes"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "axis_order": {
+              "dimension_order": [
+                "winpercent",
+                "pricepercent",
+                "sugarpercent"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "48_candy_parallel ",
+    "dataset_path": "datasets/48_candy_parallel .json",
+    "row_count": 249,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/48_candy_parallel .json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

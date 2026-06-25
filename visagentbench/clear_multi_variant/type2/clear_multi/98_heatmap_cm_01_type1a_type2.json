@@ -1,0 +1,79 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "98_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/98_gym_members_exercise_tracking_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Which Experience_Level has the maximum mean BMI among the remaining workout types?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Experience Level 2",
+          "alternatives": [
+            "2",
+            "Experience_Level 2"
+          ]
+        },
+        "key_insights": [
+          "Strength consistently has a higher mean BMI than HIIT across all levels.",
+          "Experience Level 2 has the highest combined BMI for these workouts."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Exclude Yoga column to focus on Strength, HIIT, Cardio."
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extremes",
+            "reasoning": "Find the Experience_Level with the maximum BMI among the remaining cells."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_value": "Yoga"
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "max"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Workout_Type",
+            "y": "Experience_Level",
+            "color": "BMI"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Yoga\"], datum['Workout_Type']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

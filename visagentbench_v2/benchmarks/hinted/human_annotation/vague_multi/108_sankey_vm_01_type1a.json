@@ -1,0 +1,110 @@
+{
+  "benchmark_id": "108_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_03",
+      "question": "Set `filter_flow(min_value=500)` first, then run `trace_node` on `Medium Risk`. Compare the node's inbound/outbound structure before vs. after filtering: which weak links disappear, which major links remain, and what that implies about the operational role of `Medium Risk`. Your answer must reference visible node/edge evidence rather than generic process claims.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After `filter_flow(min_value=500)`, long-tail edges around `Medium Risk` are pruned, so the node is no longer visually dominated by small noisy links. Under `trace_node`, the strongest inbound path remains from `Doc Review`, and the strongest outbound path remains toward `Full Payout`, while weaker branches (for example low-volume review or denial/withdrawal routes) become less visible or disappear. This before/after contrast indicates that `Medium Risk` functions as a high-throughput routing hub driven by a few dominant channels, not by many tiny flows."
+        },
+        "key_insights": [
+          "Applying `filter_flow(500)` removes low-value edges and reveals the structural backbone around `Medium Risk`.",
+          "`Doc Review -> Medium Risk` remains a dominant inbound connection after filtering.",
+          "`Medium Risk -> Full Payout` remains a dominant outbound connection, supporting a hub-like interpretation."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "First remove links below 500 to suppress weak-flow noise and expose high-volume structure."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Then trace `Medium Risk` to verify which inbound/outbound connections persist as the dominant pathways after thresholding."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 500
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Medium Risk"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "App Self-Service",
+                "Call Center",
+                "Agent Submitted",
+                "Partner API",
+                "Auto-Approve",
+                "Simple Manual",
+                "Complex Manual",
+                "Investigation",
+                "Doc Review",
+                "Field Inspection",
+                "Medical Review",
+                "Special Invest",
+                "Low Risk",
+                "Medium Risk",
+                "High Risk",
+                "Full Payout",
+                "Partial Payout",
+                "Denied",
+                "Withdrawn",
+                "Instant Payment",
+                "Delayed Payment",
+                "Payment Failed"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "108_insurance_sankey",
+    "dataset_path": "datasets/108_insurance_sankey.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/108_insurance_sankey.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

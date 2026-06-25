@@ -1,0 +1,93 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "109_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/109_sankey_seo.json",
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "What long-tail paths are removed, which trunk paths remain, and what does this indicate about landing-page handoff quality after high-threshold filtering of Product Landing?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "With `min_value=3500`, many low-volume edges connected to `Product Landing` are removed, so the local neighborhood shifts from a dense long tail to a compact backbone. In the traced view, the strongest upstream and downstream trunks around `Product Landing` remain visible (for example, major channel-to-landing and landing-to-navigation routes), while weaker social/exit-like branches are reduced or dropped. This indicates that handoff quality at `Product Landing` is primarily determined by a small number of high-volume transitions rather than fragmented minor paths."
+        },
+        "key_insights": [
+          "`filter_flow(3500)` prunes long-tail links around `Product Landing`, exposing high-volume structure.",
+          "After pruning, trunk inbound and trunk outbound routes remain the dominant visible transitions.",
+          "The node behaves more like a concentrated routing step than a broad many-small-path junction at this threshold."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_flow",
+            "reasoning": "First raise the threshold to 3500 so only high-volume transitions remain and trunk structure is readable."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Then trace `Product Landing` to compare retained vs. removed inbound/outbound edges and infer where handoff quality is concentrated."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 3500
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Product Landing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "Google Organic",
+              "Direct",
+              "Newsletter",
+              "Social Media",
+              "Paid Ads",
+              "Blog Post A",
+              "Blog Post B",
+              "Homepage",
+              "Product Landing",
+              "Feature Page",
+              "Pricing Page",
+              "Demo Page",
+              "Related Article",
+              "Sidebar CTA",
+              "Nav Links",
+              "Exit (Bounce)",
+              "Ultimate Guide",
+              "Solutions Hub",
+              "Exit (Mid)",
+              "Pricing",
+              "Demo Request",
+              "Exit (Late)",
+              "Signup Success",
+              "Payment Success",
+              "Exit (Final)"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

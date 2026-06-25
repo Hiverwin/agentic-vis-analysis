@@ -1,0 +1,83 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "42_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/42_pokemon_stats_2025_bar.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use sort_bars with order equal to descending, by_subcategory equal to ghost and use filter_subcategories and use highlight_top_n with n equal to 2 in order to know How do different Pokemon types compare in terms of speed characteristics, and what patterns emerge across the various categories?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Pokemon types show significant variation in speed characteristics. Ghost type has the highest average speed at 92.50, followed by electric at 87.00 and psychic at 86.43. Dark type also performs well with 86.20 average speed. Fairy type has the lowest average speed at 35.00, with bug and steel types also showing relatively low speeds around 54-55. The overall average speed across all types is 65.88. Speed ranges vary dramatically across types, with electric type showing the widest range from 35 to 150, while bug type has the narrowest range from 5 to 105. Ghost and electric types demonstrate exceptional speed capabilities, while fairy and bug types tend to be slower. The data suggests that ghost, electric, and psychic types are generally faster Pokemon categories.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Ghost type has highest average speed (92.50)",
+          "Electric type has widest speed range (35-150)",
+          "Fairy type has lowest average speed (35.00)",
+          "Overall average speed across all types is 65.88",
+          "Psychic and dark types also show high speed performance"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Use sort_bars to rank all Pokemon types by average speed"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_subcategories",
+            "reasoning": "Use filter_subcategories to analyze specific type groups"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_top_n",
+            "reasoning": "Use highlight_top_n to focus on top performing types"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending",
+                  "by_subcategory": "ghost"
+                }
+              }
+            },
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {}
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "type_1",
+            "y": "speed"
+          }
+        }
+      }
+    }
+  ]
+}

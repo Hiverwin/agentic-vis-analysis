@@ -1,0 +1,133 @@
+{
+  "benchmark_id": "110_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_03",
+      "question": "First inspect node `Process Loss`; then inspect node `Composting`; then inspect node `Recycling Plant`. Then analyze how the flow structure changes in the updated view: which links are pruned or retained, which trunk paths dominate, and what this implies about node role or funnel behavior compared with the original view. Cite node/edge evidence explicitly.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The resource consumption in the sorting facility layer is most likely to occur in the manual sorting and magnetic sorting sections."
+        },
+        "key_insights": [
+          "The main sources of process losses are composting and recycled plants.",
+          "The main sources of composting is manual sorting.",
+          "The main sources of recycled plant are manual sorting and manual sorting."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Analyze the main sources of Process Loss using tools."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Analyze the main sources of composting using tools."
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.path.highlight",
+            "rationale": "Analyze the main sources of recycled plant using tools."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Process Loss"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Composting"
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Recycling Plant"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Residential",
+                "Restaurants",
+                "Office Bldgs",
+                "Factories",
+                "Dry Waste Bin",
+                "Wet Waste Bin",
+                "Recyclable Bin",
+                "Hazardous Bin",
+                "Manual Sorting",
+                "Magnetic Sorting",
+                "Optical Sorting",
+                "Dewatering",
+                "Hazmat Process",
+                "Incineration",
+                "Composting",
+                "Recycling Plant",
+                "Biogas Plant",
+                "Landfill",
+                "Special Disposal",
+                "Electricity",
+                "Bottom Ash",
+                "Organic Fertilizer",
+                "Recycled Plastic",
+                "Recycled Metal",
+                "Recycled Paper",
+                "Biogas Energy",
+                "Landfill Mass",
+                "Safe Containment",
+                "Process Loss"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "110_sankey_trash",
+    "dataset_path": "datasets/110_sankey_trash.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/110_sankey_trash.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

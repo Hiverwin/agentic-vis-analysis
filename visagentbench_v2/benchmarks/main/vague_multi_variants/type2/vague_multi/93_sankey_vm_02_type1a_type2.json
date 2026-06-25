@@ -1,0 +1,161 @@
+{
+  "benchmark_id": "93_sankey_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_05",
+      "question": "How does the flow structure change in the updated view regarding the pruning or retention of links, the dominance of trunk paths, and the implications for node role or funnel behavior compared with the original view?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "There are five paths with flow greater than 4000: two go to Consumer Credit, two go to Wealth Products, and one goes to Payment."
+        },
+        "key_insights": [
+          "there are five paths that their traffic flows are greater than 4000",
+          "Alipay/WeChat Entry flows to Consumer Credit and Payment.",
+          "Bank App Push only flows to Wealth Products.",
+          "Short Video Feed Ads only flows to Consumer Credit.",
+          "Offline Branch/Field Sales only flows to Wealth Products."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "filter the flow wiht min value of 4000,and there only left 5."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Alipay/WeChat Entry has two traffic flows for paths with more than 4000 traffic in the Alipay/WeChat entry."
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.path.highlight",
+            "rationale": "Bank App Push has one traffic flows for paths with more than 4000 traffic."
+          },
+          {
+            "iteration": 4,
+            "capability": "sankey.path.highlight",
+            "rationale": "Short Video Feed Ads  has one traffic flows for paths with more than 4000 traffic."
+          },
+          {
+            "iteration": 5,
+            "capability": "sankey.path.highlight",
+            "rationale": "Offline Branch/Field Sales has one traffic flows for paths with more than 4000 traffic."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter",
+          "sankey.path.highlight",
+          "sankey.path.highlight",
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 4000
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "color": "#e74c3c",
+                "nodes": [
+                  "Alipay/WeChat Entry"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "color": "#e74c3c",
+                "nodes": [
+                  "Bank App Push"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "color": "#e74c3c",
+                "nodes": [
+                  "Short Video Feed Ads",
+                  "Offline Branch/Field Sales"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "color": "#e74c3c",
+                "nodes": [
+                  "Offline Branch/Field Sales"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Alipay/WeChat Entry",
+                "Bank App Push",
+                "Short Video Feed Ads",
+                "Offline Branch/Field Sales",
+                "Enterprise Payroll",
+                "Consumer Credit",
+                "Wealth Products",
+                "Payment",
+                "Insurance",
+                "Credit Card Installment"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "93_sankey_financial",
+    "dataset_path": "datasets/93_sankey_financial.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

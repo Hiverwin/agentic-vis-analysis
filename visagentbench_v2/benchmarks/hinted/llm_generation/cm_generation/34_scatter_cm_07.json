@@ -1,0 +1,100 @@
+{
+  "benchmark_id": "34_scatter_cm_07",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_07",
+      "question": "80_scatter_cm_01：Use zoom_2d_region with x_range from 0.5 to 0.75 and y_range from 500 to 800, then use filter_categorical with categories_to_remove equal to [Yoga] to see which Workout_Type dominates in this region (Session_Duration 0.5–0.75 hours, Calories_Burned 500–800). What is the dominant Workout_Frequency?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Semi-Auto has highest average price ($27359.75) but lowest average MPG (51.25), Manual has lowest average price ($14637.45) with moderate MPG (58.56), Automatic has balanced price ($22419.02) and highest MPG (61.57)",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into price and MPG region to analyze relationship"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter by transmission type to compare different groups"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  10000.0,
+                  40000.0
+                ],
+                "y_range": [
+                  40.0,
+                  70.0
+                ]
+              }
+            }
+          },
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories_to_remove": [
+                  "Manual",
+                  "transmission"
+                ],
+                "field": "y_range"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              10000.0,
+              40000.0
+            ],
+            "yDomain": [
+              40.0,
+              70.0
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "34_bmw_scatter",
+    "dataset_path": "datasets/34_bmw_scatter.json",
+    "row_count": 10781,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/34_bmw_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

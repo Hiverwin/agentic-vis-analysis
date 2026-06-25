@@ -1,0 +1,108 @@
+{
+  "benchmark_id": "30_bar_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use change_encoding with field equal to vitamin_d_percent_rda and use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know How do different diet types and sun exposure levels affect vitamin D levels?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Diet type and sun exposure both significantly impact vitamin D levels. Pescatarian diet shows the highest average vitamin D at 100.23% RDA, followed by Omnivore at 81.08% RDA, Vegetarian at 63.97% RDA, and Vegan at the lowest 44.36% RDA. The 55.87% difference between Pescatarian and Vegan diets is substantial. Sun exposure also plays a crucial role: individuals with High sun exposure average 94.51% RDA, Moderate exposure average 72.43% RDA, and Low exposure average only 49.48% RDA. The interaction between diet and sun exposure is evident across all diet types - for example, Pescatarians with High sun exposure reach 132.26% RDA while those with Low exposure drop to 66.40% RDA. This suggests that while diet provides baseline vitamin D, sun exposure can dramatically enhance or reduce levels regardless of dietary choices.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Pescatarian diet has highest vitamin D levels at 100.23% RDA",
+          "while Vegan has lowest at 44.36% RDA",
+          "Sun exposure has dramatic impact: High exposure averages 94.51% RDA vs Low exposure at 49.48% RDA",
+          "The 55.87% difference between best and worst diet types is substantial",
+          "All diet types show significant variation based on sun exposure levels",
+          "Pescatarians with High sun exposure reach 132.26% RDA",
+          "demonstrating the combined effect of diet and sun exposure"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to sun_exposure on x-axis to compare sun exposure levels"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars by vitamin D levels to identify best and worst performing groups"
+          },
+          {
+            "iteration": 3,
+            "capability": "ranking.topN.highlight",
+            "rationale": "Highlight top 3 diet-sun exposure combinations to see which factors contribute most to vitamin D levels"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "view.sort.encoding",
+          "ranking.topN.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "sun_exposure",
+                "field": "vitamin_d_percent_rda"
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "ranking.topN.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n": 2,
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "sun_exposure",
+            "y": "vitamin_d_percent_rda",
+            "color": "diet_type"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "30_vitamin_deficiency_disease_dataset_20260123_bar",
+    "dataset_path": "datasets/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

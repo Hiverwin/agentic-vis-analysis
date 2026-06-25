@@ -1,0 +1,85 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "57_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/57_health care diabetes_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "19_scatter_cm_01：Use zoom_2d_region with x_range from 45.262166666666666 to 70.045944444444444, y_range from 200.99343750000003 to 597.0028125 to assess whether there are more individuals with heart disease or more without heart disease among older individuals with high cholesterol levels.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Outcome 1",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom into high glucose region to analyze outcome 1 distribution"
+          },
+          {
+            "iteration": 2,
+            "tool": "zoom_2d_region",
+            "reasoning": "Zoom into low glucose region to analyze outcome 0 distribution"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    0.0,
+                    2.0
+                  ],
+                  "y_range": [
+                    140.0,
+                    180.0
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "zoom_2d_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_range": [
+                    0.0,
+                    2.0
+                  ],
+                  "y_range": [
+                    80.0,
+                    120.0
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              0.0,
+              2.0
+            ],
+            "y": [
+              140.0,
+              180.0
+            ]
+          }
+        },
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

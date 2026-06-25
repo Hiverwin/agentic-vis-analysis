@@ -1,0 +1,91 @@
+{
+  "benchmark_id": "01_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "What is the correlation between Horsepower and Miles_per_Gallon among non-US cars?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "Yes"
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter out USA to compute correlation only for Japan and Europe cars."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Compute Spearman correlation on the filtered subset; the baseline cannot compute this without tools."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.correlation.compute"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Origin",
+                "categories_to_remove": [
+                  "USA"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "categorical",
+              "param": "method",
+              "target": "spearman"
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Horsepower",
+            "y": "Miles_per_Gallon"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"USA\"], datum['Origin']) < 0"
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "01_scatter_cars",
+    "dataset_path": "datasets/01_scatter_cars.json",
+    "row_count": 392,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/01_scatter_cars.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

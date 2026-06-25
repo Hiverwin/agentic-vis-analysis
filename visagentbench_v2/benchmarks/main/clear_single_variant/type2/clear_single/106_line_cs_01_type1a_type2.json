@@ -1,0 +1,78 @@
+{
+  "benchmark_id": "106_line_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Which country experienced the most significant abnormal decline around 1960?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "China",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "using this detect anomalies can fast to located the true area"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.anomalies.detect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "threshold": 3
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "types": [
+                "line",
+                "point"
+              ]
+            },
+            "anomaly_markers": {
+              "has_markers": true,
+              "marker_type": "point"
+            }
+          }
+        },
+        "state_check_fields": [
+          "anomaly_markers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "106_life expectancey_line",
+    "dataset_path": "datasets/106_life expectancey_line.json",
+    "row_count": 592,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/106_life expectancey_line.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

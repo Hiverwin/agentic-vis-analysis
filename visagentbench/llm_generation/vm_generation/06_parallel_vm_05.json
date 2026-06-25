@@ -1,0 +1,85 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "06_parallel_vm_05",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/06_parallel_penguins.json",
+  "questions": [
+    {
+      "qid": "vm_05",
+      "question": "Use highlight_category with field equal to Species, values equal to Gentoo and use hide_dimensions with dimensions equal to Beak Length (mm), Beak Depth (mm), mode equal to hide and use highlight_category with field equal to Species, values equal to Chinstrap in order to know How do the three penguin species differ across all physical dimensions and which species shows the most distinctive characteristics?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Gentoo penguins are the most distinctive species with the longest flippers (214.8mm avg) and highest body mass (4985g avg), but have the shallowest beaks (14.55mm avg). Chinstrap penguins have the longest beaks (48.58mm avg) but intermediate flipper length and body mass. Adelie penguins are the smallest with the shortest flippers (189.2mm avg) and lowest body mass (3760g avg), but have the deepest beaks (19.13mm avg).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Gentoo has longest flippers and highest body mass but shallowest beaks",
+          "Chinstrap has longest beak length among all species",
+          "Adelie has deepest beak depth but smallest body size",
+          "Gentoo is most distinctive with extreme values in both directions"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_category",
+            "reasoning": "Highlight Gentoo species to analyze its physical characteristics across all dimensions"
+          },
+          {
+            "iteration": 2,
+            "tool": "hide_dimensions",
+            "reasoning": "Hide Body Mass and Flipper Length dimensions to focus on beak characteristics and compare beak patterns"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_category",
+            "reasoning": "Highlight Chinstrap species to compare beak length characteristics with other species"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Species",
+                  "values": "Gentoo"
+                }
+              }
+            },
+            {
+              "tool": "hide_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimensions": [
+                    "Beak Length (mm)",
+                    "Beak Depth (mm)"
+                  ],
+                  "mode": "hide"
+                }
+              }
+            },
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Species",
+                  "values": "Chinstrap"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

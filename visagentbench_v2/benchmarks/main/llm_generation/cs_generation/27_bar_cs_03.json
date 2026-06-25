@@ -1,0 +1,78 @@
+{
+  "benchmark_id": "27_bar_cs_03",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_03",
+      "question": "Use sort_bars in order to know Use sort_bars with order equal to descending to rank coffee types by average money. Which coffee type has the highest average money?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Hot Chocolate",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars in descending order to identify the coffee type with the highest average money"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Hot Chocolate",
+                "Cappuccino",
+                "Cocoa",
+                "Latte",
+                "Americano with Milk",
+                "Americano",
+                "Cortado",
+                "Espresso"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "27_coffee_sales_data_bar",
+    "dataset_path": "datasets/27_coffee_sales_data_bar.json",
+    "row_count": 3547,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/27_coffee_sales_data_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

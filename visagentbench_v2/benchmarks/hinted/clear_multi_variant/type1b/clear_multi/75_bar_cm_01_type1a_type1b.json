@@ -1,0 +1,212 @@
+{
+  "benchmark_id": "75_bar_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Using filter_categories and sort_bars, what is the mean employment in the country positioned second for largest mean employment?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": 521304,
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "First, filtering isolates the target continents to reduce visual clutter."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Sorting then organizes the data to easily identify top performers."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "categories": [
+                  "Argentina",
+                  "Australia",
+                  "Austria",
+                  "Belarus",
+                  "Belgium",
+                  "Bolivia",
+                  "Botswana",
+                  "Brazil",
+                  "Bulgaria",
+                  "Colombia",
+                  "Croatia",
+                  "Czechia",
+                  "Denmark",
+                  "Ecuador",
+                  "Estonia",
+                  "Fiji",
+                  "Finland",
+                  "France",
+                  "Greece",
+                  "Germany",
+                  "Honduras",
+                  "Hungary",
+                  "Iceland",
+                  "Ireland",
+                  "Italy",
+                  "Kosovo",
+                  "Latvia",
+                  "Lesotho",
+                  "Lithuania",
+                  "Luxembourg",
+                  "Malta",
+                  "Netherlands",
+                  "North Macedonia",
+                  "Nigeria",
+                  "Norway",
+                  "Peru",
+                  "Poland",
+                  "Portugal",
+                  "Romania",
+                  "Rwanda",
+                  "Senegal",
+                  "Seychelles",
+                  "Slovak Republic",
+                  "Slovenia",
+                  "Spain",
+                  "Sweden",
+                  "Switzerland",
+                  "Thailand",
+                  "United Kingdom",
+                  "Uruguay"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Country",
+            "y": "Employment_Thousands",
+            "color": "Continent"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Argentina\",\"Australia\",\"Austria\",\"Belarus\",\"Belgium\",\"Bolivia\",\"Botswana\",\"Brazil\",\"Bulgaria\",\"Colombia\",\"Croatia\",\"Czechia\",\"Denmark\",\"Ecuador\",\"Estonia\",\"Fiji\",\"Finland\",\"France\",\"Greece\",\"Germany\",\"Honduras\",\"Hungary\",\"Iceland\",\"Ireland\",\"Italy\",\"Kosovo\",\"Latvia\",\"Lesotho\",\"Lithuania\",\"Luxembourg\",\"Malta\",\"Netherlands\",\"North Macedonia\",\"Nigeria\",\"Norway\",\"Peru\",\"Poland\",\"Portugal\",\"Romania\",\"Rwanda\",\"Senegal\",\"Seychelles\",\"Slovak Republic\",\"Slovenia\",\"Spain\",\"Sweden\",\"Switzerland\",\"Thailand\",\"United Kingdom\",\"Uruguay\"], datum['Country']) < 0"
+              }
+            ],
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "United States",
+                "India",
+                "Brazil",
+                "Mexico",
+                "Germany",
+                "United Kingdom",
+                "Colombia",
+                "Bangladesh",
+                "Spain",
+                "Italy",
+                "Argentina",
+                "France",
+                "Australia",
+                "Poland",
+                "Nigeria",
+                "Turkiye",
+                "Romania",
+                "Thailand",
+                "Peru",
+                "Ecuador",
+                "Netherlands",
+                "Greece",
+                "Portugal",
+                "Sweden",
+                "Belarus",
+                "Hungary",
+                "Ireland",
+                "Belgium",
+                "Dominican Republic",
+                "Israel",
+                "Czechia",
+                "Switzerland",
+                "Slovak Republic",
+                "Bulgaria",
+                "Norway",
+                "Austria",
+                "Finland",
+                "Denmark",
+                "Croatia",
+                "Singapore",
+                "Bolivia",
+                "Uruguay",
+                "Costa Rica",
+                "Senegal",
+                "Honduras",
+                "Panama",
+                "Lithuania",
+                "Estonia",
+                "North Macedonia",
+                "Slovenia",
+                "Luxembourg",
+                "Kosovo",
+                "Cyprus",
+                "Latvia",
+                "West Bank and Gaza",
+                "Botswana",
+                "Malta",
+                "Rwanda",
+                "Fiji",
+                "Lesotho",
+                "Bhutan",
+                "Iceland",
+                "Seychelles"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "75_Refined_Employment_Telecom_Services_2024_bar",
+    "dataset_path": "datasets/75_Refined_Employment_Telecom_Services_2024_bar.json",
+    "row_count": 63,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/75_Refined_Employment_Telecom_Services_2024_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

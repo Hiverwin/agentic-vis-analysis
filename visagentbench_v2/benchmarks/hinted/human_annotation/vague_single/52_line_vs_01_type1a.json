@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "52_line_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use show_moving_average with window_size equal to 5 to characterize the change in the pace of electricity access expansion over the entire period.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The trend shows three distinct phases: slow but steady growth (2000–2010), rapid acceleration (2010–2016), and post-2021 decline."
+        },
+        "key_insights": [
+          "The fastest growth occurred between 2012 and 2016, when access increased from ~70% to ~98%.",
+          "The post-2021 decline reverses over a decade of progress, suggesting a significant shift in stability."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "line.movingAverage.show",
+            "rationale": "Highlighting the trend simplifies the noisy line chart to reveal changes in growth velocity."
+          }
+        ],
+        "required_capabilities": [
+          "line.movingAverage.show"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "line.movingAverage.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "window_size": 5
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "count": 2,
+              "types": [
+                "line",
+                "line"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "52_years of economic new_line",
+    "dataset_path": "datasets/52_years of economic new_line.json",
+    "row_count": 23,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/52_years of economic new_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

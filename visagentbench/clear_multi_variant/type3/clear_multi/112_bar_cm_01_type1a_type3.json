@@ -1,0 +1,91 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "112_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "How does the average popularity compare to the popularity levels of titles?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "4",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "get the mean popularity is 3643"
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "much easier to watch the number"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "title",
+            "y": "popularity",
+            "color": null
+          },
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Aware! Meisaku-kun",
+              "Warau Salesman Special Program",
+              "Makasete Iruka!",
+              "Doupo Cangqiong 3rd Season",
+              "Ayashi no Ceres",
+              "Maken-Ki! OVA",
+              "Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack",
+              "R.O.D: Read or Die",
+              "Zuihou de Zhaohuan Shi",
+              "RahXephon",
+              "One Piece Fan Letter",
+              "Juuou Mujin no Fafnir",
+              "Gintama. Shirogane no Tamashii-hen - Kouhan-sen",
+              "Takopii no Genzai",
+              "Owarimonogatari 2nd Season",
+              "3-gatsu no Lion 2nd Season",
+              "Kizumonogatari III: Reiketsu-hen",
+              "Fruits Basket: The Final",
+              "Hajime no Ippo",
+              "Kusuriya no Hitorigoto"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

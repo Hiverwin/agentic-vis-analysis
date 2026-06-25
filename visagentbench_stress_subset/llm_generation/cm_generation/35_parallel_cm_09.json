@@ -1,0 +1,92 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "35_parallel_cm_09",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/35_bmw_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_09",
+      "question": "35_parallel_cm_01：Use filter_by_category with field equal to Gender and values equal to Female to focus on female samples, then use reorder_dimensions with dimension_order equal to Height, Weight, BMI, Age, then use calculate_correlation with method equal to pearson. What is the correlation between Height and Weight for females?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Electric",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Filter by fuel type to focus on electric vehicles"
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to compare MPG and tax"
+          },
+          {
+            "iteration": 3,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between MPG and tax"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": [
+                    "fuelType",
+                    "Petrol",
+                    "Diesel",
+                    "Hybrid",
+                    "Other"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "tax",
+                    "mpg"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "axis_order": {
+            "dimension_order": [
+              "tax",
+              "mpg"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

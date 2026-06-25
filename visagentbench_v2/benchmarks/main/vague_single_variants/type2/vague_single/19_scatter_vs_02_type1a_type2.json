@@ -1,0 +1,70 @@
+{
+  "benchmark_id": "19_scatter_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "How does age relate to cholesterol?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "There exists a weak positive correlation between age and cholesterol."
+        },
+        "key_insights": [
+          "The red trend line shows a slight upward slope, indicating a weak positive correlation between age and cholesterol.",
+          "There is a significant amount of variation in cholesterol levels across all age groups."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.regression.show",
+            "rationale": "We cares about the relationship and regression can directly show the relationship."
+          }
+        ],
+        "required_capabilities": [
+          "analysis.regression.show"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.regression.show",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "linear"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "layers": {
+              "regression_line": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "19_Heart_Disease_Prediction_scatter",
+    "dataset_path": "datasets/19_Heart_Disease_Prediction_scatter.json",
+    "row_count": 270,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/19_Heart_Disease_Prediction_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

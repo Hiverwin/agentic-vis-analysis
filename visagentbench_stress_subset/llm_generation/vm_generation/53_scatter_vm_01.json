@@ -1,0 +1,70 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "53_scatter_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/53_Housing_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 4, method equal to kmeans in order to know What patterns can you identify in the relationship between living space and house prices, and how do factors like number of floors and bedrooms influence this relationship?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is a strong positive correlation (0.70) between living space and house prices. Houses with more floors generally command higher prices, with 2.5-floor houses averaging $1.06M despite having fewer samples. The relationship shows that while larger houses tend to be more expensive, there is significant variation. Houses with 4+ bedrooms tend to be larger and more expensive, with 4-bedroom houses averaging $635K and 2555 sqft.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Strong positive correlation 0.70 between sqft and price",
+          "2.5-floor houses have highest average price",
+          "4+ bedroom houses are larger and more expensive",
+          "Significant price variation within similar sizes"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between sqft_living and price"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Identify clusters to understand price-space patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 4,
+                  "method": "kmeans"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "sqft_living",
+            "y": "price",
+            "color": "floors",
+            "size": "bedrooms"
+          }
+        }
+      }
+    }
+  ]
+}

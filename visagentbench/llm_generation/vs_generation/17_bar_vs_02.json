@@ -1,0 +1,59 @@
+{
+  "task_type": "vague_single",
+  "task_id": "17_bar_vs_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/17_Heart_Disease_Prediction_bar.json",
+  "questions": [
+    {
+      "qid": "vs_02",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Patients with heart disease presence have slightly higher average cholesterol levels (256.5) compared to those without heart disease (244.2), with a difference of 12.3. However, the difference is relatively small and there is considerable overlap between the two groups, suggesting that while cholesterol may be associated with heart disease, it is not a definitive predictor on its own. Both groups show significant variability in cholesterol levels.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Heart disease presence group has higher mean cholesterol (256.5 vs 244.2)",
+          "Difference of 12.3 is relatively small",
+          "Both groups show significant variability (std ~48-54)",
+          "Cholesterol alone may not be a definitive predictor of heart disease",
+          "Overlap in cholesterol levels between groups suggests other factors are important"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Use sort_bars to compare average cholesterol levels between heart disease presence and absence groups, which helps visualize the relationship between cholesterol and heart disease status"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Presence",
+              "Absence"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

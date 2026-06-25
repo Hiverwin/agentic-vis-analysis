@@ -1,0 +1,53 @@
+{
+  "benchmark_id": "45_parallel_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "What is the performance comparison between PS4 and PS?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "boolean",
+          "value": "yes"
+        },
+        "key_insights": [
+          "Overall, PS4 peform better than PS in almost every kind of game"
+        ],
+        "reasoning_trace": [],
+        "required_capabilities": [
+          "data.filter.categorical"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "categorical",
+              "param": "field",
+              "target": "Platform"
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "45_ign_scores_parallel",
+    "dataset_path": "datasets/45_ign_scores_parallel.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/45_ign_scores_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

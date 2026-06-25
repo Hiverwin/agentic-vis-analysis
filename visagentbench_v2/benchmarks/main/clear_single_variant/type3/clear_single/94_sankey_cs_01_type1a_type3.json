@@ -1,0 +1,64 @@
+{
+  "benchmark_id": "94_sankey_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "What is the business category that receives the highest GMV contribution from Live Streaming (Douyin/Xiaohongshu)?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Live Streaming contributes the highest GMV to the Fresh Food category.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Live streaming has a relatively small contribution to the Electronics & Appliances category."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Isolating the live streaming channel using a filter allows us to directly assess its impact on each business category, avoiding the visual clutter of other acquisition channels"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "Live Streaming (Douyin/Xiaohongshu)"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "94_samkey_retail",
+    "dataset_path": "datasets/94_samkey_retail.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/94_samkey_retail.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

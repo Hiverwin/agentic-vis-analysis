@@ -1,0 +1,72 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "87_parallel_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/87_museum_visitors_parallel.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use hide_dimensions with dimensions equal to Chinese American Museum, Firehouse Museum, mode equal to hide and use highlight_category with field equal to field, values equal to dimension in order to know How do the visitor patterns differ across the four museums, and what insights can be drawn about their relative popularity?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Avila Adobe is by far the most popular museum with an average of 24,062 visitors, significantly higher than the other three museums. America Tropical Interpretive Center ranks second with 7,107 average visitors, followed by Firehouse Museum at 6,473 and Chinese American Museum at 2,721. The data shows a clear hierarchy with Avila Adobe dominating visitor numbers, while Chinese American Museum consistently receives the lowest attendance across all time periods.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Avila Adobe has the highest average visitors (24",
+          "062)",
+          "significantly more than others",
+          "Chinese American Museum has the lowest average visitors (2",
+          "721)",
+          "The visitor gap between Avila Adobe and other museums is substantial (3-9 times difference)",
+          "All museums show 59 time points of visitor data"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "hide_dimensions",
+            "reasoning": "Hide the Chinese American Museum and Firehouse Museum dimensions to focus on comparing the two most visited museums"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_category",
+            "reasoning": "Highlight the Avila Adobe dimension to emphasize its visitor pattern and compare with others"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "hide_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimensions": [
+                    "Chinese American Museum",
+                    "Firehouse Museum"
+                  ],
+                  "mode": "hide"
+                }
+              }
+            },
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "field",
+                  "values": "dimension"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

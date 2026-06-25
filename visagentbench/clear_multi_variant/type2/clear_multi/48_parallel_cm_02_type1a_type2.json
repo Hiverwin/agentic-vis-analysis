@@ -1,0 +1,86 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "48_parallel_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/48_candy_parallel .json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Is there a significant correlation between sugarpercent and winpercent in the chocolate-free candy group?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "No"
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_category",
+            "reasoning": "Highlight the chocolate-free candy group for focused analysis."
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to place sugarpercent and winpercent adjacent for visual correlation assessment."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "chocolate",
+                  "values": [
+                    "No"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "sugarpercent",
+                    "winpercent",
+                    "pricepercent"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension",
+            "y": null,
+            "color": "chocolate"
+          },
+          "layers": {
+            "count": 5,
+            "types": [
+              "rule",
+              "line",
+              null,
+              null,
+              null
+            ]
+          },
+          "opacity": {
+            "has_opacity": true,
+            "has_condition": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

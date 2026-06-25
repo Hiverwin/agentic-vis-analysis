@@ -1,0 +1,80 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "71_parallel_cm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/71_one_person_ai_work_and_burnout_parallel.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "06_parallel_cm_01：Use filter_by_category with field equal to Species and values equal to Chinstrap and Gentoo, reorder_dimensions with dimension_order equal to Beak Length (mm), Flipper Length (mm),Beak Depth (mm), Body Mass (g) to characterize whether the measurements of Adelie penguins that show the strongest negative correlation is the negative correlation between Beak Depth and Flipper length stronger, or is the negative correlation between Beak Depth and Body Mass weight stronger.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Bugs_Introduced",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Filter to show only High burnout risk data"
+          },
+          {
+            "iteration": 2,
+            "tool": "reorder_dimensions",
+            "reasoning": "Reorder dimensions to better compare values"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Burnout_Risk",
+                  "values": [
+                    "Low",
+                    "Medium"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "reorder_dimensions",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "dimension_order": [
+                    "Bugs_Introduced",
+                    "Code_Complexity_Score",
+                    "Stress_Level_1_10",
+                    "Hours_Coded",
+                    "AI_Tool_Usage_%"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "axis_order": {
+            "dimension_order": [
+              "Bugs_Introduced",
+              "Code_Complexity_Score",
+              "Stress_Level_1_10",
+              "Hours_Coded",
+              "AI_Tool_Usage_%"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "axis_order"
+        ]
+      }
+    }
+  ]
+}

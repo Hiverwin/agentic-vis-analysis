@@ -1,0 +1,60 @@
+{
+  "task_type": "vague_single",
+  "task_id": "02_bar_vs_15",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/02_bar_sales.json",
+  "questions": [
+    {
+      "qid": "vs_15",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Sales are relatively balanced across all regions, with South having slightly higher total sales. Electronics consistently outsell Clothing in most regions, particularly in North and East regions. South is the only region where Clothing sales exceed Electronics, suggesting a different consumer preference pattern in that region.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "South region has highest total sales",
+          "Electronics outsell Clothing in most regions",
+          "South is only region where Clothing exceeds Electronics",
+          "East region has highest Electronics sales"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars to analyze sales patterns by region and product category"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "South",
+              "West",
+              "North",
+              "East"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

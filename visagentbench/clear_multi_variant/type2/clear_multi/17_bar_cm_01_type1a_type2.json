@@ -1,0 +1,81 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "17_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/17_Heart_Disease_Prediction_bar.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "Which group exhibits the higher mean cholesterol levels when combining absence with chest pain type 1 and presence with chest pain type 3?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": " (presence and chest pain type 3).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The mean cholesterol levels in combination (presence and chest pain type 3) is higher than the mean cholesterol levels in combination (absence and chest pain type 1)."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_subcategories",
+            "reasoning": "filter the categories and subcategories and find the people of type 3 chest pain,then look through the datas to find the region"
+          },
+          {
+            "iteration": 2,
+            "tool": "toggle_stack_mode",
+            "reasoning": "toggle stack mode to show the trend of the mean cholesterol levels"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    4,
+                    2
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Heart Disease",
+            "y": "Cholesterol",
+            "color": "Chest pain type"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['Chest pain type'] != 4 && datum['Chest pain type'] != 2"
+            }
+          ],
+          "mark_mode": {
+            "is_stacked": true,
+            "mode": "grouped"
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "mark_mode"
+        ]
+      }
+    }
+  ]
+}

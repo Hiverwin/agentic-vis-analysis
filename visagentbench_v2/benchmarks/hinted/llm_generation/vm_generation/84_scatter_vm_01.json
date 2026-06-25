@@ -1,0 +1,90 @@
+{
+  "benchmark_id": "84_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans in order to know What patterns can you observe in the relationship between sugar content and calories across different Starbucks beverage categories?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) There is a very strong positive correlation (r=0.910) between sugar and calories across all beverages, indicating sugar is a major contributor to calorie content, 2) Frappuccino Blended Coffee has the highest average sugar (57.08g) and second-highest calories (276.94), making it the most indulgent category, 3) Smoothies show an interesting pattern with high calories (282.22) but relatively moderate sugar (36.78g), suggesting other ingredients contribute to calories, 4) Coffee has almost zero sugar and calories, representing the healthiest option, 5) All categories except Smoothies show strong sugar-calorie correlations (0.898-0.975), indicating consistent relationships, 6) There is a clear hierarchy with Frappuccinos and Signature Espresso Drinks at the high end, Classic Espresso and Shaken Iced Beverages in the middle, and Coffee at the low end for both sugar and calories.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Strong correlation (r=0.910) between sugar and calories",
+          "Frappuccino has highest sugar and calories",
+          "Smoothies show high calories but moderate sugar",
+          "Coffee is healthiest option",
+          "Consistent sugar-calorie relationships across categories",
+          "Clear hierarchy among beverage categories"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between sugar and calories"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Identify clusters to see grouping patterns"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": " Sugars (g)",
+            "y": "Calories",
+            "color": "Beverage_category"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "84_starbucks_scatter",
+    "dataset_path": "datasets/84_starbucks_scatter.json",
+    "row_count": 242,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/84_starbucks_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

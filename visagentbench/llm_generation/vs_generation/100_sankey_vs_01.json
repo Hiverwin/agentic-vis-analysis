@@ -1,0 +1,45 @@
+{
+  "task_type": "vague_single",
+  "task_id": "100_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/c:\\Users\\ROG\\Desktop\\skill_project\\data\\sankey\\100_sankey_patient.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use trace_node with node_name equal to 'Surgery Tx' to see which industries contributes the most to Surgery Tx.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "通过trace_node工具分析Surgery Tx节点的患者流向显示，手术治疗后患者主要流向Cured & Discharged（治愈出院）、Transfer to Rehab（转康复）和Transfer to ICU（转ICU）。这表明手术治疗虽然有较高的治愈率，但也存在一定比例的重症患者需要转入ICU。",
+          "alternatives": []
+        },
+        "key_insights": [
+          "通过分析手术治疗的患者流向，可以了解手术效果和术后护理需求，为医院资源分配提供依据"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Use trace_node to answer the question."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Surgery Tx"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

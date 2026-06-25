@@ -1,0 +1,90 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "116_bar_vm_03",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json",
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Use filter_subcategories with subcategories_to_remove equal to E-commerce, Education, Gaming, SaaS and use sort_bars with order equal to descending and use highlight_top_n with n equal to 2 in order to know How does the average startup funding vary across countries and industries? What patterns can you identify?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Germany leads in average startup funding at $173.9M, followed by USA ($153.8M) and France ($153.5M). All countries show balanced industry diversification with 8 industries each. AI industry attracts the highest average funding ($172.1M), while E-commerce has the lowest ($134.2M). The funding landscape shows developed markets (Germany, USA, France, Canada) attracting higher funding than emerging markets (Australia, UK), with consistent industry diversification across all countries.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Germany has highest average funding at $173.9M",
+          "All countries have balanced industry diversification with 8 industries each",
+          "AI industry attracts highest average funding ($172.1M)",
+          "Developed markets attract higher funding than emerging markets",
+          "Industry diversification is consistent across all countries"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_subcategories",
+            "reasoning": "Filter to focus on high-value industries (AI"
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": " Finance"
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_top_n",
+            "reasoning": " Tech) to analyze funding patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "E-commerce",
+                    "Education",
+                    "Gaming",
+                    "SaaS"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Country",
+            "y": "Amount Raised (USD)",
+            "color": "Industry"
+          }
+        }
+      }
+    }
+  ]
+}

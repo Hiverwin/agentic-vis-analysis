@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "67_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans in order to know What is the relationship between Vitamin A and E intake, and how do gender and symptoms relate?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is a moderate positive correlation (0.428) between Vitamin A and Vitamin E intake, indicating that individuals with higher Vitamin A levels tend to have higher Vitamin E levels. Males show slightly higher average Vitamin E (90.6%) compared to females (89.2%), while Vitamin A levels are very similar between genders (90.9% vs 90.6%). Symptoms count is identical at 1.9 for both genders. The data spans a wide range: Vitamin A from 10.0% to 219.0%, Vitamin E from 10.0% to 237.6%.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Moderate positive correlation (0.428) between Vitamin A and E",
+          "Males have slightly higher Vitamin E (90.6% vs 89.2%)",
+          "Vitamin A levels are similar between genders (90.9% vs 90.6%)",
+          "Symptoms count is identical at 1.9 for both genders"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation coefficient between Vitamin A and E"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Identify clusters in the scatter plot to see groupings"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "vitamin_a_percent_rda",
+            "y": "vitamin_e_percent_rda",
+            "color": "gender",
+            "size": "symptoms_count"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "67_vitamin_deficiency_disease_dataset_scatter",
+    "dataset_path": "datasets/67_vitamin_deficiency_disease_dataset_scatter.json",
+    "row_count": 4000,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/67_vitamin_deficiency_disease_dataset_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

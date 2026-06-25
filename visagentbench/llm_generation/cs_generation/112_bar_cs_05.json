@@ -1,0 +1,71 @@
+{
+  "task_type": "clear_single",
+  "task_id": "112_bar_cs_05",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json",
+  "questions": [
+    {
+      "qid": "cs_05",
+      "question": "Use sort_bars in order to know Use sort_bars with order equal to ascending to rank titles by popularity and return the title positioned first.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Kusuriya no Hitorigoto",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort bars in ascending order to identify the title with lowest popularity rank (most popular)"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "ascending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Kusuriya no Hitorigoto",
+              "Hajime no Ippo",
+              "Fruits Basket: The Final",
+              "Kizumonogatari III: Reiketsu-hen",
+              "3-gatsu no Lion 2nd Season",
+              "Owarimonogatari 2nd Season",
+              "Takopii no Genzai",
+              "Gintama. Shirogane no Tamashii-hen - Kouhan-sen",
+              "Juuou Mujin no Fafnir",
+              "One Piece Fan Letter",
+              "RahXephon",
+              "Zuihou de Zhaohuan Shi",
+              "R.O.D: Read or Die",
+              "Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack",
+              "Maken-Ki! OVA",
+              "Ayashi no Ceres",
+              "Doupo Cangqiong 3rd Season",
+              "Makasete Iruka!",
+              "Warau Salesman Special Program",
+              "Aware! Meisaku-kun"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

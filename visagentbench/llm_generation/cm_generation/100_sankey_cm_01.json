@@ -1,0 +1,61 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "100_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/100_sankey_patient.json",
+  "questions": [
+    {
+      "qid": "cm_01",
+      "question": "100_sankey_cm_01：Use calculate_conversion_rate with node_name equal to Cured & Discharged and then use highlight_path with path equal to Surgery Tx, Cured & Discharged. What is the inflow value (in patients) from Surgery Tx to Cured & Discharged?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "330",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Use calculate_conversion_rate to analyze Cured and Discharged node and identify all its inflows"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_path",
+            "reasoning": "Use highlight_path to trace the specific path from Surgery Tx to Cured and Discharged to verify the flow value"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Cured & Discharged"
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Surgery Tx",
+                    "Cured & Discharged"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

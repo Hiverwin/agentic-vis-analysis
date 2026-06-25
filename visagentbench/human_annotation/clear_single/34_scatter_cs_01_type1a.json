@@ -1,0 +1,53 @@
+{
+  "task_type": "clear_single",
+  "task_id": "34_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/34_bmw_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use calculate_correlation with method equal to pearson to compute the correlation coefficient between price and mpg.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "-0.205",
+          "tolerance": 0.05
+        },
+        "key_insights": [
+          "The Pearson correlation coefficient between price and mpg is approximately -0.205.",
+          "This indicates a weak negative relationship: higher-priced vehicles tend to have slightly lower fuel efficiency.",
+          "The negative direction aligns with the observation that luxury or larger vehicles often have lower mpg."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation with method pearson to quantify the relationship between price and mpg. The tool returns the correlation coefficient, which indicates a weak negative correlation."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "price",
+            "y": "mpg",
+            "color": null
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

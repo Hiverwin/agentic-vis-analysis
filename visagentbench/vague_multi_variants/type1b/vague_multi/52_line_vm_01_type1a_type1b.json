@@ -1,0 +1,75 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "52_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/52_years of economic new_line.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Using zoom_x_region and detect_anomalies, do any country-year points count as outliers relative to the whole-series mean, and what does the zoomed shape indicate about the 2015 dip people often discuss?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Against the entire timeline, nothing crosses the two-sigma rule—so the anomaly layer stays empty even after zooming. Within 2014–2016 you can still read the mid-decade sag and rebound in electricity access as a regional story inside the band, not as a machine-flagged spike."
+        },
+        "key_insights": [
+          "The global mean/std anomaly test does not flag any points in this dataset.",
+          "The 2014–2016 window is still useful for eyeballing the dip-and-recovery pattern without relying on red markers."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "zoom_x_region",
+            "reasoning": "Narrows the time axis to the shock-and-recovery years."
+          },
+          {
+            "iteration": 2,
+            "tool": "detect_anomalies",
+            "reasoning": "Checks for extreme residuals versus the overall series distribution."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "zoom_x_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "start": "2014",
+                  "end": "2016"
+                }
+              }
+            },
+            {
+              "tool": "detect_anomalies",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "threshold": 2
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "visible_domain": {
+            "x": [
+              "2014",
+              "2016"
+            ]
+          },
+          "anomaly_markers": {
+            "has_markers": false,
+            "marker_type": "point"
+          }
+        },
+        "state_check_fields": [
+          "anomaly_markers",
+          "visible_domain"
+        ]
+      }
+    }
+  ]
+}

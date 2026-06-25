@@ -1,0 +1,68 @@
+{
+  "task_type": "vague_single",
+  "task_id": "50_parallel_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/50_supply_chain_data_parallel.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "First apply filter_by_category(field=Product type, values=[haircare, cosmetics]). Describe how manufacturing lead time, cost, volume, and defect signals spread for that skincare subset—are the lines bundled or all over the place?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Skincare polylines do not collapse to a single sweet spot: normalized lead times and costs sweep from near-zero up to the top of each axis, so you see both budget fast-turn items and slow, expensive runs. Production volume and defect rate add more spread—some SKUs hug high-volume / low-defect bundles, others drift toward low-volume tails. Overall it feels like several manufacturing strategies coexisting rather than one dominant cluster."
+        },
+        "key_insights": [
+          "Lead time and manufacturing cost show wide dispersion even after restricting to skincare.",
+          "Volume and defect axes contribute crossing lines, hinting at multiple operating models within the same product family."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "Removes non-skincare categories so parallel coordinates reflect one product class."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Product type",
+                  "values": [
+                    "haircare",
+                    "cosmetics"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "indexof([\"haircare\",\"cosmetics\"], datum['Product type']) < 0"
+            }
+          ],
+          "layers": {
+            "count": 5,
+            "types": [
+              "rule",
+              "line",
+              null,
+              null,
+              null
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "layers"
+        ]
+      }
+    }
+  ]
+}

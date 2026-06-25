@@ -1,0 +1,70 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "51_scatter_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/51_Train_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use identify_clusters with n_clusters equal to 3, method equal to kmeans and use calculate_correlation with method equal to pearson in order to know What patterns can you observe in the relationship between product weight and cost, and how do different shipping modes distribute across the weight-cost space?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The data shows a weak negative correlation between weight and cost. Ship is the dominant shipping mode with the most data points spread across all weight ranges. Flight and Road have similar distributions. Customer ratings are evenly distributed across all shipping modes and weight-cost combinations.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Weak negative correlation between weight and cost",
+          "Ship is dominant shipping mode with 7462 items",
+          "Flight and Road have similar distributions",
+          "Customer ratings evenly distributed across all modes"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "identify_clusters",
+            "reasoning": "Identify clusters to understand data distribution patterns"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between weight and cost"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Weight_in_gms",
+            "y": "Cost_of_the_Product",
+            "color": "Mode_of_Shipment",
+            "size": "Customer_rating"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "112_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "First apply filter_categories(categories=[Ayashi no Ceres, Aware! Meisaku-kun, Makasete Iruka!, Maken-Ki! OVA, R.O.D: Read or Die, Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack, Warau Salesman Special Program, Zuihou de Zhaohuan Shi, Doupo Cangqiong 3rd Season]). Then apply sort_bars(order=descending). Who rises to the top of the popularity ranking after the noise is trimmed?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "RahXephon jumps to the front of the pack (around 1971 popularity points), with One Piece Fan Letter and Juuou Mujin no Fafnir close behind in the same thousand-plus tier. The filter basically clears the clutter of niche OVAs so the blockbuster-style titles stand out as a clear top tier."
+        },
+        "key_insights": [
+          "RahXephon leads the post-filter ranking by a modest margin.",
+          "A handful of titles cluster near the top, while the rest trail off below."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "Drops the low-volume titles so the comparison focuses on mainstream hits."
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "Descending sort surfaces the strongest popularity first."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Ayashi no Ceres",
+                    "Aware! Meisaku-kun",
+                    "Makasete Iruka!",
+                    "Maken-Ki! OVA",
+                    "R.O.D: Read or Die",
+                    "Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack",
+                    "Warau Salesman Special Program",
+                    "Zuihou de Zhaohuan Shi",
+                    "Doupo Cangqiong 3rd Season"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Ayashi no Ceres\",\"Aware! Meisaku-kun\",\"Makasete Iruka!\",\"Maken-Ki! OVA\",\"R.O.D: Read or Die\",\"Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack\",\"Warau Salesman Special Program\",\"Zuihou de Zhaohuan Shi\"], datum['title']) < 0"
+            },
+            {
+              "filter": "indexof([\"Ayashi no Ceres\",\"Aware! Meisaku-kun\",\"Makasete Iruka!\",\"Maken-Ki! OVA\",\"R.O.D: Read or Die\",\"Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack\",\"Warau Salesman Special Program\",\"Zuihou de Zhaohuan Shi\",\"Doupo Cangqiong 3rd Season\"], datum['title']) < 0"
+            }
+          ],
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "Aware! Meisaku-kun",
+              "Warau Salesman Special Program",
+              "Makasete Iruka!",
+              "Doupo Cangqiong 3rd Season",
+              "Ayashi no Ceres",
+              "Maken-Ki! OVA",
+              "Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack",
+              "R.O.D: Read or Die",
+              "Zuihou de Zhaohuan Shi",
+              "RahXephon",
+              "One Piece Fan Letter",
+              "Juuou Mujin no Fafnir",
+              "Gintama. Shirogane no Tamashii-hen - Kouhan-sen",
+              "Takopii no Genzai",
+              "Owarimonogatari 2nd Season",
+              "3-gatsu no Lion 2nd Season",
+              "Kizumonogatari III: Reiketsu-hen",
+              "Fruits Basket: The Final",
+              "Hajime no Ippo",
+              "Kusuriya no Hitorigoto"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

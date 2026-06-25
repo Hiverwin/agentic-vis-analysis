@@ -1,0 +1,104 @@
+{
+  "benchmark_id": "100_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use highlight_path with path equal to Surgery Tx, Transfer to ICU and use filter_flow with min_value equal to 100.0 and use calculate_conversion_rate with node_name equal to CT Scan in order to know Analyze the patient journey patterns and identify potential bottlenecks or areas for operational improvement in this hospital system.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The patient journey analysis reveals several operational insights: (1) Outpatient appointments are the largest admission source (1,000 patients, 47.6%), followed by Emergency (800, 38.1%), suggesting significant outpatient capacity requirements. (2) Internal Medicine handles the most patients (900), indicating it may need additional resources. (3) CT Scan is heavily utilized (600 patients), particularly by Surgery (260) and Internal Med (220), suggesting potential imaging capacity constraints. (4) Surgery Tx has the highest ICU transfer rate with 120 patients (18.5% of surgery patients), representing the highest-acuity treatment path. (5) The overall cure rate is 57.9% (1,215 patients), while ICU transfer rate is 8.6% (180 patients). (6) Medication treatment shows good outcomes with 520 cured (63.4% of medication patients). Recommendations: (a) Optimize CT Scan scheduling to reduce wait times, (b) Review Surgery Tx protocols to reduce ICU transfers, (c) Strengthen Internal Medicine staffing to handle high patient volume, (d) Consider expanding outpatient appointment capacity to manage the largest admission source efficiently.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Outpatient appointments account for 47.6% of admissions",
+          "Internal Medicine handles 900 patients (most)",
+          "CT Scan is heavily utilized (600 patients)",
+          "Surgery Tx has 18.5% ICU transfer rate",
+          "Overall cure rate is 57.9%",
+          "ICU transfer rate is 8.6%"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Highlight the Surgery Tx to ICU path to analyze the highest-acuity treatment route"
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.flow.filter",
+            "rationale": "Filter flows to focus on high-volume patient pathways"
+          },
+          {
+            "iteration": 3,
+            "capability": "sankey.conversionRate.calculate",
+            "rationale": "Calculate conversion rate at CT Scan to understand diagnostic efficiency"
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.flow.filter",
+          "sankey.conversionRate.calculate"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Surgery Tx",
+                  "Transfer to ICU"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 100.0
+              }
+            }
+          },
+          {
+            "capability": "sankey.conversionRate.calculate",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "node_name": "CT Scan"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {}
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "100_sankey_patient",
+    "dataset_path": "datasets/100_sankey_patient.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/100_sankey_patient.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

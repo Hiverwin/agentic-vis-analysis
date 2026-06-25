@@ -1,0 +1,65 @@
+{
+  "benchmark_id": "29_parallel_vs_05",
+  "task_type": "vague_single",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vs_05",
+      "question": "Use reorder_dimensions with dimension_order equal to score, members, popularity, episodes to assess whether the program will be continued for the next season based on its popularity in order to know will the program be continued for the next season based on its popularity?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the data analysis, AI usage has a significant positive impact on student grades after AI adoption. Students who use AI show higher average grades after AI (0.593) compared to those who do not use AI (0.276) - a remarkable 114% improvement. Interestingly, before AI adoption, both groups had similar grade levels (AI users: 0.516, non-users: 0.470). AI users tend to have slightly lower study hours per day (0.458 vs 0.523) but similar screen time (0.495 vs 0.450). This suggests that AI tools may help students achieve better academic outcomes with potentially more efficient study practices, though the lower study hours could also indicate different learning approaches or time management strategies.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "AI users show 114% higher grades after AI adoption (0.593 vs 0.276)",
+          "Both groups had similar grades before AI (0.516 vs 0.470)",
+          "AI users have slightly lower study hours (0.458 vs 0.523)",
+          "Screen time is similar between groups (0.495 vs 0.450)"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.visible.summarize",
+            "rationale": "Analyze AI usage impact on student performance and study habits"
+          }
+        ],
+        "required_capabilities": [
+          "data.visible.summarize"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.visible.summarize",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scope": "all"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "29_students_ai_usage_parallel",
+    "dataset_path": "datasets/29_students_ai_usage_parallel.json",
+    "row_count": 400,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/29_students_ai_usage_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

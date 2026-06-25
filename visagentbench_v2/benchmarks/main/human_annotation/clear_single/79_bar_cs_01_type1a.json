@@ -1,0 +1,96 @@
+{
+  "benchmark_id": "79_bar_cs_01",
+  "task_type": "clear_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "cs_01",
+      "question": "Use sort_bars with order equal to descending to rank the bars by activity level of the platforms and answer which is the most active platform?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Xbox One",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "sort the bars in descending order,and we can see the bar of Xbox One is the highest"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Platform",
+            "y": "Action"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Xbox One",
+                "PlayStation 4",
+                "PlayStation Vita",
+                "Wireless",
+                "Dreamcast",
+                "iPhone",
+                "PlayStation 3",
+                "Nintendo DSi",
+                "Xbox",
+                "PC",
+                "Xbox 360",
+                "Nintendo 3DS",
+                "Nintendo 64",
+                "GameCube",
+                "PlayStation Portable",
+                "PlayStation 2",
+                "Game Boy Advance",
+                "Game Boy Color",
+                "Wii",
+                "PlayStation",
+                "Nintendo DS"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "79_ign_scores_bar",
+    "dataset_path": "datasets/79_ign_scores_bar.json",
+    "row_count": 21,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/79_ign_scores_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

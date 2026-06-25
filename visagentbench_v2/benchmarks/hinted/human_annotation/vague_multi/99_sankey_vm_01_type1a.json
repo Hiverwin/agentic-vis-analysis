@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "99_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First apply `color_flows`; then apply `find_bottleneck`. Then analyze how the flow structure changes in the updated view: which links are pruned or retained, which trunk paths dominate, and what this implies about node role or funnel behavior compared with the original view. Cite node/edge evidence explicitly.",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "converting On-Demand EC2 instances to Reserved instances or adopting the Savings Plan is expected to significantly reduce the overall cost."
+        },
+        "key_insights": [
+          "After using color coding, the cost flows of different procurement options show significant differences.",
+          "There is room for optimization in the cost conversion rate of certain projects (from procurement options to services)"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "The Color Flows tool helps visualize the cost paths of different procurement options, making pattern recognition much easier."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.bottleneck.find",
+            "rationale": "The \"find bottleneck\" tool automatically analyzes the bottleneck points in the cost flow. Based on previous observations, it can be confirmed that EC2 and On-Demand purchasing are the areas that require focused optimization."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.bottleneck.find"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "color": "#1E90FF",
+                "nodes": [
+                  "Spot"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.bottleneck.find",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "top_n": 1
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "On-Demand",
+                "Reserved",
+                "Spot",
+                "Savings Plan",
+                "EC2",
+                "RDS",
+                "Lambda",
+                "S3",
+                "K8s",
+                "Other Svc",
+                "us-east-1",
+                "eu-west-1",
+                "ap-northeast-1",
+                "Proj Alpha",
+                "Proj Beta",
+                "Shared Infra",
+                "Proj Gamma",
+                "Engineering",
+                "Data Team",
+                "Finance Dept",
+                "Platform Ops"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "99_sankey_cloud",
+    "dataset_path": "datasets/99_sankey_cloud.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

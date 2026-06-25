@@ -1,0 +1,59 @@
+{
+  "task_type": "vague_single",
+  "task_id": "106_line_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/106_life expectancey_line.json",
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use focus_lines in order to know Which country demonstrates the most remarkable improvement in female life expectancy from 1950 to 2023?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "China demonstrates the most remarkable improvement with a total increase of 35.20 years from 45.73 in 1950 to 80.93 in 2023, representing an average annual increase of 0.48 years",
+          "alternatives": []
+        },
+        "key_insights": [
+          "China had the lowest starting life expectancy in 1950 at 45.73 years",
+          "China achieved the highest total increase of 35.20 years",
+          "China shows the fastest average annual growth rate of 0.48 years per year"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "focus_lines",
+            "reasoning": "Use focus_lines to highlight China and observe its dramatic life expectancy improvement over the 73-year period"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "focus_lines",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "lines": [
+                    "highlight",
+                    "China"
+                  ],
+                  "line_field": "mode,lines",
+                  "mode": "dim",
+                  "dim_opacity": 0.08
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "opacity": {
+            "has_opacity": true
+          }
+        },
+        "state_check_fields": [
+          "opacity"
+        ]
+      }
+    }
+  ]
+}

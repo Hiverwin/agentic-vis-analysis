@@ -2,6 +2,59 @@ function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
+function summarizeStateForFormalObserve(observation = {}) {
+  const coordination = observation?.coordination || null
+  const latestCoordinationResult = observation?.latestCoordinationResult || null
+  const parts = []
+  if (typeof coordination?.focusedWidgetRef === 'string' && coordination.focusedWidgetRef.length > 0) {
+    parts.push(`focus ${coordination.focusedWidgetRef}`)
+  }
+  if (typeof coordination?.selections?.views?.primary?.summary === 'string' && coordination.selections.views.primary.summary.length > 0) {
+    parts.push(coordination.selections.views.primary.summary)
+  }
+  if (typeof latestCoordinationResult?.verification?.summary === 'string' && latestCoordinationResult.verification.summary.length > 0) {
+    parts.push(latestCoordinationResult.verification.summary)
+  }
+  return parts.join(' · ') || null
+}
+
+function deriveFormalActOk(result = {}) {
+  if (typeof result?.actionResult?.ok === 'boolean') return result.actionResult.ok
+  if (typeof result?.ok === 'boolean') return result.ok
+  if (typeof result?.success === 'boolean') return result.success
+  return true
+}
+
+function deriveFormalStateId(result = {}) {
+  return result?.actionResult?.stateId || result?.stateId || null
+}
+
+function deriveFormalUpdatedRefs(result = {}) {
+  if (Array.isArray(result?.actionResult?.updatedRefs)) return result.actionResult.updatedRefs
+  if (Array.isArray(result?.updatedRefs)) return result.updatedRefs
+  return []
+}
+
+function deriveFormalVerificationOk(verification = null) {
+  if (!verification || typeof verification !== 'object') return null
+  if (typeof verification.ok === 'boolean') return verification.ok
+  if (typeof verification?.result?.verified === 'boolean') return verification.result.verified
+  if (typeof verification?.result?.passed === 'boolean') return verification.result.passed
+  if (typeof verification?.passed === 'boolean') return verification.passed
+  return null
+}
+
+function summarizeFormalRuntimePayload(payload = null) {
+  if (!payload || typeof payload !== 'object') return null
+  if (typeof payload.summary === 'string' && payload.summary.length > 0) return payload.summary
+  if (typeof payload.message === 'string' && payload.message.length > 0) return payload.message
+  if (typeof payload.result === 'string' && payload.result.length > 0) return payload.result
+  if (payload?.result && typeof payload.result === 'object') {
+    return JSON.stringify(payload.result).slice(0, 220)
+  }
+  return null
+}
+
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
@@ -127,8 +180,13 @@ function defaultReasoner({ plan, result, verification, latestCoordinationResult 
     ?? result?.verification?.ok
     ?? false,
   )
+  const operationKind = plan?.operation?.kind || null
+  const runtimeSummary = summarizeFormalRuntimePayload(result)
   return {
-    answer: plan?.assistantMessage || 'Completed one agent loop step.',
+    answer:
+      operationKind === 'perception' || operationKind === 'data_query'
+        ? runtimeSummary || plan?.assistantMessage || 'Completed one agent loop step.'
+        : plan?.assistantMessage || runtimeSummary || 'Completed one agent loop step.',
     rationale: plan?.rationale || '',
     success: actionApplied,
     verificationPassed,
@@ -360,5 +418,307 @@ export async function runPagePortAgentLoop(port, options = {}) {
     verification,
     reason,
     latestCoordinationResult,
+  }
+}
+
+function buildFormalObservePayload(baseObserve = {}, {
+  objective = null,
+  previousTurnSummary = null,
+  perception = null,
+} = {}) {
+  const observation = baseObserve?.observation || {}
+  const coordination = observation?.coordination || null
+  const state = observation?.state || null
+  const stateSummary = summarizeStateForFormalObserve(observation)
+  return {
+    query: objective,
+    previousTurnSummary,
+    focusWidgetRef: coordination?.focusedWidgetRef || null,
+    state: {
+      summary: stateSummary,
+      stateId: state?.stateId || null,
+      rawRef: state?.stateId || null,
+    },
+    view: {
+      snapshot: {
+        ref: state?.stateId ? `widgetva-view:${state.stateId}` : null,
+        mimeType: 'application/widgetva-view+json',
+      },
+      summary: stateSummary,
+    },
+    perception: perception && typeof perception === 'object'
+      ? {
+        name: perception.name || 'perception',
+        resultRef: perception.resultRef || null,
+        summary: perception.summary || null,
+      }
+      : null,
+  }
+}
+
+function buildFormalPlanPayload(plan = {}) {
+  const operation = plan?.operation || {}
+  return {
+    objective: plan?.objective || null,
+    step: {
+      kind: operation.kind,
+      ...(operation.name ? { name: operation.name } : {}),
+      ...(operation.queryScope ? { queryScope: clone(operation.queryScope) } : {}),
+      ...(operation.params && Object.keys(operation.params).length > 0 ? { params: clone(operation.params) } : {}),
+      ...(operation.dataRef ? { dataRef: operation.dataRef } : {}),
+      ...(operation.query ? { query: clone(operation.query) } : {}),
+    },
+    rationale: plan?.rationale || '',
+  }
+}
+
+function buildFormalActPayload(plan = {}, result = {}) {
+  const operation = plan?.operation || {}
+  return {
+    kind: operation.kind,
+    name: operation.name || operation.query?.kind || 'data_query',
+    ...(operation.params && Object.keys(operation.params).length > 0 ? { params: clone(operation.params) } : {}),
+    ...(operation.queryScope ? { queryScope: clone(operation.queryScope) } : {}),
+    ok: deriveFormalActOk(result),
+    outputSummary: summarizeFormalRuntimePayload(result),
+    stateId: deriveFormalStateId(result),
+    updatedRefs: deriveFormalUpdatedRefs(result),
+  }
+}
+
+function buildFormalVerifyPayload({ plan = {}, act = null, verification = null, observe = null } = {}) {
+  const operation = plan?.operation || {}
+  const beforeStateId = observe?.observation?.state?.stateId || null
+  const verificationOk = deriveFormalVerificationOk(verification)
+  const verificationSummary = summarizeFormalRuntimePayload(verification)
+
+  const stepChoice = act?.ok
+    ? {
+      status: act?.kind === 'action' ? 'uncertain' : 'pass',
+      reason: act?.kind === 'action'
+        ? 'The action executed, but semantic fit to the user query was not separately judged in this turn.'
+        : 'The turn executed a read-oriented step and produced an output.',
+    }
+    : {
+      status: 'fail',
+      reason: 'The selected step did not execute successfully.',
+    }
+
+  const params = act?.ok
+    ? {
+      status: 'pass',
+      reason: 'Runtime accepted the parameters for this step.',
+    }
+    : {
+      status: 'fail',
+      reason: 'The runtime rejected this step before parameters could be trusted.',
+    }
+
+  const stateChange = (() => {
+    if (act?.kind !== 'action') {
+      return {
+        status: 'not_applicable',
+        reason: 'This turn did not execute a state-mutating action.',
+      }
+    }
+    if (act?.stateId && beforeStateId && act.stateId !== beforeStateId) {
+      return {
+        status: 'pass',
+        reason: `State changed from ${beforeStateId} to ${act.stateId}.`,
+      }
+    }
+    if (!act?.ok) {
+      return {
+        status: 'fail',
+        reason: 'The action did not complete successfully, so no state change can be confirmed.',
+      }
+    }
+    return {
+      status: 'uncertain',
+      reason: 'The action returned success, but a distinct state transition was not confirmed.',
+    }
+  })()
+
+  const visualChange = (() => {
+    if (act?.kind !== 'action') {
+      return {
+        status: 'not_applicable',
+        reason: 'This turn did not request a visual state change.',
+      }
+    }
+    if (verificationOk === true) {
+      return {
+        status: 'pass',
+        reason: verificationSummary || 'Verification confirmed the expected visible effect.',
+      }
+    }
+    if (verificationOk === false) {
+      return {
+        status: 'fail',
+        reason: verificationSummary || 'Verification reported that the visible effect was not achieved.',
+      }
+    }
+    return {
+      status: 'uncertain',
+      reason: 'No explicit visual verification result was available for this action.',
+    }
+  })()
+
+  const ok = Boolean(
+    act?.ok
+    && params.status !== 'fail'
+    && stateChange.status !== 'fail'
+    && visualChange.status !== 'fail',
+  )
+
+  return {
+    ok,
+    summary: ok
+      ? (visualChange.status === 'pass' ? visualChange.reason : act?.outputSummary || 'The step executed successfully.')
+      : ([params.reason, stateChange.reason, visualChange.reason].find(Boolean) || 'The step did not verify cleanly.'),
+    checks: {
+      stepChoice,
+      params,
+      stateChange,
+      visualChange,
+    },
+    nextStepHint: params.status === 'fail'
+      ? {
+        kind: operation?.kind === 'action' ? 'action' : 'perception',
+        guidance: 'Re-check required parameters before retrying this step.',
+      }
+      : visualChange.status === 'uncertain'
+        ? {
+          kind: 'perception',
+          guidance: 'Inspect the current view or verification surface before deciding the next step.',
+        }
+        : ok
+          ? {
+            kind: 'answer',
+            guidance: 'This turn verified cleanly enough to answer unless the query explicitly requires another step.',
+          }
+          : {
+            kind: operation?.kind === 'action' ? 'action' : 'stop',
+            guidance: 'Choose a simpler, better-scoped next step based on the current state.',
+          },
+  }
+}
+
+function buildFormalReasonPayload(baseReason = {}, { act = null, verify = null, plan = null } = {}) {
+  const prefersRuntimeSummary = act?.kind === 'perception' || act?.kind === 'data_query'
+  if (verify?.ok) {
+    const assistantText = baseReason?.answer || plan?.assistantMessage || null
+    const runtimeText = act?.outputSummary || null
+    return {
+      answer: prefersRuntimeSummary
+        ? [assistantText, runtimeText].filter((part, index, array) => typeof part === 'string' && part.length > 0 && array.indexOf(part) === index).join(' ')
+          || 'Completed one agent loop step.'
+        : assistantText || runtimeText || 'Completed one agent loop step.',
+    }
+  }
+  return {
+    answer: verify?.summary || baseReason?.answer || plan?.assistantMessage || 'The last step did not verify cleanly.',
+  }
+}
+
+export async function runPagePortAgentTurn(port, options = {}) {
+  const base = await runPagePortAgentLoop(port, options)
+  const observe = buildFormalObservePayload(base.observe, {
+    objective: options?.objective || null,
+    previousTurnSummary: options?.previousTurnSummary || null,
+    perception: options?.perception || null,
+  })
+  const plan = buildFormalPlanPayload(base.plan)
+  const act = buildFormalActPayload(base.plan, base.result)
+  const verify = buildFormalVerifyPayload({
+    plan: base.plan,
+    act,
+    verification: base.verification,
+    observe: base.observe,
+  })
+  const reason = buildFormalReasonPayload(base.reason, {
+    act,
+    verify,
+    plan: base.plan,
+  })
+
+  return {
+    observe,
+    plan,
+    act,
+    verify,
+    reason,
+  }
+}
+
+function summarizeTurnForSession(turn = {}, index = 0) {
+  return {
+    turnId: `turn_${index + 1}`,
+    summary:
+      turn?.reason?.answer
+      || turn?.verify?.summary
+      || turn?.act?.outputSummary
+      || 'Completed one agent turn.',
+  }
+}
+
+function buildPerceptionCarry(turn = null) {
+  if (turn?.act?.kind !== 'perception') return null
+  return {
+    name: turn.act.name || 'perception',
+    resultRef: null,
+    summary: turn.act.outputSummary || turn.verify?.summary || null,
+  }
+}
+
+export async function runPagePortAgentSession(port, options = {}) {
+  const {
+    objective = null,
+    maxTurns = 3,
+  } = options
+
+  const safeMaxTurns = Number.isFinite(maxTurns) && maxTurns > 0
+    ? Math.max(1, Math.floor(maxTurns))
+    : 3
+
+  const turns = []
+  let previousTurnSummary = null
+  let previousPerception = null
+  let stopReason = 'turn_budget_reached'
+
+  for (let index = 0; index < safeMaxTurns; index += 1) {
+    const turn = await runPagePortAgentTurn(port, {
+      ...options,
+      objective,
+      previousTurnSummary,
+      perception: previousPerception,
+      callId: `agent_step_${index + 1}`,
+    })
+    turns.push(turn)
+
+    previousTurnSummary = summarizeTurnForSession(turn, index).summary
+    previousPerception = buildPerceptionCarry(turn)
+
+    const nextHintKind = turn?.verify?.nextStepHint?.kind || null
+    if (nextHintKind === 'answer') {
+      stopReason = 'answered'
+      break
+    }
+    if (nextHintKind === 'stop') {
+      stopReason = 'stopped'
+      break
+    }
+    if (index === safeMaxTurns - 1) {
+      stopReason = 'turn_budget_reached'
+    }
+  }
+
+  const lastTurn = turns.at(-1) || null
+  return {
+    objective: objective || null,
+    ok: Boolean(lastTurn?.verify?.ok),
+    answer: lastTurn?.reason?.answer || '',
+    stopReason,
+    turns,
   }
 }

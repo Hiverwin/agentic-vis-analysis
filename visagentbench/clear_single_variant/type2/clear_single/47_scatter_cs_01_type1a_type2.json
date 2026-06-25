@@ -1,0 +1,53 @@
+{
+  "task_type": "clear_single",
+  "task_id": "47_scatter_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/47_candy_scatter.json",
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "What is the computed correlation between sugarpercent and winpercent using the Pearson method?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "numeric",
+          "value": "0.208",
+          "tolerance": 0.01
+        },
+        "key_insights": [
+          "The scatter plot displays sugarpercent on x-axis and winpercent on y-axis.",
+          "There is a weak positive correlation between the two variables.",
+          "The Pearson correlation coefficient is approximately 0.208."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Use calculate_correlation with pearson method to compute the correlation coefficient between x and y."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "sugarpercent",
+            "y": "winpercent",
+            "color": "chocolate"
+          }
+        },
+        "state_check_fields": []
+      }
+    }
+  ]
+}

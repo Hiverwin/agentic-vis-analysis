@@ -1,0 +1,75 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "36_scatter_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/36_cancer_scatter.json",
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "What is the computed correlation between Radius mean and Smoothness mean using the Pearson method?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "0.171",
+          "tolerance": 0.1
+        },
+        "key_insights": [
+          "The scatter plot now displays points colored by two diagnosis categories: blue and orange .",
+          "Blue points are concentrated in the lower to mid range of Radius mean values.",
+          "Orange points are more spread across higher Radius mean values.",
+          "There is overlap between B and M points in the mid Radius mean range (around 10 to 15).",
+          "The brushed region contains a mix of blue and orange diagnosis points.",
+          "Blue points are more densely concentrated within this brushed area compared to orange points.",
+          "Benign is the dominant diagnosis in this region making up about 84 percent of the points here."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "The question asks for the correlation between Radius mean and Smoothness mean, so we should use the change_encoding tool to change the encoding to show the data."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_correlation",
+            "reasoning": "The question asks for the correlation between Radius mean and Smoothness mean, so we should use the calculate_correlation tool to compute the correlation."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Smoothness",
+                  "channel": "y"
+                }
+              }
+            },
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "param": "method",
+                  "target": "pearson"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Radius (mean)",
+            "y": "Smoothness (mean)"
+          }
+        },
+        "state_check_fields": [
+          "encoding"
+        ]
+      }
+    }
+  ]
+}

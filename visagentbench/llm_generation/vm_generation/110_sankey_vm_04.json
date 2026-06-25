@@ -1,0 +1,63 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "110_sankey_vm_04",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/110_sankey_trash.json",
+  "questions": [
+    {
+      "qid": "vm_04",
+      "question": "Use trace_node with node_name equal to Landfill and use calculate_conversion_rate with node_name equal to Landfill in order to know First use trace_node to trace a specific node, then use calculate_conversion_rate to analyze conversion rates. Identify which paths contribute most to the node, how upstream routes are distributed before those nodes, and which conversion characteristic is most important in the full pathway. Anchor the answer in node-level evidence from both tools.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Tracing the key node reveals the primary inflow sources and their relative contributions, while calculating conversion rates shows the efficiency of different pathways through the waste management system. The most significant paths highlight where the largest volume flows originate, which intermediate nodes serve as critical transfer points, and which conversion stages have the highest throughput. This analysis reveals the core operational structure and key performance drivers in the waste processing network.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Tracing reveals primary inflow sources and their contributions",
+          "Calculating conversion rates shows pathway efficiency",
+          "Analysis reveals core operational structure and key drivers"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace a specific node to analyze its inflow sources"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Calculate conversion rates to understand pathway efficiency"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Landfill"
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Landfill"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {}
+        }
+      }
+    }
+  ]
+}

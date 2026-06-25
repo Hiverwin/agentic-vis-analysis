@@ -1,0 +1,117 @@
+{
+  "benchmark_id": "18_parallel_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_by_category with field equal to Heart Disease and values equal to [Presence] to exclude the heart-disease group and keep only the no-heart-disease (Absence) group, then use reorder_dimensions with dimension_order equal to [Age, BP, Cholesterol, ST depression, Max HR, Thallium] to place ST depression between Cholesterol and Max HR. Which pair has the stronger correlation: ST depression and Max HR, or ST depression and Cholesterol?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "ST depression and maximum heart rate have the stronger correlation.",
+          "alternatives": [
+            "ST depression and Max HR",
+            "ST depression and Max HR have the stronger correlation"
+          ]
+        },
+        "key_insights": [
+          "Age ranges are mostly 45–65, with BP and cholesterol showing wider variation but generally above average values.",
+          "Most cases have Thallium = 7"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Filter to keep only the Absence (no heart disease) group for focused analysis."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.sort.encoding",
+            "rationale": "Reorder dimensions to place ST depression between Cholesterol and Max HR for visual comparison of the two correlations."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "Heart Disease",
+                "values": [
+                  "Presence"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "dimension_order": [
+                  "Age",
+                  "BP",
+                  "Cholesterol",
+                  "ST depression",
+                  "Max HR",
+                  "Thallium"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Presence\"], datum['Heart Disease']) < 0"
+              }
+            ],
+            "axis_order": {
+              "dimension_order": [
+                "Age",
+                "BP",
+                "Cholesterol",
+                "ST depression",
+                "Max HR",
+                "Thallium"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "axis_order"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "18_Heart_Disease_Prediction_parallel",
+    "dataset_path": "datasets/18_Heart_Disease_Prediction_parallel.json",
+    "row_count": 1620,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/18_Heart_Disease_Prediction_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

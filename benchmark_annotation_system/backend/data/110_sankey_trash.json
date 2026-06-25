@@ -1,0 +1,448 @@
+{
+  "rawLinks": [
+    {
+      "source": "Residential",
+      "target": "Dry Waste Bin",
+      "value": 3000
+    },
+    {
+      "source": "Residential",
+      "target": "Wet Waste Bin",
+      "value": 2200
+    },
+    {
+      "source": "Residential",
+      "target": "Recyclable Bin",
+      "value": 1100
+    },
+    {
+      "source": "Residential",
+      "target": "Hazardous Bin",
+      "value": 200
+    },
+    {
+      "source": "Restaurants",
+      "target": "Wet Waste Bin",
+      "value": 2000
+    },
+    {
+      "source": "Restaurants",
+      "target": "Dry Waste Bin",
+      "value": 600
+    },
+    {
+      "source": "Restaurants",
+      "target": "Recyclable Bin",
+      "value": 350
+    },
+    {
+      "source": "Restaurants",
+      "target": "Hazardous Bin",
+      "value": 50
+    },
+    {
+      "source": "Office Bldgs",
+      "target": "Dry Waste Bin",
+      "value": 1200
+    },
+    {
+      "source": "Office Bldgs",
+      "target": "Recyclable Bin",
+      "value": 900
+    },
+    {
+      "source": "Office Bldgs",
+      "target": "Wet Waste Bin",
+      "value": 350
+    },
+    {
+      "source": "Office Bldgs",
+      "target": "Hazardous Bin",
+      "value": 50
+    },
+    {
+      "source": "Factories",
+      "target": "Recyclable Bin",
+      "value": 1500
+    },
+    {
+      "source": "Factories",
+      "target": "Dry Waste Bin",
+      "value": 800
+    },
+    {
+      "source": "Factories",
+      "target": "Hazardous Bin",
+      "value": 500
+    },
+    {
+      "source": "Factories",
+      "target": "Wet Waste Bin",
+      "value": 200
+    },
+    {
+      "source": "Dry Waste Bin",
+      "target": "Manual Sorting",
+      "value": 2800
+    },
+    {
+      "source": "Dry Waste Bin",
+      "target": "Magnetic Sorting",
+      "value": 1800
+    },
+    {
+      "source": "Dry Waste Bin",
+      "target": "Optical Sorting",
+      "value": 1000
+    },
+    {
+      "source": "Wet Waste Bin",
+      "target": "Manual Sorting",
+      "value": 2750
+    },
+    {
+      "source": "Wet Waste Bin",
+      "target": "Dewatering",
+      "value": 2000
+    },
+    {
+      "source": "Recyclable Bin",
+      "target": "Manual Sorting",
+      "value": 1000
+    },
+    {
+      "source": "Recyclable Bin",
+      "target": "Magnetic Sorting",
+      "value": 1500
+    },
+    {
+      "source": "Recyclable Bin",
+      "target": "Optical Sorting",
+      "value": 1350
+    },
+    {
+      "source": "Hazardous Bin",
+      "target": "Hazmat Process",
+      "value": 800
+    },
+    {
+      "source": "Manual Sorting",
+      "target": "Incineration",
+      "value": 2800
+    },
+    {
+      "source": "Manual Sorting",
+      "target": "Composting",
+      "value": 2200
+    },
+    {
+      "source": "Manual Sorting",
+      "target": "Recycling Plant",
+      "value": 1300
+    },
+    {
+      "source": "Manual Sorting",
+      "target": "Landfill",
+      "value": 250
+    },
+    {
+      "source": "Magnetic Sorting",
+      "target": "Recycling Plant",
+      "value": 2600
+    },
+    {
+      "source": "Magnetic Sorting",
+      "target": "Incineration",
+      "value": 500
+    },
+    {
+      "source": "Magnetic Sorting",
+      "target": "Landfill",
+      "value": 200
+    },
+    {
+      "source": "Optical Sorting",
+      "target": "Recycling Plant",
+      "value": 1800
+    },
+    {
+      "source": "Optical Sorting",
+      "target": "Incineration",
+      "value": 400
+    },
+    {
+      "source": "Optical Sorting",
+      "target": "Landfill",
+      "value": 150
+    },
+    {
+      "source": "Dewatering",
+      "target": "Composting",
+      "value": 1400
+    },
+    {
+      "source": "Dewatering",
+      "target": "Biogas Plant",
+      "value": 500
+    },
+    {
+      "source": "Dewatering",
+      "target": "Landfill",
+      "value": 100
+    },
+    {
+      "source": "Hazmat Process",
+      "target": "Special Disposal",
+      "value": 500
+    },
+    {
+      "source": "Hazmat Process",
+      "target": "Recycling Plant",
+      "value": 200
+    },
+    {
+      "source": "Hazmat Process",
+      "target": "Incineration",
+      "value": 100
+    },
+    {
+      "source": "Incineration",
+      "target": "Electricity",
+      "value": 2600
+    },
+    {
+      "source": "Incineration",
+      "target": "Bottom Ash",
+      "value": 1200
+    },
+    {
+      "source": "Composting",
+      "target": "Organic Fertilizer",
+      "value": 2880
+    },
+    {
+      "source": "Composting",
+      "target": "Process Loss",
+      "value": 720
+    },
+    {
+      "source": "Recycling Plant",
+      "target": "Recycled Plastic",
+      "value": 2200
+    },
+    {
+      "source": "Recycling Plant",
+      "target": "Recycled Metal",
+      "value": 2100
+    },
+    {
+      "source": "Recycling Plant",
+      "target": "Recycled Paper",
+      "value": 1100
+    },
+    {
+      "source": "Recycling Plant",
+      "target": "Process Loss",
+      "value": 500
+    },
+    {
+      "source": "Biogas Plant",
+      "target": "Biogas Energy",
+      "value": 350
+    },
+    {
+      "source": "Biogas Plant",
+      "target": "Organic Fertilizer",
+      "value": 120
+    },
+    {
+      "source": "Biogas Plant",
+      "target": "Process Loss",
+      "value": 30
+    },
+    {
+      "source": "Landfill",
+      "target": "Landfill Mass",
+      "value": 700
+    },
+    {
+      "source": "Special Disposal",
+      "target": "Safe Containment",
+      "value": 400
+    },
+    {
+      "source": "Special Disposal",
+      "target": "Process Loss",
+      "value": 100
+    }
+  ],
+  "nodeConfig": [
+    {
+      "name": "Residential",
+      "depth": 0,
+      "order": 0
+    },
+    {
+      "name": "Restaurants",
+      "depth": 0,
+      "order": 1
+    },
+    {
+      "name": "Office Bldgs",
+      "depth": 0,
+      "order": 2
+    },
+    {
+      "name": "Factories",
+      "depth": 0,
+      "order": 3
+    },
+    {
+      "name": "Dry Waste Bin",
+      "depth": 1,
+      "order": 0
+    },
+    {
+      "name": "Wet Waste Bin",
+      "depth": 1,
+      "order": 1
+    },
+    {
+      "name": "Recyclable Bin",
+      "depth": 1,
+      "order": 2
+    },
+    {
+      "name": "Hazardous Bin",
+      "depth": 1,
+      "order": 3
+    },
+    {
+      "name": "Manual Sorting",
+      "depth": 2,
+      "order": 0
+    },
+    {
+      "name": "Magnetic Sorting",
+      "depth": 2,
+      "order": 1
+    },
+    {
+      "name": "Optical Sorting",
+      "depth": 2,
+      "order": 2
+    },
+    {
+      "name": "Dewatering",
+      "depth": 2,
+      "order": 3
+    },
+    {
+      "name": "Hazmat Process",
+      "depth": 2,
+      "order": 4
+    },
+    {
+      "name": "Incineration",
+      "depth": 3,
+      "order": 0
+    },
+    {
+      "name": "Composting",
+      "depth": 3,
+      "order": 1
+    },
+    {
+      "name": "Recycling Plant",
+      "depth": 3,
+      "order": 2
+    },
+    {
+      "name": "Biogas Plant",
+      "depth": 3,
+      "order": 3
+    },
+    {
+      "name": "Landfill",
+      "depth": 3,
+      "order": 4
+    },
+    {
+      "name": "Special Disposal",
+      "depth": 3,
+      "order": 5
+    },
+    {
+      "name": "Electricity",
+      "depth": 4,
+      "order": 0
+    },
+    {
+      "name": "Bottom Ash",
+      "depth": 4,
+      "order": 1
+    },
+    {
+      "name": "Organic Fertilizer",
+      "depth": 4,
+      "order": 2
+    },
+    {
+      "name": "Recycled Plastic",
+      "depth": 4,
+      "order": 3
+    },
+    {
+      "name": "Recycled Metal",
+      "depth": 4,
+      "order": 4
+    },
+    {
+      "name": "Recycled Paper",
+      "depth": 4,
+      "order": 5
+    },
+    {
+      "name": "Biogas Energy",
+      "depth": 4,
+      "order": 6
+    },
+    {
+      "name": "Landfill Mass",
+      "depth": 4,
+      "order": 7
+    },
+    {
+      "name": "Safe Containment",
+      "depth": 4,
+      "order": 8
+    },
+    {
+      "name": "Process Loss",
+      "depth": 4,
+      "order": 9
+    }
+  ],
+  "depthLabelsData": [
+    {
+      "depth": 0,
+      "label": "Generation Source"
+    },
+    {
+      "depth": 1,
+      "label": "Collection"
+    },
+    {
+      "depth": 2,
+      "label": "Sorting Facility"
+    },
+    {
+      "depth": 3,
+      "label": "Treatment"
+    },
+    {
+      "depth": 4,
+      "label": "End Product"
+    }
+  ]
+}

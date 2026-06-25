@@ -1,0 +1,103 @@
+{
+  "benchmark_id": "57_scatter_cm_01",
+  "task_type": "clear_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "cm_01",
+      "question": "19_scatter_cm_01：Use zoom_2d_region with x_range from 45.262166666666666 to 70.045944444444444, y_range from 200.99343750000003 to 597.0028125 to assess whether there are more individuals with heart disease or more without heart disease among older individuals with high cholesterol levels.",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Outcome 1",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into high glucose region to analyze outcome 1 distribution"
+          },
+          {
+            "iteration": 2,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into low glucose region to analyze outcome 0 distribution"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "view.domain.zoom"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.0,
+                  2.0
+                ],
+                "y_range": [
+                  140.0,
+                  180.0
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "x_range": [
+                  0.0,
+                  2.0
+                ],
+                "y_range": [
+                  80.0,
+                  120.0
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "view": {
+            "xDomain": [
+              0.0,
+              2.0
+            ],
+            "yDomain": [
+              140.0,
+              180.0
+            ]
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": [
+          "visible_domain"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "57_health care diabetes_scatter",
+    "dataset_path": "datasets/57_health care diabetes_scatter.json",
+    "row_count": 768,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/57_health care diabetes_scatter.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

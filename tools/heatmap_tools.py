@@ -73,14 +73,9 @@ def filter_cells(
     if not color_field:
         return {'success': False, 'error': 'Cannot find color field'}
 
-    agg = color_enc.get('aggregate')
-    agg_as = color_enc.get('as')
+    # Transform filters apply to input rows before encoding aggregation. Using a synthetic
+    # name like mean_Total_Bill_Amount does not exist on raw rows and would drop all cells.
     value_field = color_field
-    if agg:
-        if isinstance(agg_as, str) and agg_as.strip():
-            value_field = agg_as.strip()
-        else:
-            value_field = f'{str(agg).lower()}_{color_field}'
 
     if 'transform' not in new_state:
         new_state['transform'] = []
@@ -109,116 +104,6 @@ def filter_cells(
         'vega_state': new_state,
         'message': msg
     }
-
-def select_submatrix(state: Dict, x_values: List = None, 
-                    y_values: List = None) -> Dict[str, Any]:
-    """Select submatrix"""
-    if not x_values and not y_values:
-        return {'success': False, 'error': 'Must specify x_values or y_values'}
-    
-    new_state = copy.deepcopy(state)
-    
-    # month name to number mapping (Vega month starts from 0: 0=Jan, 11=Dec)
-    MONTH_MAP = {
-        "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3,
-        "May": 4, "Jun": 5, "Jul": 6, "Aug": 7,
-        "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11,
-        "January": 0, "February": 1, "March": 2, "April": 3,
-        "May": 4, "June": 5, "July": 6, "August": 7,
-        "September": 8, "October": 9, "November": 10, "December": 11
-    }
-    
-    encoding = new_state.get('encoding', {})
-    x_encoding = encoding.get('x', {})
-    y_encoding = encoding.get('y', {})
-    
-    x_field = x_encoding.get('field')
-    y_field = y_encoding.get('field')
-    x_timeunit = x_encoding.get('timeUnit')
-    y_timeunit = y_encoding.get('timeUnit')
-    
-    if 'transform' not in new_state:
-        new_state['transform'] = []
-    
-    filters = []
-    
-    # process X axis filtering
-    if x_values and x_field:
-        if x_timeunit:
-            # has timeUnit, use Vega expression function
-            if x_timeunit == 'date':
-                # extract date (1-31)
-                x_nums = ','.join([str(int(v)) for v in x_values])
-                filters.append(f'indexof([{x_nums}], date(datum.{x_field})) >= 0')
-            elif x_timeunit == 'month':
-                # extract month, try to convert month name to number
-                x_months = []
-                for v in x_values:
-                    if v in MONTH_MAP:
-                        x_months.append(str(MONTH_MAP[v]))
-                    else:
-                        try:
-                            x_months.append(str(int(v)))
-                        except:
-                            x_months.append(f'"{v}"')
-                x_str = ','.join(x_months)
-                filters.append(f'indexof([{x_str}], month(datum.{x_field})) >= 0')
-            elif x_timeunit == 'year':
-                x_nums = ','.join([str(int(v)) for v in x_values])
-                filters.append(f'indexof([{x_nums}], year(datum.{x_field})) >= 0')
-            else:
-                # other timeUnit, use function name directly
-                x_str = ','.join([f'"{v}"' for v in x_values])
-                filters.append(f'indexof([{x_str}], {x_timeunit}(datum.{x_field})) >= 0')
-        else:
-            # no timeUnit, match field value directly
-            x_str = ','.join([f'"{v}"' for v in x_values])
-            filters.append(f'indexof([{x_str}], datum.{x_field}) >= 0')
-    
-    # process Y axis filtering
-    if y_values and y_field:
-        if y_timeunit:
-            # has timeUnit, use Vega expression function
-            if y_timeunit == 'date':
-                y_nums = ','.join([str(int(v)) for v in y_values])
-                filters.append(f'indexof([{y_nums}], date(datum.{y_field})) >= 0')
-            elif y_timeunit == 'month':
-                # extract month, try to convert month name to number
-                y_months = []
-                for v in y_values:
-                    if v in MONTH_MAP:
-                        y_months.append(str(MONTH_MAP[v]))
-                    else:
-                        try:
-                            y_months.append(str(int(v)))
-                        except:
-                            y_months.append(f'"{v}"')
-                y_str = ','.join(y_months)
-                filters.append(f'indexof([{y_str}], month(datum.{y_field})) >= 0')
-            elif y_timeunit == 'year':
-                y_nums = ','.join([str(int(v)) for v in y_values])
-                filters.append(f'indexof([{y_nums}], year(datum.{y_field})) >= 0')
-            else:
-                # other timeUnit, use function name directly
-                y_str = ','.join([f'"{v}"' for v in y_values])
-                filters.append(f'indexof([{y_str}], {y_timeunit}(datum.{y_field})) >= 0')
-        else:
-            # no timeUnit, match field value directly
-            y_str = ','.join([f'"{v}"' for v in y_values])
-            filters.append(f'indexof([{y_str}], datum.{y_field}) >= 0')
-    
-    if filters:
-        new_state['transform'].append({
-            'filter': ' && '.join(filters)
-        })
-    
-    return {
-        'success': True,
-        'operation': 'select_submatrix',
-        'vega_state': new_state,
-        'message': f'Selected submatrix with {len(x_values) if x_values else "all"} cols, {len(y_values) if y_values else "all"} rows'
-    }
-
 
 def highlight_region(
     state: Dict,
@@ -842,7 +727,7 @@ def threshold_mask(
     }
 
 
-def drilldown_time(
+def drilldown_axis(
     state: Dict,
     level: str,
     value: Union[int, str],
@@ -887,7 +772,7 @@ def drilldown_time(
     # remove existing drilldown filters (idempotent drilldown)
     new_state['transform'] = [
         t for t in new_state['transform']
-        if not (isinstance(t, dict) and t.get('_avs_tag') == 'heatmap_drilldown_time')
+        if not (isinstance(t, dict) and t.get('_avs_tag') == 'heatmap_drilldown_axis')
     ]
 
     # parent merge (explicit parent > stored state)
@@ -967,14 +852,14 @@ def drilldown_time(
     if filters:
         new_state['transform'].append({
             'filter': ' && '.join(filters),
-            '_avs_tag': 'heatmap_drilldown_time'
+            '_avs_tag': 'heatmap_drilldown_axis'
         })
 
     new_state['_heatmap_state'] = state
 
     return {
         'success': True,
-        'operation': 'drilldown_time',
+        'operation': 'drilldown_axis',
         'vega_state': new_state,
         'message': f'Drilldown to {level}={value}',
         'state': state.get('parent')
@@ -983,7 +868,7 @@ def drilldown_time(
 
 def reset_drilldown(state: Dict) -> Dict[str, Any]:
     """
-    重置时间热力图下钻：移除 drilldown_time 添加的 filter，并恢复原始 x 编码（timeUnit 等）。
+    重置时间热力图下钻：移除 drilldown_axis 添加的 filter，并恢复原始 x 编码（timeUnit 等）。
     """
     new_state = copy.deepcopy(state)
 
@@ -995,7 +880,7 @@ def reset_drilldown(state: Dict) -> Dict[str, Any]:
     if 'transform' in new_state and isinstance(new_state['transform'], list):
         new_state['transform'] = [
             t for t in new_state['transform']
-            if not (isinstance(t, dict) and t.get('_avs_tag') == 'heatmap_drilldown_time')
+            if not (isinstance(t, dict) and t.get('_avs_tag') == 'heatmap_drilldown_axis')
         ]
 
     if original_x and isinstance(original_x, dict):
@@ -1209,7 +1094,7 @@ def transpose(state: Dict) -> Dict[str, Any]:
     }
 
 
-def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
+def change_encoding(state: Dict, channel: str, field: str, type: Optional[str] = None) -> Dict[str, Any]:
     """
     Modify the field mapping of the specified encoding channel
     
@@ -1223,37 +1108,49 @@ def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
     
 
 
-    # 检查字段是否存在
+    # 检查字段是否存在（兼容大小写差异）
     data = _get_data_values(new_state)
-    if data and field not in data[0]:
-        available_fields = list(data[0].keys()) if data else []
-        return {
-            'success': False,
-            'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
-        }
-    
-    # 推断字段类型
-    field_type = 'nominal'
+    resolved_field = field
     if data:
-        sample_value = data[0].get(field)
-        if isinstance(sample_value, (int, float)):
-            field_type = 'quantitative'
-        elif isinstance(sample_value, str):
-            if any(sep in sample_value for sep in ['-', '/', ':']):
-                field_type = 'temporal'
+        available_fields = list(data[0].keys())
+        if field not in data[0]:
+            lowered = str(field).strip().lower()
+            for candidate in available_fields:
+                if str(candidate).strip().lower() == lowered:
+                    resolved_field = candidate
+                    break
+        if resolved_field not in data[0]:
+            return {
+                'success': False,
+                'error': f'Field "{field}" not found in data. Available fields: {available_fields}'
+            }
+    
+    # 使用传入 type 或根据数据推断字段类型
+    valid_types = ('quantitative', 'nominal', 'ordinal', 'temporal')
+    if type and type in valid_types:
+        field_type = type
+    else:
+        field_type = 'nominal'
+        if data:
+            sample_value = data[0].get(resolved_field)
+            if isinstance(sample_value, (int, float)):
+                field_type = 'quantitative'
+            elif isinstance(sample_value, str):
+                if any(sep in sample_value for sep in ['-', '/', ':']):
+                    field_type = 'temporal'
     
     # 更新指定通道的 encoding
     if 'encoding' not in new_state:
         new_state['encoding'] = {}
     
     new_state['encoding'][channel] = {
-        'field': field,
+        'field': resolved_field,
         'type': field_type
     }
     
     # 为特定通道添加额外配置
     if channel == 'color':
-        new_state['encoding'][channel]['legend'] = {'title': field}
+        new_state['encoding'][channel]['legend'] = {'title': resolved_field}
         if field_type == 'quantitative':
             new_state['encoding'][channel]['scale'] = {'scheme': 'viridis'}
     elif channel == 'size':
@@ -1264,7 +1161,7 @@ def change_encoding(state: Dict, channel: str, field: str) -> Dict[str, Any]:
         'success': True,
         'operation': 'change_encoding',
         'vega_state': new_state,
-        'message': f'Changed {channel} encoding to field "{field}" (type: {field_type})'
+        'message': f'Changed {channel} encoding to field "{resolved_field}" (type: {field_type})'
     }
 
 
@@ -1286,7 +1183,7 @@ __all__ = [
     'select_submatrix',
     'find_extremes',
     'threshold_mask',
-    'drilldown_time',
+    'drilldown_axis',
     'reset_drilldown',
     'add_marginal_bars',
     'transpose',

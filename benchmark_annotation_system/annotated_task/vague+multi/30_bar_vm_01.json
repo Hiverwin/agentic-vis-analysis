@@ -1,0 +1,71 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "30_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "What are the characteristics of vitamin D percent RDA across different exercise levels and across different genders respectively?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The mean vitamin D percent RDA is marginally lower for the light exercise level, but there is little variation overall.Mean vitamin D percent RDA does not differ between men and women."
+        },
+        "key_insights": [
+          "Vitamin RDA by diet type is comparable across exercise levels, exhibiting only negligible variations.",
+          "It appears that mean vitamin D percent RDA does not differ between men and women."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Change the x-axis to exercise level to examine the features of mean vitamin D RDA."
+          },
+          {
+            "iteration": 2,
+            "tool": "change_encoding",
+            "reasoning": "Change the x-axis to gender to examine the features of mean vitamin D RDA."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "exercise_level",
+                  "channel": "x"
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "gender",
+                  "channel": "x"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "gender",
+            "y": "vitamin_d_percent_rda",
+            "color": "diet_type"
+          }
+        }
+      }
+    }
+  ]
+}

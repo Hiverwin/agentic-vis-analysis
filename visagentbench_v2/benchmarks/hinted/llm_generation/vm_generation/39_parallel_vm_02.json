@@ -1,0 +1,92 @@
+{
+  "benchmark_id": "39_parallel_vm_02",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "Use filter_by_category with field equal to field, values equal to region, 3 and use identify_clusters with n_clusters equal to 3, method equal to kmeans in order to know How do insurance customer profiles vary across different regions in terms of age, BMI, number of children, and charges, and what regional patterns emerge?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Insurance customer profiles show distinct regional variations across the four US regions. Southeast region has the highest average charges at 0.2173, followed by Northeast at 0.1961, with Northwest and Southwest showing lower charges around 0.18. BMI patterns reveal Southeast has significantly higher average BMI at 0.4680 compared to other regions around 0.35-0.39, suggesting potential health risk factors. Age distribution is relatively consistent across all regions with averages around 0.46, indicating similar age demographics. Children count shows minor variations with Northwest and Southwest slightly higher at 0.2295 and 0.2283 compared to Northeast and Southeast at 0.2093 and 0.2099. The Southeast region stands out with both highest charges and highest BMI, which may indicate a correlation between health factors and insurance costs in that region.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Southeast region has highest average charges (0.2173) and highest BMI (0.4680)",
+          "BMI shows significant regional variation with Southeast much higher than other regions",
+          "Age distribution is relatively consistent across all regions around 0.46",
+          "Children count shows minor regional variations",
+          "Northeast has second highest charges (0.1961) but lower BMI (0.3555)",
+          "Northwest and Southwest show similar patterns with lower charges and moderate BMI"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "Use filter_by_category to analyze each region separately across all dimensions"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Use identify_clusters to discover natural groupings based on multi-dimensional customer profiles"
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "field",
+                "values": [
+                  "region",
+                  "3"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "39_insurance_parallel",
+    "dataset_path": "datasets/39_insurance_parallel.json",
+    "row_count": 5352,
+    "dataset_scale_tag": "xlarge"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/39_insurance_parallel.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

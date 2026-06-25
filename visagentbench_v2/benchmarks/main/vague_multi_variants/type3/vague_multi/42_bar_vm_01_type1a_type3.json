@@ -1,0 +1,115 @@
+{
+  "benchmark_id": "42_bar_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "What is the distribution of weight's data for bug type?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The weight data for Bug-type Pokémon shows that while most members of this type are lightweight, the type as a whole includes some of the heaviest species in the dataset, leading to a distribution with a long tail on the right."
+        },
+        "key_insights": [
+          "Psychic Type (Yellow): Generally shows moderate to high weights, with the notable exception of the extreme outlier at ID 201",
+          "Fighting Type (Purple): Shows a wide variance. While many are moderate, there is a significant peak around ID 140-150.",
+          "The vast majority of Bug-type Pokémon have weights clustered in the 0 to 550 range.",
+          "There are two distinct, very high peaks:"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.encoding.change",
+            "rationale": "We want to explore the data that does not be shown yet."
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "We only care bug type"
+          }
+        ],
+        "required_capabilities": [
+          "view.encoding.change",
+          "data.filter.subcategory"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "field": "type_1",
+                "channel": "color"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "grass",
+                  "fire",
+                  "water",
+                  "normal",
+                  "poison",
+                  "electric",
+                  "ground",
+                  "fairy",
+                  "fighting",
+                  "psychic",
+                  "rock",
+                  "ghost",
+                  "ice",
+                  "dragon",
+                  "dark",
+                  "steel"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "pokedex_id",
+            "y": "weight",
+            "color": "type_1"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "datum['type_1'] != \"grass\" && datum['type_1'] != \"fire\" && datum['type_1'] != \"water\" && datum['type_1'] != \"normal\" && datum['type_1'] != \"poison\" && datum['type_1'] != \"electric\" && datum['type_1'] != \"ground\" && datum['type_1'] != \"fairy\" && datum['type_1'] != \"fighting\" && datum['type_1'] != \"psychic\" && datum['type_1'] != \"rock\" && datum['type_1'] != \"ghost\" && datum['type_1'] != \"ice\" && datum['type_1'] != \"dragon\" && datum['type_1'] != \"dark\" && datum['type_1'] != \"steel\""
+              }
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "encoding"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "42_pokemon_stats_2025_bar",
+    "dataset_path": "datasets/42_pokemon_stats_2025_bar.json",
+    "row_count": 250,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/42_pokemon_stats_2025_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

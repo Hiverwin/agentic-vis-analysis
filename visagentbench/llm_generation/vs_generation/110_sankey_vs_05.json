@@ -1,0 +1,47 @@
+{
+  "task_type": "vague_single",
+  "task_id": "110_sankey_vs_05",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/110_sankey_trash.json",
+  "questions": [
+    {
+      "qid": "vs_05",
+      "question": "Use trace_node with node_name equal to Dry Waste Bin to rank treatments by overall utilization efficiency in order to know how do treatments rank by overall utilization efficiency?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Dry Waste Bin demonstrates highest recycling efficiency with 100% of its waste (5600 tons/day) being processed through recycling methods (Manual Sorting, Magnetic Sorting, and Optical Sorting), making it the most efficiently managed waste stream",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Dry Waste Bin achieves 100% recycling efficiency",
+          "Recyclable Bin also achieves 100% recycling efficiency",
+          "Other sources like Residential only achieve 16.92% recycling efficiency"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Use trace_node to trace Dry Waste Bin node and analyze how its waste flows through recycling processes compared to other waste sources"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Dry Waste Bin"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {},
+        "state_check_fields": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "benchmark_id": "89_heatmap_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "heatmap",
+  "question_set": [
+    {
+      "qid": "vm_05",
+      "question": "How does the relationship between Stress Level and BMI Category characterize the resilience and vulnerability of sleep patterns across different BMI categories?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on visual patterns and clustering, the 'Normal Weight' category appears most resilient, showing only a mild decrease in sleep duration as stress increases. The 'Obese' category appears most vulnerable, exhibiting the sharpest decline in sleep duration at higher stress levels (7 & 8)."
+        },
+        "key_insights": [
+          "This helps in subjectively assessing \"resilience\" (minimal color change across stress levels) vs. \"vulnerability\" (steep color gradient from left to right).",
+          "We find that \"Normal\" and \"Normal Weight\" cluster together, showing a similar gentle decline in sleep with stress, while \"Obese\" forms its own cluster with a steeper decline.",
+          "Isolating the row confirms the initial subjective assessment, allowing for a clear statement about that specific category's pattern.",
+          "Isolating the row confirms our initial subjective assessment, allowing for a clear statement about that specific category's pattern.",
+          "Isolating the row confirms our initial subjective assessment, allowing for a clear statement about that specific category's pattern."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "heatmap.colorScale.adjust",
+            "rationale": "To enhance the visual contrast between different sleep durations. By adjusting the scale's range or midpoint, we can make subtle differences between rows (BMI categories) more apparent."
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "To algorithmically group BMI categories with similar sleep patterns across stress levels."
+          },
+          {
+            "iteration": 3,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Use this tool to isolate the specific\"obese\" row for final observation and description."
+          },
+          {
+            "iteration": 4,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Use this tool to isolate the specific\"obese\" row for final observation and description."
+          },
+          {
+            "iteration": 5,
+            "capability": "heatmap.cells.filter",
+            "rationale": "Use this tool to isolate the specific\"obese\" row for final observation and description."
+          }
+        ],
+        "required_capabilities": [
+          "heatmap.colorScale.adjust",
+          "analysis.clusters.identify",
+          "heatmap.cells.filter",
+          "heatmap.cells.filter",
+          "heatmap.cells.filter"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "heatmap.colorScale.adjust",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "scheme": "viridis"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "cluster_rows": true,
+                "cluster_cols": true,
+                "method": "sum"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Overweight"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Normal"
+              }
+            }
+          },
+          {
+            "capability": "heatmap.cells.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "y_value": "Normal Weight"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "!(indexof([\"Overweight\"], datum['BMI Category']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              },
+              {
+                "filter": "!(indexof([\"Normal\"], datum['BMI Category']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              },
+              {
+                "filter": "!(indexof([\"Normal Weight\"], datum['BMI Category']) >= 0)",
+                "_avs_tag": "filter_cells_by_region"
+              }
+            ],
+            "color_scale": {
+              "scheme": "viridis"
+            },
+            "clustering_order": {
+              "clustered": true
+            }
+          }
+        },
+        "state_check_fields": [
+          "clustering_order",
+          "color_scale",
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "89_Sleep_health_and_lifestyle_dataset_heatmap",
+    "dataset_path": "datasets/89_Sleep_health_and_lifestyle_dataset_heatmap.json",
+    "row_count": 20,
+    "dataset_scale_tag": "small"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/89_Sleep_health_and_lifestyle_dataset_heatmap.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

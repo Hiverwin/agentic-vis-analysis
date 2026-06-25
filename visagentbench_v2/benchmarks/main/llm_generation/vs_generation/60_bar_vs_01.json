@@ -1,0 +1,87 @@
+{
+  "benchmark_id": "60_bar_vs_01",
+  "task_type": "vague_single",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vs_01",
+      "question": "Use sort_bars with order equal to descending to position the bars by the mean of action across different platforms in order to know what is the position of each platform by the mean of action?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Friedrichshain-Kreuzberg has the highest average fire incidents (28.78), followed by Mitte and Tempelhof-Schöneberg. The lowest fire incidents are in Treptow-Köpenick (7.58) and Charlottenburg-Wilmersdorf (9.12). Central districts generally have higher fire incidents than peripheral districts, likely due to higher population density and urban activity",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Friedrichshain-Kreuzberg has highest fire incidents",
+          "Central districts have higher fire incidents than peripheral districts",
+          "Significant variation between highest and lowest districts",
+          "Fire incidents appear to correlate with urban density"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Use sort_bars to analyze the distribution of fire incidents across Berlin districts"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "sorting": {
+              "has_sort": true,
+              "x_sort": [
+                "Friedrichshain-Kreuzberg",
+                "Mitte",
+                "Tempelhof-Schöneberg",
+                "Neukölln",
+                "Marzahn-Hellersdorf",
+                "Spandau",
+                "Steglitz-Zehlendorf",
+                "Reinickendorf",
+                "Lichtenberg",
+                "Pankow",
+                "Charlottenburg-Wilmersdorf",
+                "Treptow-Köpenick"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "sorting"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "60_Berlin_crimes_bar",
+    "dataset_path": "datasets/60_Berlin_crimes_bar.json",
+    "row_count": 1200,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/60_Berlin_crimes_bar.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

@@ -1,0 +1,68 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "70_line_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/70_one_person_ai_work_and_burnout_line.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use highlight_trend with trend_type equal to stable and use detect_anomalies with threshold equal to 3.0 in order to know What trends can be observed in AI tool usage and bug introduction over the 180-day period?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Over 180 days, AI tool usage averages 19.4%, ranging from 0% to 46.9%, with roughly equal numbers of increases (91) and decreases (88). The relationship between AI usage and bugs shows a moderate positive correlation (0.351), suggesting some association between increased AI use and more bugs introduced. Bugs introduced average 2.5 per day, ranging from 0 to 5. The data shows daily fluctuations without a clear upward or downward trend in AI adoption, indicating variable usage patterns rather than consistent growth.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "AI usage averages 19.4% over 180 days",
+          "Moderate positive correlation (0.351) with bugs",
+          "Bugs average 2.5 per day (0-5 range)",
+          "No clear upward/downward trend in AI usage"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_trend",
+            "reasoning": "Highlight trend to see overall patterns"
+          },
+          {
+            "iteration": 2,
+            "tool": "detect_anomalies",
+            "reasoning": "Detect anomalies to identify unusual days"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "stable"
+                }
+              }
+            },
+            {
+              "tool": "detect_anomalies",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "threshold": 3.0
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Day",
+            "y": "AI_Tool_Usage_%",
+            "color": "Bugs_Introduced"
+          }
+        }
+      }
+    }
+  ]
+}

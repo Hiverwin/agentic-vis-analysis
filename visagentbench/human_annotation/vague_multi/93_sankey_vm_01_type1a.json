@@ -1,0 +1,76 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "93_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/93_sankey_financial.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "First apply filter_flow(min_value=2400). Then apply trace_node(node_name=Bank App Push). what is the difference patterns of the Bank App Push before and after filter?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The out flow to insurance is filtered and other remained the same almost"
+        },
+        "key_insights": [
+          "The out flow to insurance is filtered and other remained the same almost"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_flow",
+            "reasoning": "Keeps only high-volume flows so the comparison is about meaningful ticket sizes."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Highlights everything touching Enterprise Payroll so downstream splits are easy to read."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_flow",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 4796
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Enterprise Payroll"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "node_visibility": {
+            "visible_nodes": [
+              "Alipay/WeChat Entry",
+              "Bank App Push",
+              "Short Video Feed Ads",
+              "Offline Branch/Field Sales",
+              "Enterprise Payroll",
+              "Consumer Credit",
+              "Wealth Products",
+              "Payment",
+              "Insurance",
+              "Credit Card Installment"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ]
+}

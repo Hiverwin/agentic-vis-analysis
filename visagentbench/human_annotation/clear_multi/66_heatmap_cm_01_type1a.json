@@ -1,0 +1,72 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "66_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_cells_by_region with y_value equal to Heavy and use find_extremes with n equal to 1 and mode equal to min to see whcih catrgory has the lowest average vitamin C percent RDA data.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Never and moderate",
+          "alternatives": []
+        },
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Filter the data of the Heavy alcohol consumption group."
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extremes",
+            "reasoning": "Find the category with the lowest average vitamin C percent RDA data."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_value": "Heavy"
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "min",
+                  "top_n": 1
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "smoking_status",
+            "y": "alcohol_consumption",
+            "color": "vitamin_c_percent_rda"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Heavy\"], datum['alcohol_consumption']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ]
+}

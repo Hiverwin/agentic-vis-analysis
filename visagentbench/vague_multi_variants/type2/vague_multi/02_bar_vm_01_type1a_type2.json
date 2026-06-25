@@ -1,0 +1,77 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "02_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/02_bar_sales.json",
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Which regions lead the pack in the Electronics-only view and what is the width of the gap between first and second place?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Electronics sales rank East first (about 1300), North second (about 1200), then West and South—the top two are only ~100 units apart, but both sit well above the bottom half of the list, so the chart reads as a tight race at the top with a clearer drop toward the South.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Removing Clothing leaves a clean Electronics-only comparison across regions.",
+          "East narrowly beats North; the sorted bars make that ordering and the ~100-point gap obvious."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_subcategories",
+            "reasoning": "Strip Clothing so regional bars reflect Electronics revenue only."
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "Descending sort lines regions up from strongest Electronics sales downward."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "list",
+                "param": "subcategories_to_remove",
+                "target": [
+                  "Clothing"
+                ]
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "categorical",
+                "param": "order",
+                "target": "descending"
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "data_filtered": [
+            {
+              "filter": "datum['product'] != \"Clothing\""
+            }
+          ],
+          "sorting": {
+            "has_sort": true,
+            "x_sort": [
+              "South",
+              "West",
+              "North",
+              "East"
+            ]
+          }
+        },
+        "state_check_fields": [
+          "data_filtered",
+          "sorting"
+        ]
+      }
+    }
+  ]
+}

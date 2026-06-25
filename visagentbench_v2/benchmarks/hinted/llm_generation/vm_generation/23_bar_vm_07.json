@@ -1,0 +1,107 @@
+{
+  "benchmark_id": "23_bar_vm_07",
+  "task_type": "vague_multi",
+  "widget_kind": "bar",
+  "question_set": [
+    {
+      "qid": "vm_07",
+      "question": "Use sort_bars with order equal to descending and use filter_subcategories with subcategories_to_remove equal to Year 2020, Year 2021 and use change_encoding with field equal to Launched Year in order to know How do smartphone companies differ in their battery capacity strategies and what trends can be observed across different launch years?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Smartphone companies show diverse battery capacity strategies. Poco leads with 10000mAh average due to specialized high-capacity models, while iQOO follows at 8040mAh. Mainstream brands like Realme (5691mAh), Honor (5488mAh), and Samsung (5355mAh) cluster in the mid-range. Apple and Google have lower averages (4781mAh and 4586mAh) focusing on efficiency over capacity. Battery capacity trends show steady growth from 2020 (4959mAh) to 2025 (5717mAh), with 2021 seeing a dip to 4616mAh before recovery.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Poco and iQOO specialize in high-capacity batteries",
+          "Mainstream brands cluster around 5000-5700mAh",
+          "Apple and Google prioritize efficiency over raw capacity",
+          "Battery capacity has grown steadily from 2020 to 2025"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.sort.encoding",
+            "rationale": "Sort bars to see battery capacity ranking"
+          },
+          {
+            "iteration": 2,
+            "capability": "data.filter.subcategory",
+            "rationale": "Filter to analyze specific year segments"
+          },
+          {
+            "iteration": 3,
+            "capability": "view.encoding.change",
+            "rationale": "Change encoding to examine year-based trends"
+          }
+        ],
+        "required_capabilities": [
+          "view.sort.encoding",
+          "data.filter.subcategory",
+          "view.encoding.change"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.sort.encoding",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "order": "descending"
+              }
+            }
+          },
+          {
+            "capability": "data.filter.subcategory",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "subcategories_to_remove": [
+                  "Year 2020",
+                  "Year 2021"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "view.encoding.change",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "channel": "field",
+                "field": "Launched Year"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Company Name",
+            "y": "Battery Capacity(mAh)",
+            "color": "Launched Year"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "23_Mobiles Dataset (2025)_bar",
+    "dataset_path": "datasets/23_Mobiles Dataset (2025)_bar.json",
+    "row_count": 847,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/23_Mobiles Dataset (2025)_bar.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,89 @@
+{
+  "benchmark_id": "73_scatter_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "scatter",
+  "question_set": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans in order to know What patterns can you observe in the relationship between math scores and reading scores, and how does test preparation course affect this relationship?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Several key patterns emerge: 1) Math and reading scores are strongly correlated (r=0.818), meaning students who perform well in math also tend to perform well in reading, 2) Students who completed the test preparation course have higher average scores (math: 69.7 vs 64.1, reading: 73.9 vs 66.5), 3) High math scorers (>80) also have very high reading scores (average 85.9), while low math scorers (<50) have much lower reading scores (average 49.5), 4) The correlation remains strong both for students who completed the course (r=0.793) and those who didn't (r=0.820).",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Math and reading scores are strongly correlated (r=0.818)",
+          "Test preparation course students have higher scores",
+          "High math scorers also have high reading scores",
+          "Correlation remains strong for both groups",
+          "Test preparation benefits all score improvement"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "analysis.correlation.compute",
+            "rationale": "Calculate correlation between math and reading scores"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.clusters.identify",
+            "rationale": "Identify clusters to see grouping patterns"
+          }
+        ],
+        "required_capabilities": [
+          "analysis.correlation.compute",
+          "analysis.clusters.identify"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "analysis.correlation.compute",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "method": "pearson"
+              }
+            }
+          },
+          {
+            "capability": "analysis.clusters.identify",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "n_clusters": 3,
+                "method": "kmeans"
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "math score",
+            "y": "reading score",
+            "color": "test preparation course"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "73_StudentsPerformance_scatter",
+    "dataset_path": "datasets/73_StudentsPerformance_scatter.json",
+    "row_count": 1000,
+    "dataset_scale_tag": "medium"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/73_StudentsPerformance_scatter.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

@@ -1,0 +1,88 @@
+{
+  "benchmark_id": "28_line_vm_04",
+  "task_type": "vague_multi",
+  "widget_kind": "line",
+  "question_set": [
+    {
+      "qid": "vm_04",
+      "question": "Use zoom_x_region with start equal to 2020/1/1, end equal to 2026/1/31 and use detect_anomalies with threshold equal to 2.0 in order to know What are the key trends and volatility patterns in silver prices from 2016 to 2026?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Silver prices experienced dramatic growth over the decade, rising from $14.11 in 2016 to $79.97 in early 2026, representing a 466.8% total increase. The market showed distinct phases: 2016-2019 was relatively stable with prices around $15-18, 2020 marked a turning point with 50.5% growth despite hitting the decade low of $12.20 in March 2020, 2021-2023 showed moderate volatility around $22-26, while 2024-2026 witnessed explosive growth with prices surging from $28.51 to over $93. The market exhibited high volatility with 5.0% standard deviation and extreme daily movements. Yearly analysis reveals accelerating growth rates, with 2025 showing 31.8% growth and 2024 showing 23.2% growth, far exceeding earlier years.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Silver prices increased 466.8% over the decade",
+          "with most growth concentrated in 2024-2026",
+          "The market showed high volatility with 5.0% daily standard deviation",
+          "2020 was a pivotal year with both the decade low and strong recovery",
+          "Yearly growth accelerated dramatically in recent years"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "view.domain.zoom",
+            "rationale": "Zoom into 2020-2026 period to examine major price surge"
+          },
+          {
+            "iteration": 2,
+            "capability": "analysis.anomalies.detect",
+            "rationale": "Detect anomalies to identify extreme price movements"
+          }
+        ],
+        "required_capabilities": [
+          "view.domain.zoom",
+          "analysis.anomalies.detect"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "view.domain.zoom",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "start": "2020/1/1",
+                "end": "2026/1/31"
+              }
+            }
+          },
+          {
+            "capability": "analysis.anomalies.detect",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "threshold": 2.0
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "Date",
+            "y": "Close"
+          }
+        },
+        "renderer_state_checks": {},
+        "state_check_fields": []
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "28_silver_prices_data_line",
+    "dataset_path": "datasets/28_silver_prices_data_line.json",
+    "row_count": 2513,
+    "dataset_scale_tag": "large"
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/28_silver_prices_data_line.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

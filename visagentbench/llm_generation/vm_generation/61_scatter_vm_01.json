@@ -1,0 +1,70 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "61_scatter_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/61_Berlin_crimes_scatter.json",
+  "questions": [
+    {
+      "qid": "vm_01",
+      "question": "Use calculate_correlation with method equal to pearson and use identify_clusters with n_clusters equal to 3, method equal to kmeans in order to know What patterns can be observed in the relationship between robbery and injury incidents across Berlin districts? Analyze the distribution and identify which districts show unusual patterns.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is a strong positive correlation (0.845) between robbery and injury incidents across Berlin districts. The data shows clear clustering by district, with Mitte and Friedrichshain-Kreuzberg forming a high-crime cluster with both high robbery (86.2 and 93.7 average) and high injury rates (677.6 and 523.9 average). Treptow-Kopenick stands out as the safest district with the lowest averages in both categories (9.4 robbery, 100.6 injury). Tempelhof-Schoneberg shows an unusual pattern with moderate robbery (55.1) but relatively high injury rates (404.4), suggesting different crime dynamics. The scatter plot reveals that districts generally follow the positive correlation trend, but Marzahn-Hellersdorf shows higher injury rates relative to its robbery levels compared to other districts.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Strong positive correlation (0.845) between robbery and injury",
+          "Mitte and Friedrichshain-Kreuzberg form high-crime cluster",
+          "Treptow-Kopenick is safest district",
+          "Tempelhof-Schoneberg shows unusual injury-to-robbery ratio",
+          "Marzahn-Hellersdorf has higher injuries relative to robbery"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "calculate_correlation",
+            "reasoning": "Calculate correlation between robbery and injury to understand relationship strength"
+          },
+          {
+            "iteration": 2,
+            "tool": "identify_clusters",
+            "reasoning": "Identify clusters to group districts by crime patterns"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "calculate_correlation",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "method": "pearson"
+                }
+              }
+            },
+            {
+              "tool": "identify_clusters",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n_clusters": 3,
+                  "method": "kmeans"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Robbery",
+            "y": "Injury",
+            "color": "District"
+          }
+        }
+      }
+    }
+  ]
+}

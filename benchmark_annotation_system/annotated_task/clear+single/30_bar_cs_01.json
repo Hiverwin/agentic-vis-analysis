@@ -1,0 +1,61 @@
+{
+  "task_type": "clear_single",
+  "task_id": "30_bar_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/30_vitamin_deficiency_disease_dataset_20260123_bar.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Select only the Vegan diet type to see how its mean vitamin D percent RDA changes across different sun exposure levels.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "high>moderate>low",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_subcategories",
+            "reasoning": "I used the filter categories tool to isolate the Vegan diet data. This helped me focus on how sun exposure impacts this specific diet type."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "Vegetarian",
+                    "Omnivore",
+                    "Pescatarian"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "sun_exposure",
+            "y": "vitamin_d_percent_rda",
+            "color": "diet_type"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['diet_type'] != \"Vegetarian\" && datum['diet_type'] != \"Omnivore\" && datum['diet_type'] != \"Pescatarian\""
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

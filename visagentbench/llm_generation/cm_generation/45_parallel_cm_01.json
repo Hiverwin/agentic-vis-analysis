@@ -1,0 +1,33 @@
+{
+  "id": "45_parallel_cm_01",
+  "image": "45_ ign_scores_parallel.json",
+  "question": "Which platform has the highest normalized value for Action dimension?",
+  "answer": "Xbox One",
+  "answer_type": "categorical",
+  "is_objective": true,
+  "tools": [
+    {
+      "tool": "reorder_dimensions",
+      "params": {
+        "dimension_order": ["Action", "Action, Adventure", "Adventure", "Fighting", "Platformer"]
+      },
+      "reasoning": "Reorder dimensions to put Action first"
+    },
+    {
+      "tool": "calculate_correlation",
+      "params": {
+        "method": "pearson"
+      },
+      "reasoning": "Calculate correlation between dimensions"
+    },
+    {
+      "tool": "filter_by_category",
+      "params": {
+        "field": "Platform",
+        "values": ["Xbox One"]
+      },
+      "reasoning": "Filter to show only Xbox One"
+    }
+  ],
+  "can_ask_max_min": true
+}

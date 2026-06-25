@@ -1,0 +1,101 @@
+{
+  "benchmark_id": "95_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "How do material flows shift when filtering different value thresholds and how does the distribution of final sales across channels differ before and after filtering?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Glass-derived materials reach the Direct Stores, Dealers, and E-Commerce sales channels, with the largest portion going to Direct Stores via East China DC."
+        },
+        "key_insights": [
+          "High-value flow  dominate the view, highlighting the most critical supply chain links.",
+          "Smaller flows (e.g., Lithium to Battery Plant) that were hidden at the $100M"
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.flow.filter",
+            "rationale": "Iterative filtering at different thresholds reveals both the critical high-value pathways and the supporting mid/low-value flows that sustain the network."
+          },
+          {
+            "iteration": 2,
+            "capability": "view.reset",
+            "rationale": "Comparing views ensures we do not overlook channels dependent on smaller, aggregated flows, which is vital for a resilient supply chain analysis."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.flow.filter",
+          "view.reset"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.flow.filter",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "min_value": 100
+              }
+            }
+          },
+          {
+            "capability": "view.reset",
+            "param_eval": {}
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Rubber",
+                "Chips",
+                "Steel",
+                "Glass",
+                "Lithium",
+                "Copper",
+                "Tire Plant",
+                "Display Factory",
+                "Battery Plant",
+                "Frame Plant",
+                "Assembly Line A",
+                "Assembly Line B",
+                "East China DC",
+                "South China DC",
+                "North America DC",
+                "Direct Stores",
+                "Dealers",
+                "E-Commerce",
+                "Enterprise",
+                "Consumer"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "95_sankey_supply",
+    "dataset_path": "datasets/95_sankey_supply.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/95_sankey_supply.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

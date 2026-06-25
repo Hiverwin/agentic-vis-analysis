@@ -1,0 +1,131 @@
+{
+  "benchmark_id": "120_sankey_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "sankey",
+  "question_set": [
+    {
+      "qid": "vm_02",
+      "question": "First apply color_flows(color=#f1c40f, nodes=[Paid Ads, Lead Generation]). Then apply highlight_path(path=[Series A (Prior), Operating Fund, Sales & Marketing]). Where does money flow into marketing spend, and which downstream slice from Sales & Marketing looks like the dominant line item?",
+      "question_style": "tool_hinted",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Series A cash feeds the operating pool (about 8k in the graph), and the operating pool pushes a much larger 12.3k chunk straight into Sales & Marketing—so that trunk is the main artery into GTM. Once you land inside Sales & Marketing, Paid Ads pulls the biggest single ribbon (roughly 3.7k) compared with events or tools, which matches the yellow highlight: acquisition channels—not back-office widgets—eat most of the marketing envelope."
+        },
+        "key_insights": [
+          "Operating Fund → Sales & Marketing is the heavy bridge out of the Series A tranche.",
+          "Within Sales & Marketing, Paid Ads outweighs the other outgoing splits."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "sankey.path.highlight",
+            "rationale": "Paints acquisition-related links so funnel plumbing stands out."
+          },
+          {
+            "iteration": 2,
+            "capability": "sankey.path.highlight",
+            "rationale": "Walks the funding path into the marketing bucket for quantitative context."
+          }
+        ],
+        "required_capabilities": [
+          "sankey.path.highlight",
+          "sankey.path.highlight"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "color": "#f1c40f",
+                "nodes": [
+                  "Paid Ads",
+                  "Lead Generation"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "sankey.path.highlight",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "path": [
+                  "Series A (Prior)",
+                  "Operating Fund",
+                  "Sales & Marketing"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {},
+        "renderer_state_checks": {
+          "vega": {
+            "node_visibility": {
+              "visible_nodes": [
+                "Series B VC",
+                "Series A (Prior)",
+                "Revenue",
+                "Grants & Credits",
+                "Operating Fund",
+                "Reserve Fund",
+                "Engineering",
+                "Sales & Marketing",
+                "G&A",
+                "Product",
+                "Customer Success",
+                "Emergency Buffer",
+                "M&A Fund",
+                "Runway Extension",
+                "Salaries",
+                "Cloud & Infra",
+                "Paid Ads",
+                "Events & Travel",
+                "Tools & Software",
+                "Office & Rent",
+                "Legal & Compliance",
+                "Insurance",
+                "User Research",
+                "Contractors",
+                "Team Growth",
+                "Talent Retention",
+                "Product Scale",
+                "Lead Generation",
+                "Brand Awareness",
+                "Productivity",
+                "Workspace",
+                "Risk Mitigation",
+                "Product Insights",
+                "Flexible Capacity",
+                "Cash Runway",
+                "Strategic Options"
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "node_visibility"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "120_startup_Funding",
+    "dataset_path": "datasets/120_startup_Funding.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/120_startup_Funding.json"
+    }
+  },
+  "benchmark_partition": "hinted"
+}

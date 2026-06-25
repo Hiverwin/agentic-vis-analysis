@@ -1,0 +1,111 @@
+{
+  "benchmark_id": "48_parallel_vm_01",
+  "task_type": "vague_multi",
+  "widget_kind": "parallelCoordinates",
+  "question_set": [
+    {
+      "qid": "cm_03",
+      "question": "Is there a clear positive correlation or negative correlation between sugarpercent and winpercent for chocolates?",
+      "question_style": "natural_language",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "positive correlation"
+        },
+        "key_insights": [
+          "There is a clear correlation between sugarpercent and winpercent for chocolates."
+        ],
+        "reasoning_trace": [
+          {
+            "iteration": 1,
+            "capability": "data.filter.categorical",
+            "rationale": "We focus on chocolate candy group."
+          },
+          {
+            "iteration": 2,
+            "capability": "parallel.dimensions.hide",
+            "rationale": "We hide the pricepercent dimension to focus on the relationship between sugarpercent and winpercent."
+          }
+        ],
+        "required_capabilities": [
+          "data.filter.categorical",
+          "parallel.dimensions.hide"
+        ],
+        "required_perceptions": [],
+        "capability_param_checks": [
+          {
+            "capability": "data.filter.categorical",
+            "param_eval": {
+              "type": "categorical",
+              "param": "all_params",
+              "target": {
+                "field": "chocolate",
+                "values": [
+                  "No"
+                ]
+              }
+            }
+          },
+          {
+            "capability": "parallel.dimensions.hide",
+            "param_eval": {
+              "type": "object",
+              "param": "all_params",
+              "target": {
+                "mode": "hide",
+                "dimensions": [
+                  "pricepercent"
+                ]
+              }
+            }
+          }
+        ],
+        "canonical_state_checks": {
+          "encodings": {
+            "x": "dimension",
+            "color": "chocolate"
+          }
+        },
+        "renderer_state_checks": {
+          "vega": {
+            "data_filtered": [
+              {
+                "filter": "indexof([\"Yes\"], datum['chocolate']) < 0"
+              },
+              {
+                "filter": "indexof([\"pricepercent\"], datum['dimension']) < 0"
+              }
+            ],
+            "layers": {
+              "count": 5,
+              "types": [
+                "rule",
+                "line",
+                null,
+                null,
+                null
+              ]
+            }
+          }
+        },
+        "state_check_fields": [
+          "data_filtered"
+        ]
+      }
+    }
+  ],
+  "data_source": {
+    "kind": "rows_json",
+    "dataset_id": "48_candy_parallel",
+    "dataset_path": "datasets/48_candy_parallel.json",
+    "row_count": null,
+    "dataset_scale_tag": null
+  },
+  "materializations": {
+    "vega": {
+      "spec_path": "benchmark_annotation_system/backend/specs/48_candy_parallel.json"
+    }
+  },
+  "benchmark_partition": "main"
+}

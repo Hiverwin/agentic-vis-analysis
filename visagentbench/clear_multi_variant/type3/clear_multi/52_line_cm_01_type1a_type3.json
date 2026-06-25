@@ -1,0 +1,72 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "52_line_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/52_years of economic new_line.json",
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What is the trend of electricity access as indicated by the moving average line?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "increasing"
+        },
+        "key_insights": [
+          "The moving average line shows a consistent upward trajectory from 2000 to 2021, with only minor deviations."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "show_moving_average",
+            "reasoning": "The smoothed trend reveals a consistent upward trajectory from 2000 to 2021, with only minor deviations."
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_trend",
+            "reasoning": "Highlighting the trend then makes the long-term direction unmistakable."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "show_moving_average",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "window_size": 5
+                }
+              }
+            },
+            {
+              "tool": "highlight_trend",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "trend_type": "increasing"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "year",
+            "y": "electricity_access",
+            "color": "Entity"
+          },
+          "layers": {
+            "count": 3,
+            "has_type": "line",
+            "regression_line": true
+          }
+        },
+        "state_check_fields": [
+          "layers"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "62_parallel_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/62_Berlin_crimes_parallel.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Which areas exhibit the characteristic of \"multiple types of crimes being simultaneously at a high level\"?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Friedrichshain-Kreuzberg, Mitte and Neuköl.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_by_category",
+            "reasoning": "These areas have significantly high rates in all of the categories: Robbery, Injury, Threat, and Burglary."
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data_summary",
+            "reasoning": "Use tools to verify whether the selected areas have an overall higher crime rate."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_by_category",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "District",
+                  "values": [
+                    "Pankow",
+                    "Charlottenburg-Wilmersdorf",
+                    "Spandau",
+                    "Treptow-Köpenick",
+                    "Marzahn-Hellersdorf",
+                    "Lichtenberg",
+                    "Reinickendorf",
+                    "Steglitz-Zehlendorf",
+                    "Tempelhof-Schöneberg"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "visible"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "dimension",
+            "y": null,
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Pankow\",\"Charlottenburg-Wilmersdorf\",\"Spandau\",\"Treptow-Köpenick\",\"Marzahn-Hellersdorf\",\"Lichtenberg\",\"Reinickendorf\",\"Steglitz-Zehlendorf\",\"Tempelhof-Schöneberg\"], datum['District']) < 0"
+            }
+          ],
+          "layers": {
+            "count": 5,
+            "types": [
+              "rule",
+              "line",
+              null,
+              null,
+              null
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
