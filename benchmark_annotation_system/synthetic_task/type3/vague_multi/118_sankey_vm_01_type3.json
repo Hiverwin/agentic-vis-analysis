@@ -1,0 +1,85 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "118_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/118_sankey_semiconducto.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Which batch contributes the most among all the scarps?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "batch B."
+        },
+        "key_insights": [
+          "1% of A,which is 50 wafes.",
+          "2% of B,which is 70 wafes.",
+          "4% of C,which is 80 wafes.",
+          "sources are:batch--litho normal--sidewall demage;batch--litho deviation--sidewall demage;:batch--litho normal--under-etch;batch--litho deviation--under-etch;",
+          "A:3800*(1%+2%*14%)+150*(14%+30%*14%)=75.94",
+          "B:3600*(1%+2%*14%)+180*(14%+30%*14%)=78.84",
+          "C:1900*(1%+2%*14%)+170*(14%+30%*14%)=55.26"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "color_flows",
+            "reasoning": "Colored nodes：Overlay Error and Scrap (Litho) because Scrap (Litho) comes from Overlay Error only.And ABC are 50,70,80 perspectively."
+          },
+          {
+            "iteration": 2,
+            "tool": "color_flows",
+            "reasoning": "Color the Scrap (Etch) and its sources.there are two sources and we can calculate A,B.C perspectively."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "color_flows",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "color": "#000000",
+                  "nodes": [
+                    "Overlay Error",
+                    "Scrap (Litho)"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "color_flows",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "color": "#000000",
+                  "nodes": [
+                    "Batch A",
+                    "Batch B",
+                    "Batch C",
+                    "Scrap (Etch)",
+                    "Sidewall Damage"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

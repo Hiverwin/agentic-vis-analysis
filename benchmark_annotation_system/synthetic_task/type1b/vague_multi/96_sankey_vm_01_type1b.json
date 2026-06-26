@@ -1,0 +1,75 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "96_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/96_sankey_energy.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use trace_node, collapse_nodes to characterize how the energy system's structure changes when prioritizing renewable energy.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The system structure shifts toward electrification, as renewables primarily feed into power generation."
+        },
+        "key_insights": [
+          "Renewables primarily feed into Power Generation",
+          "Collapsing non-renewable nodes reveals the renewable energy system as a relatively small, but interconnected, part of the larger energy system."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "to isolate the renewable energy system"
+          },
+          {
+            "iteration": 2,
+            "tool": "collapse_nodes",
+            "reasoning": "a clear picture of how renewables fit into the energy system and their potential impact on end-use sectors."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Renewables"
+                }
+              }
+            },
+            {
+              "tool": "collapse_nodes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "aggregate_name": "non-renewable nodes ",
+                  "nodes_to_collapse": [
+                    "Coal",
+                    "Natural Gas",
+                    "Petroleum",
+                    "Nuclear"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

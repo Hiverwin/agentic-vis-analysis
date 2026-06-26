@@ -1,0 +1,83 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "13_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "What are the characteristics of the prices of female's products in relation to those of male's products?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Compared to men, the prices of cosmetics for women are higher, while the prices of skincare products for women are lower."
+        },
+        "key_insights": [
+          "The non-binary data has been excluded.",
+          "The unknown data has been excluded."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Use tools to eliminate non-binary data."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Use tools to eliminate unknown data."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_value": "Non-binary"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_value": "Unknown"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Product type",
+            "y": "Customer demographics",
+            "color": "Price"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Non-binary\"], datum['Customer demographics']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            },
+            {
+              "filter": "!(indexof([\"Non-binary\"], datum['Customer demographics']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            },
+            {
+              "filter": "!(indexof([\"Unknown\"], datum['Customer demographics']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "task_type": "vague_single",
+  "task_id": "13_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use filter_cells_by_region to characterize the differences in price distribution across different consumer demographics between haircare and skincare product types.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Non-binary and unknown demographics show significantly higher prices for haircare, whereas the Male demographic exhibits higher prices for skincare."
+        },
+        "key_insights": [
+          "While non-binary and unknown consumers tend to pay premium prices for haircare products, male consumers demonstrate higher spending on skincare items."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Filtering out cosmetics allows for a better comparison of price distributions between skincare and haircare."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_values": [
+                    "cosmetics"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Product type",
+            "y": "Customer demographics",
+            "color": "Price"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"cosmetics\"], datum['Product type']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

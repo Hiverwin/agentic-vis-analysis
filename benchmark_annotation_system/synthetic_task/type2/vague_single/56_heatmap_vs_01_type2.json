@@ -1,0 +1,59 @@
+{
+  "task_type": "vague_single",
+  "task_id": "56_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/56_sport_life_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Compare the price difference between online and retail store channels based on the heatmap's color contrast.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the heatmap, the brand 'New Balance' appears to have the biggest price difference between online and retail store, with online being much lighter (lower price) and retail store being much darker (higher price)."
+        },
+        "key_insights": [
+          "Via using this tool,we can more clearly observe the difference in final prices of the New Balance brand between online and retail stores."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region",
+            "reasoning": "By highlighting, for example, the online row and then the retail store row, we can see for which brand the color change is most dramatic. This visual inspection leads to a subjective conclusion."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_values": [
+                    "New Balance"
+                  ],
+                  "y_values": [
+                    "Retail Store",
+                    "Online"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "brand",
+            "y": "sales_channel",
+            "color": "final_price_usd"
+          }
+        }
+      }
+    }
+  ]
+}

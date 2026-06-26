@@ -1,0 +1,53 @@
+{
+  "task_type": "vague_single",
+  "task_id": "100_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/100_sankey_patient.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use auto_collapse_by_rank to explore how this simplified view changes the perceived importance of different diagnostic tests in the overall patient journey.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The auto collapse by rank tool simplified the Diagnostics layer by folding low-volume tests into an \"Others\" category. This made the most common tests (Blood Panel, CT Scan) visually prominent, but it also changed how we perceive the importance of other diagnostics. While Blood Panel and CT Scan are indeed the most frequently used, the collapsed view hides the critical, specialized role of other tests for specific patient groups. This reveals a key tradeoff in data visualization: simplification can enhance clarity, but it can also mask important nuance in the overall patient journey."
+        },
+        "key_insights": [
+          "The simplified view makes Blood Panel (740 pts) and CT Scan (600 pts) appear as the dominant diagnostic choices, as they are the only explicitly visible nodes in the Diagnostics layer. All other tests (MRI, Ultrasound, X-Ray) are aggregated into the \"Others (Layer 2)\" node (760 pts), making them seem less important visually."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "auto_collapse_by_rank",
+            "reasoning": "As the question ask to do so"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "auto_collapse_by_rank",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 2
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

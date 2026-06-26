@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "74_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use get_data_summary with scope equal to all to evaluate whether the difference among ethnic groups exceeds the difference in education.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The influence of education is slightly greater than that of ethnic differences, but both have significant effects."
+        },
+        "key_insights": [
+          "At the same educational level, group E is significantly higher than group A.",
+          "There is a gap of approximately 15-20 points between the lower and higher educational levels within the same ethnic group."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "Using tools to statistically analyze the data on mathematics scores, determine whether the differences are greater between groups or between educational levels."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "race/ethnicity",
+            "y": "math score",
+            "color": "parental level of education"
+          }
+        }
+      }
+    }
+  ]
+}

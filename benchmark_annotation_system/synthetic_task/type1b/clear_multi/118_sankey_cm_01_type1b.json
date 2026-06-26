@@ -1,0 +1,70 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "118_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/118_sankey_semiconducto.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use trace_node to calculate the percentages producing abnormally for the nodes Litho Normal and Etch Normal.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "3% and 4%",
+          "alternatives": [
+            "3%",
+            "4%"
+          ]
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "selected Node signal to Litho Normal,and we can see the percentage of wafers entering Under-Etch and Sidewall Damage:1%+2%=3%."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "selected Node signal to Etch Normal,and we can see the percentage of wafers entering Thickness Fault and Contamination:1%+3%=4%."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Litho Normal"
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Etch Normal"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

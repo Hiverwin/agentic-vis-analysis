@@ -1,0 +1,53 @@
+{
+  "task_type": "clear_single",
+  "task_id": "56_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/56_sport_life_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use find_extremes with top_n equal to 1, mode equal to min to identify the brand with its corresponding sales channel that has the minimal final price.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The result shows that New Balance with online sales channel has the minimal final price of around 120 dollars on average.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "We use the tool to help us better find the extreme in different combination of brand and two different sales channel."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "min"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "brand",
+            "y": "sales_channel",
+            "color": "final_price_usd"
+          }
+        }
+      }
+    }
+  ]
+}

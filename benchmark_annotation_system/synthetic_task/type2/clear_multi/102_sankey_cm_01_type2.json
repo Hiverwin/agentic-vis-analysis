@@ -1,0 +1,73 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "102_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/102_sankey_saas.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Highlight all connected flows and compute the conversion rate from Upgraded (Pro) to Renewed.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "93.6%",
+          "alternatives": [
+            "93.6"
+          ]
+        },
+        "key_insights": [
+          "Tracing the \"Upgraded (Pro)\" node reveals it is fed primarily by users from Referral and Organic channels who were \"Active (High)\" in Month 1.",
+          "All outgoing flows from \"Upgraded (Pro)\" lead to \"Loyal\" in Month 6, with no users from this state churning before Month 6.",
+          "The conversion rate from \"Upgraded (Pro)\" to \"Renewed\" is approximately 93.6%, meaning nearly all users who upgrade to Pro in Month 3 renew their subscription at Year 1."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "This step sets a clear context for quantifying the conversion rate to Year 1 renewal."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "We care about the conversion rate"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Upgraded (Pro)"
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Upgraded (Pro)"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

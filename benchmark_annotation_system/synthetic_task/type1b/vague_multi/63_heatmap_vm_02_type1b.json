@@ -1,0 +1,91 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "63_heatmap_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/63_Berlin_crimes_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Use adjust_color_scale, find_extremes to characterize the temporal trends across districts and assess whether there are districts that show a clear increasing or decreasing trend over the years, and whether any districts exhibit unusual spikes or drops in specific years.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After adjusting the color scale, districts like 'Friedrichshain-Kreuzberg' show a gradual darkening from 2012 to 2019, suggesting an increasing trend. The 'find extremes' tool reveals that 'Friedrichshain-Kreuzberg' had an exceptionally high value in 2015. Filtering to that district and year confirms a spike that may be linked to a specific event."
+        },
+        "key_insights": [
+          "This step makes gradual trends (like a steady increase) more apparent as a gradient from light to dark across the row, and spikes/drops as isolated very dark or very light cells.",
+          "We can see which district-year combinations are outliers. For example, a district might have a very high value in 2017, which could be due to a major seizure or an incident.",
+          "We look for tiles that have predominantly dark cells with little variation. This visual inspection leads to a subjective conclusion."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "adjust_color_scale",
+            "reasoning": "To enhance the visual contrast, making it easier to see variations across years for each district. By adjusting the color scale, we can exaggerate differences, helping to identify trends and anomalies."
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extremes",
+            "reasoning": "To systematically identify the highest and lowest values in the dataset. This tool will list the most extreme cells, which can highlight unusual years for specific districts."
+          },
+          {
+            "iteration": 3,
+            "tool": "highlight_region",
+            "reasoning": "We use the highlight region tool to visually scan the part with extreme values."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "both"
+                }
+              }
+            },
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_values": [
+                    2012
+                  ],
+                  "y_values": [
+                    "Treptow-Köpenick"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "District",
+            "color": "Drugs"
+          }
+        }
+      }
+    }
+  ]
+}

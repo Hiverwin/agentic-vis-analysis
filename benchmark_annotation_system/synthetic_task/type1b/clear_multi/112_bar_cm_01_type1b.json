@@ -1,0 +1,67 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "112_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use get_data_summary, sort_bars to compute the number of titles that have a higher level of popularity than the average.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "4",
+          "tolerance": 0
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "get the mean popularity is 3643"
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "much easier to watch the number"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "title",
+            "y": "popularity",
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

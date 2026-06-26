@@ -1,0 +1,72 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "100_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/100_sankey_patient.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use calculate_conversion_rate with node_name equal to Medication, trace_node with node_name equal to Medication to compute the conversion rate from medication to cured and discharged.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "63%",
+          "alternatives": [
+            "63"
+          ]
+        },
+        "key_insights": [
+          "Medication is the Dominant Treatment: The majority of patients (920 pts) are treated with Medication.",
+          "conversion from medication to cured & discharged is 63%"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "We care the data of path from medication to cured & discharged."
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "We care about the conversion"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Medication"
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Medication"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "task_type": "vague_single",
+  "task_id": "120_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/120_startup_Funding.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "What are the characteristics of the traffic flowing to the node of Tools & Software?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "There are five sources, the largest exceeds 1，000k, and the smallest is around 200k.The total captical is 2,972k."
+        },
+        "key_insights": [
+          "there are five sources",
+          "the biggest source is from sales & marketing,which is1,230k.",
+          "the least three sources are of similar size,bwteen 200k and 400k."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "select the node tools & software and we can see there are five paths.And the sizes of the paths are different."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Tools & Software"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

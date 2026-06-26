@@ -1,0 +1,84 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "66_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_cells_by_region with x_value equal to Never to compare the vitamin C percent RDA values across all smoking statuses to identify the lowest value.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "In the \"Heavy\" alcohol consumption group, the lowest vitamin C percent RDA is found among \"Current\" smokers.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The lowest vitamin C percent RDA in the \"Heavy\" alcohol group is clearly associated with \"Current\" smoking status.",
+          "The difference between \"Current\" and \"Former\" smokers in this group suggests that quitting smoking may improve vitamin C status even with heavy alcohol consumption."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "The first filter narrows the data to the \"Heavy\" alcohol group"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells_by_region",
+            "reasoning": "The second filter isolates \"Current\" smokers to confirm the lowest value."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_value": "No alcohol"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_value": "Never"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "smoking_status",
+            "y": "alcohol_consumption",
+            "color": "vitamin_c_percent_rda"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Moderate\"], datum['alcohol_consumption']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            },
+            {
+              "filter": "!(indexof([\"No alcohol\"], datum['alcohol_consumption']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            },
+            {
+              "filter": "!(indexof([\"Never\"], datum['smoking_status']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

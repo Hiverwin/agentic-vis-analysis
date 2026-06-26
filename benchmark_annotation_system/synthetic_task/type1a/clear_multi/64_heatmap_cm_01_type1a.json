@@ -1,0 +1,73 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "64_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use highlight_region_by_value with min_value equal to 63.6, max_value equal to 98.7, find_extremes with top_n equal to 1, mode equal to both to compute the year with the highest average price for fake trees between 2013 and 2016.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "2016 is the year with the highest average price for fake trees, showing the most dramatic price increase from 2015 to 2016.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Fake trees show a clear upward price trend from 2010 to 2016. The darkest shade (highest price) occurs in 2016.",
+          "Within this period, 2016 is confirmed as the peak price year for fake trees."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region_by_value",
+            "reasoning": "isolates the tree type"
+          },
+          {
+            "iteration": 2,
+            "tool": "find_extremes",
+            "reasoning": "Using find extremes then precisely identifies the peak."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region_by_value",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 63.6,
+                  "max_value": 98.7,
+                  "outside_opacity": 0.12
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Type of tree",
+            "color": "Average Tree Price"
+          }
+        }
+      }
+    }
+  ]
+}

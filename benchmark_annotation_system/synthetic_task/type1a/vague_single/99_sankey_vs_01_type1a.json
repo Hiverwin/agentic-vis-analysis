@@ -1,0 +1,59 @@
+{
+  "task_type": "vague_single",
+  "task_id": "99_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/99_sankey_cloud.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use collapse_nodes with aggregate_name equal to Other, nodes_to_collapse with values us-east-1, eu-west-1 and ap-northeast-1 to evaluate whether there are significant differences in cost allocation among different regions, and how these differences affect the overall cost structure.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "categorical",
+          "value": "There is no significant difference in the cost allocation structure among regions. This consistency is conducive to the formulation and implementation of a unified cost optimization strategy for the entire area.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "EC2 represents the major cost component,The cost differences between regions are more reflected in the total amount rather than the structure."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "collapse_nodes",
+            "reasoning": "In order to abstract away the regional details and focus on the structural pattern of cost allocation"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "collapse_nodes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "aggregate_name": "Other",
+                  "nodes_to_collapse": [
+                    "us-east-1",
+                    "eu-west-1",
+                    "ap-northeast-1"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

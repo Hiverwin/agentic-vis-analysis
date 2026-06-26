@@ -1,0 +1,108 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "40_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/40_insurance_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_04",
+      "question": "What is the average charge for a smoker with 2 children, and how does it compare to the average charge for all smokers across all numbers of children?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "The exact charge for a smoker with 2 children is 105,000. The average charge for all smokers is 93,333.33. Therefore, the charge for a smoker with 2 children is 11,666.67 above the smokers' average.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "adjust_color_scale",
+            "reasoning": "Use this tool to help us better visualize the difference in charges under different cases."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Use Filter cells to display only the row where smoker = yes. This removes the non-smoker data, allowing a focused analysis on smokers."
+          },
+          {
+            "iteration": 3,
+            "tool": "get_data",
+            "reasoning": "Use Get data to retrieve the precise charge values for smokers across children counts (0 to 5): 100,000, 100,000, 105,000, 100,000, 100,000, 55,000."
+          },
+          {
+            "iteration": 4,
+            "tool": "highlight_region",
+            "reasoning": "Use Highlight region by value to highlight the cell corresponding to children = 2 for smokers (value 105,000),which allows for an easy comparison to the average, confirming it is higher."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_value": "no"
+                }
+              }
+            },
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_values": [
+                    2
+                  ],
+                  "y_values": [
+                    "yes"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "children",
+            "y": "smoker",
+            "color": "charges"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"no\"], datum['smoker']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "task_type": "clear_single",
+  "task_id": "112_bar_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use sort_bars with order equal to descending to rank titles by average popularity and return the title positioned first.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Aware! Meisaku-kun",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "get ranking"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "title",
+            "y": "popularity",
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

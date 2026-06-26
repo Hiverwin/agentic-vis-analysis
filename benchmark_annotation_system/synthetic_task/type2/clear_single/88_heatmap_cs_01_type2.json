@@ -1,0 +1,60 @@
+{
+  "task_type": "clear_single",
+  "task_id": "88_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Compare the exact mean Total Bill Amount between Male and Female groups.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The mean Total Bill Amount for males with chronic disease is the highest value in the dataset, visually represented by the darkest blue cell",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The mean Total Bill Amount for males with chronic disease is the highest value in the entire heatmap."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "isolate the specific demographic group"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_value": "Female"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Gender",
+            "y": "Chronic_Disease",
+            "color": "Total_Bill_Amount"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Female\"], datum['Gender']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

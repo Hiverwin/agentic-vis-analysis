@@ -1,0 +1,82 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "98_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/98_gym_members_exercise_tracking_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_cells_by_region with x_value equal to Strength, cluster_rows_cols with cluster_rows equal to True to rank the remaining Experience Levels by their mean BMI values and return the level with the highest combined BMI for these two workouts.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "The Experience Level with the highest combined mean BMI for Strength and HIIT is Level 2.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Strength consistently has a higher mean BMI than HIIT across all levels.",
+          "Experience Level 2 has the highest combined BMI for these two workouts."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "The sorted view confirms the peak at Level 2, which is a clear finding"
+          },
+          {
+            "iteration": 2,
+            "tool": "cluster_rows_cols",
+            "reasoning": "to emphasize the difference."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_value": "Yoga"
+                }
+              }
+            },
+            {
+              "tool": "cluster_rows_cols",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "cluster_rows": true,
+                  "cluster_cols": true,
+                  "method": "sum"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Workout_Type",
+            "y": "Experience_Level",
+            "color": "BMI"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Cardio\"], datum['Workout_Type']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            },
+            {
+              "filter": "!(indexof([\"Yoga\"], datum['Workout_Type']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

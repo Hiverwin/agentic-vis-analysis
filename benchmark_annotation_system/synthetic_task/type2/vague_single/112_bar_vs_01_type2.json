@@ -1,0 +1,56 @@
+{
+  "task_type": "vague_single",
+  "task_id": "112_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Assess whether the length of a name influences the popularity of a title.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "No, because as can be seen, the title with the highest attractiveness is a short title, while the third one is an extremely long title. The ranking order later on also alternates between the length of the names. Therefore, it is believed that the length of the title names does not make it easier to attract traffic."
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "sort the bar and analyse the relationship between popularity and the length of name"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "title",
+            "y": "popularity",
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Aware! Meisaku-kun\",\"Doupo Cangqiong 3rd Season\",\"Makasete Iruka!\",\"Warau Salesman Special Program\"], datum['title']) < 0"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

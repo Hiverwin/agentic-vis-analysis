@@ -1,0 +1,69 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "15_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Which expense type is given more importance in the flow of funds of the contractor?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Overall, equipment purchase has received greater attention."
+        },
+        "key_insights": [
+          "Equipment purchase funds have increased, with multiple sources of inflow.",
+          "Equipment purchase funds have increased, but the sources of inflow little than equipment purch."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Analyze the inflow of funds for equipment purchases, as well as the sources of the inflow."
+          },
+          {
+            "iteration": 2,
+            "tool": "trace_node",
+            "reasoning": "Analyze the inflow of funds for salaries, as well as the sources of the inflow."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Equipment Purch"
+                }
+              }
+            },
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Salaries"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

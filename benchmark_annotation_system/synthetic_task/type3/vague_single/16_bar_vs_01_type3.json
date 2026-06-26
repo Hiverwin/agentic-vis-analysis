@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "16_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "What is the comparison of the volume of goods sold to different countries by the first and second ranked salespeople?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "The first-place salesperson outperformed the second-place salesperson in shipments to every country except New Zealand and the USA."
+        },
+        "key_insights": [
+          "The highest-ranked salesperson shipped the least to New Zealand; the runner-up shipped the least to India."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_top_n",
+            "reasoning": "Apply the 'highlight top n' tool to emphasize the top two bars, facilitating a clearer comparison."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_top_n",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "n": 2,
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Sales Person",
+            "y": "Boxes Shipped",
+            "color": "Country"
+          }
+        }
+      }
+    }
+  ]
+}

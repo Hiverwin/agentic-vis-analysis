@@ -1,0 +1,70 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "66_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/66_vitamin_deficiency_disease_dataset_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use get_data_summary with scope equal to all, highlight_region_by_value with min_value equal to 83.06 to analyze the interaction between smoking status and alcohol consumption on vitamin C percent RDA and evaluate if the observed patterns hold when considering different subgroups.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The negative impact of heavy alcohol consumption on vitamin C percent RDA is most pronounced for \"Current\" smokers."
+        },
+        "key_insights": [
+          "these low-value regions are predominantly in the \"Heavy\" alcohol row",
+          "smoking status is a significant modifier of the relationship between alcohol consumption and vitamin C intake."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region_by_value",
+            "reasoning": "highlighted low-value regions to see where the problem areas are"
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data_summary",
+            "reasoning": "used the data summary to confirm these patterns statistically."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region_by_value",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 83.06,
+                  "outside_opacity": 0.12
+                }
+              }
+            },
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "smoking_status",
+            "y": "alcohol_consumption",
+            "color": "vitamin_c_percent_rda"
+          }
+        }
+      }
+    }
+  ]
+}

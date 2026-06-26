@@ -1,0 +1,88 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "56_heatmap_vm_02",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/56_sport_life_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Compare clusters of brands to evaluate whether they exhibit similar pricing patterns across sales channels.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Using clustering, we find that most brands group into two clusters: one where online prices are lower than retail (e.g., Adidas, New Balance) and another where prices are similar (e.g., ASICS, Puma). However, after adjusting the color scale and using find extremes, we notice that Reebok and Nike stand out because their online price is higher than their retail price, which is opposite to the common pattern. Additionally, we find that the highest overall price is for New Balance in retail store."
+        },
+        "key_insights": [
+          "We might find that some brands cluster together because they have similar price differences between channels, or because they both have higher prices in one channel.",
+          "This step helps to visually identify which brand does not fit well into the clusters, or which has a unique pattern.",
+          "We can see if the unusual pattern is due to an extreme value in one of the channels for a particular brand."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "cluster_rows_cols",
+            "reasoning": "To algorithmically group brands (columns) with similar pricing patterns across the two sales channels. This will show if some brands have similar relative pricing between online and retail."
+          },
+          {
+            "iteration": 2,
+            "tool": "adjust_color_scale",
+            "reasoning": "To enhance the visual contrast, making it easier to see variations and identify outliers. By adjusting the color scale, we can make small differences more apparent and highlight the unusual pattern."
+          },
+          {
+            "iteration": 3,
+            "tool": "find_extremes",
+            "reasoning": "To systematically identify the highest and lowest prices in the dataset. This can help identify which brand-channel combination is an outlier in terms of absolute price."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "cluster_rows_cols",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "cluster_rows": true,
+                  "cluster_cols": true,
+                  "method": "sum"
+                }
+              }
+            },
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "brand",
+            "y": "sales_channel",
+            "color": "final_price_usd"
+          }
+        }
+      }
+    }
+  ]
+}

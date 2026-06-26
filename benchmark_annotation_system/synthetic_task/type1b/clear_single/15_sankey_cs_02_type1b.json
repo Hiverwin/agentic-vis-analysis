@@ -1,0 +1,54 @@
+{
+  "task_type": "clear_single",
+  "task_id": "15_sankey_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/15_sankey_government.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use trace_node to identify which expense type receives the largest allocation.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Military Operations",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Defense funding primarily originates from corporate tax and mainly flows toward military operations."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Using the trace node tool provides an intuitive visualization of the defense ministry's funding sources and flows."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Defense"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

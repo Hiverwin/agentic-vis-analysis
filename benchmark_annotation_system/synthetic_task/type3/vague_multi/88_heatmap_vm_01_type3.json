@@ -1,0 +1,69 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "88_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "What is the overall pattern of healthcare costs and can adjusting the color scale highlight any subtle differences?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The overall pattern shows that Chronic Disease is the primary driver of higher healthcare costs, with gender acting as a secondary factor"
+        },
+        "key_insights": [
+          "The data is heavily skewed, with a small number of high-value cells dominating the range.",
+          "After adjusting the color scale, the differences between males and females without chronic disease become more distinct."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "to understand the data's distribution"
+          },
+          {
+            "iteration": 2,
+            "tool": "adjust_color_scale",
+            "reasoning": "to improve the visualization"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "reds"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Gender",
+            "y": "Chronic_Disease",
+            "color": "Total_Bill_Amount"
+          }
+        }
+      }
+    }
+  ]
+}

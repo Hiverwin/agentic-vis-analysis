@@ -1,0 +1,52 @@
+{
+  "task_type": "clear_single",
+  "task_id": "119_sankey_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/119_sankey_game.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Which source contributes the most gold?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Daily Quests.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Trace the node Player Wallet,and we can see Daily Quests gives 15,000,000 golds, Dungeon Drops contributes 12,000,000 golds,IAP Exchange contributes 8,000,000 golds,System Rewards contributes 3,500,000 golds,Bot Farming contributes 1,000,000 golds."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Player Wallet"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

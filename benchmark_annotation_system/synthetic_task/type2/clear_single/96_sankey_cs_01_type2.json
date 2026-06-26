@@ -1,0 +1,54 @@
+{
+  "task_type": "clear_single",
+  "task_id": "96_sankey_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/96_sankey_energy.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Rank primary energy sources by their contribution to the Residential sector's final use.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Electricity Grid is the largest primary energy contributor to the residential sector, ",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Electricity Grid is the largest primary energy ，The main energy used in the residential sector is for heating and lighting."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "The trace node tool is ideal here because it directly answers the question by showing the complete energy flow from primary sources to the Residential sector."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Residential"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

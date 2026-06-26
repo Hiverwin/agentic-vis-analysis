@@ -1,0 +1,65 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "100_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/100_sankey_patient.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "What are the treatment effectiveness rates for the top departments by patient volume for the \"Cured & Discharged\" and \"Home Recovery\" outcomes?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The two-step process (auto collapse + calculate conversion rate) clearly reveals the distinct, specialized roles of Internal Medicine and Surgery in driving positive patient outcomes, uncovering patterns that were obscured in the original dense diagram. "
+        },
+        "key_insights": [
+          "Collapsing the \"Department\" layer to the top 2 nodes (Internal Med, 900 pts; Surgery, 550 pts) aggregates the smaller departments (Pediatrics, Cardiology, etc.) into \"Others (Layer 1)\" (625 pts).",
+          "This simplified view immediately shows that Internal Med and Surgery are the dominant care hubs, handling over 70% of all patients.",
+          "Internal Medicine has a 68% conversion rate to \"Cured & Discharged\", making it the most effective department for curative care. This is driven by its strong link to Medication treatment.",
+          "Surgery has a 55% conversion rate to \"Home Recovery\", making it the primary driver of post-operative recovery outcomes."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "auto_collapse_by_rank",
+            "reasoning": "We just care about top2 layer"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "We want to know their treatment effectiveness"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "auto_collapse_by_rank",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 2
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {}
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

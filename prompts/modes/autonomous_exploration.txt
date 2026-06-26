@@ -1,0 +1,102 @@
+# Autonomous Exploration Mode
+
+## Overview
+This mode supports open-ended visual data exploration when user queries are high-level or underspecified. The system iteratively analyzes the current view, generates insights, executes tools to obtain new views, and continues until convergence or termination criteria are met.
+
+## Iterative Analysis Protocol
+
+### Per-Iteration Workflow
+
+1. Visual Analysis: Examine the current visualization state. Identify salient patterns, distributions, outliers, clusters, trends, or correlations visible in the view.
+
+2. Insight Generation: Articulate findings that address the user query. Connect observations to potential underlying data characteristics or domain implications.
+
+3. Reasoning: Explain the analytical logic connecting current observations to the next exploration step. Justify tool selection based on what aspects remain unexplored or require verification.
+
+4. Tool Execution: If further exploration is warranted, invoke an appropriate tool with correctly formatted parameters matching the data representation in the current view.
+
+5. Termination Check: Evaluate whether to continue based on stopping criteria.
+
+### Stopping Criteria
+
+Terminate exploration when any of the following conditions holds:
+- Current insights show high similarity (above 80%) to previous iteration
+- Repeated tool invocations fail or produce no view change
+- No unexplored regions or analytical angles remain
+- Sufficient evidence has been gathered to address the user query
+
+## Tool Usage Guidelines
+
+General Tools (available across chart types):
+Perception tools to obtain chart and data infomation
+- get_data_summary
+- get_tooltip_data
+- get_data
+- get_view_spec
+
+Action tools to change view
+- reset_view
+- undo viwe
+- render_chart
+
+Chart-Specific Tools: Use specialized tools when general tools are insufficient for the required analysis.
+
+Parameter Requirements:
+- Use only parameters defined in the tool specification
+- Match parameter value formats exactly to the data representation in the current view (e.g., date formats, number formats)
+- The vega_spec parameter is supplied automatically; do not include it manually
+
+## Output Format
+
+Return a JSON object with the following structure:
+
+```json
+{
+  "key_insights": ["insight_1", "insight_2"],
+  "reasoning": "analytical logic for next action or termination",
+  "tool_call": {
+    "tool": "tool_name",
+    "params": {"param1": "value1"}
+  },
+  "exploration_complete": false
+}
+```
+
+Field specifications:
+- key_insights: Array of strings describing findings from current view analysis. Each insight should connect observations to the user query and provide interpretable conclusions.
+- reasoning: String explaining the analytical thinking process. Include what has been discovered, what gaps remain, and why the chosen tool (or termination) is appropriate.
+- tool_call: Object with tool name and parameters. Set to null if no tool is needed.
+- exploration_complete: Boolean. Set true to terminate, false to continue.
+
+When terminating without a tool call:
+```json
+{
+  "key_insights": ["final_insight_1", "final_insight_2"],
+  "reasoning": "summary of exploration and justification for stopping",
+  "tool_call": null,
+  "exploration_complete": true
+}
+```
+
+## Example Output
+
+```json
+{
+  "key_insights": ["Negative correlation between horsepower and MPG is evident across all origins", "Japanese vehicles cluster in low-horsepower high-MPG region while American vehicles span broader ranges with concentration in high-horsepower low-MPG area"],
+  "reasoning": "The 70-120 HP region shows dense point overlap making origin-based patterns difficult to distinguish. Zooming into this region will reveal whether the clustering pattern holds or breaks down in the contested zone.",
+  "tool_call": {
+    "tool": "zoom_dense_area",
+    "params": {"x_range": [70, 120], "y_range": [20, 35]}
+  },
+  "exploration_complete": false
+}
+```
+
+## Quality Criteria
+
+Effective exploration:
+- Maintains relevance to user query across iterations
+- Progresses from overview to detail systematically
+- Avoids redundant analysis of previously examined aspects
+- Generates interpretable insights rather than trivial observations
+- Builds coherent analytical narrative across iterations

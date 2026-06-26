@@ -1,0 +1,87 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "111_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use highlight_region with x_values equal to Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec, cluster_rows_cols with cluster_rows equal to True, cluster_cols equal to True, method equal to sum to characterize the seasonal patterns across cities in the Northern Hemisphere.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After adjusting the color scale, we observe that most Northern Hemisphere cities show a pattern of increasing values from winter to summer. Clustering groups cities like Nanjing, Beijing, New York and Tokyo together (showing strong seasonality), while Reykjavik forms its own cluster. Filtering to Reykjavik shows that its winter average temparature are relatively lower compared to other high-latitude cities, likely due to maritime influences."
+        },
+        "key_insights": [
+          "We might find clusters of cities that share similar climates (e.g., temperate cities, tropical cities). This can reveal if latitude correlates with pattern similarity.",
+          "If a city like Reykjavik is clustered separately from other high-latitude cities, highlighting it allows us to describe its unique pattern (e.g., relatively mild winters compared to other cold cities)."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "cluster_rows_cols",
+            "reasoning": "To algorithmically group cities (rows) that have similar patterns across the months. Clustering is a data-driven way to find cities with comparable temporal profiles."
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_region",
+            "reasoning": "To drill down into specific clusters or individual cities that appear unusual. After clustering, we can use this tool to view a specific cluster or a single city to examine its pattern in detail."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "cluster_rows_cols",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "cluster_rows": true,
+                  "cluster_cols": true,
+                  "method": "sum"
+                }
+              }
+            },
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_values": [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec"
+                  ],
+                  "y_values": [
+                    "Reykjavik"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "month",
+            "y": "city",
+            "color": "temp"
+          }
+        }
+      }
+    }
+  ]
+}

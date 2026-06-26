@@ -1,0 +1,65 @@
+{
+  "task_type": "vague_single",
+  "task_id": "118_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/118_sankey_semiconducto.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_path to compute the number of wafers of final good from batch A.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "categorical",
+          "value": "2951 wafers.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Batch A → Litho Normal,the successful rate is 95%.",
+          "Litho Normal → Etch Normal: the successful rate is 97%.",
+          "Etch Normal → Depo Normal :the successful rate is 96%.",
+          "Depo Normal → Bin 1 (Good) :the successful rate is 86%.",
+          "Bin 1 (Good) → Final Good:the successful rate is 97%."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_path",
+            "reasoning": "Highlighted path: Batch A → Litho Normal → Etch Normal → Depo Normal → Bin 1 (Good) → Final Good.And we can calculate the number by all the percentages:4000*95%*96%*86%*97%*97%=2951.9wafers."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Batch A",
+                    "Litho Normal",
+                    "Etch Normal",
+                    "Depo Normal",
+                    "Bin 1 (Good)",
+                    "Final Good"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

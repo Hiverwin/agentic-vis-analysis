@@ -1,0 +1,78 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "102_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/102_sankey_saas.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Use reorder_nodes_in_layer, highlight_path to rank the nodes in the Month 3 Status layer by their total outgoing flow volume and assess the stability of the two most important retention paths to Renewed (Year 1).",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Mid‑term user state strongly determines whether users can be retained until the end."
+        },
+        "key_insights": [
+          "Reordering shows that Month 3 is the biggest churn stage.Only the two non-churn states (Retained (Basic) and Upgraded (Pro)) can still reach Renewed.",
+          "The path from Upgraded (Pro) is clean and direct with no extra churn branches.",
+          "The path from Retained (Basic) has side branches to Churned M6, showing it is unstable."
+        ],
+        "reasoning": [],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "reorder_nodes_in_layer",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "depth": 2,
+                  "sort_by": "value_desc"
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Upgraded (Pro)",
+                    "Loyal",
+                    "Renewed"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Retained (Basic)",
+                    "Loyal",
+                    "Renewed"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

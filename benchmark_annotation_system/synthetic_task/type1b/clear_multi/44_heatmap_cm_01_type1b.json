@@ -1,0 +1,91 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "44_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Use get_data, get_data_summary to compute the mean rainfall reduction for the combination of type 'Grassland' and grazing treatment 'destock', and compare it to the overall mean rainfall reduction for the 'destock' treatment across all types.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "The mean rainfall reduction for 'Grassland' under 'destock' is 85. The overall mean for the 'destock' treatment across all types is 80. Thus, 'Grassland' shows a rainfall reduction 5 units higher than the average for 'destock'.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "We filter the view to show only the column (or row) corresponding to 'destock'. This simplifies the dataset to focus on all types under this treatment."
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data",
+            "reasoning": "We use this tool to retrieve the precise numerical values for all types under 'destock'."
+          },
+          {
+            "iteration": 3,
+            "tool": "get_data_summary",
+            "reasoning": "After filtering to 'destock', we use this tool to compute summary statistics for the visible data (all types under 'destock'). It will provide the mean across these types."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "heavy",
+                    "stable"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "visible"
+                }
+              }
+            },
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "visible"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "type",
+            "y": "grazing_treatment",
+            "color": "rainfall_reduction"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"heavy\",\"stable\"], datum['grazing_treatment']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

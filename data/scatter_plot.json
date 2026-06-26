@@ -1,0 +1,71 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "description": "A scatterplot of Horsepower vs. Miles per Gallon",
+    "data": {
+      "values": [
+        {"Horsepower": 130, "Miles_per_Gallon": 18, "Origin": "USA"},
+        {"Horsepower": 165, "Miles_per_Gallon": 15, "Origin": "USA"},
+        {"Horsepower": 150, "Miles_per_Gallon": 18, "Origin": "USA"},
+        {"Horsepower": 140, "Miles_per_Gallon": 16, "Origin": "USA"},
+        {"Horsepower": 198, "Miles_per_Gallon": 14, "Origin": "USA"},
+        {"Horsepower": 220, "Miles_per_Gallon": 14, "Origin": "USA"},
+        {"Horsepower": 215, "Miles_per_Gallon": 14, "Origin": "USA"},
+        {"Horsepower": 225, "Miles_per_Gallon": 12, "Origin": "USA"},
+        {"Horsepower": 190, "Miles_per_Gallon": 13, "Origin": "USA"},
+        {"Horsepower": 170, "Miles_per_Gallon": 15, "Origin": "USA"},
+        {"Horsepower": 160, "Miles_per_Gallon": 16, "Origin": "USA"},
+        {"Horsepower": 150, "Miles_per_Gallon": 17, "Origin": "USA"},
+        {"Horsepower": 97, "Miles_per_Gallon": 24, "Origin": "Europe"},
+        {"Horsepower": 88, "Miles_per_Gallon": 27, "Origin": "Europe"},
+        {"Horsepower": 71, "Miles_per_Gallon": 26, "Origin": "Europe"},
+        {"Horsepower": 90, "Miles_per_Gallon": 25, "Origin": "Europe"},
+        {"Horsepower": 95, "Miles_per_Gallon": 24, "Origin": "Europe"},
+        {"Horsepower": 113, "Miles_per_Gallon": 25, "Origin": "Europe"},
+        {"Horsepower": 90, "Miles_per_Gallon": 26, "Origin": "Europe"},
+        {"Horsepower": 118, "Miles_per_Gallon": 21, "Origin": "Europe"},
+        {"Horsepower": 120, "Miles_per_Gallon": 22, "Origin": "Europe"},
+        {"Horsepower": 107, "Miles_per_Gallon": 23, "Origin": "Europe"},
+        {"Horsepower": 100, "Miles_per_Gallon": 25, "Origin": "Europe"},
+        {"Horsepower": 105, "Miles_per_Gallon": 23, "Origin": "Europe"},
+        {"Horsepower": 97, "Miles_per_Gallon": 30, "Origin": "Japan"},
+        {"Horsepower": 88, "Miles_per_Gallon": 32, "Origin": "Japan"},
+        {"Horsepower": 71, "Miles_per_Gallon": 35, "Origin": "Japan"},
+        {"Horsepower": 90, "Miles_per_Gallon": 29, "Origin": "Japan"},
+        {"Horsepower": 95, "Miles_per_Gallon": 28, "Origin": "Japan"},
+        {"Horsepower": 113, "Miles_per_Gallon": 27, "Origin": "Japan"},
+        {"Horsepower": 90, "Miles_per_Gallon": 31, "Origin": "Japan"},
+        {"Horsepower": 86, "Miles_per_Gallon": 33, "Origin": "Japan"},
+        {"Horsepower": 97, "Miles_per_Gallon": 29, "Origin": "Japan"},
+        {"Horsepower": 100, "Miles_per_Gallon": 28, "Origin": "Japan"},
+        {"Horsepower": 78, "Miles_per_Gallon": 34, "Origin": "Japan"},
+        {"Horsepower": 67, "Miles_per_Gallon": 37, "Origin": "Japan"}
+      ]
+    },
+    "mark": "point",
+    "encoding": {
+      "x": {
+        "field": "Horsepower",
+        "type": "quantitative",
+        "scale": {"zero": false}
+      },
+      "y": {
+        "field": "Miles_per_Gallon",
+        "type": "quantitative",
+        "scale": {"zero": false}
+      },
+      "color": {
+        "field": "Origin",
+        "type": "nominal",
+        "scale": {
+          "domain": ["Europe", "Japan", "USA"],
+          "range": ["#4c78a8", "#f58518", "#e45756"]
+        }
+      },
+      "tooltip": [
+        {"field": "Horsepower", "type": "quantitative"},
+        {"field": "Miles_per_Gallon", "type": "quantitative"},
+        {"field": "Origin", "type": "nominal"}
+      ]
+    }
+  }
+  

@@ -1,0 +1,56 @@
+{
+  "task_type": "vague_single",
+  "task_id": "119_sankey_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/119_sankey_game.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "What are the characteristics of the gold flowing in?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "There are a total of five sources, most of which come from game elements like Daily Quests and Dungeon Drops, with only a small portion coming from abnormal bot farming."
+        },
+        "key_insights": [
+          "There are five sources.They are Daliy Quest,Dungeon Drops,IAP Exchange,System Rewards and Bot Farming",
+          "Gold from Daliy Quest is the most.",
+          "Gold from Bot Farming is the least.",
+          "Most of them come from normal sources, with only a small portion coming from abnormal source."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "Selenct node signal to Player Wallet,and we can see all the sources and some details of them."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Player Wallet"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

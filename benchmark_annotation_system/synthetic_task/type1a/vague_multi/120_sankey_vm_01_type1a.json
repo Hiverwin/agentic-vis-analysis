@@ -1,0 +1,78 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "120_sankey_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/120_startup_Funding.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use color_flows with color equal to #f1c40f, highlight_path with path from Series A (Prior) to Sales & Marketing to compute the number of capital flow to Lead Generation from Series A (Prior) passing Paid Ads.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "576k."
+        },
+        "key_insights": [
+          "there is one way to Paid Ads from Sales & Marketing",
+          "there is one way to Sales & Marketing,which is from Operating Fund",
+          "there is one wthere is one way to  Operating Fund from A."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "color_flows",
+            "reasoning": "Colored flows connected to nodes Lead Generation and Paid Ads,and we can see the paths going to Paid Ads."
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_path",
+            "reasoning": "Highlighted path: Series A (Prior) → Operating Fund → Sales & Marketing,and we can calculate as 8,000k*30%*30%*80%=576k."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "color_flows",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "color": "#f1c40f",
+                  "nodes": [
+                    "Paid Ads",
+                    "Lead Generation"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_path",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "path": [
+                    "Series A (Prior)",
+                    "Operating Fund",
+                    "Sales & Marketing"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

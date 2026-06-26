@@ -1,0 +1,77 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "116_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Assess whether the national strategic priorities in Europe are identical.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Their strategic priorities share certain similarities. For France and the UK, they have invested the most in the health industry, which is the second-largest investment sector in Germany. However, Germany has made significant investments in AI, while the proportion of such investments in the UK and France is much lower. Their minimum investment amounts also vary. In France, it's e-commerce; in Germany, it's finance; and in the UK, it's education."
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "toggle_stack_mode",
+            "reasoning": "get the grouped chart"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categories",
+            "reasoning": "remove the country not in Europe"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Australia",
+                    "India",
+                    "USA",
+                    "Netherlands",
+                    "Canada"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Country",
+            "y": "Amount Raised (USD)",
+            "color": "Industry"
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Australia\",\"India\",\"USA\",\"Netherlands\",\"Canada\"], datum['Country']) < 0"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

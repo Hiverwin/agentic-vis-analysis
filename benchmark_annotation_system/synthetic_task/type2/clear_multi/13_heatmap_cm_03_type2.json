@@ -1,0 +1,73 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "13_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Compute the number of cells with a \"Number of products sold\" value greater than 900.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "9",
+          "tolerance": 0.05
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Replacing the color with \"number of products sold\" allows direct access to the relevant data."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells",
+            "reasoning": "\"Filter cells\" can directly filter out the cells where \"number of products sold\" is greater than 90"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Number of products sold",
+                  "channel": "color"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 900
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Product type",
+            "y": "Customer demographics",
+            "color": "Number of products sold"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['Number of products sold'] >= 900.0"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

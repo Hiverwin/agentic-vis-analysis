@@ -1,0 +1,74 @@
+{
+  "task_type": "vague_single",
+  "task_id": "40_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/40_insurance_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_02",
+      "question": "Compare the strength of the relationship between the number of children and charges for smokers and non-smokers based solely on the color intensity in the heatmap.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "This is subjective; however, one might argue that the relationship appears stronger for non-smokers because the color change from light (high charges) to dark (low charges) occurs abruptly at 3 children and remains consistent, whereas for smokers the pattern is less uniform (with a peak at 2 children and a drop at 5)."
+        },
+        "key_insights": [
+          "We may observe that charges are high (lighter color) for 0, 1, and 2 children (all 100,000) and then drop to lower (darker color) for 3, 4, and 5 children (50,000 each). This indicates a clear threshold effect: having 3 or more children is associated with lower charges for non-smokers.",
+          "The colors show high charges (light) for 0, 1, 3, and 4 children (100,000 each), a very high charge (very light) for 2 children (105,000), and a low charge (dark) for 5 children (55,000). The pattern is less consistent, with an unexpected peak at 2 children and a drop at 5.",
+          "Comparing the two rows, the non-smoker row shows a more consistent and predictable pattern: charges remain high until 2 children and then drop and remain low. In contrast, the smoker row has more variability, making the relationship less clear."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region",
+            "reasoning": "To highlight the rows for smokers and non-smokers separately for visual comparison."
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_region",
+            "reasoning": "To highlight the rows for smokers and non-smokers separately for visual comparison."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "no"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "yes"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "children",
+            "y": "smoker",
+            "color": "charges"
+          }
+        }
+      }
+    }
+  ]
+}

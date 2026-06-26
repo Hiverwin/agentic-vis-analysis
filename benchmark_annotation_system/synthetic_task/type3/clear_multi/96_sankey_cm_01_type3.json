@@ -1,0 +1,78 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "96_sankey_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/96_sankey_energy.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "What is the overall energy conversion efficiency of the aggregated node in the \"Conversion\" stage?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "63.9%",
+          "alternatives": [
+            "63.9"
+          ]
+        },
+        "key_insights": [
+          "After folding, the structure of the energy system becomes clearer: primary energy -> overall conversion process -> end use and transmission.",
+          "This efficiency value of 63.9% clearly quantifies the overall effectiveness of the energy conversion process. It is a core KPI that can only be obtained through multiple steps of interaction and calculation."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "collapse_nodes",
+            "reasoning": "Used to restructure the data hierarchy and simplify complex views to focus on the macroscopic process"
+          },
+          {
+            "iteration": 2,
+            "tool": "calculate_conversion_rate",
+            "reasoning": "Intelligently handling internal and external flows, it reveals key indicators regarding the overall performance of the transformation process that cannot be directly obtained from the original view."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "collapse_nodes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "aggregate_name": "Overall conversion process",
+                  "nodes_to_collapse": [
+                    "Power Generation",
+                    "Fuel Processing",
+                    "Direct Heat",
+                    "Generation Loss"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "calculate_conversion_rate",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Overall conversion process"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

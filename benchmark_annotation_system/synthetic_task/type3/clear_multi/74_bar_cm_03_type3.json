@@ -1,0 +1,78 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "74_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/74_StudentsPerformance_bar.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Does the educational level of parents show a consistent trend across all ethnic groups of \"the higher the education level → the higher the score\"?",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Yes. The higher the master's degree is, the higher the math score will be.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "sort_bars",
+            "reasoning": "Sort the tools and confirm the order of the scores for each group from highest to lowest."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_subcategories",
+            "reasoning": "Using the tool to filter out the \"master degree\" values, it was found that the order of the group scores from highest to lowest remained unchanged."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            },
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "bachelor's degree",
+                    "some college",
+                    "associate's degree",
+                    "high school",
+                    "some high school"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "race/ethnicity",
+            "y": "math score",
+            "color": "parental level of education"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['parental level of education'] != \"bachelor's degree\" && datum['parental level of education'] != \"some college\" && datum['parental level of education'] != \"associate's degree\" && datum['parental level of education'] != \"high school\" && datum['parental level of education'] != \"some high school\""
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

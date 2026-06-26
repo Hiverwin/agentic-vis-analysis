@@ -1,0 +1,56 @@
+{
+  "task_type": "clear_single",
+  "task_id": "64_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "What is the average price difference between fake trees and real trees in the year 2016?",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": " In 2016, fake trees have a significantly higher average price than real trees, with the widest price gap observed in the entire dataset.\n",
+          "alternatives": []
+        },
+        "key_insights": [
+          "fake trees have a significantly higher average price than real trees"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region_by_value",
+            "reasoning": "filter by the year 2016 to isolate the data for that period, which allows a direct comparison of the two tree types"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region_by_value",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "min_value": 74.7,
+                  "max_value": 98.7,
+                  "outside_opacity": 0.12
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Type of tree",
+            "color": "Average Tree Price"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "16_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Compare product types and quantities sold to Canada and the United States.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "There are no significant differences in product types; however, the quantities of caramel stuffed bars, choco coated almonds, and smooth silky salty sold to Canada are notably higher than those sold to the USA."
+        },
+        "key_insights": [
+          "The total quantity of products sold to Canada is the highest.",
+          "The USA has the lowest.",
+          "The 50% dark bites see peak sales in Australia",
+          "The product types sold to each country are all the same."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Placing countries on the x-axis makes comparison more convenient."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Country",
+                  "channel": "x"
+                }
+              }
+            },
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Product",
+                  "channel": "color"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Country",
+            "y": "Boxes Shipped",
+            "color": "Product"
+          }
+        }
+      }
+    }
+  ]
+}

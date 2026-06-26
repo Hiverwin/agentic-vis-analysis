@@ -1,0 +1,131 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "40_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/40_insurance_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_05",
+      "question": "Use filter_cells_by_region, adjust_color_scale, cluster_rows_cols to characterize the patterns in charges across numbers of children for smokers and non-smokers.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Smokers exhibit a more complex relationship because charges do not follow a simple monotonic trend; instead, they peak at 2 children and then drop sharply at 5, while non-smokers show a simple step-down after 2 children."
+        },
+        "key_insights": [
+          "After adjusting the color scale to range from the minimum (50,000) to the maximum (105,000), the heatmap will show a wider spectrum of colors. The peak at smokers with 2 children (105,000) will appear very light, and the low values (50,000 for non-smokers with 3-5 children and 55,000 for smokers with 5 children) will appear dark. This enhanced contrast makes it clear that the relationship for smokers is not monotonic: there is a high peak at 2 children and a low point at 5 children, while non-smokers show a more uniform step down after 2 children.",
+          "We might see that children counts 0, 1, 3, and 4 cluster together because they have similar charge patterns (100,000 for both smokers and non-smokers for 0 and 1; for 3 and 4, non-smokers are 50,000 and smokers are 100,000). Meanwhile, children count 2 and 5 might be in separate clusters or outliers. For 2 children, smokers have a higher charge (105,000) and non-smokers have 100,000. For 5 children, smokers have 55,000 and non-smokers 50,000. This clustering suggests that 2 and 5 children are different from the others, especially for smokers.",
+          "After filtering to the cluster with children 2 and 5, we observe that for smokers, the charges are extreme (highest at 2 and lowest at 5) while for non-smokers, the charges are more moderate (100,000 at 2 and 50,000 at 5). This supports the idea that the relationship for smokers is more complex: it doesn't simply decrease with more children, but instead has a peak at 2 children and a trough at 5. In contrast, non-smokers show a simpler pattern: charges are high for 0-2 children and then drop to low for 3-5 children."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "adjust_color_scale",
+            "reasoning": "By adjusting the color scale, we can stretch the color gradient to make differences between values more pronounced. This helps in identifying variations that might be subtle in the default view."
+          },
+          {
+            "iteration": 2,
+            "tool": "cluster_rows_cols",
+            "reasoning": "Clustering columns (children counts) will group together those numbers of children that have similar charge patterns across smokers and non-smokers. This can reveal which children counts are outliers or form distinct groups."
+          },
+          {
+            "iteration": 3,
+            "tool": "filter_cells_by_region",
+            "reasoning": "We use this tool to help focus on the unusual cases and analyze them separately."
+          },
+          {
+            "iteration": 4,
+            "tool": "filter_cells_by_region",
+            "reasoning": "We use this tool to help focus on the unusual cases and analyze them separately."
+          },
+          {
+            "iteration": 5,
+            "tool": "filter_cells_by_region",
+            "reasoning": "We use this tool to help focus on the unusual cases and analyze them separately."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            },
+            {
+              "tool": "cluster_rows_cols",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "cluster_rows": true,
+                  "cluster_cols": true,
+                  "method": "sum"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_value": "1"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_value": "3"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_value": "4"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "children",
+            "y": "smoker",
+            "color": "charges"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"1\"], datum['children']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            },
+            {
+              "filter": "!(indexof([\"3\"], datum['children']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            },
+            {
+              "filter": "!(indexof([\"4\"], datum['children']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

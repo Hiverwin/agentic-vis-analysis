@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "13_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/13_supply_chain_data_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use change_encoding with field equal to Production volumes, channel equal to y to evaluate the significant relationship between production volumes and prices of products.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "There is not a significant relationship."
+        },
+        "key_insights": [
+          "The production volumes of the three types of products is roughly the same, but the overall prices vary greatly."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "change_encoding",
+            "reasoning": "Use tools to map the production volumes onto the y-axis and analyze their relationship with the price."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "change_encoding",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "field": "Production volumes",
+                  "channel": "y"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Product type",
+            "y": "Production volumes",
+            "color": "Price"
+          }
+        }
+      }
+    }
+  ]
+}

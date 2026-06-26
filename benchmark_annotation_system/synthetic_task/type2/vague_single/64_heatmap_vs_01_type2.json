@@ -1,0 +1,54 @@
+{
+  "task_type": "vague_single",
+  "task_id": "64_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Characterize the overall trend of average tree prices over the years for either fake or real trees.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Both fake and real trees show a consistent upward price trend from 2010 to 2016. Fake trees are consistently more expensive, and their rate of price increase is steeper than that of real trees.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Fake trees are consistently more expensive than real trees across all years. The rate of price increase for fake trees is steeper than for real trees."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "provides a high-level overview, and the full heatmap view allows for trend identification"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Type of tree",
+            "color": "Average Tree Price"
+          }
+        }
+      }
+    }
+  ]
+}

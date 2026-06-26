@@ -1,0 +1,108 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "111_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Use get_data, get_data_summary to compute the exact measured value for Moscow in March and compare it to the average value for Moscow across all months for which data is available.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "The measured value for Moscow in March is -2. The average value for Moscow across all months is 5.2. Thus, the March value is 7.2 below the city's average.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "To isolate the data for the city of Moscow. The heatmap includes many cities; filtering allows us to focus on the row corresponding to Moscow."
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data",
+            "reasoning": "To retrieve the precise numerical values for Moscow across all months. This provides the specific value for March and the other months."
+          },
+          {
+            "iteration": 3,
+            "tool": "get_data_summary",
+            "reasoning": "With the view filtered to Moscow, this tool calculates summary statistics (like the mean) for the visible data (Moscow's 12 monthly values)."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_values": [
+                    "Reykjavik",
+                    "Helsinki",
+                    "London",
+                    "Berlin",
+                    "New York",
+                    "Beijing",
+                    "Tokyo",
+                    "Nanjing",
+                    "Los Angeles",
+                    "Cairo",
+                    "Dubai",
+                    "Mumbai",
+                    "Bangkok",
+                    "Singapore",
+                    "Nairobi",
+                    "São Paulo",
+                    "Buenos Aires",
+                    "Cape Town",
+                    "Sydney"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "visible"
+                }
+              }
+            },
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "visible"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "month",
+            "y": "city",
+            "color": "temp"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Reykjavik\",\"Helsinki\",\"London\",\"Berlin\",\"New York\",\"Beijing\",\"Tokyo\",\"Nanjing\",\"Los Angeles\",\"Cairo\",\"Dubai\",\"Mumbai\",\"Bangkok\",\"Singapore\",\"Nairobi\",\"São Paulo\",\"Buenos Aires\",\"Cape Town\",\"Sydney\"], datum['city']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

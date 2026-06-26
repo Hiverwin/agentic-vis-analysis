@@ -1,0 +1,104 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "42_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/42_pokemon_stats_2025_bar.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use filter_categories to assess whether the speed is consistent with the \"intuitive perception of attributes\".",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Yes,"
+        },
+        "key_insights": [
+          "The intuitive type is also relatively fast in terms of speed.",
+          "The intuitive type is also relatively slow in terms of speed."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "Use tools to identify the intuitive-fast types."
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_categories",
+            "reasoning": "Use tools to identify the intuitive-slow types."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "grass",
+                    "fire",
+                    "water",
+                    "bug",
+                    "normal",
+                    "ground",
+                    "fairy",
+                    "fighting",
+                    "rock",
+                    "ghost",
+                    "ice",
+                    "dragon",
+                    "dark",
+                    "steel"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "grass",
+                    "water",
+                    "bug",
+                    "normal",
+                    "electric",
+                    "poison",
+                    "ground",
+                    "fighting",
+                    "psychic",
+                    "rock",
+                    "ghost",
+                    "dragon",
+                    "dark",
+                    "fire"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "type_1",
+            "y": "speed",
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"grass\",\"water\",\"bug\",\"normal\",\"electric\",\"poison\",\"ground\",\"fighting\",\"psychic\",\"rock\",\"ghost\",\"dragon\",\"dark\",\"fire\"], datum['type_1']) < 0"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "46_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/46_mxmh_survey_results_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use add_marginal_bars, adjust_color_scale to examine the interaction between being an Instrumentalist and a Composer on anxiety levels.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After enhancing contrast and examining marginal bars, a pattern emerges. While being a Composer is generally linked to higher anxiety, this effect appears to be stronger (or more detrimental) for individuals who are not Instrumentalists. Being an Instrumentalist seems to attenuate the anxiety associated with being a Composer."
+        },
+        "key_insights": [
+          "A good adjustment might make it clear if the jump in anxiety from non-composer to composer is much steeper for non-instrumentalists than for instrumentalists.",
+          "The marginal bars might show that Composers on average have higher anxiety than Non-Composers, and Instrumentalists have lower anxiety than Non-Instrumentalists. This sets the stage for understanding their combined effect."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "adjust_color_scale",
+            "reasoning": "To enhance the visual contrast between the four anxiety values. Making differences more pronounced helps in subjectively evaluating the \"pattern\" or \"interaction effect\" between the two factors."
+          },
+          {
+            "iteration": 2,
+            "tool": "add_marginal_bars",
+            "reasoning": "To see the main effects of each factor independently. Adding bars that show the average anxiety for Instrumentalist (Yes/No) and Composer (Yes/No) provides context."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            },
+            {
+              "tool": "add_marginal_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "show_top": true,
+                  "show_right": true,
+                  "op": "mean"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

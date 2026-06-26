@@ -1,0 +1,72 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "78_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Characterize the hierarchical characteristics of the demand patterns for engineering skills across different positions.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "It was discovered that there is a connection between cloud and Docker. For all engineers, when using cloud frequently, Docker is also used more; when using cloud less frequently, Docker is used less as well. It can be clearly seen that engineers who are more inclined towards AI, such as AI product managers, do not have such high requirements for these three technologies. On the contrary, engineers who are more focused on data use these three technologies more frequently."
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "cluster_rows_cols",
+            "reasoning": "rearrangement"
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_region",
+            "reasoning": "highlight data in these three line"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "cluster_rows_cols",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "cluster_rows": true,
+                  "cluster_cols": true,
+                  "method": "mean"
+                }
+              }
+            },
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_values": [
+                    "Cloud (AWS/GCP)",
+                    "Docker/K8s",
+                    "SQL"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "skill",
+            "y": "role",
+            "color": "demand"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "44_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_03",
+      "question": "Which vegetation types respond similarly to different grazing treatments, and which type shows the most variable response?",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "After enhancing contrast, we observe that most types show a gradient from low reduction in 'stable' to high reduction in 'destock'. Clustering reveals two main groups: one with moderate increases (e.g., Shrubland) and one with sharp increases (e.g., Grassland). 'Find extremes' shows that 'Grassland' has the highest average rainfall reduction value under 'heavy' and the lowest average rainfall reduction value under 'stable', indicating it is the most variable type."
+        },
+        "key_insights": [
+          "This makes it easier to subjectively assess the pattern of response across treatments for each type and to identify types with consistent versus variable colors.",
+          "We might find clusters of types that show high reduction under destocking but low under stable, or vice versa. This reveals functional groups in terms of their sensitivity to grazing.",
+          "The extremes can highlight a type that has an unusually high or low value under a specific treatment, indicating high variability."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "adjust_color_scale",
+            "reasoning": "By adjusting the color scale (e.g.using a divergent palette), we can better see variations across treatments for each type."
+          },
+          {
+            "iteration": 2,
+            "tool": "cluster_rows_cols",
+            "reasoning": "We use this tool to algorithmically group types (rows) that have similar patterns of rainfall reduction across the three grazing treatments. This data-driven clustering identifies types with similar responses to grazing."
+          },
+          {
+            "iteration": 3,
+            "tool": "find_extremes",
+            "reasoning": "We use this tool to systematically identify the highest and lowest rainfall reduction values in the dataset. This helps pinpoint which type-treatment combinations are outliers."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "viridis"
+                }
+              }
+            },
+            {
+              "tool": "cluster_rows_cols",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "cluster_rows": true,
+                  "cluster_cols": true,
+                  "method": "sum"
+                }
+              }
+            },
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "type",
+            "y": "grazing_treatment",
+            "color": "rainfall_reduction"
+          }
+        }
+      }
+    }
+  ]
+}

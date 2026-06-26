@@ -1,0 +1,53 @@
+{
+  "task_type": "clear_single",
+  "task_id": "111_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/111_heatmap_tmp.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use find_extremes to identify the combination of city and time of the year with the highest and lowest average temperature, respectively.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The results show that in August Dubai has the highest average temparature of 35.8 degrees Celsius while in January Moscow has the lowest average temparature of -9.4 degrees Celsius.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "Using this tool helps us quickly find the maximum and minimum average temperatures among the many tiles."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "month",
+            "y": "city",
+            "color": "temp"
+          }
+        }
+      }
+    }
+  ]
+}

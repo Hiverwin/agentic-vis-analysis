@@ -1,0 +1,72 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "78_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/78_ai_job_dataset_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use get_data_summary with scope equal to all, filter_cells with max_value from 0 to 60 to compute the number of combinations that have a lower average popularity than the overall average.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "numeric",
+          "value": "40",
+          "tolerance": 0.05
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data_summary",
+            "reasoning": "get tbe average number is 60"
+          },
+          {
+            "iteration": 2,
+            "tool": "filter_cells",
+            "reasoning": "get the cell which are below 60"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "filter_cells",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "max_value": 60
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "skill",
+            "y": "role",
+            "color": "demand"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['demand'] <= 60.0"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "16_bar_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/16_bar_Chocolate Sales.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_subcategories, sort_bars to assess whether Canada's sales performance consistently outperforms India's.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "boolean",
+          "value": "No"
+        },
+        "key_insights": [
+          "Sorting reveals instances where India's bars extend longer at the tail end.",
+          "hence Canada's sales performance is not consistently outperforms India's."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_subcategories",
+            "reasoning": "Use the \"filter subcategory\" function to retain data for Canada and India only."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_subcategories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "subcategories_to_remove": [
+                    "UK",
+                    "Australia",
+                    "New Zealand",
+                    "USA"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending",
+                  "by_subcategory": "Canada"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Sales Person",
+            "y": "Boxes Shipped",
+            "color": "Country"
+          },
+          "data_filtered": [
+            {
+              "filter": "datum['Country'] != \"UK\" && datum['Country'] != \"Australia\" && datum['Country'] != \"New Zealand\" && datum['Country'] != \"USA\""
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

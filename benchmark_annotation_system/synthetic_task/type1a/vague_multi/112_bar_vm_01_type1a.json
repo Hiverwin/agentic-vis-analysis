@@ -1,0 +1,87 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "112_bar_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/112_anmie_filter_bar.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use filter_categories with categories equal to Ayashi no Ceres, Aware! Meisaku-kun, Makasete Iruka!, Maken-Ki! OVA, R.O.D: Read or Die, Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack, Warau Salesman Special Program, Zuihou de Zhaohuan Shi, Doupo Cangqiong 3rd Season, sort_bars with order equal to descending to analyze the reasons why the two works with the highest popularity among the works with a popularity lower than 2000 have such popularity.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "Both of them are famous, so they are popular due to their popularity. Howerver, owing to the published for a long time, their popularity has waned."
+        },
+        "key_insights": [
+          "both of them are famous, so they are popular due to their popularity.",
+          "They have been published for a long time,  so their popularity has waned."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_categories",
+            "reasoning": "filter the title have over 2000 popularity"
+          },
+          {
+            "iteration": 2,
+            "tool": "sort_bars",
+            "reasoning": "get the top 2"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_categories",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "categories": [
+                    "Ayashi no Ceres",
+                    "Aware! Meisaku-kun",
+                    "Makasete Iruka!",
+                    "Maken-Ki! OVA",
+                    "R.O.D: Read or Die",
+                    "Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack",
+                    "Warau Salesman Special Program",
+                    "Zuihou de Zhaohuan Shi",
+                    "Doupo Cangqiong 3rd Season"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "sort_bars",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "order": "descending"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "title",
+            "y": "popularity",
+            "color": null
+          },
+          "data_filtered": [
+            {
+              "filter": "indexof([\"Ayashi no Ceres\",\"Aware! Meisaku-kun\",\"Makasete Iruka!\",\"Maken-Ki! OVA\",\"R.O.D: Read or Die\",\"Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack\",\"Warau Salesman Special Program\",\"Zuihou de Zhaohuan Shi\"], datum['title']) < 0"
+            },
+            {
+              "filter": "indexof([\"Ayashi no Ceres\",\"Aware! Meisaku-kun\",\"Makasete Iruka!\",\"Maken-Ki! OVA\",\"R.O.D: Read or Die\",\"Shingeki no Kyojin Movie: Kanketsu-hen - The Last Attack\",\"Warau Salesman Special Program\",\"Zuihou de Zhaohuan Shi\",\"Doupo Cangqiong 3rd Season\"], datum['title']) < 0"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

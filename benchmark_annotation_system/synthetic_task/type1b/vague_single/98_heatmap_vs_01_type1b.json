@@ -1,0 +1,55 @@
+{
+  "task_type": "vague_single",
+  "task_id": "98_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/98_gym_members_exercise_tracking_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use find_extremes to examine the relationship between increasing Experience Level and changes in mean BMI across different Workout Types.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The relationship between Experience Level and BMI is highly dependent on the Workout Type, with no single universal trend.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "The effect of experience on BMI is highly dependent on the workout type."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "find_extremes",
+            "reasoning": "This single exploratory tool helps identify non-linear trends."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "find_extremes",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "top_n": 1,
+                  "mode": "both"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Workout_Type",
+            "y": "Experience_Level",
+            "color": "BMI"
+          }
+        }
+      }
+    }
+  ]
+}

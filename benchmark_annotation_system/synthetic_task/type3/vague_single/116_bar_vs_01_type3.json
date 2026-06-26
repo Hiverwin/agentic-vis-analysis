@@ -1,0 +1,51 @@
+{
+  "task_type": "vague_single",
+  "task_id": "116_bar_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/116_startup_funding_dataset_bar.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Are all countries interested in the new AI industry?",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "It doesn't seem to be the case. On the contrary, only Canada, Germany, India and the United States have made a certain scale of investment in AI. Other countries, whether developed or developing, have made less investment in AI compared to traditional fields like Finance and Technology."
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "toggle_stack_mode",
+            "reasoning": "get the grouped chart"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "toggle_stack_mode",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "mode": "grouped"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Country",
+            "y": "Amount Raised (USD)",
+            "color": "Industry"
+          }
+        }
+      }
+    }
+  ]
+}

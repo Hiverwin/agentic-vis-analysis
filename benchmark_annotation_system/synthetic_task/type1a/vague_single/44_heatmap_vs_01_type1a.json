@@ -1,0 +1,59 @@
+{
+  "task_type": "vague_single",
+  "task_id": "44_heatmap_vs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/44_Sensitivity_Soil_Nutrient_Pools new_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.3,
+    "final_state": 0.7
+  },
+  "questions": [
+    {
+      "qid": "vs_01",
+      "question": "Use highlight_region with x_values equal to bacteria, fungi, y_values equal to heavy to characterize the impact of grazing treatments on rainfall reduction.",
+      "ground_truth": {
+        "task_type": "vague_single",
+        "answer": {
+          "type": "open_ended",
+          "value": "Based on the heatmap, the 'heavy' treatment appears to have the darkest colors across most types, suggesting it has the greatest overall impact on rainfall reduction."
+        },
+        "key_insights": [
+          "Assuming a color scale where darker shades represent higher rainfall reduction, we look for the treatment with the darkest overall appearance. This visual assessment leads to a subjective conclusion."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "highlight_region",
+            "reasoning": "We use the highlight region tool to visually emphasize the grazing treatment's column (or row) with the darkest colour."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_values": [
+                    "bacteria",
+                    "fungi"
+                  ],
+                  "y_values": [
+                    "heavy"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "type",
+            "y": "grazing_treatment",
+            "color": "rainfall_reduction"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "56_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/56_sport_life_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_03",
+      "question": "Use get_data with scope equal to all, highlight_region with x_values equal to Nike and y_values equal to Online, Retail Store to compute the exact average final price for Nike products sold online and compare it to the overall average final price for Nike across both sales channels.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "The average final price for Nike products sold online is $120. The overall average for Nike across both online and retail store is $122.5. Thus, the online price is $2.5 lower than the brand's overall average.",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "get_data",
+            "reasoning": "To retrieve the underlying numerical data for the heatmap. This will give us the exact average final price for each brand-sales channel combination."
+          },
+          {
+            "iteration": 2,
+            "tool": "highlight_region",
+            "reasoning": "To isolate the data for the brand Nike. We filter the view to show only the column for Nike. This simplifies the calculation of the overall average for Nike across both channels."
+          },
+          {
+            "iteration": 3,
+            "tool": "get_data_summary",
+            "reasoning": "After highlighting the \"Nike\" column, we use this tool to compute summary statistics for the visible data (the column for Nike). It will provide the mean of the values across the two sales channels."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            },
+            {
+              "tool": "highlight_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_values": [
+                    "Nike"
+                  ],
+                  "y_values": [
+                    "Online",
+                    "Retail Store"
+                  ]
+                }
+              }
+            },
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "visible"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "brand",
+            "y": "sales_channel",
+            "color": "final_price_usd"
+          }
+        }
+      }
+    }
+  ]
+}

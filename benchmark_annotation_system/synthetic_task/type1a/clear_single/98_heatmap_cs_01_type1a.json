@@ -1,0 +1,64 @@
+{
+  "task_type": "clear_single",
+  "task_id": "98_heatmap_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/98_gym_members_exercise_tracking_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use filter_cells_by_region with y_value equal to 1 to isolate and compare the mean BMI values across all Workout Types in this group.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "The largest gap in BMI values at this level is between HIIT and Yoga.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "HIIT has the highest mean BMI at Experience Level 2."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "Filtering isolates the data, removing visual clutter and enabling a direct, clear comparison to answer the question."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "y_value": "1"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Workout_Type",
+            "y": "Experience_Level",
+            "color": "BMI"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"3\"], datum['Experience_Level']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            },
+            {
+              "filter": "!(indexof([\"1\"], datum['Experience_Level']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

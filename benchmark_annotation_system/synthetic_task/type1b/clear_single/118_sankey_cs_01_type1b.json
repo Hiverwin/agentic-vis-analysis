@@ -1,0 +1,52 @@
+{
+  "task_type": "clear_single",
+  "task_id": "118_sankey_cs_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/118_sankey_semiconducto.json",
+  "eval_weights": {
+    "tool_call": 0.8,
+    "final_state": 0.2
+  },
+  "questions": [
+    {
+      "qid": "cs_01",
+      "question": "Use trace_node to compute which batch has the highest percentage of overlay errors from Wafer Start to Lithography.",
+      "ground_truth": {
+        "task_type": "clear_single",
+        "answer": {
+          "type": "categorical",
+          "value": "Batch C",
+          "alternatives": []
+        },
+        "key_insights": [],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "trace_node",
+            "reasoning": "We select the node Overlay Error and highlight the conncted flowa,then we can see the flow from Batch C is the thickest."
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "trace_node",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "node_name": "Overlay Error"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": null,
+            "y": null,
+            "color": null
+          }
+        }
+      }
+    }
+  ]
+}

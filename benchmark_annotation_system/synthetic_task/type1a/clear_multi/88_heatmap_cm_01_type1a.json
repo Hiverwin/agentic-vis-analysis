@@ -1,0 +1,76 @@
+{
+  "task_type": "clear_multi",
+  "task_id": "88_heatmap_cm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/88_patient_churn_dataset_heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.7,
+    "final_state": 0.3
+  },
+  "questions": [
+    {
+      "qid": "cm_02",
+      "question": "Use filter_cells_by_region with x_value equal to Male, get_data_summary with scope equal to all to compute the exact numerical value of the mean Total Bill Amount for patients with Chronic Disease in the Male group.",
+      "ground_truth": {
+        "task_type": "clear_multi",
+        "answer": {
+          "type": "categorical",
+          "value": "Females with chronic disease have a substantially higher mean Total Bill Amount than females without chronic disease.",
+          "alternatives": []
+        },
+        "key_insights": [
+          "Females with chronic disease have a much higher mean bill amount than those without.",
+          "The standard deviations are relatively small"
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "filter_cells_by_region",
+            "reasoning": "to get the raw values"
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data_summary",
+            "reasoning": "to check the statistical validity"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "filter_cells_by_region",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "x_value": "Male"
+                }
+              }
+            },
+            {
+              "tool": "get_data_summary",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Gender",
+            "y": "Chronic_Disease",
+            "color": "Total_Bill_Amount"
+          },
+          "data_filtered": [
+            {
+              "filter": "!(indexof([\"Male\"], datum['Gender']) >= 0)",
+              "_avs_tag": "filter_cells_by_region"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

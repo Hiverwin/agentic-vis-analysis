@@ -1,0 +1,69 @@
+{
+  "task_type": "vague_multi",
+  "task_id": "64_heatmap_vm_01",
+  "vega_spec_path": "benchmark_annotation_system/backend/specs/64_US Christmas Tree Sales _heatmap.json",
+  "eval_weights": {
+    "tool_call": 0.2,
+    "final_state": 0.8
+  },
+  "questions": [
+    {
+      "qid": "vm_02",
+      "question": "Use get_data, adjust_color_scale to compare the price trends of fake and real trees and examine whether there is a correlation between the price changes of the two tree types over the years.",
+      "ground_truth": {
+        "task_type": "vague_multi",
+        "answer": {
+          "type": "open_ended",
+          "value": "The price changes of fake and real trees are positively correlated, as both increase over time"
+        },
+        "key_insights": [
+          "Both tree types follow an upward trajectory, but fake trees are consistently more expensive.",
+          "The price changes of fake and real trees are positively correlated, as both increase over time."
+        ],
+        "reasoning": [
+          {
+            "iteration": 1,
+            "tool": "adjust_color_scale",
+            "reasoning": "Adjusting the color scale improves visual compariso"
+          },
+          {
+            "iteration": 2,
+            "tool": "get_data",
+            "reasoning": "extracting the data allows for a more precise correlation analysis"
+          }
+        ],
+        "tool_eval": {
+          "tools": [
+            {
+              "tool": "adjust_color_scale",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scheme": "reds"
+                }
+              }
+            },
+            {
+              "tool": "get_data",
+              "param_eval": {
+                "type": "object",
+                "param": "all_params",
+                "target": {
+                  "scope": "all"
+                }
+              }
+            }
+          ]
+        },
+        "state_eval": {
+          "encoding": {
+            "x": "Year",
+            "y": "Type of tree",
+            "color": "Average Tree Price"
+          }
+        }
+      }
+    }
+  ]
+}
