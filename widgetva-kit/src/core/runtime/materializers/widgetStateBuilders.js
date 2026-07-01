@@ -33,6 +33,88 @@ function normalizeSelections(activeSelectionOrSelections) {
   return activeSelectionOrSelections ? [activeSelectionOrSelections] : []
 }
 
+function selectionTargetsField(selections, field) {
+  if (typeof field !== 'string' || field.length === 0) return false
+  return selections.some((selection) => (
+    selection?.field === field
+    || (Array.isArray(selection?.predicates) && selection.predicates.some((predicate) => predicate?.field === field))
+  ))
+}
+
+function escapeDatumField(field) {
+  return String(field).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+}
+
+function buildPredicateExpression(predicate) {
+  const field = typeof predicate?.field === 'string' ? predicate.field : null
+  if (!field) return null
+  const datumRef = `datum['${escapeDatumField(field)}']`
+
+  if (predicate.op === 'equals') {
+    return `${datumRef} === ${JSON.stringify(predicate.value)}`
+  }
+  if (predicate.op === 'in' && Array.isArray(predicate.value) && predicate.value.length > 0) {
+    return `indexof(${JSON.stringify(predicate.value)}, ${datumRef}) >= 0`
+  }
+  if (predicate.op === 'between' && Array.isArray(predicate.value) && predicate.value.length >= 2) {
+    const [left, right] = predicate.value
+    const minValue = Math.min(left, right)
+    const maxValue = Math.max(left, right)
+    return `${datumRef} >= ${JSON.stringify(minValue)} && ${datumRef} <= ${JSON.stringify(maxValue)}`
+  }
+  return null
+}
+
+function buildSelectionConditionExpression(selections) {
+  const clauses = normalizeSelections(selections)
+    .map((selection) => {
+      const predicates = Array.isArray(selection?.predicates) ? selection.predicates : []
+      const predicateClauses = predicates.map((predicate) => buildPredicateExpression(predicate)).filter(Boolean)
+      return predicateClauses.length > 0 ? `(${predicateClauses.join(' && ')})` : null
+    })
+    .filter(Boolean)
+  return clauses.length > 0 ? clauses.join(' || ') : null
+}
+
+function buildLineXSelectionSpec(nextSpec) {
+  const baseMark = typeof nextSpec?.mark === 'string'
+    ? { type: nextSpec.mark, point: false }
+    : {
+        ...(nextSpec?.mark || {}),
+        point: false,
+      }
+
+  const rootEncoding = cloneValue(nextSpec?.encoding || {})
+  const layeredSpec = {
+    ...nextSpec,
+    encoding: rootEncoding,
+    layer: [
+      {
+        mark: baseMark,
+        encoding: {
+          opacity: { value: 0.22 },
+        },
+      },
+      {
+        transform: [{ filter: 'datum.__widgetva_selected === true' }],
+        mark: {
+          type: 'point',
+          filled: true,
+          size: 72,
+          stroke: '#ffffff',
+          strokeWidth: 1.25,
+        },
+        encoding: {
+          opacity: { value: 1 },
+        },
+      },
+    ],
+  }
+
+  delete layeredSpec.mark
+  return layeredSpec
+}
+
 export function buildEncodings(spec) {
   const enc = spec?.encoding || {}
   const normalized = {}
@@ -179,9 +261,27 @@ export function applyHighlightToSpec({ widgetSpec, inboundLinks, activeSelection
 
 export function applySelectionToSpec({ widgetSpec, activeSelections, selectionEnabled = false }) {
   const selections = normalizeSelections(activeSelections)
-  if (!selectionEnabled || !Array.isArray(widgetSpec?.data?.values) || selections.length === 0) return widgetSpec
+  if (!selectionEnabled || selections.length === 0) return widgetSpec
 
   const nextSpec = cloneValue(widgetSpec)
+  const markType = readMarkType(nextSpec)
+  if (markType === 'rect') {
+    const selectionTest = buildSelectionConditionExpression(selections)
+    if (!selectionTest) return nextSpec
+    nextSpec.encoding = {
+      ...(nextSpec.encoding || {}),
+      opacity: {
+        condition: {
+          test: selectionTest,
+          value: 1,
+        },
+        value: 0.22,
+      },
+    }
+    return nextSpec
+  }
+
+  if (!Array.isArray(nextSpec?.data?.values)) return widgetSpec
   const selectedRows = nextSpec.data.values.map((row) => ({
     ...row,
     __widgetva_selected: rowMatchesAnySelection(row, selections),
@@ -195,6 +295,11 @@ export function applySelectionToSpec({ widgetSpec, activeSelections, selectionEn
     return nextSpec
   }
 
+  const xField = nextSpec?.encoding?.x?.field || null
+  if (markType === 'line' && selectionTargetsField(selections, xField)) {
+    return buildLineXSelectionSpec(nextSpec)
+  }
+
   const nextEncoding = {
     ...(nextSpec.encoding || {}),
     opacity: {
@@ -205,14 +310,29 @@ export function applySelectionToSpec({ widgetSpec, activeSelections, selectionEn
       value: 0.22,
     },
   }
-  const markType = readMarkType(nextSpec)
+  if (markType === 'rect') {
+    nextEncoding.opacity = {
+      condition: {
+        test: 'datum.__widgetva_selected === true',
+        value: 1,
+      },
+      value: 0.22,
+    }
+  }
   if (markType === 'point' || markType === 'circle') {
+    nextEncoding.opacity = {
+      condition: {
+        test: 'datum.__widgetva_selected === true',
+        value: 0.98,
+      },
+      value: 0.38,
+    }
     nextEncoding.strokeOpacity = {
       condition: {
         test: 'datum.__widgetva_selected === true',
         value: 1,
       },
-      value: 0.12,
+      value: 0.24,
     }
     nextEncoding.strokeWidth = {
       condition: {
@@ -233,7 +353,7 @@ export function applySelectionToSpec({ widgetSpec, activeSelections, selectionEn
         test: 'datum.__widgetva_selected === true',
         value: 0.9,
       },
-      value: 0.04,
+      value: 0.12,
     }
   }
   nextSpec.encoding = nextEncoding

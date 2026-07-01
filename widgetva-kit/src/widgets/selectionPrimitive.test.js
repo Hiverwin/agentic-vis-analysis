@@ -61,6 +61,7 @@ test('selection primitive closes observe-act-verify for scatter interval brushin
       })
 
       const afterObservation = widget.readObservation()
+      const widgetState = widget.readState()
       const verificationState = widget.readVerificationState()
       const selectionSummary = await widget.queryPerception({
         name: 'perception.summarizeSelection',
@@ -80,6 +81,8 @@ test('selection primitive closes observe-act-verify for scatter interval brushin
       assert.equal(afterObservation?.selection?.localSelectionCount, 1)
       assert.equal(afterObservation?.selection?.activeSelectionKind, 'interval')
       assert.deepEqual(afterObservation?.selection?.activeSelectionFields, ['x', 'y'])
+      assert.equal(widgetState?.rawSpec?.layer?.some((layer) => layer?._widgetvaTag === 'scatter.brushRegion') || false, false)
+      assert.equal(typeof widgetState?.rawSpec?.encoding?.opacity?.condition?.test, 'string')
       assert.equal(verificationState?.checks?.selectionApplied, true)
       assert.equal(verificationState?.selections?.count, 1)
       assert.equal(selectionSummary?.ok, true)

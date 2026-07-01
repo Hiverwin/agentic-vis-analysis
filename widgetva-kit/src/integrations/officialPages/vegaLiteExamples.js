@@ -1,5 +1,6 @@
 import { createProviderFamilyAdapter } from '../../adapters/widgetFamilies/index.js'
 import { applySelectionToSpec } from '../../core/runtime/materializers/widgetStateBuilders.js'
+import { extractPredicatesFromFilterTransform } from '../../core/runtime/materializers/transformHelpers.js'
 import { installBrowserExtensionBridge } from '../../transports/browserExtensionBridge.js'
 import { runPagePortAgentLoop } from '../../core/runtime/pagePortAgentLoop.js'
 import { createWidgetInstance } from '../../widgets/widgetInstance.js'
@@ -34,6 +35,119 @@ function decodeHtmlEntities(text) {
 function stripHtmlTags(text) {
   if (typeof text !== 'string' || text.length === 0) return ''
   return decodeHtmlEntities(text.replace(/<[^>]+>/g, ' '))
+}
+
+function coerceDelimitedValue(value) {
+  if (typeof value !== 'string') return value
+  const trimmed = value.trim()
+  if (trimmed.length === 0) return ''
+  if (/^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(trimmed)) {
+    const numeric = Number(trimmed)
+    if (Number.isFinite(numeric)) return numeric
+  }
+  if (trimmed === 'true') return true
+  if (trimmed === 'false') return false
+  return trimmed
+}
+
+function parseDelimitedRow(line, delimiter) {
+  const cells = []
+  let current = ''
+  let inQuotes = false
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index]
+    if (char === '"') {
+      if (inQuotes && line[index + 1] === '"') {
+        current += '"'
+        index += 1
+      } else {
+        inQuotes = !inQuotes
+      }
+      continue
+    }
+    if (char === delimiter && !inQuotes) {
+      cells.push(current)
+      current = ''
+      continue
+    }
+    current += char
+  }
+  cells.push(current)
+  return cells
+}
+
+function parseDelimitedText(text, delimiter = ',') {
+  const normalized = typeof text === 'string'
+    ? text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    : ''
+  const lines = normalized
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .filter((line) => line.length > 0)
+  if (lines.length === 0) return []
+
+  const headers = parseDelimitedRow(lines[0], delimiter).map((value) => String(value).trim())
+  return lines.slice(1).map((line) => {
+    const values = parseDelimitedRow(line, delimiter)
+    return Object.fromEntries(
+      headers.map((header, index) => [header, coerceDelimitedValue(values[index] ?? '')]),
+    )
+  })
+}
+
+async function loadOfficialExampleDataValues({ root, spec }) {
+  const dataUrl = typeof spec?.data?.url === 'string' ? spec.data.url : null
+  if (!dataUrl || Array.isArray(spec?.data?.values)) {
+    return spec
+  }
+
+  const fetchImpl =
+    root?.fetch?.bind(root)
+    || globalThis.fetch?.bind(globalThis)
+    || null
+  if (typeof fetchImpl !== 'function') {
+    return spec
+  }
+
+  try {
+    const response = await fetchImpl(dataUrl)
+    if (!response?.ok) {
+      return spec
+    }
+
+    const url = tryParseUrl(dataUrl)
+    const pathname = url?.pathname?.toLowerCase?.() || dataUrl.toLowerCase()
+    if (pathname.endsWith('.json')) {
+      const payload = await response.json()
+      if (!Array.isArray(payload)) {
+        return spec
+      }
+      return {
+        ...spec,
+        data: {
+          ...(spec.data || {}),
+          values: clone(payload),
+        },
+      }
+    }
+
+    const rawText = await response.text()
+    const delimiter = pathname.endsWith('.tsv') ? '\t' : ','
+    const rows = parseDelimitedText(rawText, delimiter)
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return spec
+    }
+    return {
+      ...spec,
+      data: {
+        ...(spec.data || {}),
+        values: rows,
+      },
+    }
+  } catch {
+    return spec
+  }
 }
 
 function collectCodeLikeBlocks(html) {
@@ -155,155 +269,14 @@ function absolutizeDataUrls(node, pageUrl, inDataScope = false) {
   return next
 }
 
-function parseDelimitedRow(line, delimiter) {
-  const cells = []
-  let current = ''
-  let inQuotes = false
-
-  for (let index = 0; index < line.length; index += 1) {
-    const char = line[index]
-    const nextChar = line[index + 1]
-
-    if (char === '"') {
-      if (inQuotes && nextChar === '"') {
-        current += '"'
-        index += 1
-        continue
-      }
-      inQuotes = !inQuotes
-      continue
-    }
-
-    if (char === delimiter && !inQuotes) {
-      cells.push(current)
-      current = ''
-      continue
-    }
-
-    current += char
-  }
-
-  cells.push(current)
-  return cells
-}
-
-function coerceDelimitedValue(value) {
-  if (typeof value !== 'string') return value
-  const trimmed = value.trim()
-  if (trimmed.length === 0) return ''
-  if (trimmed === 'true') return true
-  if (trimmed === 'false') return false
-  if (trimmed === 'null') return null
-  const numericValue = Number(trimmed)
-  if (!Number.isNaN(numericValue) && trimmed !== '') {
-    return numericValue
-  }
-  return trimmed
-}
-
-function parseDelimitedText(text, delimiter = ',') {
-  if (typeof text !== 'string' || text.trim().length === 0) return []
-  const normalizedText = text.replace(/^\uFEFF/, '')
-  const lines = normalizedText
-    .split(/\r?\n/)
-    .map((line) => line.trimEnd())
-    .filter((line) => line.length > 0)
-  if (lines.length === 0) return []
-
-  const headers = parseDelimitedRow(lines[0], delimiter).map((header) => header.trim())
-  return lines.slice(1).map((line) => {
-    const cells = parseDelimitedRow(line, delimiter)
-    const row = {}
-    for (let index = 0; index < headers.length; index += 1) {
-      const header = headers[index]
-      if (!header) continue
-      row[header] = coerceDelimitedValue(cells[index] ?? '')
-    }
-    return row
-  })
-}
-
-async function readRowsFromVegaLiteDataUrl(spec, root = globalThis.window) {
-  const dataUrl = typeof spec?.data?.url === 'string' ? spec.data.url.trim() : ''
-  if (dataUrl.length === 0) return null
-
-  const fetchImpl = root?.fetch || globalThis.fetch
-  if (typeof fetchImpl !== 'function') {
-    throw new Error('No fetch implementation is available to hydrate Vega-Lite example data.')
-  }
-
-  const response = await fetchImpl(dataUrl)
-  if (!response?.ok) {
-    throw new Error(`Failed to load Vega-Lite example data from ${dataUrl}: ${response?.status || 'unknown'}`)
-  }
-
-  const lowerUrl = dataUrl.toLowerCase()
-  if (lowerUrl.endsWith('.json') || lowerUrl.endsWith('.topojson') || lowerUrl.endsWith('.geojson')) {
-    const payload = await response.json()
-    if (Array.isArray(payload)) return payload
-    if (Array.isArray(payload?.values)) return payload.values
-    if (Array.isArray(payload?.features)) return payload.features
-    return null
-  }
-
-  const text = await response.text()
-  if (lowerUrl.endsWith('.tsv')) {
-    return parseDelimitedText(text, '\t')
-  }
-  return parseDelimitedText(text, ',')
-}
-
-function hydrateSpecWithRows(spec, rows) {
-  if (!Array.isArray(rows)) return clone(spec)
-  return {
-    ...clone(spec),
-    data: {
-      ...(spec?.data && typeof spec.data === 'object' && !Array.isArray(spec.data) ? clone(spec.data) : {}),
-      values: clone(rows),
-    },
-  }
-}
-
-function projectRuntimeSpecToExternalSpec(runtimeSpec, previousExternalSpec) {
-  const nextSpec = clone(runtimeSpec)
-  const externalDataUrl = typeof previousExternalSpec?.data?.url === 'string'
-    ? previousExternalSpec.data.url
-    : null
-
-  if (!externalDataUrl) {
-    return nextSpec
-  }
-
-  const nextData = nextSpec?.data && typeof nextSpec.data === 'object' && !Array.isArray(nextSpec.data)
-    ? { ...nextSpec.data }
-    : {}
-  delete nextData.values
-  nextData.url = externalDataUrl
-
-  return {
-    ...nextSpec,
-    data: nextData,
-  }
-}
-
-function createOfficialPageHostBridge({
-  sessionId,
-  baselineSpec,
-  baselineRuntimeSpec,
-  currentSpecRef,
-  externalSpecRef,
-  userIntent = null,
-}) {
+function createOfficialPageHostBridge({ sessionId, baselineSpec, currentSpecRef, userIntent = null }) {
   return {
     subscribe: () => () => {},
     readSessionId: () => sessionId,
-    readBaselineSpec: () => clone(baselineRuntimeSpec || baselineSpec),
+    readBaselineSpec: () => clone(baselineSpec),
     readCurrentSpec: () => clone(currentSpecRef.current),
     writeCurrentSpec(nextSpec) {
       currentSpecRef.current = clone(nextSpec)
-      if (externalSpecRef?.current) {
-        externalSpecRef.current = projectRuntimeSpecToExternalSpec(nextSpec, externalSpecRef.current)
-      }
     },
     readWorkspaceSpec: () => null,
     readPlanningRequest: () => null,
@@ -314,6 +287,47 @@ function createOfficialPageHostBridge({
     readFocusedWidgetRef: () => null,
     readComparisonTargets: () => [],
     readWorkspaceAnnotations: () => [],
+  }
+}
+
+function addHeatmapAxisAliasesToRows(spec) {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
+    return spec
+  }
+
+  const mark = typeof spec?.mark === 'string' ? spec.mark : spec?.mark?.type
+  const rows = spec?.data?.values
+  if (mark !== 'rect' || !Array.isArray(rows) || rows.length === 0) {
+    return spec
+  }
+
+  const xField = typeof spec?.encoding?.x?.field === 'string' ? spec.encoding.x.field : null
+  const yField = typeof spec?.encoding?.y?.field === 'string' ? spec.encoding.y.field : null
+  if (!xField && !yField) {
+    return spec
+  }
+
+  const aliasedRows = rows.map((row) => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) {
+      return row
+    }
+
+    const nextRow = { ...row }
+    if (xField && !Object.prototype.hasOwnProperty.call(nextRow, 'x') && Object.prototype.hasOwnProperty.call(nextRow, xField)) {
+      nextRow.x = nextRow[xField]
+    }
+    if (yField && !Object.prototype.hasOwnProperty.call(nextRow, 'y') && Object.prototype.hasOwnProperty.call(nextRow, yField)) {
+      nextRow.y = nextRow[yField]
+    }
+    return nextRow
+  })
+
+  return {
+    ...spec,
+    data: {
+      ...(spec.data || {}),
+      values: aliasedRows,
+    },
   }
 }
 
@@ -406,14 +420,41 @@ function normalizeWidgetSelections(state) {
   return Object.values(state?.selections || {}).filter(Boolean)
 }
 
-function resolveSelectionMaterializationRows({ semanticSpec, state, runtime }) {
-  if (Array.isArray(semanticSpec?.data?.values)) {
-    return clone(semanticSpec.data.values)
-  }
+function isRuntimeMaterializedTransform(transform) {
+  if (!transform || typeof transform !== 'object') return false
+  return (
+    Array.isArray(transform.aggregate)
+    || (Array.isArray(transform.fold) && transform.fold.length > 0)
+    || extractPredicatesFromFilterTransform(transform).length > 0
+  )
+}
 
+function resolveSelectionMaterialization({ semanticSpec, state, runtime }) {
   const dataRef = state?.data?.currentDataRef || state?.data?.sourceDataRef || null
   const runtimeRows = dataRef ? runtime?.store?.readRuntimeData?.(dataRef)?.rows : null
-  return Array.isArray(runtimeRows) ? clone(runtimeRows) : null
+  const hasRuntimeMaterializedTransforms = Array.isArray(semanticSpec?.transform)
+    && semanticSpec.transform.some((transform) => isRuntimeMaterializedTransform(transform))
+
+  if (hasRuntimeMaterializedTransforms && Array.isArray(runtimeRows)) {
+    return {
+      rows: clone(runtimeRows),
+      stripMaterializedTransforms: true,
+    }
+  }
+
+  if (Array.isArray(semanticSpec?.data?.values)) {
+    return {
+      rows: clone(semanticSpec.data.values),
+      stripMaterializedTransforms: false,
+    }
+  }
+
+  return Array.isArray(runtimeRows)
+    ? {
+        rows: clone(runtimeRows),
+        stripMaterializedTransforms: false,
+      }
+    : null
 }
 
 function buildOfficialPageRenderSpec({
@@ -427,11 +468,12 @@ function buildOfficialPageRenderSpec({
     return baseSpec
   }
 
-  const rows = resolveSelectionMaterializationRows({
+  const materialization = resolveSelectionMaterialization({
     semanticSpec: baseSpec,
     state,
     runtime,
   })
+  const rows = materialization?.rows
   if (!Array.isArray(rows) || rows.length === 0) {
     return baseSpec
   }
@@ -441,6 +483,9 @@ function buildOfficialPageRenderSpec({
     data: {
       values: rows,
     },
+  }
+  if (materialization?.stripMaterializedTransforms && Array.isArray(baseSpec.transform)) {
+    nextSpec.transform = baseSpec.transform.filter((transform) => !isRuntimeMaterializedTransform(transform))
   }
 
   return applySelectionToSpec({
@@ -531,23 +576,19 @@ export async function attachWidgetVAToVegaLiteExample({
     throw new Error('attachWidgetVAToVegaLiteExample requires a Vega/Vega-Lite view instance.')
   }
 
-  const integrationInput = readVegaLiteExampleIntegrationInput({ html, text, pageUrl })
+  const rawIntegrationInput = readVegaLiteExampleIntegrationInput({ html, text, pageUrl })
+  const hydratedSpec = await loadOfficialExampleDataValues({
+    root,
+    spec: rawIntegrationInput.spec,
+  })
+  const integrationInput = {
+    ...rawIntegrationInput,
+    spec: addHeatmapAxisAliasesToRows(hydratedSpec),
+  }
   const widgetAdapter = createProviderFamilyAdapter(integrationInput.kind, 'vega-lite')
   const baselineSpec = clone(integrationInput.spec)
-  let hydratedRows = Array.isArray(integrationInput.spec?.data?.values)
-    ? clone(integrationInput.spec.data.values)
-    : null
-  if (!Array.isArray(hydratedRows)) {
-    try {
-      hydratedRows = await readRowsFromVegaLiteDataUrl(integrationInput.spec, root)
-    } catch {
-      hydratedRows = null
-    }
-  }
-  const baselineRuntimeSpec = hydrateSpecWithRows(baselineSpec, hydratedRows)
-  const currentSpecRef = { current: clone(baselineRuntimeSpec) }
-  const externalSpecRef = { current: clone(baselineSpec) }
-  const renderedSpecRef = { current: clone(baselineRuntimeSpec) }
+  const currentSpecRef = { current: clone(integrationInput.spec) }
+  const renderedSpecRef = { current: clone(integrationInput.spec) }
   const viewRef = { current: view }
   const proxyView = createMutableViewProxy(viewRef)
   const rematerialize = createOfficialPageMaterializer({
@@ -589,24 +630,21 @@ export async function attachWidgetVAToVegaLiteExample({
       hostBridge: createOfficialPageHostBridge({
         sessionId: sessionId || `official-vega-lite-${integrationInput.kind}`,
         baselineSpec,
-        baselineRuntimeSpec,
         currentSpecRef,
-        externalSpecRef,
         userIntent,
       }),
     },
   })
 
-  await widget.mount({ view: proxyView, spec: baselineRuntimeSpec })
+  await widget.mount({ view: proxyView, spec: baselineSpec })
 
   return {
     ...integrationInput,
-    spec: clone(externalSpecRef.current),
     widget,
     widgetAdapter,
     runAgentLoop: createOfficialPageAgentLoopRunner(root),
     getCurrentSpec() {
-      return clone(externalSpecRef.current)
+      return clone(currentSpecRef.current)
     },
     describeAgentContract() {
       return widget.describeAgentContract()

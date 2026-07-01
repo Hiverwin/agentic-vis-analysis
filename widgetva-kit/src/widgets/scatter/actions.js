@@ -1,10 +1,81 @@
 import { makeActionDescriptor, makeFilterEffect, makeSelectionEffect } from '../../core/protocol/actions.js'
 import { buildSelectionActionResult } from '../../adapters/widgets/shared/selectionResult.js'
 
+const SCATTER_BRUSH_TAG = 'scatter.brushRegion'
+
 function replaceTaggedLayer(layers, tag, nextLayer) {
   const safeLayers = Array.isArray(layers) ? layers : []
   const nextLayers = safeLayers.filter((layer) => layer?._widgetvaTag !== tag)
   return nextLayer ? [...nextLayers, nextLayer] : nextLayers
+}
+
+function isScatterPointMark(mark) {
+  const type = typeof mark === 'string' ? mark : mark?.type
+  return !type || type === 'point' || type === 'circle' || type === 'square'
+}
+
+function buildDatumBetweenTest(field, min, max) {
+  return `datum[${JSON.stringify(field)}] >= ${min} && datum[${JSON.stringify(field)}] <= ${max}`
+}
+
+function withBrushOpacity(layer, { xField, yField, xMin, xMax, yMin, yMax }) {
+  const encoding = layer?.encoding || {}
+  const inBrushTest = [
+    buildDatumBetweenTest(xField, xMin, xMax),
+    buildDatumBetweenTest(yField, yMin, yMax),
+  ].join(' && ')
+
+  return {
+    ...layer,
+    encoding: {
+      ...encoding,
+      opacity: {
+        condition: {
+          test: inBrushTest,
+          value: 1,
+        },
+        value: 0.68,
+      },
+    },
+  }
+}
+
+function applyBrushVisualToSpec(spec, brush) {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
+    throw new Error('No active base spec is available for scatter brush visuals.')
+  }
+
+  if (Array.isArray(spec.layer) && spec.layer.length > 0) {
+    let applied = false
+    const visualLayers = spec.layer
+      .filter((layer) => layer?._widgetvaTag !== SCATTER_BRUSH_TAG)
+      .map((layer) => {
+        if (!applied && !layer?._widgetvaTag && isScatterPointMark(layer?.mark)) {
+          applied = true
+          return withBrushOpacity(layer, brush)
+        }
+        return layer
+      })
+    return {
+      ...spec,
+      layer: visualLayers,
+      _scatter_brush_state: {
+        fields: [brush.xField, brush.yField],
+        xRange: [brush.xMin, brush.xMax],
+        yRange: [brush.yMin, brush.yMax],
+      },
+    }
+  }
+
+  return {
+    ...spec,
+    encoding: withBrushOpacity({ encoding: spec.encoding || {} }, brush).encoding,
+    _scatter_brush_state: {
+      fields: [brush.xField, brush.yField],
+      xRange: [brush.xMin, brush.xMax],
+      yRange: [brush.yMin, brush.yMax],
+    },
+  }
 }
 
 function euclideanDistanceSquared(a, b) {
@@ -277,8 +348,16 @@ export function registerScatterActions(actionExecutor) {
           return typeof x === 'number' && typeof y === 'number' && x >= xMin && x <= xMax && y >= yMin && y <= yMax
         })
 
+        ctx.updateCurrentSpec((spec) => applyBrushVisualToSpec(spec, {
+          xField: params.xField,
+          yField: params.yField,
+          xMin,
+          xMax,
+          yMin,
+          yMax,
+        }))
         const nextState = ctx.commitSelection({
-          selection_id: `sel_${Date.now()}`,
+          selection_id: 'brush',
           source_widget_id: targetWidget.widgetId || undefined,
           selection_type: 'interval',
           fields: [params.xField, params.yField],

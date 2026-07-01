@@ -222,6 +222,49 @@ test('materializeWorkspace preserves shared viewport state from the host/runtime
   })
 })
 
+test('materializeWorkspace materializes Vega-Lite fold transforms into visible rows for line series selection', () => {
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'line-fold-session',
+    spec: {
+      data: {
+        values: [
+          { date: '2024-01-01', AAPL: 10, AMZN: 20, GOOG: 30 },
+          { date: '2024-02-01', AAPL: 15, AMZN: 18, GOOG: 28 },
+        ],
+      },
+      transform: [
+        {
+          fold: ['AAPL', 'AMZN', 'GOOG'],
+          as: ['symbol', 'price'],
+        },
+      ],
+      mark: 'line',
+      encoding: {
+        x: { field: 'date', type: 'temporal' },
+        y: { field: 'price', type: 'quantitative' },
+        color: { field: 'symbol', type: 'nominal' },
+      },
+    },
+  })
+
+  const widgetRef = makeWidgetRef({ widgetId: 'session_line-fold-session' })
+  const visibleDataRef = workspace.state.widgets?.[widgetRef]?.data?.currentDataRef
+  const visibleRows = visibleDataRef ? workspace.runtimeData?.[visibleDataRef]?.rows : null
+
+  assert.equal(Array.isArray(visibleRows), true)
+  assert.equal(visibleRows.length, 6)
+  assert.deepEqual(
+    visibleRows.slice(0, 3),
+    [
+      { date: '2024-01-01', AAPL: 10, AMZN: 20, GOOG: 30, symbol: 'AAPL', price: 10 },
+      { date: '2024-01-01', AAPL: 10, AMZN: 20, GOOG: 30, symbol: 'AMZN', price: 20 },
+      { date: '2024-01-01', AAPL: 10, AMZN: 20, GOOG: 30, symbol: 'GOOG', price: 30 },
+    ],
+  )
+})
+
 test('materializeWorkspace materializes shared focus and highlight slices as first-class coordination state', () => {
   const widgetRef = 'wl://widgetva-app/workspace/main/widget/session_focus-highlight'
   const workspace = materializeWorkspace({

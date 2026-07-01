@@ -35,10 +35,33 @@ function cloneValue(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
+function isPrimitiveSelectionValue(value) {
+  return typeof value === 'string' || typeof value === 'number'
+}
+
 function replaceTaggedTransform(transforms, tag, nextTransform) {
   const safeTransforms = Array.isArray(transforms) ? transforms : []
   const nextTransforms = safeTransforms.filter((transform) => transform?._widgetvaTag !== tag)
   return nextTransform ? [...nextTransforms, nextTransform] : nextTransforms
+}
+
+function resolveHeatmapAxisFieldAlias(spec, requestedField, axis) {
+  if (typeof requestedField !== 'string' || requestedField.length === 0) {
+    return null
+  }
+
+  const encodingField = typeof spec?.encoding?.[axis]?.field === 'string'
+    ? spec.encoding[axis].field
+    : null
+  if (!encodingField) {
+    return requestedField
+  }
+
+  if (requestedField === axis || requestedField === encodingField) {
+    return encodingField
+  }
+
+  return requestedField
 }
 
 function normalizeTimeUnitValues(field, values, timeUnit) {
@@ -111,8 +134,8 @@ export function buildHeatmapActionDescriptors({ widgetRef, selectionRef, scope =
         properties: {
           xField: { type: 'string' },
           yField: { type: 'string' },
-          xValue: { type: 'string' },
-          yValue: { type: 'string' },
+          xValue: { anyOf: [{ type: 'string' }, { type: 'number' }] },
+          yValue: { anyOf: [{ type: 'string' }, { type: 'number' }] },
         },
         required: ['xField', 'yField', 'xValue', 'yValue'],
       },
@@ -622,10 +645,11 @@ export function registerHeatmapActions(actionExecutor) {
           kind: 'heatmap',
           message: invalidTargetMessage,
         })
-        const xField = typeof params.xField === 'string' ? params.xField : null
-        const yField = typeof params.yField === 'string' ? params.yField : null
-        const xValue = typeof params.xValue === 'string' ? params.xValue : null
-        const yValue = typeof params.yValue === 'string' ? params.yValue : null
+        const currentSpec = ctx.readCurrentSpec() || targetWidget?.rawSpec || null
+        const xField = resolveHeatmapAxisFieldAlias(currentSpec, typeof params.xField === 'string' ? params.xField : null, 'x')
+        const yField = resolveHeatmapAxisFieldAlias(currentSpec, typeof params.yField === 'string' ? params.yField : null, 'y')
+        const xValue = isPrimitiveSelectionValue(params.xValue) ? params.xValue : null
+        const yValue = isPrimitiveSelectionValue(params.yValue) ? params.yValue : null
         if (!targetWidget || !xField || !yField || xValue == null || yValue == null) {
           throw new Error(invalidParamsMessage)
         }

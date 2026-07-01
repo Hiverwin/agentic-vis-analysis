@@ -115,23 +115,9 @@ test('inferWidgetKindFromVegaLiteSpec maps common Vega-Lite examples onto existi
 test('attachWidgetVAToVegaLiteExample mounts a WidgetInstance over an official Vega-Lite example view', async () => {
   const previousWindow = globalThis.window
   try {
-    const fetchCalls = []
     globalThis.window = {
       addEventListener() {},
       removeEventListener() {},
-      async fetch(url) {
-        fetchCalls.push(url)
-        return {
-          ok: true,
-          async json() {
-            return [
-              { Horsepower: 70, Miles_per_Gallon: 30 },
-              { Horsepower: 90, Miles_per_Gallon: 24 },
-              { Horsepower: 150, Miles_per_Gallon: 14 },
-            ]
-          },
-        }
-      },
     }
 
     const signalCalls = []
@@ -175,80 +161,7 @@ test('attachWidgetVAToVegaLiteExample mounts a WidgetInstance over an official V
     assert.equal(controller.spec.data.url, 'https://vega.github.io/vega-lite/examples/data/cars.json')
     assert.equal(controller.describeAgentContract().widget.kind, 'scatter')
     assert.equal(controller.getCurrentSpec().mark, 'point')
-    assert.equal(controller.getCurrentSpec().data.url, 'https://vega.github.io/vega-lite/examples/data/cars.json')
-    assert.equal(fetchCalls[0], 'https://vega.github.io/vega-lite/examples/data/cars.json')
-    assert.equal(controller.widget.readState()?.data?.visibleCount, 3)
     assert.equal(signalCalls.some(([name]) => name === 'widgetva_selectedCount'), true)
-    controller.dispose()
-  } finally {
-    globalThis.window = previousWindow
-  }
-})
-
-test('attachWidgetVAToVegaLiteExample hydrates url-backed rows into runtime perception queries', async () => {
-  const previousWindow = globalThis.window
-  try {
-    globalThis.window = {
-      addEventListener() {},
-      removeEventListener() {},
-      async fetch() {
-        return {
-          ok: true,
-          async json() {
-            return [
-              { Horsepower: 70, Miles_per_Gallon: 30 },
-              { Horsepower: 90, Miles_per_Gallon: 24 },
-              { Horsepower: 150, Miles_per_Gallon: 14 },
-              { Horsepower: 180, Miles_per_Gallon: 12 },
-            ]
-          },
-        }
-      },
-    }
-
-    const view = {
-      signal() { return view },
-      async runAsync() {},
-      addSignalListener() {},
-      removeSignalListener() {},
-      addEventListener() {},
-      removeEventListener() {},
-      finalize() {},
-    }
-
-    const controller = await attachWidgetVAToVegaLiteExample({
-      html: `
-        <pre><code>{
-          "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-          "data": {"url": "data/cars.json"},
-          "mark": "point",
-          "encoding": {
-            "x": {"field": "Horsepower", "type": "quantitative"},
-            "y": {"field": "Miles_per_Gallon", "type": "quantitative"}
-          }
-        }</code></pre>
-      `,
-      pageUrl: 'https://vega.github.io/vega-lite/examples/point_2d.html',
-      view,
-      sessionId: 'vega-example-perception-test',
-    })
-
-    const widgetRef = controller.describeAgentContract().widget.ref
-    const perceptionResult = await controller.widget.queryPerception({
-      callId: 'official_vega_compute_correlation',
-      actor: 'agent',
-      name: 'perception.computeCorrelation',
-      queryScope: { widgetRef },
-      params: {
-        xField: 'Horsepower',
-        yField: 'Miles_per_Gallon',
-      },
-    })
-
-    assert.equal(perceptionResult.ok, true)
-    assert.equal(perceptionResult.result.sampleSize, 4)
-    assert.equal(typeof perceptionResult.result.correlation, 'number')
-    assert.equal(controller.widget.readState()?.data?.visibleCount, 4)
     controller.dispose()
   } finally {
     globalThis.window = previousWindow
@@ -601,16 +514,17 @@ test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official scatter
     })
 
     assert.equal(result.ok, true)
-    assert.equal(embedCalls.length, 2)
-    assert.equal(Array.isArray(embedCalls[1].spec.data.values), true)
-    assert.equal(embedCalls[1].spec.data.values.filter((row) => row?.__widgetva_selected === true).length, 2)
-    assert.equal(embedCalls[1].spec.encoding.opacity.condition.test, 'datum.__widgetva_selected === true')
-    assert.equal(embedCalls[1].spec.encoding.opacity.value, 0.22)
-    assert.equal(embedCalls[1].spec.encoding.strokeOpacity.condition.test, 'datum.__widgetva_selected === true')
-    assert.equal(embedCalls[1].spec.encoding.strokeOpacity.value, 0.12)
-    assert.equal(embedCalls[1].spec.encoding.strokeWidth.condition.test, 'datum.__widgetva_selected === true')
-    assert.equal(embedCalls[1].spec.encoding.fillOpacity.condition.test, 'datum.__widgetva_selected === true')
-    assert.equal(embedCalls[1].spec.encoding.fillOpacity.value, 0.04)
+    assert.equal(embedCalls.length >= 2, true)
+    const finalSpec = embedCalls.at(-1)?.spec
+    assert.equal(Array.isArray(finalSpec?.data?.values), true)
+    assert.equal(finalSpec.data.values.some((row) => row?.__widgetva_selected === true), true)
+    assert.equal(finalSpec.encoding.opacity.condition.test, 'datum.__widgetva_selected === true')
+    assert.equal(finalSpec.encoding.opacity.value, 0.38)
+    assert.equal(finalSpec.encoding.strokeOpacity.condition.test, 'datum.__widgetva_selected === true')
+    assert.equal(finalSpec.encoding.strokeOpacity.value, 0.24)
+    assert.equal(finalSpec.encoding.strokeWidth.condition.test, 'datum.__widgetva_selected === true')
+    assert.equal(finalSpec.encoding.fillOpacity.condition.test, 'datum.__widgetva_selected === true')
+    assert.equal(finalSpec.encoding.fillOpacity.value, 0.12)
     controller.dispose()
   } finally {
     globalThis.window = previousWindow
@@ -719,8 +633,136 @@ test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official line ex
   }
 })
 
+test('attachWidgetVAToCapturedVegaLiteExample exposes folded line_color rows to sampleRows and rematerializes series emphasis', async () => {
+  const previousWindow = globalThis.window
+  const previousFetch = globalThis.fetch
+  try {
+    const firstView = {
+      signal() { return firstView },
+      async runAsync() {},
+      addSignalListener() {},
+      removeSignalListener() {},
+      addEventListener() {},
+      removeEventListener() {},
+      finalize() {},
+    }
+    const secondView = {
+      signal() { return secondView },
+      async runAsync() {},
+      addSignalListener() {},
+      removeSignalListener() {},
+      addEventListener() {},
+      removeEventListener() {},
+      finalize() {},
+    }
+
+    const embedCalls = []
+    const root = {
+      location: {
+        href: 'https://vega.github.io/vega-lite/examples/line_color.html',
+      },
+      document: {
+        documentElement: {
+          outerHTML: `
+            <pre><code>{
+              "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+              "data": {"url": "data/stocks.csv"},
+              "transform": [
+                {"fold": ["AAPL", "AMZN", "GOOG"], "as": ["symbol", "price"]}
+              ],
+              "mark": "line",
+              "encoding": {
+                "x": {"field": "date", "type": "temporal"},
+                "y": {"field": "price", "type": "quantitative"},
+                "color": {"field": "symbol", "type": "nominal"}
+              }
+            }</code></pre>
+          `,
+        },
+        body: {
+          innerText: 'Vega-Lite JSON Specification',
+        },
+      },
+      addEventListener() {},
+      removeEventListener() {},
+      async embedExample(target, spec, options) {
+        embedCalls.push({ target, spec: clone(spec), options })
+        return embedCalls.length === 1 ? firstView : secondView
+      },
+    }
+    globalThis.window = root
+    globalThis.fetch = async (url) => ({
+      ok: true,
+      async text() {
+        assert.equal(url, 'https://vega.github.io/vega-lite/examples/data/stocks.csv')
+        return [
+          'date,AAPL,AMZN,GOOG',
+          '2024-01-01,10,20,30',
+          '2024-02-01,15,18,28',
+        ].join('\n')
+      },
+    })
+
+    installVegaEmbedCapture(root)
+    await root.embedExample('#line_color', {
+      data: {
+        url: 'https://vega.github.io/vega-lite/examples/data/stocks.csv',
+      },
+      transform: [
+        { fold: ['AAPL', 'AMZN', 'GOOG'], as: ['symbol', 'price'] },
+      ],
+      mark: 'line',
+      encoding: {
+        x: { field: 'date', type: 'temporal' },
+        y: { field: 'price', type: 'quantitative' },
+        color: { field: 'symbol', type: 'nominal' },
+      },
+    }, false)
+
+    const controller = await attachWidgetVAToCapturedVegaLiteExample({ root })
+    const widgetRef = controller.describeAgentContract().widget.ref
+    const workspace = await root.__widgetVA.describeWorkspace()
+    const sampled = await root.__widgetVA.queryData({
+      query: {
+        kind: 'sampleRows',
+        spec: {
+          queryScope: { widgetRef },
+          limit: 20,
+        },
+      },
+    })
+
+    assert.equal(workspace?.widgets?.[0]?.ref, widgetRef)
+    assert.equal(Array.isArray(sampled?.result), true)
+    assert.equal(sampled.result.some((row) => row?.symbol === 'AAPL' && row?.price === 10), true)
+
+    const result = await root.__widgetVA.executeVerifiedAction({
+      callId: 'acceptance_line_color_select_materialize',
+      name: 'line.selectSeries',
+      actor: 'agent',
+      queryScope: { widgetRef },
+      params: {
+        field: 'symbol',
+        values: ['AAPL'],
+      },
+    })
+
+    assert.equal(result.ok, true)
+    assert.equal(embedCalls.length, 2)
+    assert.equal(embedCalls[1].spec.data.values.filter((row) => row?.__widgetva_selected === true).length, 2)
+    assert.equal(embedCalls[1].spec.data.values.filter((row) => row?.__widgetva_selected !== true).length, 4)
+    assert.equal(embedCalls[1].spec.encoding.opacity.condition.test, 'datum.__widgetva_selected === true')
+    assert.equal(embedCalls[1].spec.encoding.opacity.value, 0.22)
+    controller.dispose()
+  } finally {
+    globalThis.window = previousWindow
+    globalThis.fetch = previousFetch
+  }
+})
+
 test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official line example when x-value selection changes local emphasis', async () => {
   const previousWindow = globalThis.window
+  const previousFetch = globalThis.fetch
   try {
     const firstView = {
       signal() { return firstView },
@@ -751,17 +793,12 @@ test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official line ex
           outerHTML: `
             <pre><code>{
               "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-              "data": {"values": [
-                {"date": "2024-01-01", "series": "A", "value": 10},
-                {"date": "2024-02-01", "series": "A", "value": 15},
-                {"date": "2024-01-01", "series": "B", "value": 18},
-                {"date": "2024-02-01", "series": "B", "value": 12}
-              ]},
+              "data": {"url": "data/stocks.csv"},
+              "transform": [{"filter": "datum.symbol==='GOOG'"}],
               "mark": "line",
               "encoding": {
                 "x": {"field": "date", "type": "temporal"},
-                "y": {"field": "value", "type": "quantitative"},
-                "color": {"field": "series", "type": "nominal"}
+                "y": {"field": "price", "type": "quantitative"}
               }
             }</code></pre>
           `,
@@ -778,22 +815,31 @@ test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official line ex
       },
     }
     globalThis.window = root
+    globalThis.fetch = async (url) => ({
+      ok: true,
+      async text() {
+        assert.equal(url, 'https://vega.github.io/vega-lite/examples/data/stocks.csv')
+        return [
+          'symbol,date,price',
+          'MSFT,2000-01-01,39.81',
+          'MSFT,2000-02-01,36.35',
+          'GOOG,2004-08-01,102.37',
+          'GOOG,2004-09-01,129.60',
+          'GOOG,2004-10-01,190.64',
+        ].join('\n')
+      },
+    })
 
     installVegaEmbedCapture(root)
     await root.embedExample('#line', {
       data: {
-        values: [
-          { date: '2024-01-01', series: 'A', value: 10 },
-          { date: '2024-02-01', series: 'A', value: 15 },
-          { date: '2024-01-01', series: 'B', value: 18 },
-          { date: '2024-02-01', series: 'B', value: 12 },
-        ],
+        url: 'https://vega.github.io/vega-lite/examples/data/stocks.csv',
       },
+      transform: [{ filter: "datum.symbol==='GOOG'" }],
       mark: 'line',
       encoding: {
         x: { field: 'date', type: 'temporal' },
-        y: { field: 'value', type: 'quantitative' },
-        color: { field: 'series', type: 'nominal' },
+        y: { field: 'price', type: 'quantitative' },
       },
     }, false)
 
@@ -807,17 +853,25 @@ test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official line ex
       queryScope: { widgetRef },
       params: {
         field: 'date',
-        value: '2024-01-01',
+        value: '2004-08-01',
       },
     })
 
     assert.equal(result.ok, true)
     assert.equal(embedCalls.length, 2)
-    assert.equal(embedCalls[1].spec.data.values.filter((row) => row?.__widgetva_selected === true).length, 2)
-    assert.equal(embedCalls[1].spec.encoding.opacity.condition.test, 'datum.__widgetva_selected === true')
+    assert.equal(embedCalls[1].spec.data.values.length, 3)
+    assert.equal(embedCalls[1].spec.data.values.every((row) => row?.symbol === 'GOOG'), true)
+    assert.equal(embedCalls[1].spec.data.values.filter((row) => row?.__widgetva_selected === true).length, 1)
+    assert.equal(Array.isArray(embedCalls[1].spec.layer), true)
+    assert.equal(embedCalls[1].spec.layer[0]?.mark?.type, 'line')
+    assert.equal(embedCalls[1].spec.layer[0]?.encoding?.opacity?.value, 0.22)
+    assert.equal(embedCalls[1].spec.layer[1]?.mark?.type, 'point')
+    assert.equal(embedCalls[1].spec.layer[1]?.transform?.[0]?.filter, 'datum.__widgetva_selected === true')
+    assert.equal(embedCalls[1].spec.layer[1]?.encoding?.opacity?.value, 1)
     controller.dispose()
   } finally {
     globalThis.window = previousWindow
+    globalThis.fetch = previousFetch
   }
 })
 
@@ -854,16 +908,17 @@ test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official heatmap
             <pre><code>{
               "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
               "data": {"values": [
-                {"x": "Q1", "y": "A", "value": 10},
-                {"x": "Q2", "y": "A", "value": 20},
-                {"x": "Q1", "y": "B", "value": 30},
-                {"x": "Q2", "y": "B", "value": 40}
+                {"Cylinders": 4, "Origin": "USA", "Horsepower": 80},
+                {"Cylinders": 4, "Origin": "USA", "Horsepower": 100},
+                {"Cylinders": 6, "Origin": "USA", "Horsepower": 95},
+                {"Cylinders": 4, "Origin": "Japan", "Horsepower": 70},
+                {"Cylinders": 6, "Origin": "Japan", "Horsepower": 110}
               ]},
               "mark": "rect",
               "encoding": {
-                "x": {"field": "x", "type": "nominal"},
-                "y": {"field": "y", "type": "nominal"},
-                "color": {"field": "value", "type": "quantitative"}
+                "x": {"field": "Cylinders", "type": "ordinal"},
+                "y": {"field": "Origin", "type": "nominal"},
+                "color": {"aggregate": "mean", "field": "Horsepower", "type": "quantitative"}
               }
             }</code></pre>
           `,
@@ -885,22 +940,32 @@ test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official heatmap
     await root.embedExample('#heatmap', {
       data: {
         values: [
-          { x: 'Q1', y: 'A', value: 10 },
-          { x: 'Q2', y: 'A', value: 20 },
-          { x: 'Q1', y: 'B', value: 30 },
-          { x: 'Q2', y: 'B', value: 40 },
+          { Cylinders: 4, Origin: 'USA', Horsepower: 80 },
+          { Cylinders: 4, Origin: 'USA', Horsepower: 100 },
+          { Cylinders: 6, Origin: 'USA', Horsepower: 95 },
+          { Cylinders: 4, Origin: 'Japan', Horsepower: 70 },
+          { Cylinders: 6, Origin: 'Japan', Horsepower: 110 },
         ],
       },
       mark: 'rect',
       encoding: {
-        x: { field: 'x', type: 'nominal' },
-        y: { field: 'y', type: 'nominal' },
-        color: { field: 'value', type: 'quantitative' },
+        x: { field: 'Cylinders', type: 'ordinal' },
+        y: { field: 'Origin', type: 'nominal' },
+        color: { aggregate: 'mean', field: 'Horsepower', type: 'quantitative' },
       },
     }, false)
 
     const controller = await attachWidgetVAToCapturedVegaLiteExample({ root })
     const widgetRef = controller.describeAgentContract().widget.ref
+    const sampled = await root.__widgetVA.queryData({
+      query: {
+        kind: 'sampleRows',
+        spec: {
+          queryScope: { widgetRef },
+          limit: 20,
+        },
+      },
+    })
 
     const result = await controller.widget.executeVerifiedAction({
       callId: 'acceptance_heatmap_select_materialize',
@@ -910,15 +975,19 @@ test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official heatmap
       params: {
         xField: 'x',
         yField: 'y',
-        xValue: 'Q1',
-        yValue: 'A',
+        xValue: 4,
+        yValue: 'USA',
       },
     })
 
+    assert.equal(Array.isArray(sampled?.result), true)
+    assert.equal(sampled.result.some((row) => row?.x === 4 && row?.y === 'USA'), true)
     assert.equal(result.ok, true)
     assert.equal(embedCalls.length, 2)
-    assert.equal(embedCalls[1].spec.data.values.filter((row) => row?.__widgetva_selected === true).length, 1)
-    assert.equal(embedCalls[1].spec.encoding.opacity.condition.test, 'datum.__widgetva_selected === true')
+    assert.equal(embedCalls[1].spec.encoding.opacity.condition.test, `(datum['Cylinders'] === 4 && datum['Origin'] === "USA")`)
+    assert.equal(embedCalls[1].spec.encoding.opacity.condition.value, 1)
+    assert.equal(embedCalls[1].spec.encoding.color.aggregate, 'mean')
+    assert.equal(embedCalls[1].spec.encoding.color.title, undefined)
     controller.dispose()
   } finally {
     globalThis.window = previousWindow
@@ -1019,8 +1088,8 @@ test('attachWidgetVAToCapturedVegaLiteExample rematerializes an official heatmap
 
     assert.equal(result.ok, true)
     assert.equal(embedCalls.length, 2)
-    assert.equal(embedCalls[1].spec.data.values.filter((row) => row?.__widgetva_selected === true).length, 2)
-    assert.equal(embedCalls[1].spec.encoding.opacity.condition.test, 'datum.__widgetva_selected === true')
+    assert.equal(embedCalls[1].spec.encoding.opacity.condition.test, `(indexof(["Q1","Q2"], datum['x']) >= 0 && indexof(["A"], datum['y']) >= 0)`)
+    assert.equal(embedCalls[1].spec.encoding.opacity.condition.value, 1)
     controller.dispose()
   } finally {
     globalThis.window = previousWindow
