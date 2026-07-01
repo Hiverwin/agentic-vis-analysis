@@ -543,6 +543,7 @@ function buildActionUsageModel({ descriptor, targetWidget, fieldRoles, spec, row
     setSuggestedParam({
       suggestedParams,
       paramRoles,
+      diagnostics,
       param: 'field',
       value: fallbackCategoryField,
       diagnostic: `Could not resolve field for ${actionName} from the current parallel-coordinates rows.`,
@@ -556,6 +557,7 @@ function buildActionUsageModel({ descriptor, targetWidget, fieldRoles, spec, row
     setSuggestedParam({
       suggestedParams,
       paramRoles,
+      diagnostics,
       param: 'field',
       value: sankeyContext.field,
       diagnostic: 'Could not resolve field for sankey.focusFlow from the current Sankey rows.',

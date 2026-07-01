@@ -31,6 +31,26 @@ function updateParallelXOrder(node, dimensionOrder) {
   }
 }
 
+function readParallelRecordField(spec) {
+  const rootEncoding = Array.isArray(spec?.layer) && spec.layer.length > 0
+    ? spec.layer[0]?.encoding || spec?.encoding || {}
+    : spec?.encoding || {}
+  return typeof rootEncoding?.detail?.field === 'string' && rootEncoding.detail.field.length > 0
+    ? rootEncoding.detail.field
+    : 'id'
+}
+
+function countParallelSemanticRows(rows = [], spec = null, fallbackField = 'id') {
+  const safeRows = Array.isArray(rows) ? rows : []
+  const recordField = readParallelRecordField(spec) || fallbackField
+  return new Set(
+    safeRows
+      .map((row) => row?.[recordField])
+      .filter((value) => value != null)
+      .map((value) => JSON.stringify(value)),
+  ).size
+}
+
 export function buildParallelCoordinatesActionDescriptors({ widgetRef, selectionRef, scope = 'local', affectedRefs = [widgetRef] }) {
   const supportedWidgetKinds = ['parallelCoordinates']
   return [
@@ -417,6 +437,7 @@ export function registerParallelCoordinatesActions(actionExecutor) {
         }
 
         const { rows } = ctx.readRowsForWidget(targetWidget.ref)
+        const currentSpec = ctx.readCurrentSpec?.() || null
         const normalizedRules = rules.map((rule) => ({
           field: rule.field,
           range: [Math.min(...rule.range), Math.max(...rule.range)],
@@ -427,6 +448,7 @@ export function registerParallelCoordinatesActions(actionExecutor) {
             return typeof value === 'number' && value >= rule.range[0] && value <= rule.range[1]
           }),
         )
+        const selectedCount = countParallelSemanticRows(filtered, currentSpec)
 
         const nextState = ctx.commitSelection({
           selection_id: `sel_${Date.now()}`,
@@ -439,14 +461,14 @@ export function registerParallelCoordinatesActions(actionExecutor) {
             op: 'between',
             value: rule.range,
           })),
-          count: filtered.length,
+          count: selectedCount,
           summary: normalizedRules.map((rule) => `${rule.field} ${rule.range[0]}~${rule.range[1]}`).join('; '),
         })
 
         return buildSelectionActionResult({
           ctx,
           nextState,
-          selectedCount: filtered.length,
+          selectedCount,
           verificationHints: [
             'Read the updated parallel coordinates selection state.',
             'Read linked widgets to confirm multivariate range propagation.',
@@ -531,7 +553,9 @@ export function registerParallelCoordinatesActions(actionExecutor) {
         }
 
         const { rows } = ctx.readRowsForWidget(targetWidget.ref)
+        const currentSpec = ctx.readCurrentSpec?.() || null
         const matchedRows = rows.filter((row) => row?.[field] === recordId)
+        const selectedCount = countParallelSemanticRows(matchedRows, currentSpec, field)
         const summary = matchedRows[0]?.name
           ? `Record: ${matchedRows[0].name}`
           : `${field}: ${recordId}`
@@ -542,14 +566,14 @@ export function registerParallelCoordinatesActions(actionExecutor) {
           field,
           values: [recordId],
           predicates: [{ field, op: 'equals', value: recordId }],
-          count: matchedRows.length,
+          count: selectedCount,
           summary,
         })
 
         return buildSelectionActionResult({
           ctx,
           nextState,
-          selectedCount: matchedRows.length,
+          selectedCount,
           verificationHints: [
             'Read the updated parallel-coordinates selection state.',
             'Read linked widgets to confirm the selected record became the current focus subset.',

@@ -51,6 +51,39 @@ function formatSummaryText({ rowCount = 0, groupCount = 0, fallback = '' } = {})
   return `${rowCount} rows`
 }
 
+function readRootEncoding(spec) {
+  if (Array.isArray(spec?.layer) && spec.layer.length > 0) {
+    return spec.layer[0]?.encoding || spec.encoding || {}
+  }
+  return spec?.encoding || {}
+}
+
+function isParallelFoldSpec(spec = null) {
+  const transforms = Array.isArray(spec?.transform) ? spec.transform : []
+  const hasFoldTransform = transforms.some((transform) => Array.isArray(transform?.fold) && transform.fold.length > 0)
+  if (!hasFoldTransform) return false
+  const encoding = readRootEncoding(spec)
+  return ['dimension', 'key', 'variable'].includes(encoding?.x?.field)
+}
+
+function countSemanticSelectionRows({ widgetKind = null, spec = null, rows = [] } = {}) {
+  const safeRows = Array.isArray(rows) ? rows : []
+  if (widgetKind !== 'parallelCoordinates' && !isParallelFoldSpec(spec)) return safeRows.length
+
+  const encoding = readRootEncoding(spec)
+  const recordField = typeof encoding?.detail?.field === 'string' && encoding.detail.field.length > 0
+    ? encoding.detail.field
+    : null
+  if (!recordField) return safeRows.length
+
+  return new Set(
+    safeRows
+      .map((row) => row?.[recordField])
+      .filter((value) => value != null)
+      .map((value) => JSON.stringify(value)),
+  ).size
+}
+
 function buildPerceptionTraceNotes({ userVisibleSummary, rationale = null, verification = null } = {}) {
   return {
     ...(typeof userVisibleSummary === 'string' && userVisibleSummary.trim().length > 0
@@ -374,12 +407,18 @@ export class PerceptionQueryRegistry {
         }
         const selections = selectionEntries.map((entry) => entry.selection)
         const { rows: visibleRows, dataRef } = ctx.resolveRowsForWidget(targetWidget, params)
+        const currentSpec = targetWidget?.currentSpec || targetWidget?.rawSpec || null
         let result
         if (selections.length > 0) {
           const filteredRows = selections.reduce(
             (rows, activeSelection) => this.dataQueryEngine.filter(rows, activeSelection.predicates || []),
             visibleRows,
           )
+          const semanticSelectedCount = countSemanticSelectionRows({
+            widgetKind: targetWidget?.kind || null,
+            spec: currentSpec,
+            rows: filteredRows,
+          })
           const summary = this.dataQueryEngine.summarize(filteredRows, params)
           const summaryRows = Array.isArray(summary?.rows) ? summary.rows : []
           const selectionSummaries = selections.map((selection) => selection.summary || '').filter(Boolean)
@@ -388,9 +427,9 @@ export class PerceptionQueryRegistry {
             selectionCount: selections.length,
             selectionRefs: selectionEntries.map((entry) => entry.ref),
             dataRef,
-            selectedCount: filteredRows.length,
+            selectedCount: semanticSelectedCount,
             summary: formatSummaryText({
-              rowCount: filteredRows.length,
+              rowCount: semanticSelectedCount,
               groupCount: summaryRows.length,
               fallback: selectionSummaries.join(' | '),
             }),
