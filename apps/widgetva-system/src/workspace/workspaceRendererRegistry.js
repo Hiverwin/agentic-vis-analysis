@@ -1,4 +1,4 @@
-import { createRendererAdapterRegistry } from '../../../../widgetva-kit/src/core/index.js'
+import { createRendererAdapterRegistry } from '../../../../widgetva-kit/src/adapters/index.js'
 
 function normalizeProvider(provider) {
   return typeof provider === 'string' && provider.trim().length > 0

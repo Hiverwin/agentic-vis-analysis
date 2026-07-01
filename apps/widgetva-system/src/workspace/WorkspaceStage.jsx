@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { getWorkspaceViewModel, useAppStore } from '../app/appStore.js'
-import { readWorkspaceCoordinationState } from '../runtime/runtimeBridge.js'
+import { createFirstPartyRuntimeSessionFacade } from '../runtime/runtimeBridge.js'
 import { buildTraceTimelineModel } from '../trace/traceViewModel.js'
 import { deriveWorkspaceProvenance } from './workspaceProvenance.js'
 import { WidgetSurface } from './WidgetSurface.jsx'
@@ -26,9 +26,13 @@ export function WorkspaceStage() {
   const coordinationVersion = useAppStore((state) => state.coordinationVersion)
   const analyticalVersion = useAppStore((state) => state.analyticalVersion)
   const widgetActionOverrides = useAppStore((state) => state.widgetActionOverrides)
+  const runtime = useMemo(
+    () => createFirstPartyRuntimeSessionFacade(runtimeSessionKey || activeCaseId),
+    [activeCaseId, runtimeSessionKey],
+  )
   const coordinationState = useMemo(
-    () => readWorkspaceCoordinationState(runtimeSessionKey || activeCaseId),
-    [activeCaseId, coordinationVersion, runtimeSessionKey],
+    () => runtime.readCoordinationState(),
+    [coordinationVersion, runtime],
   )
   const baseHostState = useMemo(() => ({
     dataset,

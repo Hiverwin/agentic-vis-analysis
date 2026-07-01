@@ -51,6 +51,8 @@ test('readWorkspaceDescriptionFromStore derives a workspace description from pla
   assert.equal(description.workspaceId, 'main')
   assert.equal(description.widgets[0]?.ref, widgetRef)
   assert.equal(description.actions[0]?.name, actionName)
+  assert.equal(description.actions[0]?.analyticalPlacement, 'workspace-shared-state')
+  assert.equal(description.actions[0]?.sharedAnalyticalSurface, 'sharedSemanticFocus')
   assert.equal(description.perceptionQueries[0]?.name, perceptionName)
 })
 

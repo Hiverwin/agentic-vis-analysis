@@ -159,6 +159,44 @@ test('ensureObservableD3PageBootstrap records page shape, worker frame, and cont
         async describeAgentLoop() {
           return { loopHints: { verifiedActionName: 'executeVerifiedAction' } }
         },
+        async readObservation() {
+          return {
+            state: {
+              stateId: 'main:s1',
+            },
+            sharedAnalyticalState: {
+              focusedWidgetRef: 'scatter-ref',
+              filters: {},
+              viewport: null,
+              selections: {
+                primary: null,
+              },
+              highlight: {
+                activeWidgetRefs: [],
+              },
+              comparisonTargets: [],
+              annotations: [],
+            },
+          }
+        },
+        async describeActionUsage() {
+          return {
+            actions: [{ name: 'scatter.brushRegion' }],
+          }
+        },
+        async executeVerifiedAction(call) {
+          return {
+            actionResult: {
+              ok: true,
+              stateId: 'main:s2',
+              updatedRefs: [call.queryScope?.widgetRef].filter(Boolean),
+            },
+            verification: {
+              ok: true,
+              summary: 'Verified.',
+            },
+          }
+        },
       }
       return {
         pagePort: root.__widgetVA,
@@ -178,16 +216,20 @@ test('ensureObservableD3PageBootstrap records page shape, worker frame, and cont
   assert.equal(waitedForFrame, 1)
   assert.equal(bootstrapped, 1)
   assert.equal(entry.status, 'ready')
+  assert.equal(typeof entry.manager?.readActiveController, 'function')
+  assert.equal(entry.manager.readActiveController(), entry.controller)
   assert.equal(entry.workerFrame?.src, workerFrame.src)
   assert.deepEqual(entry.surface, {
     surfaceTag: 'svg',
     inferredKind: 'scatter',
   })
   assert.equal(typeof entry.runAgentLoop, 'function')
+  assert.equal(typeof entry.runNaturalLanguageAgentTurn, 'function')
   assert.equal(typeof entry.runNaturalLanguageAgentLoop, 'function')
   assert.equal(typeof entry.configureAgent, 'function')
   assert.equal(typeof entry.readAgentConfig, 'function')
   assert.equal(typeof root.__widgetVAOfficialPageRunAgentLoop, 'function')
+  assert.equal(typeof root.__widgetVAOfficialPageRunNaturalLanguageAgentTurn, 'function')
   assert.equal(typeof root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop, 'function')
   assert.equal(typeof root.__widgetVAOfficialPageConfigureAgent, 'function')
   assert.equal(typeof root.__widgetVAOfficialPageReadAgentConfig, 'function')
@@ -207,6 +249,10 @@ test('ensureObservableD3PageBootstrap records page shape, worker frame, and cont
     siteUrl: null,
     appName: 'WidgetVA Official Page Integration',
   })
+  const naturalLanguageTurn = await root.__widgetVAOfficialPageRunNaturalLanguageAgentTurn('Brush the visible scatter region.')
+  assert.equal(naturalLanguageTurn.plan?.step?.name, 'scatter.brushRegion')
+  assert.equal(naturalLanguageTurn.act?.ok, true)
+  assert.equal(naturalLanguageTurn.verify?.ok, true)
   assert.equal(runAgentLoopCalls, 1)
 
   const again = await ensureObservableD3PageBootstrap({
@@ -234,6 +280,10 @@ test('ensureObservableD3PageBootstrap records page shape, worker frame, and cont
 
 test('ensureObservableD3PageBootstrap records bootstrap failures on the shared page state', async () => {
   const root = createRoot()
+  root.__widgetVA = { describeWorkspace() {} }
+  root.__widgetVAObservableD3Debug = () => ({ stale: true })
+  root.__widgetVAObservableD3PreviewBrush = () => ({ stale: true })
+  root.__widgetVAObservableD3Probe = () => ({ stale: true })
 
   await assert.rejects(
     ensureObservableD3PageBootstrap({
@@ -260,12 +310,17 @@ test('ensureObservableD3PageBootstrap records bootstrap failures on the shared p
   assert.equal(entry.error?.message, 'worker frame timed out')
   assert.equal(root.__widgetVAOfficialPageRunAgentLoop, undefined)
   assert.equal(root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop, undefined)
+  assert.equal(root.__widgetVAObservableD3Debug, undefined)
+  assert.equal(root.__widgetVAObservableD3PreviewBrush, undefined)
+  assert.equal(root.__widgetVAObservableD3Probe, undefined)
+  assert.equal(root.__widgetVA, undefined)
 })
 
 test('ensureObservableD3PageBootstrap reboots when the Observable notebook url changes', async () => {
   const root = createRoot('https://observablehq.com/@d3/scatterplot')
   let disposedFirstController = 0
   let bootstrapped = 0
+  const jumpCalls = []
 
   const firstWorkerFrame = {
     src: 'https://d3.static.observableusercontent.com/next/worker-first.html',
@@ -295,7 +350,12 @@ test('ensureObservableD3PageBootstrap reboots when the Observable notebook url c
     },
     async bootstrapPage() {
       bootstrapped += 1
-      root.__widgetVA = { describeWorkspace() {} }
+      root.__widgetVA = {
+        describeWorkspace() {},
+        async readState() {
+          return { stateId: 'main:s1' }
+        },
+      }
       return {
         pagePort: root.__widgetVA,
         surface: { surfaceTag: 'svg', inferredKind: 'scatter' },
@@ -329,7 +389,13 @@ test('ensureObservableD3PageBootstrap reboots when the Observable notebook url c
     },
     async bootstrapPage() {
       bootstrapped += 1
-      root.__widgetVA = { describeWorkspace() {} }
+      root.__widgetVA = {
+        describeWorkspace() {},
+        async jumpToState(options = {}) {
+          jumpCalls.push(options)
+          return { ok: true, stateId: options.stateId }
+        },
+      }
       return {
         pagePort: root.__widgetVA,
         surface: { surfaceTag: 'svg', inferredKind: 'scatter' },
@@ -343,8 +409,74 @@ test('ensureObservableD3PageBootstrap reboots when the Observable notebook url c
 
   assert.equal(bootstrapped, 2)
   assert.equal(disposedFirstController, 1)
+  assert.deepEqual(jumpCalls, [{ stateId: 'main:s1' }])
   assert.equal(secondEntry.pageUrl, 'https://observablehq.com/@d3/delaunay-find-and-zoom')
   assert.equal(secondEntry.workerFrame?.src, secondWorkerFrame.src)
   assert.deepEqual(await root.__widgetVAObservableD3Debug(), { slug: 'delaunay-find-and-zoom' })
   assert.equal(typeof root.__widgetVAOfficialPageRunAgentLoop, 'function')
+})
+
+test('ensureObservableD3PageBootstrap clears the managed controller when the page becomes unsupported', async () => {
+  const root = createRoot('https://observablehq.com/@d3/scatterplot')
+  let disposed = 0
+
+  const readyEntry = await ensureObservableD3PageBootstrap({
+    root,
+    isSupportedPage: () => true,
+    describePage() {
+      return {
+        provider: 'd3',
+        notebook: { slug: 'scatterplot' },
+      }
+    },
+    async waitForWorkerFrame() {
+      return {
+        src: 'https://d3.static.observableusercontent.com/next/worker-first.html',
+        getAttribute(name) {
+          return name === 'src' ? this.src : null
+        },
+      }
+    },
+    async bootstrapPage() {
+      root.__widgetVA = { describeWorkspace() {} }
+      return {
+        pagePort: root.__widgetVA,
+        surface: { surfaceTag: 'svg', inferredKind: 'scatter' },
+        dispose() {
+          disposed += 1
+        },
+      }
+    },
+  })
+
+  assert.equal(readyEntry.status, 'ready')
+  assert.ok(readyEntry.manager.readActiveController())
+
+  root.location.href = 'https://example.com/not-supported'
+  root.location.pathname = '/not-supported'
+
+  const unsupportedEntry = await ensureObservableD3PageBootstrap({
+    root,
+    isSupportedPage: () => false,
+    describePage() {
+      throw new Error('describePage should not run for unsupported pages')
+    },
+    async waitForWorkerFrame() {
+      throw new Error('waitForWorkerFrame should not run for unsupported pages')
+    },
+    async bootstrapPage() {
+      throw new Error('bootstrapPage should not run for unsupported pages')
+    },
+  })
+
+  assert.equal(unsupportedEntry.status, 'unsupported')
+  assert.equal(disposed, 1)
+  assert.equal(unsupportedEntry.manager.readActiveController(), null)
+  assert.equal(unsupportedEntry.controller, null)
+  assert.equal(unsupportedEntry.pagePort, null)
+  assert.equal(unsupportedEntry.workerFrame, null)
+  assert.equal(unsupportedEntry.surface, null)
+  assert.equal(root.__widgetVAOfficialPageRunAgentLoop, undefined)
+  assert.equal(root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop, undefined)
+  assert.equal(root.__widgetVA, undefined)
 })

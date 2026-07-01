@@ -2,15 +2,13 @@ import {
   buildSelectionAdvancedResponseContext,
   buildSelectionCoordinationContext,
   buildSelectionDomainCoordinationContext,
-  resolveSelectionDrivenRows,
-  resolveSelectionDrivenViewState,
-} from '../../../../widgetva-kit/src/core/runtime/linkSemantics.js'
-import {
   deriveHighlightedRows,
   deriveHighlightPredicatesFromState,
   deriveHighlightSummaryFromState,
   deriveSelectionFilteredRows,
-} from '../../../../widgetva-kit/src/core/runtime/sharedStateDerivation.js'
+  resolveSelectionDrivenRows,
+  resolveSelectionDrivenViewState,
+} from '../../../../widgetva-kit/src/coreInspect.js'
 import {
   autoCollapseSankeyGraph,
   buildSankeyData,

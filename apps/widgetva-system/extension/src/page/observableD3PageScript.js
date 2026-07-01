@@ -6,14 +6,13 @@ import {
 } from 'widgetva-kit/page-integrations'
 
 import { ensureObservableD3PageBootstrap } from './observableD3Bootstrap.js'
+import {
+  markObservableD3BootstrapBooting,
+  recordObservableD3BootstrapError,
+} from './observableD3PageState.js'
 
 async function startWidgetVAOnObservableD3Pages() {
-  window.__widgetVAOfficialPageBootstrap = window.__widgetVAOfficialPageBootstrap || {}
-  window.__widgetVAOfficialPageBootstrap.observableD3 = {
-    provider: 'd3',
-    pageType: 'official-observable-notebook',
-    status: 'booting',
-  }
+  markObservableD3BootstrapBooting(window)
 
   return ensureObservableD3PageBootstrap({
     root: window,
@@ -25,20 +24,6 @@ async function startWidgetVAOnObservableD3Pages() {
   })
 }
 
-function recordObservableD3BootstrapError(error) {
-  window.__widgetVAOfficialPageBootstrap = window.__widgetVAOfficialPageBootstrap || {}
-  window.__widgetVAOfficialPageBootstrap.observableD3 = {
-    provider: 'd3',
-    pageType: 'official-observable-notebook',
-    status: 'error',
-    error: {
-      name: error?.name || 'Error',
-      message: error?.message || String(error),
-    },
-  }
-  console.error('[WidgetVA] Failed to bootstrap on the official Observable D3 page.', error)
-}
-
 function createObservableD3RouteWatcher() {
   let lastHref = window.location.href
   let scheduled = false
@@ -47,7 +32,8 @@ function createObservableD3RouteWatcher() {
     try {
       await startWidgetVAOnObservableD3Pages()
     } catch (error) {
-      recordObservableD3BootstrapError(error)
+      recordObservableD3BootstrapError(window, error)
+      console.error('[WidgetVA] Failed to bootstrap on the official Observable D3 page.', error)
     }
   }
 
@@ -80,4 +66,7 @@ function createObservableD3RouteWatcher() {
 }
 
 createObservableD3RouteWatcher()
-void startWidgetVAOnObservableD3Pages().catch(recordObservableD3BootstrapError)
+void startWidgetVAOnObservableD3Pages().catch((error) => {
+  recordObservableD3BootstrapError(window, error)
+  console.error('[WidgetVA] Failed to bootstrap on the official Observable D3 page.', error)
+})

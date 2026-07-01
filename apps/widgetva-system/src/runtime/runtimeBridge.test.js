@@ -5,6 +5,7 @@ import {
   appendAgentMessage,
   appendRuntimeTraceStep,
   buildSelectionOperationResult,
+  createFirstPartyRuntimeSessionFacade,
   createAgentRuntimeContract,
   buildWorkspaceGlobalFilters,
   createWorkspaceViewModel,
@@ -104,8 +105,8 @@ test('app runtime bridge exposes the agent-facing observation, action, perceptio
 
     const observation = readRuntimeObservation(session.runtimeSessionKey)
     assert.equal(typeof observation?.workspace?.workspaceId, 'string')
-    assert.equal(Array.isArray(observation?.availableActions), true)
-    assert.equal(Array.isArray(observation?.availablePerceptions), true)
+    assert.equal('availableActions' in observation, false)
+    assert.equal('availablePerceptions' in observation, false)
 
     const actionNames = listRuntimeAvailableActions(session.runtimeSessionKey).map((entry) => entry?.name)
     const perceptionNames = listRuntimeAvailablePerceptions(session.runtimeSessionKey).map((entry) => entry?.name)
@@ -135,6 +136,98 @@ test('app runtime bridge exposes the agent-facing observation, action, perceptio
   }
 })
 
+test('createFirstPartyRuntimeSessionFacade exposes one session-scoped first-party runtime surface', async () => {
+  const previousWindow = globalThis.window
+  globalThis.window = {}
+  const session = createFreshBaseSession()
+
+  try {
+    const runtime = createFirstPartyRuntimeSessionFacade(session.runtimeSessionKey)
+    assert.equal(typeof runtime.describeWorkspace, 'function')
+    assert.equal(typeof runtime.readObservation, 'function')
+    assert.equal(typeof runtime.readSharedAnalyticalState, 'function')
+    assert.equal(typeof runtime.readSharedFilterContext, 'function')
+    assert.equal(typeof runtime.readSharedViewportContext, 'function')
+    assert.equal(typeof runtime.readSharedSemanticFocus, 'function')
+    assert.equal(typeof runtime.readSharedStructuralContext, 'function')
+    assert.equal(typeof runtime.readViewStatesByWidget, 'function')
+    assert.equal(typeof runtime.readSharedViewContext, 'function')
+    assert.equal(typeof runtime.readSharedTransformationContext, 'function')
+    assert.equal(typeof runtime.readActiveAnalyticalContext, 'function')
+    assert.equal(typeof runtime.readCoordinationState, 'function')
+    assert.equal(typeof runtime.readPrimarySelection, 'function')
+    assert.equal(typeof runtime.readInteractionBindings, 'function')
+    assert.equal(typeof runtime.readStateHistory, 'function')
+    assert.equal(typeof runtime.listAvailableActions, 'function')
+    assert.equal(typeof runtime.listAvailablePerceptions, 'function')
+    assert.equal(typeof runtime.listAvailableDataQueries, 'function')
+    assert.equal(typeof runtime.readWidgetRuntimeState, 'function')
+    assert.equal(typeof runtime.readTrace, 'function')
+    assert.equal(typeof runtime.readRuntimeTrace, 'function')
+    assert.equal(typeof runtime.appendTraceStep, 'function')
+    assert.equal(typeof runtime.readAgentMessages, 'function')
+    assert.equal(typeof runtime.appendAgentMessage, 'function')
+    assert.equal(typeof runtime.executeWorkspaceAction, 'function')
+    assert.equal(typeof runtime.jumpWorkspaceToState, 'function')
+    assert.equal(typeof runtime.agentContract, 'function')
+
+    const description = runtime.describeWorkspace()
+    const observation = runtime.readObservation()
+    const sharedAnalyticalState = runtime.readSharedAnalyticalState()
+    const scatterWidgetRef = description?.widgets?.find((widget) => widget?.widgetId === 'w_scatter_cars')?.ref || null
+    assert.equal(typeof scatterWidgetRef, 'string')
+    assert.deepEqual(sharedAnalyticalState, observation?.sharedAnalyticalState)
+    assert.deepEqual(runtime.readSharedFilterContext(), sharedAnalyticalState?.sharedFilterContext)
+    assert.deepEqual(runtime.readSharedViewportContext(), sharedAnalyticalState?.sharedViewportContext)
+    assert.deepEqual(runtime.readSharedSemanticFocus(), sharedAnalyticalState?.sharedSemanticFocus)
+    assert.deepEqual(runtime.readSharedStructuralContext(), sharedAnalyticalState?.sharedStructuralContext)
+    assert.deepEqual(runtime.readViewStatesByWidget(), sharedAnalyticalState?.viewStatesByWidget)
+    assert.deepEqual(runtime.readSharedViewContext(), sharedAnalyticalState?.sharedViewContext)
+    assert.deepEqual(runtime.readSharedTransformationContext(), sharedAnalyticalState?.sharedTransformationContext)
+    assert.deepEqual(runtime.readActiveAnalyticalContext(), sharedAnalyticalState?.activeAnalyticalContext)
+    assert.equal(runtime.listAvailableActions().some((entry) => entry?.name === 'scatter.brushRegion'), true)
+    assert.equal(runtime.listAvailablePerceptions().some((entry) => entry?.name === 'perception.computeCorrelation'), true)
+    assert.equal(runtime.listAvailableDataQueries().some((entry) => entry?.queryKind === 'summary'), true)
+    assert.equal(runtime.readWidgetRuntimeState('w_sankey_cars') && typeof runtime.readWidgetRuntimeState('w_sankey_cars') === 'object', true)
+
+    const actionResult = await runtime.executeWorkspaceAction({
+      widgetId: 'w_scatter_cars',
+      name: 'scatter.brushRegion',
+      params: {
+        xField: 'horsepower',
+        yField: 'mpg',
+        xRange: [80, 140],
+        yRange: [18, 30],
+      },
+    })
+    assert.equal(actionResult?.ok, true)
+    assert.equal(runtime.readPrimarySelection()?.sourceWidgetId, 'w_scatter_cars')
+
+    const appendedMessage = runtime.appendAgentMessage({
+      role: 'assistant',
+      text: 'runtime facade message',
+    })
+    assert.equal(appendedMessage?.text, 'runtime facade message')
+    assert.equal(runtime.readAgentMessages().at(-1)?.text, 'runtime facade message')
+
+    const appendedTrace = runtime.appendTraceStep({
+      actor: 'human',
+      kind: 'annotation',
+      widgetTitle: 'Workspace',
+      summary: 'runtime facade trace',
+    })
+    assert.equal(appendedTrace?.summary, 'runtime facade trace')
+    assert.equal(runtime.readRuntimeTrace().at(-1)?.summary, 'runtime facade trace')
+
+    const contract = runtime.agentContract()
+    assert.equal(typeof contract.executeAction, 'function')
+    assert.equal(typeof contract.queryPerception, 'function')
+  } finally {
+    disposeRuntimeSession(session.runtimeSessionKey)
+    globalThis.window = previousWindow
+  }
+})
+
 test('createAgentRuntimeContract keeps one agent-facing interaction surface across vega-lite, echarts, and d3 workspace environments', async () => {
   const previousWindow = globalThis.window
   globalThis.window = {}
@@ -150,6 +243,15 @@ test('createAgentRuntimeContract keeps one agent-facing interaction surface acro
       try {
         assert.equal(typeof contract.describeWorkspace, 'function')
         assert.equal(typeof contract.readObservation, 'function')
+        assert.equal(typeof contract.readSharedAnalyticalState, 'function')
+        assert.equal(typeof contract.readSharedFilterContext, 'function')
+        assert.equal(typeof contract.readSharedViewportContext, 'function')
+        assert.equal(typeof contract.readSharedSemanticFocus, 'function')
+        assert.equal(typeof contract.readSharedStructuralContext, 'function')
+        assert.equal(typeof contract.readViewStatesByWidget, 'function')
+        assert.equal(typeof contract.readSharedViewContext, 'function')
+        assert.equal(typeof contract.readSharedTransformationContext, 'function')
+        assert.equal(typeof contract.readActiveAnalyticalContext, 'function')
         assert.equal(typeof contract.readCoordinationState, 'function')
         assert.equal(typeof contract.readPropagationSummary, 'function')
         assert.equal(typeof contract.listAvailableActions, 'function')
@@ -163,6 +265,7 @@ test('createAgentRuntimeContract keeps one agent-facing interaction surface acro
 
         const description = contract.describeWorkspace()
         const observation = contract.readObservation()
+        const sharedAnalyticalState = contract.readSharedAnalyticalState()
         const availableActions = contract.listAvailableActions()
         const availablePerceptions = contract.listAvailablePerceptions()
         const availableDataQueries = contract.listAvailableDataQueries()
@@ -172,8 +275,17 @@ test('createAgentRuntimeContract keeps one agent-facing interaction surface acro
         assert.equal(description?.widgetAdapters?.length, 6)
         assert.equal(description?.widgetAdapters?.every((adapter) => adapter.provider === providerEnvironment), true)
         assert.equal(observation?.workspace?.workspaceId, session.runtimeSessionKey)
-        assert.equal(Array.isArray(observation?.availableActions), true)
-        assert.equal(Array.isArray(observation?.availablePerceptions), true)
+        assert.equal('availableActions' in observation, false)
+        assert.equal('availablePerceptions' in observation, false)
+        assert.deepEqual(sharedAnalyticalState, observation?.sharedAnalyticalState)
+        assert.deepEqual(contract.readSharedFilterContext(), sharedAnalyticalState?.sharedFilterContext)
+        assert.deepEqual(contract.readSharedViewportContext(), sharedAnalyticalState?.sharedViewportContext)
+        assert.deepEqual(contract.readSharedSemanticFocus(), sharedAnalyticalState?.sharedSemanticFocus)
+        assert.deepEqual(contract.readSharedStructuralContext(), sharedAnalyticalState?.sharedStructuralContext)
+        assert.deepEqual(contract.readViewStatesByWidget(), sharedAnalyticalState?.viewStatesByWidget)
+        assert.deepEqual(contract.readSharedViewContext(), sharedAnalyticalState?.sharedViewContext)
+        assert.deepEqual(contract.readSharedTransformationContext(), sharedAnalyticalState?.sharedTransformationContext)
+        assert.deepEqual(contract.readActiveAnalyticalContext(), sharedAnalyticalState?.activeAnalyticalContext)
         assert.equal(availableActions.some((entry) => entry?.name === 'scatter.brushRegion'), true)
         assert.equal(availablePerceptions.some((entry) => entry?.name === 'perception.computeCorrelation'), true)
         assert.equal(availableDataQueries.some((entry) => entry?.queryKind === 'summary'), true)
@@ -278,6 +390,7 @@ test('createInitialSessionState attaches a real widgetva-kit runtime session and
     const runtimeSession = getRuntimeSession(session.runtimeSessionKey)
     assert.equal(typeof runtimeSession?.runtime?.executeAction, 'function')
     assert.equal(typeof runtimeSession?.workspace?.listWidgetDescriptions, 'function')
+    assert.equal(typeof runtimeSession?.runtimeManager?.describeRuntimeManager, 'function')
     assert.equal(runtimeSession.widgets.length, 6)
     assert.equal(Array.isArray(session.currentWorkspaceSpec?.widgets), true)
     assert.equal(Array.isArray(session.currentWorkspaceSpec?.links), true)
@@ -302,6 +415,8 @@ test('createInitialSessionState attaches a real widgetva-kit runtime session and
     assert.equal(expandLink?.effect, 'transformStructure')
     assert.equal(expandLink?.responseSpec?.params?.variant, 'expandNode')
     assert.equal(runtimeSession.workspace.listWidgetDescriptions().length, 6)
+    assert.equal(typeof runtimeSession.runtimeManager.readRecoverableState()?.stateId, 'string')
+    assert.equal(runtimeSession.runtimeManager.readRecoverableState()?.shared?.focusedWidget, runtimeSession.runtime.readState()?.shared?.focusedWidget)
     assert.equal(readFocusedWidgetId(session.runtimeSessionKey), 'w_scatter_cars')
     assert.equal(setFocusedWidgetId(session.runtimeSessionKey, 'w_bar_origin'), 'w_bar_origin')
     assert.equal(readFocusedWidgetId(session.runtimeSessionKey), 'w_bar_origin')

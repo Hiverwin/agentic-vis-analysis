@@ -10,8 +10,10 @@ import {
   createWidgetVAHostBridge,
 } from './hostBridge.js'
 import { installWidgetVAPagePort } from './installPagePort.js'
+import { runPagePortAgentSession, runPagePortAgentTurn } from './pagePortAgentLoop.js'
 import { InteractionTraceRecorder } from './InteractionTraceRecorder.js'
 import { LinkEngine } from './LinkEngine.js'
+import { createRuntimeManager } from './RuntimeManager.js'
 import { WidgetVARuntimeStore } from './RuntimeStore.js'
 import { PerceptionQueryRegistry } from './PerceptionQueryRegistry.js'
 import { planWorkspace as runWorkspacePlanner } from './planning/WorkspacePlanner.js'
@@ -74,6 +76,7 @@ export function createWidgetVARuntime(options = {}) {
     : derivedHostBridge || defaultHostBridge
 
   const store = createRuntimeStore()
+  const runtimeManager = createRuntimeManager()
   const traceRecorder = new InteractionTraceRecorder({ store })
   const responseRecorder = new ResponseRecorder({ store })
   const dataQueryEngine = options.dataQueryEngine || createDataQueryEngine({ kind: 'js_array' })
@@ -144,7 +147,7 @@ export function createWidgetVARuntime(options = {}) {
     linkEngine,
     traceRecorder,
   })
-  const executeAction = actionExecutor.run.bind(actionExecutor)
+  const executeActionRaw = actionExecutor.run.bind(actionExecutor)
   const runDataQuery = dataQueryExecutor.run.bind(dataQueryExecutor)
 
   const perceptionQueryRegistry = new PerceptionQueryRegistry({
@@ -178,8 +181,6 @@ export function createWidgetVARuntime(options = {}) {
     description: describeWorkspace(),
     state: readState(options.readStateOptions || options),
     coordinationState: readCoordinationState(),
-    availableActions: listAvailableActions(),
-    availablePerceptions: listAvailablePerceptions(),
     propagationSummary: readPropagationSummary(options.propagationOptions || {}),
     latestCoordinationResult: readLatestCoordinationResult(),
   })
@@ -189,6 +190,14 @@ export function createWidgetVARuntime(options = {}) {
       : null
   )
   const readTrace = (options = {}) => readInteractionTraceFromStore(store, options)
+  const captureCurrentRecoverableState = () => {
+    runtimeManager.seedRecoverableState(readState())
+  }
+  const executeAction = async (call) => {
+    const result = await executeActionRaw(call)
+    captureCurrentRecoverableState()
+    return result
+  }
 
   const jumpToState = async (options = {}) => executeAction({
     callId: options.callId || `jump_${Date.now()}`,
@@ -238,7 +247,40 @@ export function createWidgetVARuntime(options = {}) {
     actionExecutor,
     linkEngine,
   })
-  const executeVerifiedAction = agentLoopRuntime.executeVerifiedAction.bind(agentLoopRuntime)
+  const executeVerifiedActionRaw = agentLoopRuntime.executeVerifiedAction.bind(agentLoopRuntime)
+
+  const executeVerifiedAction = async (call, options) => {
+    const result = await executeVerifiedActionRaw(call, options)
+    captureCurrentRecoverableState()
+    return result
+  }
+
+  const runtimeAgentPort = {
+    describeWorkspace,
+    describeAgentLoop: agentLoopRuntime.describeStepContext.bind(agentLoopRuntime),
+    readObservation,
+    readLatestCoordinationResult,
+    describeActionUsage: typeof actionExecutor?.describeActionUsage === 'function'
+      ? actionExecutor.describeActionUsage.bind(actionExecutor)
+      : undefined,
+    executeVerifiedAction,
+    executeAction,
+    queryPerception,
+    runDataQuery,
+    queryData: runDataQuery,
+    planWorkspace: planWorkspaceWithHostState,
+  }
+
+  const runtimeController = {
+    readRecoverableState: () => readState(),
+    readState,
+    pagePort: runtimeAgentPort,
+  }
+  runtimeManager.attachController(runtimeController)
+  captureCurrentRecoverableState()
+
+  const runAgentTurn = async (options = {}) => runPagePortAgentTurn(runtimeAgentPort, options)
+  const runAgentSession = async (options = {}) => runPagePortAgentSession(runtimeAgentPort, options)
 
   const uninstallPagePort = installWidgetVAPagePort({
     store,
@@ -291,6 +333,9 @@ export function createWidgetVARuntime(options = {}) {
     perceptionQueryRegistry,
     agentLoopRuntime,
     responseRecorder,
+    runtimeManager,
+    describeRuntimeManager: runtimeManager.describeRuntimeManager,
+    readRecoverableState: runtimeManager.readRecoverableState,
     planWorkspace: planWorkspaceWithHostState,
     applyHumanSelection,
     describeWorkspace,
@@ -305,6 +350,8 @@ export function createWidgetVARuntime(options = {}) {
     readTrace,
     executeAction,
     executeVerifiedAction,
+    runAgentTurn,
+    runAgentSession,
     queryPerception,
     queryData: runDataQuery,
     runDataQuery,
@@ -313,6 +360,11 @@ export function createWidgetVARuntime(options = {}) {
     branchFromState,
     replay,
     dispose() {
+      captureCurrentRecoverableState()
+      void runtimeManager.clearController({
+        capturePreviousState: false,
+        disposePrevious: false,
+      })
       unsubscribe?.()
       uninstallPagePort?.()
     },

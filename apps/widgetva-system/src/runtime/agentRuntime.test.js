@@ -45,6 +45,11 @@ test('buildAgentSessionKnowledge separates stable widget catalogs from per-turn 
     assert.equal(knowledge.widgets.length, 6)
     assert.equal(Array.isArray(knowledge?.catalogs?.actionsByWidgetRef?.[scatterWidgetRef]), true)
     assert.equal(typeof knowledge?.history?.turns?.length, 'number')
+    assert.equal('loopHints' in knowledge, false)
+    assert.equal(
+      knowledge.widgets.every((widget) => !('provider' in widget) || (typeof widget.provider === 'string' && widget.provider.length > 0)),
+      true,
+    )
   } finally {
     disposeRuntimeSession(session.runtimeSessionKey)
     globalThis.window = previousWindow
@@ -122,9 +127,9 @@ test('runAgentTurn returns the formal observe plan act verify reason contract', 
     assert.equal(result?.act?.name, 'scatter.brushRegion')
     assert.equal(result?.act?.ok, true)
     assert.equal(Array.isArray(result?.act?.updatedRefs), true)
-    assert.equal(result?.verify?.checks?.params?.status, 'pass')
-    assert.equal(result?.verify?.checks?.visualChange?.status, 'pass')
-    assert.equal(result?.verify?.nextStepHint?.kind, 'answer')
+    assert.equal(result?.verify?.checks?.params?.ok, true)
+    assert.equal(result?.verify?.checks?.visualChange?.ok, true)
+    assert.equal(typeof result?.verify?.guidance, 'string')
     assert.equal(typeof result?.reason?.answer, 'string')
   } finally {
     disposeRuntimeSession(session.runtimeSessionKey)
@@ -133,7 +138,7 @@ test('runAgentTurn returns the formal observe plan act verify reason contract', 
   }
 })
 
-test('runAgentSession returns a compact multi-turn result and stops when verification says answer', async () => {
+test('runAgentSession returns a compact multi-turn result and stops when a later perception turn answers the query', async () => {
   const previousWindow = globalThis.window
   const previousFetch = globalThis.fetch
   globalThis.window = {}
@@ -143,27 +148,45 @@ test('runAgentSession returns a compact multi-turn result and stops when verific
     const observation = summarizeObservation(session.runtimeSessionKey)
     const scatterWidgetRef = observation?.widgets?.find((widget) => widget?.widgetId === 'w_scatter_cars')?.ref || null
 
+    let requestCount = 0
     globalThis.fetch = async () => ({
       ok: true,
       async json() {
+        requestCount += 1
         return {
           choices: [{
             message: {
-              content: JSON.stringify({
-                assistantMessage: 'I will brush the scatterplot to focus the target region.',
-                rationale: 'One verified brush is enough for this query.',
-                operation: {
-                  kind: 'action',
-                  name: 'scatter.brushRegion',
-                  queryScope: { widgetRef: scatterWidgetRef },
-                  params: {
-                    xField: 'horsepower',
-                    yField: 'mpg',
-                    xRange: [90, 150],
-                    yRange: [18, 30],
+              content: JSON.stringify(
+                requestCount === 1
+                  ? {
+                    assistantMessage: 'I will brush the scatterplot to focus the target region.',
+                    rationale: 'The first turn should narrow the view before answering.',
+                    operation: {
+                      kind: 'action',
+                      name: 'scatter.brushRegion',
+                      queryScope: { widgetRef: scatterWidgetRef },
+                      params: {
+                        xField: 'horsepower',
+                        yField: 'mpg',
+                        xRange: [90, 150],
+                        yRange: [18, 30],
+                      },
+                    },
+                  }
+                  : {
+                    assistantMessage: 'I will compute the correlation inside the focused region.',
+                    rationale: 'After focusing, a perception turn can answer the query.',
+                    operation: {
+                      kind: 'perception',
+                      name: 'perception.computeCorrelation',
+                      queryScope: { widgetRef: scatterWidgetRef },
+                      params: {
+                        xField: 'horsepower',
+                        yField: 'mpg',
+                      },
+                    },
                   },
-                },
-              }),
+              ),
             },
           }],
         }
@@ -179,7 +202,9 @@ test('runAgentSession returns a compact multi-turn result and stops when verific
     assert.equal(result?.ok, true)
     assert.equal(result?.stopReason, 'answered')
     assert.equal(Array.isArray(result?.turns), true)
-    assert.equal(result.turns.length, 1)
+    assert.equal(result.turns.length, 2)
+    assert.equal(result.turns[0]?.act?.kind, 'action')
+    assert.equal(result.turns[1]?.act?.kind, 'perception')
     assert.equal(typeof result?.answer, 'string')
   } finally {
     disposeRuntimeSession(session.runtimeSessionKey)

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useAppStore } from '../app/appStore.js'
-import { getRuntimeSession } from '../runtime/runtimeBridge.js'
+import { createFirstPartyRuntimeSessionFacade } from '../runtime/runtimeBridge.js'
 
 const PROVIDER_ENVIRONMENTS = [
   { id: 'vega-lite', label: 'Vega' },
@@ -16,11 +16,14 @@ export function WidgetLibraryPanel() {
   const workspaceProviderEnvironment = useAppStore((state) => state.workspaceProviderEnvironment)
   const setSelectedWidgetId = useAppStore((state) => state.setSelectedWidgetId)
   const setWorkspaceProviderEnvironment = useAppStore((state) => state.setWorkspaceProviderEnvironment)
+  const runtime = useMemo(
+    () => createFirstPartyRuntimeSessionFacade(runtimeSessionKey || activeCaseId),
+    [activeCaseId, runtimeSessionKey],
+  )
   const widgets = useMemo(() => {
-    const runtimeSession = getRuntimeSession(runtimeSessionKey || activeCaseId)
-    const descriptions = runtimeSession?.workspace?.listWidgetDescriptions?.() || []
+    const descriptions = runtime.readWorkspaceDescription()?.widgets || []
     return descriptions.length > 0 ? descriptions : fallbackWidgets
-  }, [activeCaseId, fallbackWidgets, runtimeSessionKey])
+  }, [fallbackWidgets, runtime])
 
   return (
     <section className="panel-section">

@@ -32,7 +32,22 @@ function createMockPagePort() {
     },
     async readObservation() {
       return {
-        focusedWidgetRef: 'w://widgetva-app/workspace/official-vega-lite-point_2d/widget/session_official-vega-lite-point_2d',
+        state: {
+          stateId: 'main:s1',
+        },
+        sharedAnalyticalState: {
+          focusedWidgetRef: 'w://widgetva-app/workspace/official-vega-lite-point_2d/widget/session_official-vega-lite-point_2d',
+          filters: {},
+          viewport: null,
+          selections: {
+            primary: null,
+          },
+          highlight: {
+            activeWidgetRefs: [],
+          },
+          comparisonTargets: [],
+          annotations: [],
+        },
       }
     },
     async describeActionUsage({ actionName }) {
@@ -71,36 +86,56 @@ test('formatAgentPlannerError returns readable strings for common payloads', () 
 })
 
 test('createNaturalLanguagePlanner produces a valid structured operation from JSON chat output', async () => {
+  const requests = []
   const planner = createNaturalLanguagePlanner({
-    completeChat: async () => ({
-      content: JSON.stringify({
-        assistantMessage: 'I will zoom into the middle horsepower region.',
-        rationale: 'A tighter viewport will support local inspection.',
-        operation: {
-          kind: 'action',
-          name: 'scatter.zoomDomain',
-          queryScope: {
-            widgetRef: 'scatter-ref',
+    completeChat: async (request) => {
+      requests.push(request)
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'I will zoom into the middle horsepower region.',
+          rationale: 'A tighter viewport will support local inspection.',
+          operation: {
+            kind: 'action',
+            name: 'scatter.zoomDomain',
+            queryScope: {
+              widgetRef: 'scatter-ref',
+            },
+            params: {
+              xDomain: [80, 160],
+              yDomain: [18, 32],
+            },
           },
-          params: {
-            xDomain: [80, 160],
-            yDomain: [18, 32],
-          },
-        },
-      }),
-      raw: { ok: true },
-    }),
+        }),
+        raw: { ok: true },
+      }
+    },
     model: 'test-model',
   })
 
   const result = await planner({
     objective: 'Focus on the middle horsepower region.',
+    knowledge: {
+      workspace: {
+        workspaceId: 'workspace_main',
+      },
+      widgets: [{ ref: 'scatter-ref', widgetId: 'scatter' }],
+      catalogs: {
+        actionsByWidgetRef: {
+          'scatter-ref': ['scatter.zoomDomain'],
+        },
+      },
+      history: {
+        turns: [],
+      },
+    },
     observe: {
       workspace: {
         widgets: [{ ref: 'scatter-ref' }],
       },
       observation: {
-        focusedWidgetRef: 'scatter-ref',
+        sharedAnalyticalState: {
+          focusedWidgetRef: 'scatter-ref',
+        },
       },
     },
   })
@@ -108,6 +143,7 @@ test('createNaturalLanguagePlanner produces a valid structured operation from JS
   assert.equal(result.model, 'test-model')
   assert.equal(result.operation.name, 'scatter.zoomDomain')
   assert.deepEqual(result.operation.queryScope, { widgetRef: 'scatter-ref' })
+  assert.match(requests[0]?.messages?.[1]?.content || '', /"knowledge":\{/)
 })
 
 test('createNaturalLanguagePlanner repairs an invalid first response and falls back safely if needed', async () => {
@@ -151,7 +187,9 @@ test('createNaturalLanguagePlanner repairs an invalid first response and falls b
         widgets: [{ ref: 'scatter-ref' }],
       },
       observation: {
-        focusedWidgetRef: 'scatter-ref',
+        sharedAnalyticalState: {
+          focusedWidgetRef: 'scatter-ref',
+        },
       },
     },
   })
@@ -223,6 +261,8 @@ test('runNaturalLanguagePagePortAgentTurn returns the compact formal turn contra
 
   assert.deepEqual(Object.keys(result), ['observe', 'plan', 'act', 'verify', 'reason'])
   assert.equal(result.plan.step.name, 'scatter.brushRegion')
+  assert.equal(typeof result.observe.view.snapshot?.ref, 'string')
   assert.equal(result.act.ok, true)
   assert.equal(result.verify.ok, true)
+  assert.equal(typeof result.verify.guidance, 'string')
 })

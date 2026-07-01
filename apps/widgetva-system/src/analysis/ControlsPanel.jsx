@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useAppStore } from '../app/appStore.js'
-import { readWidgetRuntimeState, readWorkspaceCoordinationState, readWorkspaceStateHistory } from '../runtime/runtimeBridge.js'
+import { createFirstPartyRuntimeSessionFacade } from '../runtime/runtimeBridge.js'
 
 export function ControlsPanel() {
   const runtimeSessionKey = useAppStore((state) => state.runtimeSessionKey)
@@ -29,13 +29,17 @@ export function ControlsPanel() {
   const analysisCylinders = useAppStore((state) => state.analysisCylinders)
   const dataset = useAppStore((state) => state.dataset)
   const widgetActionOverrides = useAppStore((state) => state.widgetActionOverrides)
+  const runtime = useMemo(
+    () => createFirstPartyRuntimeSessionFacade(runtimeSessionKey || activeCaseId),
+    [activeCaseId, runtimeSessionKey],
+  )
   const coordinationState = useMemo(
-    () => readWorkspaceCoordinationState(runtimeSessionKey || activeCaseId),
-    [activeCaseId, coordinationVersion, runtimeSessionKey],
+    () => runtime.readCoordinationState(),
+    [coordinationVersion, runtime],
   )
   const stateHistory = useMemo(
-    () => readWorkspaceStateHistory(runtimeSessionKey || activeCaseId, { limit: 12 }),
-    [activeCaseId, coordinationVersion, runtimeSessionKey],
+    () => runtime.readStateHistory({ limit: 12 }),
+    [coordinationVersion, runtime],
   )
   const primarySelection = coordinationState?.selections?.views?.primary || null
   const hasHighlight = Array.isArray(coordinationState?.highlight?.entries) && coordinationState.highlight.entries.length > 0
@@ -68,9 +72,9 @@ export function ControlsPanel() {
       : null
   const sankeyRuntimeState = useMemo(
     () => selectedWidgetId === 'w_sankey_cars'
-      ? readWidgetRuntimeState(runtimeSessionKey || activeCaseId, 'w_sankey_cars')
+      ? runtime.readWidgetRuntimeState('w_sankey_cars')
       : null,
-    [activeCaseId, coordinationVersion, runtimeSessionKey, selectedWidgetId],
+    [coordinationVersion, runtime, selectedWidgetId],
   )
   const sankeySelectedLayerReorder = useMemo(() => {
     if (!selectedSankeyNodeName) return null

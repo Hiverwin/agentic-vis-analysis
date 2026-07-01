@@ -1,4 +1,4 @@
-import { DEFAULT_OPENROUTER_AGENT_MODEL } from '../../../../../widgetva-kit/src/core/runtime/naturalLanguagePlanner.js'
+import { DEFAULT_OPENROUTER_AGENT_MODEL } from '../../../../../widgetva-kit/src/coreRuntime.js'
 
 export const WIDGETVA_AGENT_CONFIG_KEY = 'widgetvaOfficialPageAgentConfig'
 

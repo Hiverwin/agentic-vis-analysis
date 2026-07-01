@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { getWorkspaceViewModel, useAppStore } from '../app/appStore.js'
-import { getRuntimeSession, readSelectionPropagationSummary, readWorkspaceCoordinationState } from '../runtime/runtimeBridge.js'
+import { createFirstPartyRuntimeSessionFacade } from '../runtime/runtimeBridge.js'
 import { buildAnalysisProvenanceSummary } from './provenanceSummary.js'
 import { deriveTraceBranchNarrative } from '../trace/traceBranchNarrative.js'
 import { deriveTraceFocus } from '../trace/traceFocus.js'
@@ -24,13 +24,29 @@ export function InspectPanel() {
   const trace = useAppStore((state) => state.trace)
   const selectedTraceStepId = useAppStore((state) => state.selectedTraceStepId)
   const activeReplayContext = useAppStore((state) => state.activeReplayContext)
+  const runtime = useMemo(
+    () => createFirstPartyRuntimeSessionFacade(runtimeSessionKey || activeCaseId),
+    [activeCaseId, runtimeSessionKey],
+  )
   const coordinationState = useMemo(
-    () => readWorkspaceCoordinationState(runtimeSessionKey || activeCaseId),
-    [activeCaseId, coordinationVersion, runtimeSessionKey],
+    () => runtime.readCoordinationState(),
+    [coordinationVersion, runtime],
   )
   const propagationSummary = useMemo(
-    () => readSelectionPropagationSummary(runtimeSessionKey || activeCaseId),
-    [activeCaseId, coordinationVersion, runtimeSessionKey],
+    () => runtime.readPropagationSummary(),
+    [coordinationVersion, runtime],
+  )
+  const workspaceDescription = useMemo(
+    () => runtime.readWorkspaceDescription() || null,
+    [coordinationVersion, runtime],
+  )
+  const availableActions = useMemo(
+    () => runtime.listAvailableActions(),
+    [coordinationVersion, runtime],
+  )
+  const availablePerceptions = useMemo(
+    () => runtime.listAvailablePerceptions(),
+    [coordinationVersion, runtime],
   )
   const hostState = useMemo(() => ({
     dataset,
@@ -61,7 +77,6 @@ export function InspectPanel() {
     () => getWorkspaceViewModel(hostState),
     [hostState],
   )
-  const runtimeWorkspace = getRuntimeSession(runtimeSessionKey || activeCaseId)?.workspace || null
   const traceModel = useMemo(
     () => buildTraceTimelineModel(trace, { selectedStepId: selectedTraceStepId }),
     [selectedTraceStepId, trace],
@@ -88,10 +103,33 @@ export function InspectPanel() {
     [activeReplayContext, branchNarrative, selectedTraceStep, traceModel.selection.currentPath, traceModel.selection.currentSegment, traceModel.selection.selectedPath, traceModel.selection.selectedSegment],
   )
   const focusedWidgetRef = coordinationState?.focusedWidgetRef || null
-  const widgetDescription = runtimeWorkspace?.listWidgetDescriptions?.().find((entry) => (
-    entry?.widgetId === selectedWidgetId || entry?.ref === focusedWidgetRef
-  )) || null
-  const widgetPerceptionNames = widgetDescription?.perceptionNames || widgetDescription?.perceptionQueryNames || []
+  const widgetDescription = useMemo(() => {
+    const widgets = Array.isArray(workspaceDescription?.widgets) ? workspaceDescription.widgets : []
+    const adapters = Array.isArray(workspaceDescription?.widgetAdapters) ? workspaceDescription.widgetAdapters : []
+    const targetWidget = widgets.find((entry) => (
+      entry?.widgetId === selectedWidgetId || entry?.ref === focusedWidgetRef
+    )) || null
+    if (!targetWidget) return null
+    const adapter = adapters.find((entry) => entry?.widgetRef === targetWidget.ref) || null
+    const actionNames = availableActions
+      .filter((entry) => entry?.targetRef === targetWidget.ref && typeof entry?.name === 'string')
+      .map((entry) => entry.name)
+    const perceptionNames = availablePerceptions
+      .filter((entry) => entry?.targetRef === targetWidget.ref && typeof entry?.name === 'string')
+      .map((entry) => entry.name)
+    return {
+      widgetId: targetWidget.widgetId,
+      ref: targetWidget.ref,
+      title: targetWidget.title || null,
+      kind: targetWidget.kind || null,
+      role: targetWidget.role || null,
+      provider: adapter?.provider || null,
+      providerCapabilities: adapter?.providerCapabilities || null,
+      actionNames,
+      perceptionNames,
+    }
+  }, [availableActions, availablePerceptions, focusedWidgetRef, selectedWidgetId, workspaceDescription])
+  const widgetPerceptionNames = widgetDescription?.perceptionNames || []
   const widget = widgetMap[selectedWidgetId] || widgetDescription || null
   const selectionRegistryCount = Object.keys(coordinationState?.selections?.registry || {}).length
   const primarySelection = coordinationState?.selections?.views?.primary || null

@@ -2,45 +2,26 @@ export const OBSERVABLE_D3_BOOTSTRAP_KEY = '__widgetVAOfficialPageBootstrap'
 export const OBSERVABLE_D3_BOOTSTRAP_ENTRY = 'observableD3'
 
 import {
-  DEFAULT_OPENROUTER_AGENT_MODEL,
-  runNaturalLanguagePagePortAgentSession,
-} from '../../../../../widgetva-kit/src/pageIntegrations.js'
-
+  createOfficialPageNaturalLanguageLoopRunner,
+  createOfficialPageNaturalLanguageTurnRunner,
+} from './officialPageAgentRunners.js'
 import {
-  completeOfficialPageAgentChat,
   configureOfficialPageAgent,
   readOfficialPageAgentConfig,
 } from './officialPageAgentClient.js'
-
-function readOfficialPageChatTimeout(normalized) {
-  if (!normalized || typeof normalized !== 'object') {
-    return undefined
-  }
-
-  return normalized.chatTimeoutMs ?? normalized.timeoutMs
-}
-
-function readOfficialPageMaxTurns(normalized) {
-  if (!normalized || typeof normalized !== 'object') {
-    return undefined
-  }
-
-  return normalized.maxTurns
-}
-
-function summarizeError(error) {
-  if (error instanceof Error) {
-    return {
-      name: error.name,
-      message: error.message,
-    }
-  }
-
-  return {
-    name: 'Error',
-    message: String(error || 'Unknown WidgetVA Observable D3 bootstrap error.'),
-  }
-}
+import {
+  attachOfficialPageController,
+  ensureOfficialPageRuntimeManager,
+  readManagedController,
+  summarizeManagedRuntimeError,
+} from './officialPageRuntimeManager.js'
+import {
+  bindOfficialPageAgentRuntime,
+} from './officialPageRuntimeBindings.js'
+import {
+  clearOfficialPageBootstrapRuntime,
+  resetOfficialPageBootstrapBindings,
+} from './officialPageBootstrapLifecycle.js'
 
 function ensureBootstrapState(root) {
   if (!root[OBSERVABLE_D3_BOOTSTRAP_KEY] || typeof root[OBSERVABLE_D3_BOOTSTRAP_KEY] !== 'object') {
@@ -59,6 +40,7 @@ function ensureBootstrapState(root) {
       controller: null,
       pagePort: null,
       runAgentLoop: null,
+      runNaturalLanguageAgentTurn: null,
       runNaturalLanguageAgentLoop: null,
       configureAgent: null,
       readAgentConfig: null,
@@ -70,37 +52,67 @@ function ensureBootstrapState(root) {
     }
   }
 
+  ensureOfficialPageRuntimeManager(state[OBSERVABLE_D3_BOOTSTRAP_ENTRY])
   return state[OBSERVABLE_D3_BOOTSTRAP_ENTRY]
 }
 
-function disposeController(entry) {
-  try {
-    entry?.controller?.dispose?.()
-  } catch {}
+async function clearEntryRuntime(entry, root) {
+  await clearOfficialPageBootstrapRuntime({
+    entry,
+    root,
+    capturePreviousState: false,
+    preserveRecoverableState: false,
+    clearWidgetVA: true,
+    resetEntry(currentEntry) {
+      currentEntry.workerFrame = null
+      currentEntry.surface = null
+    },
+    clearExtraBindings() {
+      root.__widgetVAObservableD3Debug = undefined
+      root.__widgetVAObservableD3PreviewBrush = undefined
+      root.__widgetVAObservableD3Probe = undefined
+    },
+  })
 }
 
-function clearEntryRuntime(entry, root) {
-  disposeController(entry)
-  entry.workerFrame = null
-  entry.surface = null
-  entry.controller = null
-  entry.pagePort = null
-  entry.runAgentLoop = null
-  entry.runNaturalLanguageAgentLoop = null
-  entry.configureAgent = null
-  entry.readAgentConfig = null
-  entry.promise = null
-  root.__widgetVAOfficialPageRunAgentLoop = undefined
-  root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop = undefined
-  root.__widgetVAOfficialPageConfigureAgent = undefined
-  root.__widgetVAOfficialPageReadAgentConfig = undefined
-  if (root?.__widgetVA) {
-    try {
-      delete root.__widgetVA
-    } catch {
-      root.__widgetVA = undefined
-    }
-  }
+function resetEntryBindingsForRebootstrap(entry, root) {
+  resetOfficialPageBootstrapBindings({
+    entry,
+    root,
+    clearWidgetVA: true,
+    resetEntry(currentEntry) {
+      currentEntry.workerFrame = null
+      currentEntry.surface = null
+    },
+    clearExtraBindings() {
+      root.__widgetVAObservableD3Debug = undefined
+      root.__widgetVAObservableD3PreviewBrush = undefined
+      root.__widgetVAObservableD3Probe = undefined
+    },
+  })
+}
+
+function bindReadyEntry(root, entry, controller) {
+  const pagePort = root.__widgetVA || controller?.pagePort || null
+  const runTurn = createOfficialPageNaturalLanguageTurnRunner(root)
+  const runLoop = createOfficialPageNaturalLanguageLoopRunner(root)
+
+  bindOfficialPageAgentRuntime({
+    entry,
+    root,
+    pagePort,
+    controller,
+    createRunAgentLoop: (currentController) => (options = {}) => currentController?.runAgentLoop?.(options),
+    createRunNaturalLanguageAgentTurn: (currentPagePort) => (options = {}) => runTurn(currentPagePort, options),
+    createRunNaturalLanguageAgentLoop: (currentPagePort) => (options = {}) => runLoop(currentPagePort, options),
+    configureAgent: (options = {}) => configureOfficialPageAgent(root, options),
+    readAgentConfig: () => readOfficialPageAgentConfig(root),
+    extraBindings(activeController) {
+      root.__widgetVAObservableD3Debug = () => activeController?.readDebugSnapshot?.()
+      root.__widgetVAObservableD3PreviewBrush = () => activeController?.previewVisibleBrush?.()
+      root.__widgetVAObservableD3Probe = () => activeController?.renderDebugProbe?.()
+    },
+  })
 }
 
 export async function ensureObservableD3PageBootstrap({
@@ -132,7 +144,7 @@ export async function ensureObservableD3PageBootstrap({
 
   if (!isSupportedPage(pageUrl)) {
     if (entry.pageUrl && entry.pageUrl !== pageUrl) {
-      clearEntryRuntime(entry, root)
+      await clearEntryRuntime(entry, root)
     }
     entry.status = 'unsupported'
     entry.error = null
@@ -142,35 +154,16 @@ export async function ensureObservableD3PageBootstrap({
   }
 
   if (entry.pageUrl && entry.pageUrl !== pageUrl) {
-    clearEntryRuntime(entry, root)
+    resetEntryBindingsForRebootstrap(entry, root)
     entry.status = 'idle'
     entry.error = null
   }
 
-  if (entry.status === 'ready') {
+  const activeController = readManagedController(entry)
+
+  if (entry.status === 'ready' && activeController) {
     entry.pageUrl = pageUrl
-    entry.pagePort = root.__widgetVA || entry.controller?.pagePort || null
-    entry.runAgentLoop = (options = {}) => entry.controller?.runAgentLoop?.(options)
-    entry.runNaturalLanguageAgentLoop = async (options = {}) => {
-      const normalized = typeof options === 'string' ? { objective: options } : { ...(options || {}) }
-      return runNaturalLanguagePagePortAgentSession(root.__widgetVA, {
-        objective: normalized.objective || normalized.prompt || null,
-        model: normalized.model || DEFAULT_OPENROUTER_AGENT_MODEL,
-        temperature: normalized.temperature,
-        maxTurns: readOfficialPageMaxTurns(normalized),
-        completeChat: (request) =>
-          completeOfficialPageAgentChat(root, {
-            ...request,
-            timeoutMs: readOfficialPageChatTimeout(normalized),
-          }),
-      })
-    }
-    entry.configureAgent = (options = {}) => configureOfficialPageAgent(root, options)
-    entry.readAgentConfig = () => readOfficialPageAgentConfig(root)
-    root.__widgetVAOfficialPageRunAgentLoop = entry.runAgentLoop
-    root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop = entry.runNaturalLanguageAgentLoop
-    root.__widgetVAOfficialPageConfigureAgent = entry.configureAgent
-    root.__widgetVAOfficialPageReadAgentConfig = entry.readAgentConfig
+    bindReadyEntry(root, entry, activeController)
     return entry
   }
 
@@ -197,6 +190,7 @@ export async function ensureObservableD3PageBootstrap({
         enableExtensionBridge: true,
         timeoutMs,
       })
+      await attachOfficialPageController(entry, controller)
 
       entry.status = 'ready'
       entry.pageShape = pageShape
@@ -205,47 +199,30 @@ export async function ensureObservableD3PageBootstrap({
             src: workerFrame.getAttribute?.('src') || workerFrame.src || null,
           }
         : null
-      entry.surface = controller?.surface || null
-      entry.controller = controller
-      entry.pagePort = root.__widgetVA || controller?.pagePort || null
-      entry.runAgentLoop = (options = {}) => entry.controller?.runAgentLoop?.(options)
-      entry.runNaturalLanguageAgentLoop = async (options = {}) => {
-        const normalized = typeof options === 'string' ? { objective: options } : { ...(options || {}) }
-        return runNaturalLanguagePagePortAgentSession(root.__widgetVA, {
-          objective: normalized.objective || normalized.prompt || null,
-          model: normalized.model || DEFAULT_OPENROUTER_AGENT_MODEL,
-          temperature: normalized.temperature,
-          maxTurns: readOfficialPageMaxTurns(normalized),
-          completeChat: (request) =>
-            completeOfficialPageAgentChat(root, {
-              ...request,
-              timeoutMs: readOfficialPageChatTimeout(normalized),
-            }),
-        })
-      }
-      entry.configureAgent = (options = {}) => configureOfficialPageAgent(root, options)
-      entry.readAgentConfig = () => readOfficialPageAgentConfig(root)
-      root.__widgetVAOfficialPageRunAgentLoop = entry.runAgentLoop
-      root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop = entry.runNaturalLanguageAgentLoop
-      root.__widgetVAOfficialPageConfigureAgent = entry.configureAgent
-      root.__widgetVAOfficialPageReadAgentConfig = entry.readAgentConfig
-      root.__widgetVAObservableD3Debug = () => entry.controller?.readDebugSnapshot?.()
-      root.__widgetVAObservableD3PreviewBrush = () => entry.controller?.previewVisibleBrush?.()
-      root.__widgetVAObservableD3Probe = () => entry.controller?.renderDebugProbe?.()
+      entry.surface = readManagedController(entry)?.surface || controller?.surface || null
+      bindReadyEntry(root, entry, readManagedController(entry))
       entry.completedAt = Date.now()
       entry.promise = null
       return entry
     } catch (error) {
       entry.status = 'error'
-      entry.error = summarizeError(error)
-      entry.runAgentLoop = null
-      entry.runNaturalLanguageAgentLoop = null
-      entry.configureAgent = null
-      entry.readAgentConfig = null
-      root.__widgetVAOfficialPageRunAgentLoop = undefined
-      root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop = undefined
-      root.__widgetVAOfficialPageConfigureAgent = undefined
-      root.__widgetVAOfficialPageReadAgentConfig = undefined
+      entry.error = summarizeManagedRuntimeError(error)
+      await clearOfficialPageBootstrapRuntime({
+        entry,
+        root,
+        capturePreviousState: false,
+        preserveRecoverableState: false,
+        clearWidgetVA: true,
+        resetEntry(currentEntry) {
+          currentEntry.workerFrame = null
+          currentEntry.surface = null
+        },
+        clearExtraBindings() {
+          root.__widgetVAObservableD3Debug = undefined
+          root.__widgetVAObservableD3PreviewBrush = undefined
+          root.__widgetVAObservableD3Probe = undefined
+        },
+      })
       entry.completedAt = Date.now()
       entry.promise = null
       throw error

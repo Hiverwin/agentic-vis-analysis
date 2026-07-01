@@ -85,6 +85,14 @@ test('WidgetWorkspace.describeContract documents the stable workspace public met
   assert.equal(typeof contract.constructorOptions.widgets, 'string')
   assert.equal(typeof contract.composition.links, 'string')
   assert.equal(typeof contract.composition.contractReads, 'string')
+  assert.equal(typeof contract.coordinationState.sharedAnalyticalState, 'string')
+  assert.equal(typeof contract.coordinationState.sharedFilterContext, 'string')
+  assert.equal(typeof contract.coordinationState.sharedViewportContext, 'string')
+  assert.equal(typeof contract.coordinationState.sharedSemanticFocus, 'string')
+  assert.equal(typeof contract.coordinationState.sharedStructuralContext, 'string')
+  assert.equal(typeof contract.coordinationState.sharedViewContext, 'string')
+  assert.equal(typeof contract.coordinationState.sharedTransformationContext, 'string')
+  assert.equal(typeof contract.coordinationState.activeAnalyticalContext, 'string')
   assert.equal(typeof contract.coordinationState.selections.registry, 'string')
   assert.equal(typeof contract.coordinationState.selections.views.primary, 'string')
   assert.equal(typeof contract.coordinationState.selections.views.byWidget, 'string')
@@ -232,6 +240,280 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
           widgetCount: 1,
         },
       },
+    })
+    assert.deepEqual(workspace.readSharedAnalyticalState(), {
+      focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+      selections: {
+        registry: {
+          bar_a: ['wl://widgetva-app/workspace/main/widget/bar_a/selection/current'],
+        },
+        primary: {
+          selectionRef: null,
+          selectionId: null,
+          sourceWidgetRef: null,
+          sourceWidgetId: null,
+          summary: '',
+          predicates: [],
+          selectionDataRef: null,
+          scope: 'local',
+          kind: 'brush',
+          xRange: [1, 3],
+        },
+        byWidget: {
+          bar_a: {
+            selectionRef: null,
+            selectionId: null,
+            sourceWidgetRef: null,
+            sourceWidgetId: null,
+            summary: '',
+            predicates: [],
+            selectionDataRef: null,
+            scope: 'local',
+            kind: 'point',
+            values: ['a'],
+          },
+        },
+      },
+      filters: {
+        value: { op: '>=', value: 10 },
+      },
+      focus: {
+        widgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+        widgetId: null,
+        source: 'workspace',
+      },
+      highlight: {
+        entries: [],
+        activeWidgetRefs: [],
+      },
+      viewStatesByWidget: {},
+      viewport: {
+        sourceWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+        xDomain: [0, 10],
+        yDomain: [5, 15],
+        zoom: null,
+      },
+      comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
+      annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
+      links: {
+        definitions: [],
+        topology: {
+          edgeCount: 0,
+          linkDensity: 0,
+          maxInDegree: 0,
+          maxOutDegree: 0,
+          rationale: ['A single widget is active in the current workspace.'],
+          sourceWidgetCount: 0,
+          targetWidgetCount: 0,
+          topology: 'T1',
+          topologyLabel: 'Single View',
+          widgetCount: 1,
+        },
+      },
+      sharedFilterContext: {
+        globalFilters: {
+          value: { op: '>=', value: 10 },
+        },
+        selectionRef: null,
+        selectionPredicates: [],
+      },
+      sharedViewportContext: {
+        focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+        viewport: {
+          sourceWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+          xDomain: [0, 10],
+          yDomain: [5, 15],
+          zoom: null,
+        },
+        comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
+      },
+      sharedViewContext: {
+        activeWidgetRefs: [],
+        widgets: {},
+      },
+      sharedTransformationContext: {
+        activeWidgetRefs: [],
+        widgets: {},
+      },
+      activeAnalyticalContext: {
+        activeContextKinds: ['focus', 'filters', 'selection', 'viewport', 'structure'],
+        focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+        globalFilters: {
+          value: { op: '>=', value: 10 },
+        },
+        primarySelection: {
+          selectionRef: null,
+          sourceWidgetRef: null,
+          sourceWidgetId: null,
+          summary: null,
+          predicates: [],
+          kind: 'brush',
+          scope: 'local',
+        },
+        highlight: null,
+        viewport: {
+          sourceWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+          xDomain: [0, 10],
+          yDomain: [5, 15],
+          zoom: null,
+        },
+        comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
+        structure: {
+          linkCount: 0,
+          annotationCount: 1,
+        },
+        transformationContext: {
+          activeWidgetRefs: [],
+          widgets: {},
+        },
+        viewStatesByWidget: null,
+      },
+      sharedSemanticFocus: {
+        focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+        focus: {
+          widgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+          widgetId: null,
+          source: 'workspace',
+        },
+        primarySelection: {
+          selectionRef: null,
+          selectionId: null,
+          sourceWidgetRef: null,
+          sourceWidgetId: null,
+          summary: '',
+          predicates: [],
+          selectionDataRef: null,
+          scope: 'local',
+          kind: 'brush',
+          xRange: [1, 3],
+        },
+        highlight: {
+          entries: [],
+          activeWidgetRefs: [],
+        },
+      },
+      sharedStructuralContext: {
+        links: {
+          definitions: [],
+          topology: {
+            edgeCount: 0,
+            linkDensity: 0,
+            maxInDegree: 0,
+            maxOutDegree: 0,
+            rationale: ['A single widget is active in the current workspace.'],
+            sourceWidgetCount: 0,
+            targetWidgetCount: 0,
+            topology: 'T1',
+            topologyLabel: 'Single View',
+            widgetCount: 1,
+          },
+        },
+        comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
+        annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
+      },
+    })
+    assert.deepEqual(workspace.readObservation().sharedAnalyticalState, workspace.readSharedAnalyticalState())
+    assert.deepEqual(workspace.readSharedFilterContext(), {
+      globalFilters: {
+        value: { op: '>=', value: 10 },
+      },
+      selectionRef: null,
+      selectionPredicates: [],
+    })
+    assert.deepEqual(workspace.readSharedViewportContext(), {
+      focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+      viewport: {
+        sourceWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+        xDomain: [0, 10],
+        yDomain: [5, 15],
+        zoom: null,
+      },
+      comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
+    })
+    assert.deepEqual(workspace.readSharedSemanticFocus(), {
+      focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+      focus: {
+        widgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+        widgetId: null,
+        source: 'workspace',
+      },
+      primarySelection: {
+        selectionRef: null,
+        selectionId: null,
+        sourceWidgetRef: null,
+        sourceWidgetId: null,
+        summary: '',
+        predicates: [],
+        selectionDataRef: null,
+        scope: 'local',
+        kind: 'brush',
+        xRange: [1, 3],
+      },
+      highlight: {
+        entries: [],
+        activeWidgetRefs: [],
+      },
+    })
+    assert.deepEqual(workspace.readSharedStructuralContext(), {
+      links: {
+        definitions: [],
+        topology: {
+          edgeCount: 0,
+          linkDensity: 0,
+          maxInDegree: 0,
+          maxOutDegree: 0,
+          rationale: ['A single widget is active in the current workspace.'],
+          sourceWidgetCount: 0,
+          targetWidgetCount: 0,
+          topology: 'T1',
+          topologyLabel: 'Single View',
+          widgetCount: 1,
+        },
+      },
+      comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
+      annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
+    })
+    assert.deepEqual(workspace.readViewStatesByWidget(), {})
+    assert.deepEqual(workspace.readSharedViewContext(), {
+      activeWidgetRefs: [],
+      widgets: {},
+    })
+    assert.deepEqual(workspace.readSharedTransformationContext(), {
+      activeWidgetRefs: [],
+      widgets: {},
+    })
+    assert.deepEqual(workspace.readActiveAnalyticalContext(), {
+      activeContextKinds: ['focus', 'filters', 'selection', 'viewport', 'structure'],
+      focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+      globalFilters: {
+        value: { op: '>=', value: 10 },
+      },
+      primarySelection: {
+        selectionRef: null,
+        sourceWidgetRef: null,
+        sourceWidgetId: null,
+        summary: null,
+        predicates: [],
+        kind: 'brush',
+        scope: 'local',
+      },
+      highlight: null,
+      viewport: {
+        sourceWidgetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
+        xDomain: [0, 10],
+        yDomain: [5, 15],
+        zoom: null,
+      },
+      comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
+      structure: {
+        linkCount: 0,
+        annotationCount: 1,
+      },
+      transformationContext: {
+        activeWidgetRefs: [],
+        widgets: {},
+      },
+      viewStatesByWidget: null,
     })
     assert.equal(workspace.readFocusedWidget(), focusedWidget)
     assert.equal(workspace.readFocusedWidgetId(), 'bar_a')
@@ -1788,7 +2070,21 @@ test('WidgetWorkspace delegates workspace-level action, perception, and replay t
   const runtime = {
     store: {
       readDescription() {
-        return { appId: 'widgetva-app', workspaceId: 'main', widgets: [], links: [] }
+        return {
+          appId: 'widgetva-app',
+          workspaceId: 'main',
+          widgets: [],
+          links: [],
+          actions: [
+            {
+              name: 'scatter.brushRegion',
+              title: 'Brush region',
+              description: 'Brush a scatter interval.',
+              primitive: 'select',
+              category: 'selection',
+            },
+          ],
+        }
       },
       readState() {
         return { stateId: 'main:s1', widgets: {}, shared: {} }
@@ -1827,6 +2123,14 @@ test('WidgetWorkspace delegates workspace-level action, perception, and replay t
     const replayResult = await workspace.replay('main:s1')
 
     assert.equal(description.workspaceId, 'main')
+    assert.equal(
+      description.actions.find((entry) => entry?.name === 'scatter.brushRegion')?.analyticalPlacement,
+      'workspace-shared-state',
+    )
+    assert.equal(
+      description.actions.find((entry) => entry?.name === 'scatter.brushRegion')?.sharedAnalyticalSurface,
+      'sharedSemanticFocus',
+    )
     assert.equal(view.stateId, 'main:s1')
     assert.equal(actionResult.ok, true)
     assert.equal(perceptionResult.ok, true)

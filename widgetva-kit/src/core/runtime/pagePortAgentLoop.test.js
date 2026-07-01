@@ -43,7 +43,66 @@ function createObservedPort(overrides = {}) {
         state: {
           stateId: 'main:s1',
         },
+        sharedAnalyticalState: {
+          focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/scatter',
+          filters: {},
+          viewport: null,
+          selections: {
+            primary: {
+              summary: 'Current scatter selection',
+            },
+          },
+          highlight: {
+            activeWidgetRefs: [],
+          },
+          sharedViewContext: {
+            activeWidgetRefs: ['wl://widgetva-app/workspace/main/widget/scatter'],
+          },
+          sharedTransformationContext: {
+            activeWidgetRefs: ['wl://widgetva-app/workspace/main/widget/scatter'],
+            widgets: {
+              'wl://widgetva-app/workspace/main/widget/scatter': {
+                widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter',
+                widgetId: 'scatter',
+                activeKinds: ['reencode'],
+                operationModesByKind: {
+                  reencode: 'stackMode',
+                },
+                reencode: {
+                  xField: 'Horsepower',
+                  yField: 'Miles_per_Gallon',
+                },
+              },
+            },
+          },
+          activeAnalyticalContext: {
+            activeContextKinds: ['selection', 'view', 'structure'],
+          },
+          comparisonTargets: [],
+          annotations: [],
+          links: {
+            definitions: [],
+          },
+        },
       }
+    },
+    async listAvailableActions() {
+      observedCalls.push(['listAvailableActions'])
+      return [
+        {
+          name: 'scatter.brushRegion',
+          targetRef: 'wl://widgetva-app/workspace/main/widget/scatter',
+        },
+      ]
+    },
+    async listAvailablePerceptions() {
+      observedCalls.push(['listAvailablePerceptions'])
+      return [
+        {
+          name: 'perception.computeCorrelation',
+          targetRef: 'wl://widgetva-app/workspace/main/widget/scatter',
+        },
+      ]
     },
     async planWorkspace(options = {}) {
       observedCalls.push(['planWorkspace', options])
@@ -92,6 +151,17 @@ function createObservedPort(overrides = {}) {
         },
       }
     },
+    async queryPerception(call) {
+      observedCalls.push(['queryPerception', call])
+      return {
+        ok: true,
+        queryName: call.name,
+        summary: `Perception ${call.name} completed.`,
+        result: {
+          passed: true,
+        },
+      }
+    },
     async readLatestCoordinationResult() {
       observedCalls.push(['readLatestCoordinationResult'])
       return {
@@ -120,8 +190,11 @@ test('runPagePortAgentLoop executes an explicit observe-plan-act-verify-reason l
         coordinationScope: 'single_widget',
       },
     },
-    async planner({ observe, workspacePlan }) {
+    async planner({ observe, knowledge, workspacePlan }) {
       assert.equal(observe.workspace.workspaceId, 'workspace_main')
+      assert.equal(knowledge?.workspace?.workspaceId, 'workspace_main')
+      assert.equal(knowledge?.widgets?.[0]?.widgetId, 'scatter')
+      assert.deepEqual(knowledge?.catalogs?.actionsByWidgetRef?.['wl://widgetva-app/workspace/main/widget/scatter'], ['scatter.brushRegion'])
       assert.equal(workspacePlan?.planningMode, 'topology_driven')
       return {
         assistantMessage: 'Brush the middle cluster in the scatterplot.',
@@ -144,6 +217,7 @@ test('runPagePortAgentLoop executes an explicit observe-plan-act-verify-reason l
   })
 
   assert.equal(result.observe.workspace.workspaceId, 'workspace_main')
+  assert.equal('knowledgeCatalogs' in result.observe, false)
   assert.equal(result.plan.workspacePlan?.planningMode, 'topology_driven')
   assert.equal(result.plan.operation?.name, 'scatter.brushRegion')
   assert.deepEqual(result.plan.actionUsage?.actions?.[0]?.requiredParams, ['xField', 'yField', 'xRange', 'yRange'])
@@ -155,6 +229,8 @@ test('runPagePortAgentLoop executes an explicit observe-plan-act-verify-reason l
     'describeWorkspace',
     'describeAgentLoop',
     'readObservation',
+    'listAvailableActions',
+    'listAvailablePerceptions',
     'planWorkspace',
     'describeActionUsage',
     'executeVerifiedAction',
@@ -185,42 +261,100 @@ test('runPagePortAgentTurn maps the page-port loop into the formal compact turn 
   })
 
   assert.deepEqual(Object.keys(result), ['observe', 'plan', 'act', 'verify', 'reason'])
+  assert.deepEqual(Object.getOwnPropertyNames(result.observe), [
+    'query',
+    'previousTurnSummary',
+    'state',
+    'view',
+    'perception',
+  ])
   assert.equal(result.observe.query, 'Focus the scatterplot on the local cluster.')
+  assert.equal(result.observe.view.snapshot?.ref, 'widgetva-view:main:s1')
+  assert.equal(result.observe.view.snapshot?.mimeType, 'application/widgetva-view+json')
+  assert.equal(result.observe.state.sharedAnalyticalState.focus.widgetRef, 'wl://widgetva-app/workspace/main/widget/scatter')
+  assert.deepEqual(result.observe.state.sharedAnalyticalState.activeContextKinds, ['selection', 'view', 'structure'])
+  assert.deepEqual(
+    result.observe.state.sharedAnalyticalState.sharedView.activeWidgetRefs,
+    ['wl://widgetva-app/workspace/main/widget/scatter'],
+  )
+  assert.deepEqual(
+    result.observe.state.sharedAnalyticalState.transformation.activeWidgetRefs,
+    ['wl://widgetva-app/workspace/main/widget/scatter'],
+  )
+  assert.deepEqual(
+    result.observe.state.sharedAnalyticalState.transformation.widgets['wl://widgetva-app/workspace/main/widget/scatter']?.activeKinds,
+    ['reencode'],
+  )
+  assert.deepEqual(
+    result.observe.state.sharedAnalyticalState.transformation.widgets['wl://widgetva-app/workspace/main/widget/scatter']?.operationModesByKind,
+    { reencode: 'stackMode' },
+  )
   assert.equal(result.plan.step.name, 'scatter.brushRegion')
   assert.equal(result.act.ok, true)
   assert.equal(result.verify.ok, true)
-  assert.equal(result.verify.nextStepHint.kind, 'answer')
+  assert.equal(typeof result.verify.guidance, 'string')
   assert.equal(typeof result.reason.answer, 'string')
 })
 
-test('runPagePortAgentSession returns a multi-turn session contract with formal turns', async () => {
+test('runPagePortAgentSession carries session knowledge forward and continues after a successful action turn', async () => {
   const { port } = createObservedPort()
 
   const result = await runPagePortAgentSession(port, {
     objective: 'Focus the scatterplot on the local cluster.',
     maxTurns: 3,
-    planner: async () => ({
-      assistantMessage: 'I will brush the local cluster.',
-      rationale: 'A brush is the most direct next step.',
-      operation: {
-        kind: 'action',
-        name: 'scatter.brushRegion',
-        queryScope: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
-        params: {
-          xField: 'Horsepower',
-          yField: 'Miles_per_Gallon',
-          xRange: [80, 140],
-          yRange: [18, 30],
+    planner: async ({ knowledge }) => {
+      const priorTurns = knowledge?.history?.turns || []
+      if (priorTurns.length === 0) {
+        return {
+          assistantMessage: 'I will brush the local cluster.',
+          rationale: 'A brush is the most direct next step.',
+          operation: {
+            kind: 'action',
+            name: 'scatter.brushRegion',
+            queryScope: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+            params: {
+              xField: 'Horsepower',
+              yField: 'Miles_per_Gallon',
+              xRange: [80, 140],
+              yRange: [18, 30],
+            },
+          },
+        }
+      }
+
+      return {
+        assistantMessage: 'I will compute the correlation inside the current focus.',
+        rationale: 'After focusing the region, a perception step can answer the query.',
+        operation: {
+          kind: 'perception',
+          name: 'perception.computeCorrelation',
+          queryScope: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+          params: {
+            xField: 'Horsepower',
+            yField: 'Miles_per_Gallon',
+          },
         },
-      },
-    }),
+      }
+    },
   })
 
   assert.equal(result.ok, true)
   assert.equal(result.stopReason, 'answered')
+  assert.equal(result.knowledge.workspace.workspaceId, 'workspace_main')
+  assert.equal('caseId' in result.knowledge.workspace, false)
+  assert.equal(result.knowledge.widgets[0].widgetId, 'scatter')
+  assert.equal('provider' in result.knowledge.widgets[0], false)
+  assert.equal(result.knowledge.catalogs.actionsByWidgetRef['wl://widgetva-app/workspace/main/widget/scatter'][0], 'scatter.brushRegion')
+  assert.equal('dataQueriesByDataRef' in result.knowledge.catalogs, false)
+  assert.deepEqual(Object.keys(result.knowledge), ['workspace', 'widgets', 'catalogs', 'history'])
   assert.equal(Array.isArray(result.turns), true)
-  assert.equal(result.turns.length, 1)
+  assert.equal(result.turns.length, 2)
   assert.deepEqual(Object.keys(result.turns[0]), ['observe', 'plan', 'act', 'verify', 'reason'])
+  assert.equal(result.turns[0].act.kind, 'action')
+  assert.equal(result.turns[1].act.kind, 'perception')
+  assert.equal(result.knowledge.history.turns.length, 2)
+  assert.equal(result.knowledge.history.turns[0].summary, 'scatter.brushRegion:verified')
+  assert.equal(result.knowledge.history.turns[1].summary, 'Perception perception.computeCorrelation completed.')
   assert.equal(typeof result.answer, 'string')
 })
 
@@ -254,6 +388,69 @@ test('runPagePortAgentTurn prefers returned perception evidence in reason.answer
 
   assert.equal(result.act.kind, 'perception')
   assert.equal(result.reason.answer, 'Correlation between Horsepower and Miles_per_Gallon is -0.78.')
+})
+
+test('runPagePortAgentTurn surfaces missing required action parameters in verify feedback', async () => {
+  const { port } = createObservedPort()
+
+  const result = await runPagePortAgentTurn(port, {
+    objective: 'Brush the scatterplot with an incomplete parameter set.',
+    planner: async () => ({
+      assistantMessage: 'I will try brushing first.',
+      rationale: 'This intentionally omits one required parameter to test verification feedback.',
+      operation: {
+        kind: 'action',
+        name: 'scatter.brushRegion',
+        queryScope: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+        params: {
+          xField: 'Horsepower',
+          xRange: [80, 140],
+          yRange: [18, 30],
+        },
+      },
+    }),
+  })
+
+  assert.equal(result.act.ok, true)
+  assert.equal(result.verify.ok, false)
+  assert.equal(result.verify.checks.params.ok, false)
+  assert.match(result.verify.checks.params.summary, /Missing required parameters: yField\./)
+  assert.equal(result.verify.guidance, 'Re-check required parameters before retrying this step.')
+})
+
+test('runPagePortAgentTurn surfaces unconfirmed action selection in verify feedback', async () => {
+  const { port } = createObservedPort({
+    async describeActionUsage() {
+      return {
+        actions: [],
+      }
+    },
+  })
+
+  const result = await runPagePortAgentTurn(port, {
+    objective: 'Try an action that is not confirmed on the widget.',
+    planner: async () => ({
+      assistantMessage: 'I will try brushing first.',
+      rationale: 'This tests step-choice verification.',
+      operation: {
+        kind: 'action',
+        name: 'scatter.brushRegion',
+        queryScope: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+        params: {
+          xField: 'Horsepower',
+          yField: 'Miles_per_Gallon',
+          xRange: [80, 140],
+          yRange: [18, 30],
+        },
+      },
+    }),
+  })
+
+  assert.equal(result.act.ok, true)
+  assert.equal(result.verify.ok, false)
+  assert.equal(result.verify.checks.stepChoice.ok, false)
+  assert.equal(result.verify.checks.stepChoice.summary, 'The requested action is not confirmed on the target widget.')
+  assert.equal(result.verify.guidance, 'Re-check whether the target widget actually exposes this step before retrying.')
 })
 
 test('runPagePortAgentLoop falls back to executeAction and explicit verification when verified-action execution is unavailable', async () => {
@@ -304,6 +501,8 @@ test('runPagePortAgentLoop falls back to executeAction and explicit verification
     'describeWorkspace',
     'describeAgentLoop',
     'readObservation',
+    'listAvailableActions',
+    'listAvailablePerceptions',
     'describeActionUsage',
     'executeAction',
     'queryPerception',
@@ -358,6 +557,8 @@ test('runPagePortAgentLoop accepts transport-client method aliases such as runVe
     'describeWorkspace',
     'describeAgentLoop',
     'readObservation',
+    'listAvailableActions',
+    'listAvailablePerceptions',
     'describeActionUsage',
     'runVerifiedAction',
     'readLatestCoordinationResult',

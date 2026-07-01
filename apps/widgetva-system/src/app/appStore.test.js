@@ -7,7 +7,7 @@ import {
   describeParallelCoordinatesWidgetContract,
   describeSankeyWidgetContract,
   describeScatterWidgetContract,
-} from '../../../../widgetva-kit/src/index.js'
+} from '../../../../widgetva-kit/src/widgets.js'
 
 const CONTRACTS_BY_KIND = {
   scatter: describeScatterWidgetContract(),

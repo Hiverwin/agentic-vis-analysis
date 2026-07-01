@@ -5,7 +5,7 @@ import {
   describeParallelCoordinatesWidgetContract,
   describeSankeyWidgetContract,
   describeScatterWidgetContract,
-} from '../../../../widgetva-kit/src/index.js'
+} from '../../../../widgetva-kit/src/widgets.js'
 
 const TYPE_TO_KIND = {
   'scatter-vega': 'scatter',

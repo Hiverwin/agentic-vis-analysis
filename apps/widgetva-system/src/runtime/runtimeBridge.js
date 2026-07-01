@@ -1,8 +1,9 @@
 import {
   buildEmptyComputedPropagationSummary,
   buildEmptyCoordinationOperationResult,
-} from '../../../../widgetva-kit/src/workspace/widgetWorkspace.js'
-import { withViewportSubmodel } from '../../../../widgetva-kit/src/workspace/state/viewportStateModel.js'
+  withViewportSubmodel,
+} from '../../../../widgetva-kit/src/workspace.js'
+import { createWidgetWorkspaceTransportClient } from '../../../../widgetva-kit/src/transportRuntime.js'
 import { buildEvidenceEntry } from '../app/sessionModel.js'
 import { buildWorkspaceComposition, cloneWorkspaceComposition } from './workspaceComposition.js'
 import {
@@ -211,6 +212,97 @@ export function readRuntimeObservation(caseId, options = {}) {
 
 export function readObservation(caseId, options = {}) {
   return readRuntimeObservation(caseId, options)
+}
+
+export function readSharedAnalyticalState(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  return clone(session?.workspace?.readSharedAnalyticalState?.(options) || null)
+}
+
+export function readSharedFilterContext(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  return clone(session?.workspace?.readSharedFilterContext?.(options) || {
+    globalFilters: {},
+    selectionRef: null,
+    selectionPredicates: [],
+  })
+}
+
+export function readSharedViewportContext(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  return clone(session?.workspace?.readSharedViewportContext?.(options) || {
+    focusedWidgetRef: null,
+    viewport: null,
+    comparisonTargets: [],
+  })
+}
+
+export function readSharedSemanticFocus(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  return clone(session?.workspace?.readSharedSemanticFocus?.(options) || {
+    focusedWidgetRef: null,
+    focus: null,
+    primarySelection: null,
+    highlight: {
+      activeWidgetRefs: [],
+      summaries: [],
+    },
+  })
+}
+
+export function readSharedStructuralContext(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  return clone(session?.workspace?.readSharedStructuralContext?.(options) || {
+    links: {
+      definitions: [],
+      topology: null,
+    },
+    comparisonTargets: [],
+    annotations: [],
+  })
+}
+
+export function readViewStatesByWidget(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  return clone(session?.workspace?.readViewStatesByWidget?.(options) || {})
+}
+
+export function readSharedViewContext(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  return clone(session?.workspace?.readSharedViewContext?.(options) || {
+    activeWidgetRefs: [],
+    widgets: {},
+  })
+}
+
+export function readSharedTransformationContext(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  return clone(session?.workspace?.readSharedTransformationContext?.(options) || {
+    activeWidgetRefs: [],
+    widgets: {},
+  })
+}
+
+export function readActiveAnalyticalContext(caseId, options = {}) {
+  const session = getRuntimeSession(caseId)
+  return clone(session?.workspace?.readActiveAnalyticalContext?.(options) || {
+    activeContextKinds: [],
+    focusedWidgetRef: null,
+    globalFilters: null,
+    primarySelection: null,
+    highlight: null,
+    viewport: null,
+    comparisonTargets: null,
+    structure: {
+      linkCount: 0,
+      annotationCount: 0,
+    },
+    transformationContext: {
+      activeWidgetRefs: [],
+      widgets: {},
+    },
+    viewStatesByWidget: null,
+  })
 }
 
 export function readRuntimeView(caseId, options = {}) {
@@ -703,26 +795,87 @@ export async function describeActionUsage(caseId, options = {}) {
   return clone(await describeUsage(options))
 }
 
-export function createAgentRuntimeContract(caseId) {
+function createCaseBoundRuntimeReaders(caseId) {
   return {
     caseId,
     describeWorkspace: (options = {}) => describeWorkspace(caseId, options),
     readObservation: (options = {}) => readObservation(caseId, options),
+    readSharedAnalyticalState: (options = {}) => readSharedAnalyticalState(caseId, options),
+    readSharedFilterContext: (options = {}) => readSharedFilterContext(caseId, options),
+    readSharedViewportContext: (options = {}) => readSharedViewportContext(caseId, options),
+    readSharedSemanticFocus: (options = {}) => readSharedSemanticFocus(caseId, options),
+    readSharedStructuralContext: (options = {}) => readSharedStructuralContext(caseId, options),
+    readViewStatesByWidget: (options = {}) => readViewStatesByWidget(caseId, options),
+    readSharedViewContext: (options = {}) => readSharedViewContext(caseId, options),
+    readSharedTransformationContext: (options = {}) => readSharedTransformationContext(caseId, options),
+    readActiveAnalyticalContext: (options = {}) => readActiveAnalyticalContext(caseId, options),
     readView: (options = {}) => readView(caseId, options),
     readCoordinationState: () => readCoordinationState(caseId),
-    readPropagationSummary: () => readPropagationSummary(caseId),
     readLatestCoordinationResult: () => readLatestCoordinationResult(caseId),
+    readPropagationSummary: () => readPropagationSummary(caseId),
     listAvailableActions: () => listAvailableActions(caseId),
     listAvailablePerceptions: () => listAvailablePerceptions(caseId),
     listAvailableDataQueries: () => listAvailableDataQueries(caseId),
-    describeAgentLoop: (options = {}) => describeAgentLoop(caseId, options),
-    describeActionUsage: (options = {}) => describeActionUsage(caseId, options),
-    executeAction: (call = {}) => executeAgentWorkspaceAction(caseId, call),
-    executeVerifiedAction: (call = {}, options = {}) => executeVerifiedAction(caseId, call, options),
-    queryPerception: (call = {}) => queryPerception(caseId, call),
-    runDataQuery: (call = {}) => runDataQuery(caseId, call),
     readTrace: (options = {}) => readTrace(caseId, options),
     replay: (stateIdOrOptions) => replay(caseId, stateIdOrOptions),
+    describeAgentLoop: (options = {}) => describeAgentLoop(caseId, options),
+    describeActionUsage: (options = {}) => describeActionUsage(caseId, options),
+    queryPerception: (call = {}) => queryPerception(caseId, call),
+    runDataQuery: (call = {}) => runDataQuery(caseId, call),
+    executeVerifiedAction: (call = {}, options = {}) => executeVerifiedAction(caseId, call, options),
+  }
+}
+
+export function createAgentRuntimeContract(caseId) {
+  const readers = createCaseBoundRuntimeReaders(caseId)
+  const baseClient = createWidgetWorkspaceTransportClient({
+    describeWorkspace: readers.describeWorkspace,
+    readObservation: readers.readObservation,
+    readView: readers.readView,
+    readCoordinationState: readers.readCoordinationState,
+    readPropagationSummary: readers.readPropagationSummary,
+    listAvailableActions: readers.listAvailableActions,
+    listAvailablePerceptions: readers.listAvailablePerceptions,
+    executeAction: (call = {}) => executeAgentWorkspaceAction(caseId, call),
+    queryPerception: readers.queryPerception,
+    runDataQuery: readers.runDataQuery,
+    readTrace: readers.readTrace,
+    replay: readers.replay,
+  })
+
+  return {
+    ...baseClient,
+    ...readers,
+  }
+}
+
+export function createFirstPartyRuntimeSessionFacade(caseId) {
+  const readers = createCaseBoundRuntimeReaders(caseId)
+  return {
+    ...readers,
+    readWorkspaceDescription: () => readRuntimeWorkspaceDescription(caseId),
+    readPrimarySelection: () => readWorkspaceCoordinationState(caseId)?.selections?.views?.primary || null,
+    readWidgetRuntimeState: (widgetId) => readWidgetRuntimeState(caseId, widgetId),
+    readInteractionBindings: (options = {}) => readWorkspaceInteractionBindings(caseId, options),
+    readStateHistory: (options = {}) => readWorkspaceStateHistory(caseId, options),
+    readRuntimeTrace: () => readRuntimeTrace(caseId),
+    appendTraceStep: (step = {}) => appendRuntimeTraceStep(caseId, step),
+    readAgentMessages: () => readAgentMessages(caseId),
+    appendAgentMessage: (message = {}) => appendAgentMessage(caseId, message),
+    setFocusedWidgetId: (widgetId) => setFocusedWidgetId(caseId, widgetId),
+    syncWorkspaceGlobalFilters: (state = {}) => syncWorkspaceGlobalFilters(caseId, state),
+    syncScatterBrushSelection: (brush = null) => syncScatterBrushSelection(caseId, brush),
+    syncScatterBrushSelectionResult: (brush = null) => syncScatterBrushSelectionResult(caseId, brush),
+    syncScatterViewport: (viewport = null) => syncScatterViewport(caseId, viewport),
+    syncWorkspacePrimarySelection: (selection = null) => syncWorkspacePrimarySelection(caseId, selection),
+    syncWorkspacePrimarySelectionResult: (selection = null) => syncWorkspacePrimarySelectionResult(caseId, selection),
+    clearWorkspaceSelection: () => clearWorkspaceSelection(caseId),
+    clearWorkspaceHighlight: () => clearWorkspaceHighlight(caseId),
+    promotePrimarySelectionToGlobalFilters: (state = {}) => promotePrimarySelectionToGlobalFilters(caseId, state),
+    promotePrimarySelectionToHighlight: () => promotePrimarySelectionToHighlight(caseId),
+    executeWorkspaceAction: (call = {}) => executeWorkspaceAction(caseId, call),
+    jumpWorkspaceToState: (stateId) => jumpWorkspaceToState(caseId, stateId),
+    agentContract: () => createAgentRuntimeContract(caseId),
   }
 }
 

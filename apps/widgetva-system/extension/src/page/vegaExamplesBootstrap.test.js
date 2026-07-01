@@ -168,7 +168,22 @@ test('ensureVegaExamplesPageBootstrap installs capture, bootstraps once, and rec
         },
         async readObservation() {
           return {
-            focusedWidgetRef: 'scatter-ref',
+            state: {
+              stateId: 'main:s1',
+            },
+            sharedAnalyticalState: {
+              focusedWidgetRef: 'scatter-ref',
+              filters: {},
+              viewport: null,
+              selections: {
+                primary: null,
+              },
+              highlight: {
+                activeWidgetRefs: [],
+              },
+              comparisonTargets: [],
+              annotations: [],
+            },
           }
         },
         async describeActionUsage() {
@@ -203,12 +218,16 @@ test('ensureVegaExamplesPageBootstrap installs capture, bootstraps once, and rec
   assert.equal(installed, 1)
   assert.equal(bootstrapped, 1)
   assert.equal(entry.status, 'ready')
+  assert.equal(typeof entry.manager?.readActiveController, 'function')
+  assert.equal(entry.manager.readActiveController(), entry.controller)
   assert.equal(entry.pagePort, root.__widgetVA)
   assert.equal(typeof entry.runAgentLoop, 'function')
+  assert.equal(typeof entry.runNaturalLanguageAgentTurn, 'function')
   assert.equal(typeof entry.runNaturalLanguageAgentLoop, 'function')
   assert.equal(typeof entry.configureAgent, 'function')
   assert.equal(typeof entry.readAgentConfig, 'function')
   assert.equal(typeof root.__widgetVAOfficialPageRunAgentLoop, 'function')
+  assert.equal(typeof root.__widgetVAOfficialPageRunNaturalLanguageAgentTurn, 'function')
   assert.equal(typeof root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop, 'function')
   assert.equal(typeof root.__widgetVAOfficialPageConfigureAgent, 'function')
   assert.equal(typeof root.__widgetVAOfficialPageReadAgentConfig, 'function')
@@ -228,7 +247,14 @@ test('ensureVegaExamplesPageBootstrap installs capture, bootstraps once, and rec
     siteUrl: null,
     appName: 'WidgetVA Official Page Integration',
   })
-  const naturalLanguageResult = await root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop('Brush the visible scatter region.')
+  const naturalLanguageTurn = await root.__widgetVAOfficialPageRunNaturalLanguageAgentTurn('Brush the visible scatter region.')
+  assert.equal(naturalLanguageTurn.plan?.step?.name, 'scatter.brushRegion')
+  assert.equal(naturalLanguageTurn.act?.ok, true)
+  assert.equal(naturalLanguageTurn.verify?.ok, true)
+  const naturalLanguageResult = await root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop({
+    objective: 'Brush the visible scatter region.',
+    maxTurns: 1,
+  })
   assert.equal(Array.isArray(naturalLanguageResult.turns), true)
   assert.equal(naturalLanguageResult.turns.length, 1)
   assert.equal(naturalLanguageResult.turns[0]?.plan?.step?.name, 'scatter.brushRegion')
@@ -255,6 +281,7 @@ test('ensureVegaExamplesPageBootstrap installs capture, bootstraps once, and rec
 
 test('ensureVegaExamplesPageBootstrap records bootstrap failures on the shared page state', async () => {
   const root = createRoot()
+  root.__widgetVA = { describeWorkspace() {} }
 
   await assert.rejects(
     ensureVegaExamplesPageBootstrap({
@@ -273,4 +300,107 @@ test('ensureVegaExamplesPageBootstrap records bootstrap failures on the shared p
   assert.equal(entry.error?.message, 'capture timed out')
   assert.equal(root.__widgetVAOfficialPageRunAgentLoop, undefined)
   assert.equal(root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop, undefined)
+  assert.equal(root.__widgetVA, undefined)
+})
+
+test('ensureVegaExamplesPageBootstrap clears the managed controller when the page becomes unsupported', async () => {
+  const root = createRoot()
+  let disposed = 0
+
+  const readyEntry = await ensureVegaExamplesPageBootstrap({
+    root,
+    isSupportedPage: () => true,
+    installCapture() {},
+    async bootstrapPage() {
+      root.__widgetVA = { describeWorkspace() {} }
+      return {
+        pagePort: root.__widgetVA,
+        dispose() {
+          disposed += 1
+        },
+      }
+    },
+  })
+
+  assert.equal(readyEntry.status, 'ready')
+  assert.ok(readyEntry.manager.readActiveController())
+
+  root.location.href = 'https://example.com/not-supported.html'
+  root.location.pathname = '/not-supported.html'
+
+  const unsupportedEntry = await ensureVegaExamplesPageBootstrap({
+    root,
+    isSupportedPage: () => false,
+    installCapture() {},
+    async bootstrapPage() {
+      throw new Error('bootstrap should not run for unsupported pages')
+    },
+  })
+
+  assert.equal(unsupportedEntry.status, 'unsupported')
+  assert.equal(disposed, 1)
+  assert.equal(unsupportedEntry.manager.readActiveController(), null)
+  assert.equal(unsupportedEntry.controller, null)
+  assert.equal(unsupportedEntry.pagePort, null)
+  assert.equal(root.__widgetVAOfficialPageRunAgentLoop, undefined)
+  assert.equal(root.__widgetVAOfficialPageRunNaturalLanguageAgentLoop, undefined)
+  assert.equal(root.__widgetVA, undefined)
+})
+
+test('ensureVegaExamplesPageBootstrap reboots when the official example URL changes', async () => {
+  const root = createRoot('https://vega.github.io/vega-lite/examples/scatter_plot.html')
+  let bootstrapped = 0
+  let disposed = 0
+  const jumpCalls = []
+
+  await ensureVegaExamplesPageBootstrap({
+    root,
+    isSupportedPage: () => true,
+    installCapture() {},
+    async bootstrapPage({ sessionId }) {
+      bootstrapped += 1
+      assert.equal(sessionId, 'official-vega-lite-scatter_plot')
+      root.__widgetVA = {
+        describeWorkspace() {},
+        async readState() {
+          return { stateId: 'main:s1' }
+        },
+      }
+      return {
+        pagePort: root.__widgetVA,
+        dispose() {
+          disposed += 1
+        },
+      }
+    },
+  })
+
+  root.location.href = 'https://vega.github.io/vega-lite/examples/point_2d.html'
+  root.location.pathname = '/vega-lite/examples/point_2d.html'
+
+  await ensureVegaExamplesPageBootstrap({
+    root,
+    isSupportedPage: () => true,
+    installCapture() {},
+    async bootstrapPage({ sessionId }) {
+      bootstrapped += 1
+      assert.equal(sessionId, 'official-vega-lite-point_2d')
+      root.__widgetVA = {
+        describeWorkspace() {},
+        async jumpToState(options = {}) {
+          jumpCalls.push(options)
+          return { ok: true, stateId: options.stateId }
+        },
+      }
+      return {
+        pagePort: root.__widgetVA,
+        dispose() {},
+      }
+    },
+  })
+
+  assert.equal(bootstrapped, 2)
+  assert.equal(disposed, 1)
+  assert.deepEqual(jumpCalls, [{ stateId: 'main:s1' }])
+  assert.equal(root[VEGA_EXAMPLES_BOOTSTRAP_KEY][VEGA_EXAMPLES_BOOTSTRAP_ENTRY].pageUrl, root.location.href)
 })

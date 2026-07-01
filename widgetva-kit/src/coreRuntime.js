@@ -8,11 +8,41 @@ export { ResponseRecorder } from './core/runtime/ResponseRecorder.js'
 export { StateManager } from './core/runtime/StateManager.js'
 export { WidgetRegistry } from './core/runtime/WidgetRegistry.js'
 export { WidgetVARuntimeStore } from './core/runtime/RuntimeStore.js'
+export { createRuntimeManager } from './core/runtime/RuntimeManager.js'
 export {
   createRuntimeStore,
   createWidgetVARuntime,
   planWorkspace,
 } from './core/runtime/createWidgetRuntime.js'
+export {
+  DEFAULT_OPENROUTER_AGENT_MODEL,
+  createNaturalLanguagePlanner,
+  formatAgentPlannerError,
+  runNaturalLanguagePagePortAgentLoop,
+  runNaturalLanguagePagePortAgentSession,
+  runNaturalLanguagePagePortAgentTurn,
+} from './core/runtime/naturalLanguagePlanner.js'
+export {
+  runPagePortAgentLoop,
+  runPagePortAgentSession,
+  runPagePortAgentTurn,
+} from './core/runtime/pagePortAgentLoop.js'
+export {
+  buildSelectionAdvancedResponseContext,
+  buildSelectionCoordinationContext,
+  buildSelectionDomainCoordinationContext,
+  readDeclaredLinkEffect,
+  readLinkActivationPolicy,
+  readLinkEffectConstraint,
+  resolveSelectionDrivenRows,
+  resolveSelectionDrivenViewState,
+} from './core/runtime/linkSemantics.js'
+export {
+  deriveHighlightedRows,
+  deriveHighlightPredicatesFromState,
+  deriveHighlightSummaryFromState,
+  deriveSelectionFilteredRows,
+} from './core/runtime/sharedStateDerivation.js'
 export {
   createDefaultWidgetVAHostBridge,
   createWidgetVAHostBridge,
@@ -23,3 +53,5 @@ export {
   attachWidgetRendererBridge,
 } from './core/rendering/WidgetRendererBridge.js'
 export { createRendererAdapterRegistry } from './core/rendering/RendererAdapterRegistry.js'
+export { makeWidgetRef } from './core/protocol/refs.js'
+export { normalizeWidgetLink } from './core/protocol/widgetLinks.js'

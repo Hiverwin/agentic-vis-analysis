@@ -29,6 +29,7 @@ import { makeWidgetLink } from '../protocol/widgetLinks.js'
 import { makeActionDescriptor } from '../protocol/actions.js'
 import { makePerceptionDescriptor } from '../protocol/perception.js'
 import { makeDataHandle } from '../protocol/dataHandles.js'
+import { applyActionAnalyticalPlacementList } from '../../workspace/state/analyticalStatePlacement.js'
 import {
   makeCurrentSelectionDataRef,
   makeCurrentViewDataRef,
@@ -454,7 +455,9 @@ export class WidgetVARuntimeStore {
   }
 
   rebuildActionIndexes(actionDescriptors = []) {
-    this.actionDescriptors = actionDescriptors.map((item) => makeActionDescriptor(item))
+    this.actionDescriptors = applyActionAnalyticalPlacementList(
+      actionDescriptors.map((item) => makeActionDescriptor(item)),
+    )
     this.actionIndex = Object.fromEntries(
       this.actionDescriptors.map((item) => [makeDescriptorKey(item.name, item.targetRef), item]),
     )
@@ -611,7 +614,9 @@ export class WidgetVARuntimeStore {
       ? nextWorkspace.description.widgets.map((item) => makeWidgetDescription(item))
       : []
     const normalizedActions = Array.isArray(nextWorkspace.description?.actions)
-      ? nextWorkspace.description.actions.map((item) => makeActionDescriptor(item))
+      ? applyActionAnalyticalPlacementList(
+          nextWorkspace.description.actions.map((item) => makeActionDescriptor(item)),
+        )
       : []
     const normalizedPerceptionQueries = Array.isArray(nextWorkspace.description?.perceptionQueries)
       ? nextWorkspace.description.perceptionQueries.map((item) => makePerceptionDescriptor(item))

@@ -30,11 +30,11 @@ export function formatAgentPlannerError(error) {
   return 'Agent planning failed.'
 }
 
-function buildAgentMessages({ objective, observe }) {
+function buildAgentMessages({ objective, observe, knowledge = null }) {
   const systemPrompt = [
     'You are an analyst agent operating a widget-based visual analytics workspace.',
     'Your job is to convert the user objective into exactly one next structured operation.',
-    'Use only the actions, perceptions, and data-query surfaces already exposed by the workspace observation.',
+    'Use only the actions, perceptions, and data-query surfaces already exposed by the provided knowledge and current observation.',
     'Return JSON only.',
     'The JSON must contain assistantMessage, rationale, and operation.',
     'operation.kind must be exactly one of: action, perception, data_query.',
@@ -47,6 +47,7 @@ function buildAgentMessages({ objective, observe }) {
 
   const userPrompt = JSON.stringify({
     objective,
+    knowledge,
     observe,
   })
 
@@ -56,7 +57,7 @@ function buildAgentMessages({ objective, observe }) {
   ]
 }
 
-function buildRepairMessages({ objective, observe, previousContent = '' }) {
+function buildRepairMessages({ objective, observe, knowledge = null, previousContent = '' }) {
   const systemPrompt = [
     'You previously returned an invalid plan for a widget-based visual analytics agent.',
     'Return JSON only.',
@@ -69,6 +70,7 @@ function buildRepairMessages({ objective, observe, previousContent = '' }) {
 
   const userPrompt = JSON.stringify({
     objective,
+    knowledge,
     observe,
     previousContent,
     requiredShape: {
@@ -209,7 +211,9 @@ function isExecutableOperation(operation = {}) {
 function buildSafeFallbackOperation(observe = {}) {
   const widgets = Array.isArray(observe?.workspace?.widgets) ? observe.workspace.widgets : []
   const focusedWidgetRef =
-    observe?.observation?.focusedWidgetRef
+    observe?.observation?.sharedAnalyticalState?.focusedWidgetRef
+    || observe?.observation?.coordination?.focusedWidgetRef
+    || observe?.observation?.focusedWidgetRef
     || observe?.loopContext?.view?.shared?.focusedWidget
     || widgets[0]?.ref
     || null
@@ -238,6 +242,7 @@ export function createNaturalLanguagePlanner({
   return async function planner({
     objective = null,
     observe = null,
+    knowledge = null,
     actor = 'agent',
   } = {}) {
     const safeObjective = typeof objective === 'string' && objective.trim().length > 0
@@ -249,6 +254,7 @@ export function createNaturalLanguagePlanner({
       temperature,
       messages: buildAgentMessages({
         objective: safeObjective,
+        knowledge,
         observe,
       }),
     })
@@ -269,6 +275,7 @@ export function createNaturalLanguagePlanner({
         temperature,
         messages: buildRepairMessages({
           objective: safeObjective,
+          knowledge,
           observe,
           previousContent: primaryContent,
         }),

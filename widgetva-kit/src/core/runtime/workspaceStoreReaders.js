@@ -20,6 +20,7 @@ import {
 import { normalizeWidgetLink } from '../protocol/widgetLinks.js'
 import { stripWidgetLinkCompatibilityFields } from '../protocol/widgetLinks.js'
 import { deriveWorkspaceTopology } from './deriveWorkspaceTopology.js'
+import { applyActionAnalyticalPlacementList } from '../../workspace/state/analyticalStatePlacement.js'
 import {
   REPLAY_CONTEXT_REF,
   SHARED_STATE_REF,
@@ -599,7 +600,13 @@ export function readWorkspaceDescriptionFromStore(store, {
   perceptionQueryRegistry = null,
 } = {}) {
   if (typeof store?.readDescription === 'function') {
-    return store.readDescription()
+    const description = store.readDescription() || {}
+    return makeWorkspaceDescription({
+      ...description,
+      actions: applyActionAnalyticalPlacementList(
+        Array.isArray(description?.actions) ? description.actions : [],
+      ),
+    })
   }
   const widgets = listStoreWidgets(store)
   const links = listStoreLinks(store)
@@ -618,7 +625,7 @@ export function readWorkspaceDescriptionFromStore(store, {
     widgets,
     dataHandles: listStoreDataHandles(store),
     links,
-    actions: listStoreActions(store, actionExecutor),
+    actions: applyActionAnalyticalPlacementList(listStoreActions(store, actionExecutor)),
     perceptionQueries: listStorePerceptionQueries(store, perceptionQueryRegistry),
   })
 }

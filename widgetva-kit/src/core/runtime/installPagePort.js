@@ -14,9 +14,11 @@ import {
   buildCoordinationStateFromWorkspaceState,
   buildPropagationSummary,
   buildRuntimeObservation,
+  buildSharedAnalyticalStateFromWorkspaceState,
   listAvailableActionsFromDescription,
   listAvailablePerceptionsFromDescription,
 } from './agentFacingSurface.js'
+import { runPagePortAgentSession, runPagePortAgentTurn } from './pagePortAgentLoop.js'
 import {
   buildTraceGraphFromStore,
   listBranchesFromStore,
@@ -126,9 +128,19 @@ export function installWidgetVAPagePort({
       ['describeLinkEngine', hasLinkEngineMethod('describeEngine')],
       ['planWorkspace', plannerInstalled],
       ['describeAgentLoop', hasAgentLoopMethod('describeStepContext')],
+      ['runAgentTurn', hasAgentLoopMethod('describeStepContext')],
+      ['runAgentSession', hasAgentLoopMethod('describeStepContext')],
       ['listWidgetAdapters', hasStoreMethod('listWidgetAdapters') || Boolean(store?.widgetAdapters && typeof store.widgetAdapters === 'object')],
       ['readObservation', Boolean(store)],
       ['readCoordinationState', Boolean(store)],
+      ['readSharedAnalyticalState', Boolean(store)],
+      ['readSharedFilterContext', Boolean(store)],
+      ['readSharedViewportContext', Boolean(store)],
+      ['readSharedSemanticFocus', Boolean(store)],
+      ['readSharedStructuralContext', Boolean(store)],
+      ['readSharedViewContext', Boolean(store)],
+      ['readSharedTransformationContext', Boolean(store)],
+      ['readActiveAnalyticalContext', Boolean(store)],
       ['readPropagationSummary', Boolean(store)],
       ['readLatestCoordinationResult', typeof readLatestCoordinationResult === 'function'],
       ['listAvailableActions', Boolean(store)],
@@ -355,6 +367,14 @@ export function installWidgetVAPagePort({
       return agentLoopRuntime.describeStepContext(options)
     },
 
+    async runAgentTurn(options = {}) {
+      return runPagePortAgentTurn(port, options)
+    },
+
+    async runAgentSession(options = {}) {
+      return runPagePortAgentSession(port, options)
+    },
+
     async listWidgetAdapters() {
       return resolveWidgetAdapterSummaries(store, readWorkspaceDescriptionFromStore(store, {
         actionExecutor,
@@ -376,8 +396,6 @@ export function installWidgetVAPagePort({
         description,
         state,
         coordinationState,
-        availableActions: listAvailableActionsFromDescription(description),
-        availablePerceptions: listAvailablePerceptionsFromDescription(description),
         propagationSummary: buildPropagationSummary({
           state,
           description,
@@ -398,6 +416,98 @@ export function installWidgetVAPagePort({
       return buildCoordinationStateFromWorkspaceState(readWorkspaceStateFromStore(store), {
         currentBranchId: store?.currentBranchId || null,
         derivedTopology: description?.runtimeTopology || {},
+      })
+    },
+
+    async readSharedAnalyticalState(options = {}) {
+      const description = readWorkspaceDescriptionFromStore(store, {
+        actionExecutor,
+        perceptionQueryRegistry,
+      })
+      return buildSharedAnalyticalStateFromWorkspaceState(
+        readWorkspaceStateFromStore(store, options),
+        { derivedTopology: description?.runtimeTopology || {} },
+      )
+    },
+
+    async readSharedFilterContext(options = {}) {
+      const shared = await port.readSharedAnalyticalState(options)
+      return clone(shared?.sharedFilterContext || {
+        globalFilters: {},
+        selectionRef: null,
+        selectionPredicates: [],
+      })
+    },
+
+    async readSharedViewportContext(options = {}) {
+      const shared = await port.readSharedAnalyticalState(options)
+      return clone(shared?.sharedViewportContext || {
+        focusedWidgetRef: null,
+        viewport: null,
+        comparisonTargets: [],
+      })
+    },
+
+    async readSharedSemanticFocus(options = {}) {
+      const shared = await port.readSharedAnalyticalState(options)
+      return clone(shared?.sharedSemanticFocus || {
+        focusedWidgetRef: null,
+        focus: null,
+        primarySelection: null,
+        highlight: {
+          entries: [],
+          activeWidgetRefs: [],
+        },
+      })
+    },
+
+    async readSharedStructuralContext(options = {}) {
+      const shared = await port.readSharedAnalyticalState(options)
+      return clone(shared?.sharedStructuralContext || {
+        links: {
+          definitions: [],
+          topology: null,
+        },
+        comparisonTargets: [],
+        annotations: [],
+      })
+    },
+
+    async readSharedViewContext(options = {}) {
+      const shared = await port.readSharedAnalyticalState(options)
+      return clone(shared?.sharedViewContext || {
+        activeWidgetRefs: [],
+        widgets: {},
+      })
+    },
+
+    async readSharedTransformationContext(options = {}) {
+      const shared = await port.readSharedAnalyticalState(options)
+      return clone(shared?.sharedTransformationContext || {
+        activeWidgetRefs: [],
+        widgets: {},
+      })
+    },
+
+    async readActiveAnalyticalContext(options = {}) {
+      const shared = await port.readSharedAnalyticalState(options)
+      return clone(shared?.activeAnalyticalContext || {
+        activeContextKinds: [],
+        focusedWidgetRef: null,
+        globalFilters: null,
+        primarySelection: null,
+        highlight: null,
+        viewport: null,
+        comparisonTargets: null,
+        structure: {
+          linkCount: 0,
+          annotationCount: 0,
+        },
+        transformationContext: {
+          activeWidgetRefs: [],
+          widgets: {},
+        },
+        viewStatesByWidget: null,
       })
     },
 

@@ -369,6 +369,25 @@ test('WidgetVARuntimeStore normalizes action and perception descriptors through 
   assert.equal(store.readDescription().perceptionQueries[0]?.sideEffectFree, true)
 })
 
+test('WidgetVARuntimeStore enriches mapped action descriptors with stable analytical placement metadata', () => {
+  const store = new WidgetVARuntimeStore({ appId: 'demo', workspaceId: 'main' })
+  const widgetRef = 'wl://demo/workspace/main/widget/scatter_a'
+
+  store.upsertActionDescriptor('scatter.brushRegion', {
+    name: 'scatter.brushRegion',
+    title: 'Brush region',
+    description: 'Brush a scatter interval.',
+    primitive: 'select',
+    category: 'selection',
+    targetRef: widgetRef,
+  })
+
+  assert.equal(store.getActionDescriptor('scatter.brushRegion', widgetRef)?.analyticalPlacement, 'workspace-shared-state')
+  assert.equal(store.getActionDescriptor('scatter.brushRegion', widgetRef)?.sharedAnalyticalSurface, 'sharedSemanticFocus')
+  assert.equal(store.readDescription().actions[0]?.analyticalPlacement, 'workspace-shared-state')
+  assert.equal(store.readDescription().actions[0]?.sharedAnalyticalSurface, 'sharedSemanticFocus')
+})
+
 test('WidgetVARuntimeStore.readState preserves workspace delta metadata in deltaSince scoped reads', () => {
   const store = new WidgetVARuntimeStore()
   const widgetRef = 'wl://widgetva-app/workspace/main/widget/scatter_a'

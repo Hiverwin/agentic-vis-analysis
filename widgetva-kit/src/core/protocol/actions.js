@@ -147,6 +147,8 @@ export function describeActionDescriptorSchema() {
       targetRef: { type: ['string', 'null'] },
       affectedRefs: { type: 'array', items: { type: 'string' } },
       affectedStatePaths: { type: 'array', items: { type: 'string' } },
+      analyticalPlacement: { type: ['string', 'null'] },
+      sharedAnalyticalSurface: { type: ['string', 'null'] },
       paramsSchema: { type: 'object' },
       reversible: { type: 'boolean' },
       preconditions: { type: 'array', items: describeActionConditionSchema() },

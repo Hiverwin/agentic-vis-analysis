@@ -7,6 +7,7 @@ import {
   readInteractionTraceFromStore,
   readLatestResponseFromStore,
   readSnapshotFromStore,
+  readWorkspaceDescriptionFromStore,
 } from '../core/runtime/workspaceStoreReaders.js'
 import { updateSharedStateInStore } from './state/workspaceSharedStateMutators.js'
 import {
@@ -33,8 +34,16 @@ import {
   deriveHighlightStateFromSelection,
 } from '../core/runtime/sharedStateDerivation.js'
 import {
+  buildSharedFilterContext,
+  buildSharedSemanticFocus,
+  buildSharedStructuralContext,
   buildCoordinationResult,
   buildPropagationSummary,
+  buildSharedAnalyticalStateFromWorkspaceState,
+  buildSharedViewportContext,
+  buildSharedTransformationContext,
+  buildSharedViewContext,
+  buildSharedViewStateByWidget,
   buildRuntimeObservation,
 } from '../core/runtime/agentFacingSurface.js'
 
@@ -61,6 +70,15 @@ export const WIDGET_WORKSPACE_PUBLIC_METHODS = [
   'readState',
   'readObservation',
   'readCoordinationState',
+  'readSharedAnalyticalState',
+  'readSharedFilterContext',
+  'readSharedViewportContext',
+  'readSharedSemanticFocus',
+  'readSharedStructuralContext',
+  'readActiveAnalyticalContext',
+  'readViewStatesByWidget',
+  'readSharedViewContext',
+  'readSharedTransformationContext',
   'readPropagationSummary',
   'readComputedPropagationSummary',
   'readComputedCoordinationResult',
@@ -335,6 +353,14 @@ export class WidgetWorkspace {
         contractReads: 'workspace can enumerate widget descriptions plus workspace-level action/perception descriptors and names',
       },
       coordinationState: {
+        sharedAnalyticalState: 'canonical workspace-level shared analytical state bundle, including shared sub-contexts for filter, viewport, semantic focus, structural context, shared view, and shared transformations',
+        sharedFilterContext: 'stable read surface for the shared filtering context that subsequent analysis turns should inherit',
+        sharedViewportContext: 'stable read surface for the shared viewport/focus region that subsequent analysis turns should inherit',
+        sharedSemanticFocus: 'stable read surface for the workspace-shared focus/selection/highlight context',
+        sharedStructuralContext: 'stable read surface for shared structural comparison context, including links and annotations',
+        sharedViewContext: 'workspace-level summary of currently active widget view-state overrides',
+        sharedTransformationContext: 'workspace-level summary of view/data/structure transformations that affect later analysis turns',
+        activeAnalyticalContext: 'compact workspace-level summary of which shared analytical contexts are currently active',
         focusedWidget: 'workspace-level focus target',
         focus: 'derived convenience read exposing normalized focus metadata',
         selections: {
@@ -482,7 +508,9 @@ export class WidgetWorkspace {
   }
 
   describe() {
-    return this.runtime?.store?.readDescription?.() || null
+    return this.runtime?.store
+      ? readWorkspaceDescriptionFromStore(this.runtime.store)
+      : null
   }
 
   describeWorkspace() {
@@ -507,10 +535,13 @@ export class WidgetWorkspace {
   }
 
   readObservation(options = {}) {
+    const state = this.readState(options.readStateOptions || options)
+    const sharedAnalyticalState = this.readSharedAnalyticalState({ state })
     return buildRuntimeObservation({
       description: this.describeWorkspace(),
-      state: this.readState(options.readStateOptions || options),
+      state,
       coordinationState: this.readCoordinationState(),
+      sharedAnalyticalState,
       availableActions: this.listAvailableActions(),
       availablePerceptions: this.listAvailablePerceptions(),
       propagationSummary: this.readPropagationSummary(options.propagationOptions || {}),
@@ -520,32 +551,117 @@ export class WidgetWorkspace {
 
   readCoordinationState() {
     const state = this.readState() || {}
-    const shared = state?.shared || {}
     const derivedTopology = this.readLinkTopology()
     return {
       stateId: state?.stateId || null,
       branchId: state?.branchId || this.runtime?.store?.currentBranchId || null,
-      focusedWidgetRef: shared?.focusedWidget || null,
+      focusedWidgetRef: state?.shared?.focusedWidget || null,
       selections: {
-        registry: readSelectionRegistry(shared),
+        registry: readSelectionRegistry(state?.shared || {}),
         views: {
-          primary: readSelectionPrimaryView(shared),
-          byWidget: readSelectionByWidgetView(shared),
+          primary: readSelectionPrimaryView(state?.shared || {}),
+          byWidget: readSelectionByWidgetView(state?.shared || {}),
         },
       },
-      focus: readFocusState(shared, state?.widgets || {}),
+      focus: readFocusState(state?.shared || {}, state?.widgets || {}),
       highlight: deriveHighlightState(state),
-      viewport: readViewportState(shared),
-      globalFilters: clone(shared?.globalFilters || {}),
-      annotations: clone(state?.annotations || shared?.annotations || []),
+      viewport: readViewportState(state?.shared || {}),
+      globalFilters: clone(state?.shared?.globalFilters || {}),
+      annotations: clone(state?.annotations || state?.shared?.annotations || []),
       links: {
-        definitions: readLinkDefinitions(shared),
+        definitions: readLinkDefinitions(state?.shared || {}),
         topology: (() => {
-          const sharedTopology = readLinkTopologyState(shared)
+          const sharedTopology = readLinkTopologyState(state?.shared || {})
           return Object.keys(sharedTopology).length > 0 ? sharedTopology : derivedTopology
         })(),
       },
     }
+  }
+
+  readSharedAnalyticalState(options = {}) {
+    const state = options?.state || this.readState() || {}
+    return buildSharedAnalyticalStateFromWorkspaceState(state, {
+      derivedTopology: this.readLinkTopology(),
+    })
+  }
+
+  readSharedFilterContext(options = {}) {
+    return clone(this.readSharedAnalyticalState(options)?.sharedFilterContext || {
+      globalFilters: {},
+      selectionRef: null,
+      selectionPredicates: [],
+    })
+  }
+
+  readSharedViewportContext(options = {}) {
+    const state = options?.state || this.readState() || {}
+    const sharedAnalyticalState = this.readSharedAnalyticalState({ state })
+    return clone(sharedAnalyticalState?.sharedViewportContext || buildSharedViewportContext({
+      focusedWidgetRef: sharedAnalyticalState?.focusedWidgetRef || null,
+      viewport: sharedAnalyticalState?.viewport || null,
+      comparisonTargets: sharedAnalyticalState?.comparisonTargets || [],
+    }))
+  }
+
+  readSharedSemanticFocus(options = {}) {
+    const state = options?.state || this.readState() || {}
+    const sharedAnalyticalState = this.readSharedAnalyticalState({ state })
+    return clone(sharedAnalyticalState?.sharedSemanticFocus || buildSharedSemanticFocus({
+      focusedWidgetRef: sharedAnalyticalState?.focusedWidgetRef || null,
+      focus: sharedAnalyticalState?.focus || null,
+      primarySelection: sharedAnalyticalState?.selections?.primary || null,
+      highlight: sharedAnalyticalState?.highlight || null,
+    }))
+  }
+
+  readSharedStructuralContext(options = {}) {
+    const state = options?.state || this.readState() || {}
+    const sharedAnalyticalState = this.readSharedAnalyticalState({ state })
+    return clone(sharedAnalyticalState?.sharedStructuralContext || buildSharedStructuralContext({
+      links: sharedAnalyticalState?.links || null,
+      comparisonTargets: sharedAnalyticalState?.comparisonTargets || [],
+      annotations: sharedAnalyticalState?.annotations || [],
+    }))
+  }
+
+  readActiveAnalyticalContext(options = {}) {
+    return clone(this.readSharedAnalyticalState(options)?.activeAnalyticalContext || {
+      activeContextKinds: [],
+      focusedWidgetRef: null,
+      globalFilters: null,
+      primarySelection: null,
+      highlight: null,
+      viewport: null,
+      comparisonTargets: null,
+      structure: {
+        linkCount: 0,
+        annotationCount: 0,
+      },
+      transformationContext: {
+        activeWidgetRefs: [],
+        widgets: {},
+      },
+      viewStatesByWidget: null,
+    })
+  }
+
+  readViewStatesByWidget(options = {}) {
+    const state = options?.state || this.readState() || {}
+    return buildSharedViewStateByWidget(state)
+  }
+
+  readSharedViewContext(options = {}) {
+    const state = options?.state || this.readState() || {}
+    return buildSharedViewContext({
+      viewStatesByWidget: this.readViewStatesByWidget({ state }),
+    })
+  }
+
+  readSharedTransformationContext(options = {}) {
+    const state = options?.state || this.readState() || {}
+    return buildSharedTransformationContext({
+      viewStatesByWidget: this.readViewStatesByWidget({ state }),
+    })
   }
 
   readPropagationSummary(options = {}) {

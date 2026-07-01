@@ -84,26 +84,57 @@ test('createWidgetVARuntime exposes the minimal multi-turn agent-facing contract
     assert.equal(typeof runtime.readLatestCoordinationResult, 'function')
     assert.equal(typeof runtime.listAvailableActions, 'function')
     assert.equal(typeof runtime.listAvailablePerceptions, 'function')
+    assert.equal(typeof runtime.runtimeManager?.describeRuntimeManager, 'function')
+    assert.equal(typeof runtime.describeRuntimeManager, 'function')
+    assert.equal(typeof runtime.readRecoverableState, 'function')
+    assert.equal(typeof runtime.runAgentTurn, 'function')
+    assert.equal(typeof runtime.runAgentSession, 'function')
     assert.equal(description.workspaceId, 'runtime-contract-session')
     assert.equal(initialState.stateId, view.stateId)
+    assert.equal(runtime.readRecoverableState()?.stateId, initialState.stateId)
 
     const coordinationState = runtime.readCoordinationState()
     const observation = runtime.readObservation()
     const propagationSummary = runtime.readPropagationSummary()
     const latestCoordinationResult = runtime.readLatestCoordinationResult()
-    const availableActionNames = runtime.listAvailableActions().map((entry) => entry?.name)
+    const availableActions = runtime.listAvailableActions()
+    const availableActionNames = availableActions.map((entry) => entry?.name)
     const availablePerceptionNames = runtime.listAvailablePerceptions().map((entry) => entry?.name)
+    const brushDescriptor = description.actions.find((entry) => entry?.name === 'scatter.brushRegion') || null
 
     assert.equal(typeof coordinationState?.focusedWidgetRef, 'string')
     assert.equal(observation?.workspace?.workspaceId, 'runtime-contract-session')
     assert.equal(observation?.state?.stateId, initialState.stateId)
-    assert.equal(Array.isArray(observation?.availableActions), true)
-    assert.equal(Array.isArray(observation?.availablePerceptions), true)
+    assert.equal(typeof observation?.sharedAnalyticalState, 'object')
+    assert.equal(Array.isArray(observation?.sharedAnalyticalState?.annotations), true)
+    assert.equal(typeof observation?.sharedAnalyticalState?.viewStatesByWidget, 'object')
+    assert.equal(Array.isArray(observation?.sharedAnalyticalState?.sharedViewContext?.activeWidgetRefs), true)
+    assert.equal(Array.isArray(observation?.sharedAnalyticalState?.sharedTransformationContext?.activeWidgetRefs), true)
+    assert.equal(Array.isArray(observation?.sharedAnalyticalState?.activeAnalyticalContext?.activeContextKinds), true)
+    assert.equal('availableActions' in observation, false)
+    assert.equal('availablePerceptions' in observation, false)
     assert.equal(Array.isArray(propagationSummary?.candidateSourceRefs), true)
     assert.equal(latestCoordinationResult, null)
     assert.equal(observation?.latestCoordinationResult, null)
     assert.equal(availableActionNames.includes('workspace.focusWidget'), true)
     assert.equal(Array.isArray(availablePerceptionNames), true)
+    assert.equal(brushDescriptor?.analyticalPlacement, 'workspace-shared-state')
+    assert.equal(brushDescriptor?.sharedAnalyticalSurface, 'sharedSemanticFocus')
+    assert.equal(
+      availableActions.find((entry) => entry?.name === 'scatter.brushRegion')?.analyticalPlacement,
+      'workspace-shared-state',
+    )
+
+    const turn = await runtime.runAgentTurn({
+      operation: {
+        kind: 'perception',
+        name: 'perception.inspectFocusedWidget',
+        queryScope: { widgetRef },
+        params: {},
+      },
+    })
+    assert.equal(turn.act.kind, 'perception')
+    assert.equal(turn.verify.ok, true)
 
     const actionResult = await runtime.executeAction({
       callId: 'focus_runtime_widget',
@@ -114,6 +145,7 @@ test('createWidgetVARuntime exposes the minimal multi-turn agent-facing contract
       },
     })
     assert.equal(actionResult?.ok, true)
+    assert.equal(runtime.readRecoverableState()?.stateId, runtime.readState()?.stateId)
 
     const perceptionResult = await runtime.queryPerception({
       callId: 'inspect_runtime_focus',

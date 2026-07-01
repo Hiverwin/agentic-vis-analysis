@@ -8,7 +8,7 @@ import {
   describeParallelCoordinatesWidgetContract,
   describeSankeyWidgetContract,
   describeScatterWidgetContract,
-} from '../../../../widgetva-kit/src/index.js'
+} from '../../../../widgetva-kit/src/widgets.js'
 import { WORKSPACE_CASES } from '../presets/workspaceCases.js'
 import { createRuntimeSession } from './runtimeSessionFactory.js'
 

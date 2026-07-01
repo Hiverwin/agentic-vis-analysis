@@ -56,13 +56,3 @@ export {
   createObservableLineSurfaceWrapper,
   createObservableScatterSurfaceWrapper,
 } from './integrations/officialPages/observableD3Examples.js'
-
-export {
-  DEFAULT_OPENROUTER_AGENT_MODEL,
-  createNaturalLanguagePlanner,
-  createNaturalLanguageReasoner,
-  formatAgentPlannerError,
-  runNaturalLanguagePagePortAgentLoop,
-  runNaturalLanguagePagePortAgentSession,
-  runNaturalLanguagePagePortAgentTurn,
-} from './core/runtime/naturalLanguagePlanner.js'

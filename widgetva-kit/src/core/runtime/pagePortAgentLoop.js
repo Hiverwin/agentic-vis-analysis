@@ -1,3 +1,5 @@
+import { buildTurnVerificationFeedback } from './turnVerification.js'
+
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value))
 }
@@ -16,6 +18,43 @@ function summarizeStateForFormalObserve(observation = {}) {
     parts.push(latestCoordinationResult.verification.summary)
   }
   return parts.join(' · ') || null
+}
+
+function buildObserveSharedAnalyticalState(observation = {}) {
+  const shared = observation?.sharedAnalyticalState || {}
+  const primarySelection = shared?.selections?.primary || null
+  const highlight = shared?.highlight || null
+  const activeAnalyticalContext = shared?.activeAnalyticalContext || {}
+  const sharedTransformationContext = shared?.sharedTransformationContext || {}
+  const sharedViewContext = shared?.sharedViewContext || {}
+  return {
+    filters: clone(shared?.filters || {}),
+    viewport: clone(shared?.viewport || null),
+    focus: {
+      widgetRef: shared?.focusedWidgetRef || null,
+      selectionSummary: primarySelection?.summary || null,
+      highlightedWidgetRefs: Array.isArray(highlight?.activeWidgetRefs) ? [...highlight.activeWidgetRefs] : [],
+    },
+    activeContextKinds: Array.isArray(activeAnalyticalContext?.activeContextKinds)
+      ? [...activeAnalyticalContext.activeContextKinds]
+      : [],
+    comparisonTargets: Array.isArray(shared?.comparisonTargets) ? [...shared.comparisonTargets] : [],
+    structure: {
+      annotationCount: Array.isArray(shared?.annotations) ? shared.annotations.length : 0,
+      linkCount: Array.isArray(shared?.links?.definitions) ? shared.links.definitions.length : 0,
+    },
+    sharedView: {
+      activeWidgetRefs: Array.isArray(sharedViewContext?.activeWidgetRefs)
+        ? [...sharedViewContext.activeWidgetRefs]
+        : [],
+    },
+    transformation: {
+      activeWidgetRefs: Array.isArray(sharedTransformationContext?.activeWidgetRefs)
+        ? [...sharedTransformationContext.activeWidgetRefs]
+        : [],
+      widgets: clone(sharedTransformationContext?.widgets || {}),
+    },
+  }
 }
 
 function deriveFormalActOk(result = {}) {
@@ -53,6 +92,21 @@ function summarizeFormalRuntimePayload(payload = null) {
     return JSON.stringify(payload.result).slice(0, 220)
   }
   return null
+}
+
+function readRequiredParamsForOperation(plan = {}) {
+  const actionName = plan?.operation?.name || null
+  const actions = Array.isArray(plan?.actionUsage?.actions) ? plan.actionUsage.actions : []
+  const matched = actions.find((entry) => entry?.name === actionName) || null
+  return Array.isArray(matched?.requiredParams) ? matched.requiredParams : []
+}
+
+function isOperationConfirmedByUsage(plan = {}) {
+  const actionName = plan?.operation?.name || null
+  const actions = Array.isArray(plan?.actionUsage?.actions) ? plan.actionUsage.actions : []
+  if (!actionName) return null
+  if (Array.isArray(plan?.actionUsage?.actions) && actions.length === 0) return false
+  return actions.some((entry) => entry?.name === actionName)
 }
 
 function isPlainObject(value) {
@@ -148,6 +202,77 @@ async function readObserveStage(port, {
   }
 }
 
+async function readKnowledgeCatalogs(port) {
+  const [availableActions, availablePerceptions, availableDataQueries] = await Promise.all([
+    maybeInvoke(port, 'listAvailableActions'),
+    maybeInvoke(port, 'listAvailablePerceptions'),
+    maybeInvoke(port, 'listAvailableDataQueries'),
+  ])
+
+  return {
+    availableActions: Array.isArray(availableActions) ? availableActions : [],
+    availablePerceptions: Array.isArray(availablePerceptions) ? availablePerceptions : [],
+    availableDataQueries: Array.isArray(availableDataQueries) ? availableDataQueries : [],
+  }
+}
+
+function buildActionCatalogByWidgetRef(widgets = [], availableActions = []) {
+  const catalog = {}
+  for (const widget of Array.isArray(widgets) ? widgets : []) {
+    const widgetRef = widget?.ref || null
+    if (!widgetRef) continue
+    catalog[widgetRef] = (Array.isArray(availableActions) ? availableActions : [])
+      .filter((entry) => (entry?.targetRef || entry?.queryScope?.widgetRef || null) === widgetRef || entry?.targetRef == null)
+      .map((entry) => entry?.name)
+      .filter((name, index, names) => typeof name === 'string' && names.indexOf(name) === index)
+  }
+  return catalog
+}
+
+function buildPerceptionCatalogByWidgetRef(widgets = [], availablePerceptions = []) {
+  const catalog = {}
+  for (const widget of Array.isArray(widgets) ? widgets : []) {
+    const widgetRef = widget?.ref || null
+    if (!widgetRef) continue
+    catalog[widgetRef] = (Array.isArray(availablePerceptions) ? availablePerceptions : [])
+      .filter((entry) => (entry?.targetRef || entry?.queryScope?.widgetRef || null) === widgetRef || entry?.targetRef == null)
+      .map((entry) => entry?.name)
+      .filter((name, index, names) => typeof name === 'string' && names.indexOf(name) === index)
+  }
+  return catalog
+}
+
+function buildDataQueryCatalogByDataRef(workspace = {}, availableDataQueries = []) {
+  const explicitCatalog = {}
+  for (const entry of Array.isArray(availableDataQueries) ? availableDataQueries : []) {
+    const dataRef = entry?.dataRef || null
+    const queryKind = entry?.queryKind || entry?.name || null
+    if (!dataRef || typeof queryKind !== 'string' || queryKind.length === 0) continue
+    const names = explicitCatalog[dataRef] || new Set()
+    names.add(queryKind)
+    explicitCatalog[dataRef] = names
+  }
+
+  if (Object.keys(explicitCatalog).length > 0) {
+    return Object.fromEntries(
+      Object.entries(explicitCatalog).map(([dataRef, names]) => [dataRef, Array.from(names)]),
+    )
+  }
+
+  return Object.fromEntries(
+    (Array.isArray(workspace?.dataHandles) ? workspace.dataHandles : [])
+      .filter((handle) => typeof handle?.ref === 'string' && handle.ref.length > 0)
+      .map((handle) => [
+        handle.ref,
+        Array.isArray(handle?.supportedQueryDescriptors)
+          ? handle.supportedQueryDescriptors
+            .map((descriptor) => descriptor?.name)
+            .filter((name, index, names) => typeof name === 'string' && name.length > 0 && names.indexOf(name) === index)
+          : [],
+      ]),
+  )
+}
+
 async function readWorkspacePlan(port, planningRequest = null) {
   const planWorkspace = resolveMethod(port, ['planWorkspace'])
   if (!planningRequest || typeof planWorkspace !== 'function') {
@@ -215,6 +340,7 @@ function buildPlanStage({
 async function resolvePlanningResult({
   planner,
   observe,
+  knowledge = null,
   workspacePlan,
   objective = null,
   operation = null,
@@ -237,6 +363,7 @@ async function resolvePlanningResult({
   const planningResult = await planner({
     objective,
     observe: clone(observe),
+    knowledge: clone(knowledge),
     workspacePlan: clone(workspacePlan),
     actor,
   })
@@ -379,10 +506,23 @@ export async function runPagePortAgentLoop(port, options = {}) {
     loopOptions,
     observationOptions,
   })
+  const knowledgeCatalogs = await readKnowledgeCatalogs(port)
   const workspacePlan = await readWorkspacePlan(port, planningRequest)
+  const baseKnowledge = buildSessionKnowledge({
+    observeStage: {
+      ...observe,
+      knowledgeCatalogs,
+    },
+    turns: [],
+  })
+  const knowledge = mergeSessionKnowledge(
+    options?.sessionKnowledge || baseKnowledge,
+    options?.sessionTurns || [],
+  )
   const planningResult = await resolvePlanningResult({
     planner,
     observe,
+    knowledge,
     workspacePlan,
     objective,
     operation,
@@ -427,23 +567,24 @@ function buildFormalObservePayload(baseObserve = {}, {
   perception = null,
 } = {}) {
   const observation = baseObserve?.observation || {}
-  const coordination = observation?.coordination || null
   const state = observation?.state || null
   const stateSummary = summarizeStateForFormalObserve(observation)
+  const sharedAnalyticalState = buildObserveSharedAnalyticalState(observation)
   return {
     query: objective,
     previousTurnSummary,
-    focusWidgetRef: coordination?.focusedWidgetRef || null,
     state: {
-      summary: stateSummary,
       stateId: state?.stateId || null,
-      rawRef: state?.stateId || null,
+      summary: stateSummary,
+      sharedAnalyticalState,
     },
     view: {
-      snapshot: {
-        ref: state?.stateId ? `widgetva-view:${state.stateId}` : null,
-        mimeType: 'application/widgetva-view+json',
-      },
+      snapshot: state?.stateId
+        ? {
+          ref: `widgetva-view:${state.stateId}`,
+          mimeType: 'application/widgetva-view+json',
+        }
+        : null,
       summary: stateSummary,
     },
     perception: perception && typeof perception === 'object'
@@ -491,117 +632,19 @@ function buildFormalVerifyPayload({ plan = {}, act = null, verification = null, 
   const beforeStateId = observe?.observation?.state?.stateId || null
   const verificationOk = deriveFormalVerificationOk(verification)
   const verificationSummary = summarizeFormalRuntimePayload(verification)
-
-  const stepChoice = act?.ok
-    ? {
-      status: act?.kind === 'action' ? 'uncertain' : 'pass',
-      reason: act?.kind === 'action'
-        ? 'The action executed, but semantic fit to the user query was not separately judged in this turn.'
-        : 'The turn executed a read-oriented step and produced an output.',
-    }
-    : {
-      status: 'fail',
-      reason: 'The selected step did not execute successfully.',
-    }
-
-  const params = act?.ok
-    ? {
-      status: 'pass',
-      reason: 'Runtime accepted the parameters for this step.',
-    }
-    : {
-      status: 'fail',
-      reason: 'The runtime rejected this step before parameters could be trusted.',
-    }
-
-  const stateChange = (() => {
-    if (act?.kind !== 'action') {
-      return {
-        status: 'not_applicable',
-        reason: 'This turn did not execute a state-mutating action.',
-      }
-    }
-    if (act?.stateId && beforeStateId && act.stateId !== beforeStateId) {
-      return {
-        status: 'pass',
-        reason: `State changed from ${beforeStateId} to ${act.stateId}.`,
-      }
-    }
-    if (!act?.ok) {
-      return {
-        status: 'fail',
-        reason: 'The action did not complete successfully, so no state change can be confirmed.',
-      }
-    }
-    return {
-      status: 'uncertain',
-      reason: 'The action returned success, but a distinct state transition was not confirmed.',
-    }
-  })()
-
-  const visualChange = (() => {
-    if (act?.kind !== 'action') {
-      return {
-        status: 'not_applicable',
-        reason: 'This turn did not request a visual state change.',
-      }
-    }
-    if (verificationOk === true) {
-      return {
-        status: 'pass',
-        reason: verificationSummary || 'Verification confirmed the expected visible effect.',
-      }
-    }
-    if (verificationOk === false) {
-      return {
-        status: 'fail',
-        reason: verificationSummary || 'Verification reported that the visible effect was not achieved.',
-      }
-    }
-    return {
-      status: 'uncertain',
-      reason: 'No explicit visual verification result was available for this action.',
-    }
-  })()
-
-  const ok = Boolean(
-    act?.ok
-    && params.status !== 'fail'
-    && stateChange.status !== 'fail'
-    && visualChange.status !== 'fail',
-  )
-
-  return {
-    ok,
-    summary: ok
-      ? (visualChange.status === 'pass' ? visualChange.reason : act?.outputSummary || 'The step executed successfully.')
-      : ([params.reason, stateChange.reason, visualChange.reason].find(Boolean) || 'The step did not verify cleanly.'),
-    checks: {
-      stepChoice,
-      params,
-      stateChange,
-      visualChange,
-    },
-    nextStepHint: params.status === 'fail'
-      ? {
-        kind: operation?.kind === 'action' ? 'action' : 'perception',
-        guidance: 'Re-check required parameters before retrying this step.',
-      }
-      : visualChange.status === 'uncertain'
-        ? {
-          kind: 'perception',
-          guidance: 'Inspect the current view or verification surface before deciding the next step.',
-        }
-        : ok
-          ? {
-            kind: 'answer',
-            guidance: 'This turn verified cleanly enough to answer unless the query explicitly requires another step.',
-          }
-          : {
-            kind: operation?.kind === 'action' ? 'action' : 'stop',
-            guidance: 'Choose a simpler, better-scoped next step based on the current state.',
-          },
-  }
+  const requiredParams = readRequiredParamsForOperation(plan)
+  const providedParams = isPlainObject(plan?.operation?.params) ? plan.operation.params : {}
+  const usageConfirmation = isOperationConfirmedByUsage(plan)
+  return buildTurnVerificationFeedback({
+    operationKind: operation?.kind || null,
+    act,
+    beforeStateId,
+    requiredParams,
+    providedParams,
+    usageConfirmed: usageConfirmation,
+    verificationOk,
+    verificationSummary,
+  })
 }
 
 function buildFormalReasonPayload(baseReason = {}, { act = null, verify = null, plan = null } = {}) {
@@ -652,13 +695,68 @@ export async function runPagePortAgentTurn(port, options = {}) {
 }
 
 function summarizeTurnForSession(turn = {}, index = 0) {
+  const actKind = turn?.act?.kind || null
+  const actName = turn?.act?.name || null
+  const verifyOk = typeof turn?.verify?.ok === 'boolean' ? turn.verify.ok : null
+  const outputSummary = typeof turn?.act?.outputSummary === 'string' && turn.act.outputSummary.length > 0
+    ? turn.act.outputSummary
+    : null
+  const verificationSummary = typeof turn?.verify?.summary === 'string' && turn.verify.summary.length > 0
+    ? turn.verify.summary
+    : null
+
+  if ((actKind === 'perception' || actKind === 'data_query') && outputSummary) {
+    return {
+      turnId: `turn_${index + 1}`,
+      summary: outputSummary,
+    }
+  }
+
+  if (actKind === 'action' && actName) {
+    const status = verifyOk === true
+      ? 'verified'
+      : verifyOk === false
+        ? 'needs_retry'
+        : 'executed'
+    return {
+      turnId: `turn_${index + 1}`,
+      summary: `${actName}:${status}`,
+    }
+  }
+
+  if (verificationSummary) {
+    return {
+      turnId: `turn_${index + 1}`,
+      summary: verificationSummary,
+    }
+  }
+
   return {
     turnId: `turn_${index + 1}`,
-    summary:
-      turn?.reason?.answer
-      || turn?.verify?.summary
-      || turn?.act?.outputSummary
-      || 'Completed one agent turn.',
+    summary: 'Completed one agent turn.',
+  }
+}
+
+function mergeSessionKnowledge(previousKnowledge, turns = []) {
+  const base = clone(previousKnowledge) || {
+    workspace: {
+      workspaceId: null,
+      caseId: null,
+    },
+    widgets: [],
+    catalogs: {
+      actionsByWidgetRef: {},
+      perceptionsByWidgetRef: {},
+    },
+  }
+
+  return {
+    ...base,
+    history: {
+      turns: Array.isArray(turns)
+        ? turns.map((turn, index) => summarizeTurnForSession(turn, index))
+        : [],
+    },
   }
 }
 
@@ -668,6 +766,59 @@ function buildPerceptionCarry(turn = null) {
     name: turn.act.name || 'perception',
     resultRef: null,
     summary: turn.act.outputSummary || turn.verify?.summary || null,
+  }
+}
+
+function shouldStopAgentSession(turn = null) {
+  if (!turn || typeof turn !== 'object') return null
+
+  if (turn?.act?.kind === 'perception' || turn?.act?.kind === 'data_query') {
+    if (turn?.verify?.ok === true) {
+      return 'answered'
+    }
+    if (turn?.verify?.ok === false) {
+      return 'stopped'
+    }
+  }
+
+  if (turn?.act?.kind === 'action' && turn?.act?.ok === false) {
+    return 'stopped'
+  }
+
+  return null
+}
+
+function buildSessionKnowledge({ observeStage = null, turns = [] } = {}) {
+  const workspace = observeStage?.workspace || {}
+  const widgets = Array.isArray(workspace?.widgets) ? workspace.widgets : []
+  const knowledgeCatalogs = observeStage?.knowledgeCatalogs || {}
+  const availableActions = Array.isArray(knowledgeCatalogs?.availableActions) ? knowledgeCatalogs.availableActions : []
+  const availablePerceptions = Array.isArray(knowledgeCatalogs?.availablePerceptions) ? knowledgeCatalogs.availablePerceptions : []
+  const availableDataQueries = Array.isArray(knowledgeCatalogs?.availableDataQueries) ? knowledgeCatalogs.availableDataQueries : []
+  const dataQueriesByDataRef = buildDataQueryCatalogByDataRef(workspace, availableDataQueries)
+
+  const workspaceKnowledge = {
+    workspaceId: workspace?.workspaceId || null,
+  }
+  if (workspace?.caseId != null) {
+    workspaceKnowledge.caseId = workspace.caseId
+  }
+
+  return {
+    workspace: workspaceKnowledge,
+    widgets: widgets.map((widget) => ({
+      ref: widget?.ref || null,
+      widgetId: widget?.widgetId || null,
+      kind: widget?.kind || null,
+      title: widget?.title || null,
+      ...(widget?.provider != null ? { provider: widget.provider } : {}),
+    })),
+    catalogs: {
+      actionsByWidgetRef: buildActionCatalogByWidgetRef(widgets, availableActions),
+      perceptionsByWidgetRef: buildPerceptionCatalogByWidgetRef(widgets, availablePerceptions),
+      ...(Object.keys(dataQueriesByDataRef).length > 0 ? { dataQueriesByDataRef } : {}),
+    },
+    history: mergeSessionKnowledge(null, turns).history,
   }
 }
 
@@ -682,6 +833,13 @@ export async function runPagePortAgentSession(port, options = {}) {
     : 3
 
   const turns = []
+  let knowledge = buildSessionKnowledge({
+    observeStage: {
+      workspace: await port.describeWorkspace(options.workspaceOptions || {}),
+      knowledgeCatalogs: await readKnowledgeCatalogs(port),
+    },
+    turns: [],
+  })
   let previousTurnSummary = null
   let previousPerception = null
   let stopReason = 'turn_budget_reached'
@@ -692,20 +850,19 @@ export async function runPagePortAgentSession(port, options = {}) {
       objective,
       previousTurnSummary,
       perception: previousPerception,
+      sessionKnowledge: knowledge,
+      sessionTurns: turns,
       callId: `agent_step_${index + 1}`,
     })
     turns.push(turn)
+    knowledge = mergeSessionKnowledge(knowledge, turns)
 
     previousTurnSummary = summarizeTurnForSession(turn, index).summary
     previousPerception = buildPerceptionCarry(turn)
 
-    const nextHintKind = turn?.verify?.nextStepHint?.kind || null
-    if (nextHintKind === 'answer') {
-      stopReason = 'answered'
-      break
-    }
-    if (nextHintKind === 'stop') {
-      stopReason = 'stopped'
+    const resolvedStopReason = shouldStopAgentSession(turn)
+    if (resolvedStopReason) {
+      stopReason = resolvedStopReason
       break
     }
     if (index === safeMaxTurns - 1) {
@@ -719,6 +876,9 @@ export async function runPagePortAgentSession(port, options = {}) {
     ok: Boolean(lastTurn?.verify?.ok),
     answer: lastTurn?.reason?.answer || '',
     stopReason,
+    knowledge: knowledge || buildSessionKnowledge({
+      turns,
+    }),
     turns,
   }
 }

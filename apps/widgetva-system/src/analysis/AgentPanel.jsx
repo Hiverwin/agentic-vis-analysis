@@ -33,8 +33,9 @@ function formatAgentParams(params) {
 
 function summarizeObserveStage(observe) {
   if (!observe || typeof observe !== 'object') return 'No observe payload'
+  const focusWidgetRef = observe?.state?.sharedAnalyticalState?.focus?.widgetRef || null
   const parts = [
-    observe?.focusWidgetRef ? `focus ${observe.focusWidgetRef}` : null,
+    focusWidgetRef ? `focus ${focusWidgetRef}` : null,
     observe?.state?.summary || null,
     observe?.view?.summary || null,
   ].filter(Boolean)
@@ -116,6 +117,7 @@ export function AgentPanel() {
     [activeReplayContext, traceModel],
   )
   const isRunning = agentStatus === 'running'
+  const lastTurn = agentLastStep?.turn || null
 
   useEffect(() => {
     setDraftObjective(agentObjective)
@@ -174,14 +176,14 @@ export function AgentPanel() {
             <div className="agent-step-header">
               <div>
                 <p className="eyebrow">Last Agent Step</p>
-                <h4>{agentLastStep?.traceStep?.summary || agentLastStep?.act?.name || 'Agent update'}</h4>
+                <h4>{agentLastStep?.traceStep?.summary || lastTurn?.act?.name || 'Agent update'}</h4>
               </div>
               <span className={`status-pill ${agentError ? 'error' : 'idle'}`}>
-                {agentLastStep?.act?.kind || 'result'}
+                {lastTurn?.act?.kind || 'result'}
               </span>
             </div>
             <div className="agent-token-row">
-              <span className="filter-chip active">{agentLastStep?.act?.queryScope?.widgetRef || 'workspace scope'}</span>
+              <span className="filter-chip active">{lastTurn?.act?.queryScope?.widgetRef || 'workspace scope'}</span>
               {agentLastStep?.traceStep?.verificationSummary ? (
                 <span className="filter-chip">verified</span>
               ) : null}
@@ -191,13 +193,13 @@ export function AgentPanel() {
             </div>
             <div className="agent-step-grid">
               <p><strong>Objective</strong> {agentLastStep?.objective || 'None'}</p>
-              <p><strong>Observe</strong> {summarizeObserveStage(agentLastStep?.observe)}</p>
-              <p><strong>Plan</strong> {summarizePlanStage(agentLastStep?.plan)}</p>
-              <p><strong>Act</strong> {agentLastStep?.act?.name || 'None'}</p>
-              <p><strong>Params</strong> {formatAgentParams(agentLastStep?.act?.params)}</p>
-              <p><strong>Runtime</strong> {summarizeStepResultPayload(agentLastStep?.act)}</p>
-              <p><strong>Verification</strong> {agentLastStep?.traceStep?.verificationSummary || summarizeStepResultPayload(agentLastStep?.verify)}</p>
-              <p><strong>Reason</strong> {summarizeReasonStage(agentLastStep?.reason)}</p>
+              <p><strong>Observe</strong> {summarizeObserveStage(lastTurn?.observe)}</p>
+              <p><strong>Plan</strong> {summarizePlanStage(lastTurn?.plan)}</p>
+              <p><strong>Act</strong> {lastTurn?.act?.name || 'None'}</p>
+              <p><strong>Params</strong> {formatAgentParams(lastTurn?.act?.params)}</p>
+              <p><strong>Runtime</strong> {summarizeStepResultPayload(lastTurn?.act)}</p>
+              <p><strong>Verification</strong> {agentLastStep?.traceStep?.verificationSummary || summarizeStepResultPayload(lastTurn?.verify)}</p>
+              <p><strong>Reason</strong> {summarizeReasonStage(lastTurn?.reason)}</p>
               <p><strong>Evidence</strong> {agentLastStep?.traceStep?.evidenceSummary || 'None recorded'}</p>
             </div>
             {agentLastStep?.error ? (

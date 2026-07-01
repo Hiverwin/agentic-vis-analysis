@@ -1,5 +1,5 @@
-import { createWidgetWorkspace } from '../../../../widgetva-kit/src/index.js'
-import { createWidgetVARuntime } from '../../../../widgetva-kit/src/core/index.js'
+import { createWidgetWorkspace } from '../../../../widgetva-kit/src/workspace.js'
+import { createWidgetVARuntime } from '../../../../widgetva-kit/src/core.js'
 import { buildRuntimeWorkspaceSpec, createWidgetInstances } from './runtimeWorkspaceAdapter.js'
 import { buildWorkspaceComposition } from './workspaceComposition.js'
 import { buildFirstPartyWorkspaceControlStateAdapter } from './workspaceControlStateAdapter.js'
@@ -92,9 +92,11 @@ export function createRuntimeSession(caseDef) {
   const initialFocusedWidgetId = buildWorkspaceComposition(caseDef).selectedWidgetId
   if (initialFocusedWidgetId) {
     workspace.setFocusedWidget(initialFocusedWidgetId)
+    runtime.runtimeManager?.seedRecoverableState?.(runtime.readState?.())
   }
   return {
     runtime,
+    runtimeManager: runtime.runtimeManager,
     hostBridge,
     workspace,
     widgets: widgetInstances,

@@ -1,16 +1,12 @@
+import { describeWidgetVerificationContract } from '../../widgets/verificationContract.js'
 import {
-  readSelectionByWidgetView,
+  buildSharedAnalyticalStateModel,
+  buildSharedTransformationContext,
+} from '../../workspace/state/sharedAnalyticalStateModel.js'
+import {
   readSelectionPrimaryView,
   readSelectionRegistry,
 } from '../../workspace/state/selectionStateModel.js'
-import { readFocusState } from '../../workspace/state/focusStateModel.js'
-import { deriveHighlightState } from '../../workspace/state/highlightStateModel.js'
-import { readViewportState } from '../../workspace/state/viewportStateModel.js'
-import { describeWidgetVerificationContract } from '../../widgets/verificationContract.js'
-import {
-  readLinkDefinitions,
-  readLinkTopologyState,
-} from '../../workspace/state/linkStateModel.js'
 import {
   isLegacyPropagationSkipReason,
   normalizeCanonicalPropagationSkipReason,
@@ -185,31 +181,39 @@ function summarizeVerificationResults(verificationResults = []) {
   }
 }
 
+export function buildSharedAnalyticalStateFromWorkspaceState(state = {}, { derivedTopology = {} } = {}) {
+  return buildSharedAnalyticalStateModel(state, { derivedTopology })
+}
+
+export {
+  buildSharedFilterContext,
+  buildSharedViewportContext,
+  buildSharedSemanticFocus,
+  buildSharedStructuralContext,
+  buildSharedTransformationContext,
+  buildSharedViewContext,
+  buildSharedViewStateByWidget,
+} from '../../workspace/state/sharedAnalyticalStateModel.js'
+
 export function buildCoordinationStateFromWorkspaceState(state = {}, { currentBranchId = null, derivedTopology = {} } = {}) {
-  const shared = state?.shared || {}
+  const sharedAnalyticalState = buildSharedAnalyticalStateFromWorkspaceState(state, { derivedTopology })
   return {
     stateId: state?.stateId || null,
     branchId: state?.branchId || currentBranchId || null,
-    focusedWidgetRef: shared?.focusedWidget || null,
+    focusedWidgetRef: sharedAnalyticalState.focusedWidgetRef,
     selections: {
-      registry: readSelectionRegistry(shared),
+      registry: clone(sharedAnalyticalState.selections.registry),
       views: {
-        primary: readSelectionPrimaryView(shared),
-        byWidget: readSelectionByWidgetView(shared),
+        primary: clone(sharedAnalyticalState.selections.primary),
+        byWidget: clone(sharedAnalyticalState.selections.byWidget),
       },
     },
-    focus: readFocusState(shared, state?.widgets || {}),
-    highlight: deriveHighlightState(state),
-    viewport: readViewportState(shared),
-    globalFilters: clone(shared?.globalFilters || {}),
-    annotations: clone(state?.annotations || shared?.annotations || []),
-    links: {
-      definitions: readLinkDefinitions(shared),
-      topology: (() => {
-        const sharedTopology = readLinkTopologyState(shared)
-        return Object.keys(sharedTopology).length > 0 ? sharedTopology : clone(derivedTopology || {})
-      })(),
-    },
+    focus: clone(sharedAnalyticalState.focus),
+    highlight: clone(sharedAnalyticalState.highlight),
+    viewport: clone(sharedAnalyticalState.viewport),
+    globalFilters: clone(sharedAnalyticalState.filters),
+    annotations: clone(sharedAnalyticalState.annotations),
+    links: clone(sharedAnalyticalState.links),
   }
 }
 
@@ -471,17 +475,20 @@ export function buildRuntimeObservation({
   description = {},
   state = {},
   coordinationState = null,
-  availableActions = [],
-  availablePerceptions = [],
+  sharedAnalyticalState = null,
   propagationSummary = null,
   latestCoordinationResult = null,
 } = {}) {
+  const resolvedSharedAnalyticalState = sharedAnalyticalState
+    ? clone(sharedAnalyticalState)
+    : buildSharedAnalyticalStateFromWorkspaceState(state, {
+      derivedTopology: description?.runtimeTopology || {},
+    })
   return {
     workspace: clone(description),
     state: clone(state),
     coordination: coordinationState ? clone(coordinationState) : null,
-    availableActions: clone(availableActions),
-    availablePerceptions: clone(availablePerceptions),
+    sharedAnalyticalState: resolvedSharedAnalyticalState,
     propagation: propagationSummary ? clone(propagationSummary) : null,
     latestCoordinationResult: clone(latestCoordinationResult),
   }

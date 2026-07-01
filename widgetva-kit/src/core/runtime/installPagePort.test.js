@@ -267,6 +267,14 @@ test('installWidgetVAPagePort exposes observation, coordination, propagation, an
   const port = globalThis.window.__widgetVA
   const observation = await port.readObservation()
   const coordinationState = await port.readCoordinationState()
+  const sharedAnalyticalState = await port.readSharedAnalyticalState()
+  const sharedFilterContext = await port.readSharedFilterContext()
+  const sharedViewportContext = await port.readSharedViewportContext()
+  const sharedSemanticFocus = await port.readSharedSemanticFocus()
+  const sharedStructuralContext = await port.readSharedStructuralContext()
+  const sharedViewContext = await port.readSharedViewContext()
+  const sharedTransformationContext = await port.readSharedTransformationContext()
+  const activeAnalyticalContext = await port.readActiveAnalyticalContext()
   const propagationSummary = await port.readPropagationSummary({ sourceRef: widgetRef })
   const availableActions = await port.listAvailableActions()
   const availablePerceptions = await port.listAvailablePerceptions()
@@ -274,6 +282,85 @@ test('installWidgetVAPagePort exposes observation, coordination, propagation, an
   assert.equal(observation?.workspace?.workspaceId, 'main')
   assert.equal(observation?.state?.stateId, 'main:s2')
   assert.equal(coordinationState?.focusedWidgetRef, widgetRef)
+  assert.equal(sharedAnalyticalState?.focusedWidgetRef, widgetRef)
+  assert.deepEqual(sharedFilterContext, {
+    globalFilters: {},
+    selectionRef: `${widgetRef}/selection/current`,
+    selectionPredicates: [],
+  })
+  assert.deepEqual(sharedViewportContext, {
+    focusedWidgetRef: widgetRef,
+    viewport: null,
+    comparisonTargets: [],
+  })
+  assert.deepEqual(sharedSemanticFocus, {
+    focusedWidgetRef: widgetRef,
+    focus: {
+      widgetRef,
+      widgetId: null,
+      source: 'workspace',
+    },
+    primarySelection: {
+      selectionRef: `${widgetRef}/selection/current`,
+      selectionId: null,
+      sourceWidgetRef: widgetRef,
+      sourceWidgetId: 'scatter_a',
+      summary: '',
+      predicates: [],
+      selectionDataRef: null,
+      kind: 'interval',
+      scope: 'local',
+    },
+    highlight: {
+      entries: [],
+      activeWidgetRefs: [],
+    },
+  })
+  assert.deepEqual(sharedStructuralContext, {
+    links: {
+      definitions: [],
+      topology: {
+        widgetCount: 1,
+        linkCount: 0,
+      },
+    },
+    comparisonTargets: [],
+    annotations: [],
+  })
+  assert.deepEqual(sharedViewContext, {
+    activeWidgetRefs: [],
+    widgets: {},
+  })
+  assert.deepEqual(sharedTransformationContext, {
+    activeWidgetRefs: [],
+    widgets: {},
+  })
+  assert.deepEqual(activeAnalyticalContext, {
+    activeContextKinds: ['focus', 'selection'],
+    focusedWidgetRef: widgetRef,
+    globalFilters: null,
+    primarySelection: {
+      selectionRef: `${widgetRef}/selection/current`,
+      sourceWidgetRef: widgetRef,
+      sourceWidgetId: 'scatter_a',
+      summary: null,
+      predicates: [],
+      kind: 'interval',
+      scope: 'local',
+    },
+    highlight: null,
+    viewport: null,
+    comparisonTargets: null,
+    structure: {
+      linkCount: 0,
+      annotationCount: 0,
+    },
+    transformationContext: {
+      activeWidgetRefs: [],
+      widgets: {},
+    },
+    viewStatesByWidget: null,
+  })
   assert.equal(propagationSummary?.sourceRef, widgetRef)
   assert.equal(Array.isArray(propagationSummary?.propagation), true)
   assert.deepEqual(availableActions.map((entry) => entry?.name), ['workspace.focusWidget'])
@@ -501,6 +588,8 @@ test('installWidgetVAPagePort derives describeWorkspace from plain store fields 
   assert.equal(described.dataHandles[0]?.ref, dataRef)
   assert.equal(described.links[0]?.ref, linkRef)
   assert.equal(described.actions[0]?.name, 'scatter.brushRegion')
+  assert.equal(described.actions[0]?.analyticalPlacement, 'workspace-shared-state')
+  assert.equal(described.actions[0]?.sharedAnalyticalSurface, 'sharedSemanticFocus')
   assert.equal(described.perceptionQueries[0]?.name, 'perception.summarizeVisible')
   assert.equal(described.workspaceCapabilities?.includes('multiWidgetCoordination'), true)
   assert.equal(described.workspaceCapabilities?.includes('crossFilter'), true)
@@ -1704,14 +1793,20 @@ test('installWidgetVAPagePort.describePagePort reports planner, agent-loop, and 
   assert.equal(described.agentLoop, true)
   assert.equal(described.methods.includes('planWorkspace'), true)
   assert.equal(described.methods.includes('describeAgentLoop'), true)
+  assert.equal(described.methods.includes('runAgentTurn'), true)
+  assert.equal(described.methods.includes('runAgentSession'), true)
   assert.equal(described.methods.includes('jumpToState'), false)
   assert.equal(described.methods.includes('branchFromState'), false)
   assert.equal(described.aliases?.workspace_plan, 'planWorkspace')
   assert.equal(described.aliases?.agent_loop_describe, 'describeAgentLoop')
+  assert.equal(described.aliases?.agent_turn_run, 'runAgentTurn')
+  assert.equal(described.aliases?.agent_session_run, 'runAgentSession')
   assert.equal(described.aliases?.jump_to_state, undefined)
   assert.equal(described.aliases?.branch_from_state, undefined)
   assert.equal(typeof described.methodDescriptors?.planWorkspace, 'object')
   assert.equal(typeof described.methodDescriptors?.describeAgentLoop, 'object')
+  assert.equal(typeof described.methodDescriptors?.runAgentTurn, 'object')
+  assert.equal(typeof described.methodDescriptors?.runAgentSession, 'object')
   assert.equal(described.methodDescriptors?.jumpToState, undefined)
   assert.equal(described.methodDescriptors?.branchFromState, undefined)
   assert.equal(typeof described.schemas?.workspacePlanningRequest, 'object')

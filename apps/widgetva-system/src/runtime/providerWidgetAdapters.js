@@ -1,9 +1,9 @@
 import {
   createD3WidgetAdapter,
   createEChartsWidgetAdapter,
+  getWidgetFamilyAdapter,
   createVegaLiteWidgetAdapter,
 } from '../../../../widgetva-kit/src/adapters/index.js'
-import { getWidgetFamilyAdapter } from '../../../../widgetva-kit/src/adapters/widgetFamilies/index.js'
 
 function bindIfFunction(target, name) {
   const value = target?.[name]

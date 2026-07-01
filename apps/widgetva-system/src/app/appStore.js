@@ -6,34 +6,13 @@ import { deriveTraceBranchNarrative } from '../trace/traceBranchNarrative.js'
 import { deriveTraceFocus } from '../trace/traceFocus.js'
 import { buildTraceTimelineModel } from '../trace/traceViewModel.js'
 import {
-  appendRuntimeTraceStep,
-  appendAgentMessage,
   buildAppSnapshot,
-  clearWorkspaceHighlight,
-  clearWorkspaceSelection,
-  createAgentRuntimeContract,
+  createFirstPartyRuntimeSessionFacade,
   createInitialSessionState,
-  describeWorkspace,
   disposeRuntimeSession,
-  executeWorkspaceAction,
-  jumpWorkspaceToState,
-  promotePrimarySelectionToGlobalFilters,
-  promotePrimarySelectionToHighlight,
-  readAgentMessages,
   readLatestCoordinationResult,
-  readRuntimeTrace,
-  readWorkspaceCoordinationState,
-  readWorkspaceInteractionBindings,
-  readWorkspaceStateHistory,
   registerWorkspaceProviderEnvironment,
   registerWorkspaceCaseOverride,
-  setFocusedWidgetId,
-  syncScatterBrushSelection,
-  syncScatterBrushSelectionResult,
-  syncScatterViewport,
-  syncWorkspacePrimarySelection,
-  syncWorkspacePrimarySelectionResult,
-  syncWorkspaceGlobalFilters,
 } from '../runtime/runtimeBridge.js'
 import { DEFAULT_OPENROUTER_VLM, formatAgentRuntimeError, runAgentTurn } from '../runtime/agentRuntime.js'
 import {
@@ -51,31 +30,41 @@ export { createWorkspaceViewModel as getWorkspaceViewModel }
 
 registerWorkspaceProviderEnvironment(DEFAULT_CASE_ID, DEFAULT_WORKSPACE_PROVIDER_ENVIRONMENT)
 
-function readPrimarySelection(caseId) {
-  return readWorkspaceCoordinationState(caseId)?.selections?.views?.primary || null
+function readRuntimeSessionFacade(caseId) {
+  return createFirstPartyRuntimeSessionFacade(caseId)
+}
+
+function readRuntimeSessionKeyFromState(state) {
+  return state?.runtimeSessionKey || state?.activeCaseId || DEFAULT_CASE_ID
+}
+
+function readRuntimeFacadeFromState(state) {
+  return readRuntimeSessionFacade(readRuntimeSessionKeyFromState(state))
 }
 
 function makeTracePatch(caseId, step) {
-  const appended = appendRuntimeTraceStep(caseId, step)
+  const runtime = readRuntimeSessionFacade(caseId)
+  const appended = runtime.appendTraceStep(step)
   return appended
     ? {
-        trace: readRuntimeTrace(caseId),
+        trace: runtime.readRuntimeTrace(),
         selectedTraceStepId: appended.id,
       }
     : {}
 }
 
 function makeMessagePatch(caseId, message) {
-  const appended = appendAgentMessage(caseId, message)
+  const runtime = readRuntimeSessionFacade(caseId)
+  const appended = runtime.appendAgentMessage(message)
   return appended
     ? {
-        agentMessages: readAgentMessages(caseId),
+        agentMessages: runtime.readAgentMessages(),
       }
     : {}
 }
 
 function buildWorkspaceInteractionStatePatch(state, sessionKey) {
-  return readWorkspaceInteractionBindings(sessionKey, {
+  return readRuntimeSessionFacade(sessionKey).readInteractionBindings({
     dataset: state.dataset,
     fallbackSelectedWidgetId: state.selectedWidgetId,
   })
@@ -118,7 +107,8 @@ function deriveWidgetActionOverride(actionName, params = {}) {
 
 function resolveWidgetIdFromAgentScope(sessionKey, widgetRef, fallbackWidgetId = null) {
   if (typeof widgetRef !== 'string' || widgetRef.length === 0) return fallbackWidgetId
-  const description = describeWorkspace(sessionKey) || null
+  const runtime = readRuntimeSessionFacade(sessionKey)
+  const description = runtime.describeWorkspace() || null
   const matchedWidget = Array.isArray(description?.widgets)
     ? description.widgets.find((widget) => widget?.ref === widgetRef || widget?.widgetId === widgetRef)
     : null
@@ -129,12 +119,13 @@ function applyReplayInteractionState(current, sessionKey, {
   replayContext = null,
   preferredWidgetId = null,
 } = {}) {
+  const runtime = readRuntimeSessionFacade(sessionKey)
   let resolvedWidgetId = null
   const canFocusPreferredWidget = typeof preferredWidgetId === 'string'
     && preferredWidgetId.length > 0
     && preferredWidgetId !== 'workspace'
   if (canFocusPreferredWidget) {
-    resolvedWidgetId = setFocusedWidgetId(sessionKey, preferredWidgetId) || null
+    resolvedWidgetId = runtime.setFocusedWidgetId(preferredWidgetId) || null
   }
 
   const interactionPatch = buildWorkspaceInteractionStatePatch(current, sessionKey)
@@ -380,7 +371,7 @@ export const useAppStore = create((set, get) => ({
   selectTraceStep: async (stepId) => {
     const state = get()
     const trace = Array.isArray(state.trace) ? state.trace : []
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
+    const sessionKey = readRuntimeSessionKeyFromState(state)
     const targetStep = trace.find((step) => step?.id === stepId) || null
     if (!targetStep) {
       set({ selectedTraceStepId: stepId || null, activeReplayContext: null, traceNavigationTarget: null })
@@ -391,11 +382,12 @@ export const useAppStore = create((set, get) => ({
       source: 'trace_step',
       triggerId: targetStep.id,
     })
+    const runtime = readRuntimeSessionFacade(sessionKey)
 
     const targetStateId = typeof targetStep.resultStateId === 'string' && targetStep.resultStateId.length > 0
       ? targetStep.resultStateId
       : null
-    const currentStateId = readWorkspaceCoordinationState(sessionKey)?.stateId || null
+    const currentStateId = runtime.readCoordinationState()?.stateId || null
 
     if (!targetStateId || targetStateId === currentStateId) {
       set((current) => ({
@@ -409,7 +401,7 @@ export const useAppStore = create((set, get) => ({
       return { step: targetStep, replayed: false, stateId: targetStateId, replayContext }
     }
 
-    const result = await jumpWorkspaceToState(sessionKey, targetStateId)
+    const result = await runtime.jumpWorkspaceToState(targetStateId)
     set((current) => ({
       selectedTraceStepId: targetStep.id,
       traceNavigationTarget: current.traceNavigationTarget,
@@ -435,13 +427,13 @@ export const useAppStore = create((set, get) => ({
   setAgentObjective: (agentObjective) => set({ agentObjective }),
   getActiveAgentRuntimeContract: () => {
     const state = get()
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    return createAgentRuntimeContract(sessionKey)
+    return readRuntimeFacadeFromState(state).agentContract()
   },
   setSelectedWidgetId: (widgetId) => set((state) => (
     (() => {
-      const sessionKey = state.runtimeSessionKey || state.activeCaseId
-      const nextWidgetId = setFocusedWidgetId(sessionKey, widgetId) || widgetId
+      const sessionKey = readRuntimeSessionKeyFromState(state)
+      const runtime = readRuntimeSessionFacade(sessionKey)
+      const nextWidgetId = runtime.setFocusedWidgetId(widgetId) || widgetId
       return state.selectedWidgetId === nextWidgetId
         ? state
         : (() => {
@@ -506,7 +498,7 @@ export const useAppStore = create((set, get) => ({
     }
   },
   setActiveCase: (caseId) => set((state) => {
-    disposeRuntimeSession(state.runtimeSessionKey || state.activeCaseId)
+    disposeRuntimeSession(readRuntimeSessionKeyFromState(state))
     return {
       coordinationVersion: 0,
       analyticalVersion: 0,
@@ -528,27 +520,27 @@ export const useAppStore = create((set, get) => ({
   setAnalysisOrigin: (origin) => set((state) => {
     if (state.analysisOrigin === origin) return state
     const nextState = { ...state, analysisOrigin: origin }
-    syncWorkspaceGlobalFilters(state.runtimeSessionKey || state.activeCaseId, nextState)
+    readRuntimeFacadeFromState(state).syncWorkspaceGlobalFilters(nextState)
     return { analysisOrigin: origin }
   }),
   toggleAnalysisOrigin: (origin) =>
     set((state) => {
       const analysisOrigin = state.analysisOrigin === origin ? 'All' : origin
       const nextState = { ...state, analysisOrigin }
-      syncWorkspaceGlobalFilters(state.runtimeSessionKey || state.activeCaseId, nextState)
+      readRuntimeFacadeFromState(state).syncWorkspaceGlobalFilters(nextState)
       return { analysisOrigin }
     }),
   setAnalysisYear: (year) => set((state) => {
     if (state.analysisYear === year) return state
     const nextState = { ...state, analysisYear: year }
-    syncWorkspaceGlobalFilters(state.runtimeSessionKey || state.activeCaseId, nextState)
+    readRuntimeFacadeFromState(state).syncWorkspaceGlobalFilters(nextState)
     return { analysisYear: year }
   }),
   toggleAnalysisYear: (year) =>
     set((state) => {
       const analysisYear = state.analysisYear === year ? 'All' : year
       const nextState = { ...state, analysisYear }
-      syncWorkspaceGlobalFilters(state.runtimeSessionKey || state.activeCaseId, nextState)
+      readRuntimeFacadeFromState(state).syncWorkspaceGlobalFilters(nextState)
       return { analysisYear }
     }),
   toggleCylinder: (cylinder) =>
@@ -557,14 +549,14 @@ export const useAppStore = create((set, get) => ({
         ? state.analysisCylinders.filter((value) => value !== cylinder)
         : [...state.analysisCylinders, cylinder].sort((a, b) => a - b)
       const nextState = { ...state, analysisCylinders }
-      syncWorkspaceGlobalFilters(state.runtimeSessionKey || state.activeCaseId, nextState)
+      readRuntimeFacadeFromState(state).syncWorkspaceGlobalFilters(nextState)
       return { analysisCylinders }
     }),
   setHorsepowerMin: (value) =>
     set((state) => {
       const [nextMin, nextMax] = clampHorsepowerRange(Number(value), state.horsepowerMax, state.dataset.horsepowerDomain)
       if (state.horsepowerMin === nextMin && state.horsepowerMax === nextMax) return state
-      syncWorkspaceGlobalFilters(state.runtimeSessionKey || state.activeCaseId, {
+      readRuntimeFacadeFromState(state).syncWorkspaceGlobalFilters({
         ...state,
         horsepowerMin: nextMin,
         horsepowerMax: nextMax,
@@ -575,7 +567,7 @@ export const useAppStore = create((set, get) => ({
     set((state) => {
       const [nextMin, nextMax] = clampHorsepowerRange(state.horsepowerMin, Number(value), state.dataset.horsepowerDomain)
       if (state.horsepowerMin === nextMin && state.horsepowerMax === nextMax) return state
-      syncWorkspaceGlobalFilters(state.runtimeSessionKey || state.activeCaseId, {
+      readRuntimeFacadeFromState(state).syncWorkspaceGlobalFilters({
         ...state,
         horsepowerMin: nextMin,
         horsepowerMax: nextMax,
@@ -586,7 +578,7 @@ export const useAppStore = create((set, get) => ({
     set((state) => {
       const [nextMin, nextMax] = clampHorsepowerRange(Number(minValue), Number(maxValue), state.dataset.horsepowerDomain)
       if (state.horsepowerMin === nextMin && state.horsepowerMax === nextMax) return state
-      syncWorkspaceGlobalFilters(state.runtimeSessionKey || state.activeCaseId, {
+      readRuntimeFacadeFromState(state).syncWorkspaceGlobalFilters({
         ...state,
         horsepowerMin: nextMin,
         horsepowerMax: nextMax,
@@ -612,8 +604,8 @@ export const useAppStore = create((set, get) => ({
     const zoomFactor = deltaY < 0 ? 0.84 : 1.19
     const nextXDomain = buildZoomedDomain(currentXDomain, Math.min(Math.max(anchorX, 0), 1), zoomFactor, baseXDomain)
     const nextYDomain = buildZoomedDomain(currentYDomain, 1 - Math.min(Math.max(anchorY, 0), 1), zoomFactor, baseYDomain)
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    syncScatterViewport(sessionKey, {
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    readRuntimeSessionFacade(sessionKey).syncScatterViewport({
       xDomain: nextXDomain,
       yDomain: nextYDomain,
     })
@@ -637,8 +629,8 @@ export const useAppStore = create((set, get) => ({
     }
   }),
   resetScatterViewport: () => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    syncScatterViewport(sessionKey, null)
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    readRuntimeSessionFacade(sessionKey).syncScatterViewport(null)
     return {
       scatterViewport: null,
       coordinationVersion: state.coordinationVersion + 1,
@@ -656,16 +648,17 @@ export const useAppStore = create((set, get) => ({
     }
   }),
   selectOrigin: (origin) => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const primarySelection = readPrimarySelection(sessionKey)
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const primarySelection = runtime.readPrimarySelection()
     const sameSelection = primarySelectionMatches(primarySelection, {
       sourceWidgetId: 'w_bar_origin',
       predicates: [{ field: 'origin', op: 'in', value: [origin] }],
     })
     queueMicrotask(async () => {
       const result = sameSelection
-        ? clearWorkspaceSelection(sessionKey)
-        : await executeWorkspaceAction(sessionKey, {
+        ? runtime.clearWorkspaceSelection()
+        : await runtime.executeWorkspaceAction({
             widgetId: 'w_bar_origin',
             name: 'bar.selectCategory',
             params: {
@@ -692,16 +685,17 @@ export const useAppStore = create((set, get) => ({
     return state
   }),
   selectYear: (year) => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const primarySelection = readPrimarySelection(sessionKey)
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const primarySelection = runtime.readPrimarySelection()
     const sameSelection = primarySelectionMatches(primarySelection, {
       sourceWidgetId: 'w_line_year',
       predicates: [{ field: 'year', op: 'in', value: [year] }],
     })
     queueMicrotask(async () => {
       const result = sameSelection
-        ? clearWorkspaceSelection(sessionKey)
-        : await executeWorkspaceAction(sessionKey, {
+        ? runtime.clearWorkspaceSelection()
+        : await runtime.executeWorkspaceAction({
             widgetId: 'w_line_year',
             name: 'line.selectXValue',
             params: {
@@ -728,8 +722,9 @@ export const useAppStore = create((set, get) => ({
     return state
   }),
   selectHeatmapCell: ({ origin, cylinders }) => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const primarySelection = readPrimarySelection(sessionKey)
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const primarySelection = runtime.readPrimarySelection()
     const sameCell = primarySelectionMatches(primarySelection, {
       sourceWidgetId: 'w_heatmap_origin_cyl',
       predicates: [
@@ -739,8 +734,8 @@ export const useAppStore = create((set, get) => ({
     })
     queueMicrotask(async () => {
       const result = sameCell
-        ? clearWorkspaceSelection(sessionKey)
-        : await executeWorkspaceAction(sessionKey, {
+        ? runtime.clearWorkspaceSelection()
+        : await runtime.executeWorkspaceAction({
             widgetId: 'w_heatmap_origin_cyl',
             name: 'heatmap.selectSubmatrix',
             params: {
@@ -768,16 +763,17 @@ export const useAppStore = create((set, get) => ({
   }),
   selectSankeyNode: (node) => set((state) => {
     if (!node?.kind) return state
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const primarySelection = readPrimarySelection(sessionKey)
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const primarySelection = runtime.readPrimarySelection()
     if (node.kind === 'aggregate') {
       const aggregateName = node.aggregateName || node.id || node.value
       const sameSelection = primarySelection?.sourceWidgetId === 'w_sankey_cars'
         && primarySelection?.aggregateName === aggregateName
       queueMicrotask(async () => {
         const result = sameSelection
-          ? clearWorkspaceSelection(sessionKey)
-          : await executeWorkspaceAction(sessionKey, {
+          ? runtime.clearWorkspaceSelection()
+          : await runtime.executeWorkspaceAction({
               widgetId: 'w_sankey_cars',
               name: 'sankey.selectAggregateNode',
               params: {
@@ -809,8 +805,8 @@ export const useAppStore = create((set, get) => ({
       })
       queueMicrotask(async () => {
         const result = sameSelection
-          ? clearWorkspaceSelection(sessionKey)
-          : await executeWorkspaceAction(sessionKey, {
+          ? runtime.clearWorkspaceSelection()
+          : await runtime.executeWorkspaceAction({
               widgetId: 'w_sankey_cars',
               name: 'sankey.focusFlow',
               params: {
@@ -844,8 +840,8 @@ export const useAppStore = create((set, get) => ({
       })
       queueMicrotask(async () => {
         const result = sameSelection
-          ? clearWorkspaceSelection(sessionKey)
-          : await executeWorkspaceAction(sessionKey, {
+          ? runtime.clearWorkspaceSelection()
+          : await runtime.executeWorkspaceAction({
               widgetId: 'w_sankey_cars',
               name: 'sankey.focusFlow',
               params: {
@@ -879,8 +875,8 @@ export const useAppStore = create((set, get) => ({
       })
       queueMicrotask(async () => {
         const result = sameSelection
-          ? clearWorkspaceSelection(sessionKey)
-          : await executeWorkspaceAction(sessionKey, {
+          ? runtime.clearWorkspaceSelection()
+          : await runtime.executeWorkspaceAction({
               widgetId: 'w_sankey_cars',
               name: 'sankey.focusFlow',
               params: {
@@ -911,11 +907,12 @@ export const useAppStore = create((set, get) => ({
   selectParallelCar: (row) => set((state) => {
     if (!row?.id) return state
     const sameCar = state.focusedCarId === row.id
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
     queueMicrotask(async () => {
       const result = sameCar
-        ? clearWorkspaceSelection(sessionKey)
-        : await executeWorkspaceAction(sessionKey, {
+        ? runtime.clearWorkspaceSelection()
+        : await runtime.executeWorkspaceAction({
             widgetId: 'w_parallel_cars',
             name: 'parallelCoordinates.selectRecord',
             params: {
@@ -924,7 +921,7 @@ export const useAppStore = create((set, get) => ({
               },
             })
       const coordinationResult = readLatestCoordinationResult(sessionKey)
-      const interactionBindings = readWorkspaceInteractionBindings(sessionKey, {
+      const interactionBindings = runtime.readInteractionBindings({
         dataset: state.dataset,
         fallbackSelectedWidgetId: state.selectedWidgetId,
       })
@@ -947,14 +944,15 @@ export const useAppStore = create((set, get) => ({
     return state
   }),
   syncScatterBrushSelection: (brush) => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
     const normalizedBrush = brush && typeof brush === 'object'
       ? {
           horsepower: Array.isArray(brush.horsepower) ? brush.horsepower : Array.isArray(brush.x) ? brush.x : null,
           mpg: Array.isArray(brush.mpg) ? brush.mpg : Array.isArray(brush.y) ? brush.y : null,
         }
       : null
-    const primarySelection = readPrimarySelection(sessionKey)
+    const primarySelection = runtime.readPrimarySelection()
     const sameBrush = normalizedBrush
       && primarySelectionMatches(primarySelection, {
         sourceWidgetId: 'w_scatter_cars',
@@ -962,11 +960,11 @@ export const useAppStore = create((set, get) => ({
           { field: 'horsepower', op: 'between', value: normalizedBrush.horsepower || [] },
           { field: 'mpg', op: 'between', value: normalizedBrush.mpg || [] },
         ],
-      })
+    })
     queueMicrotask(async () => {
       const result = !normalizedBrush || sameBrush
-        ? clearWorkspaceSelection(sessionKey)
-        : await executeWorkspaceAction(sessionKey, {
+        ? runtime.clearWorkspaceSelection()
+        : await runtime.executeWorkspaceAction({
             widgetId: 'w_scatter_cars',
             name: 'scatter.brushRegion',
             params: {
@@ -1010,8 +1008,9 @@ export const useAppStore = create((set, get) => ({
     }
   }),
   clearSelection: () => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const result = clearWorkspaceSelection(sessionKey)
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const result = runtime.clearWorkspaceSelection()
     return result.changed
       ? {
           focusedCarId: null,
@@ -1031,8 +1030,9 @@ export const useAppStore = create((set, get) => ({
       : state
   }),
   promoteSelectionToHighlight: () => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const result = promotePrimarySelectionToHighlight(sessionKey)
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const result = runtime.promotePrimarySelectionToHighlight()
     return result.changed
       ? {
           coordinationVersion: state.coordinationVersion + 1,
@@ -1050,8 +1050,9 @@ export const useAppStore = create((set, get) => ({
       : state
   }),
   promoteSelectionToFilter: () => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const result = promotePrimarySelectionToGlobalFilters(sessionKey, state)
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const result = runtime.promotePrimarySelectionToGlobalFilters(state)
     return result.changed
       ? {
           ...result.nextFilterState,
@@ -1072,8 +1073,9 @@ export const useAppStore = create((set, get) => ({
       : state
   }),
   clearHighlight: () => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const result = clearWorkspaceHighlight(sessionKey)
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const result = runtime.clearWorkspaceHighlight()
     return result.changed
       ? {
           coordinationVersion: state.coordinationVersion + 1,
@@ -1091,9 +1093,10 @@ export const useAppStore = create((set, get) => ({
       : state
   }),
   clearFilters: () => set((state) => {
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
     const nextPartial = clearAnalysisFilters(state)
-    syncWorkspaceGlobalFilters(sessionKey, {
+    runtime.syncWorkspaceGlobalFilters({
       ...state,
       ...nextPartial,
     })
@@ -1117,8 +1120,9 @@ export const useAppStore = create((set, get) => ({
   }),
   runWidgetAnalyticalAction: async ({ widgetId, actionName, params = {}, summary, detail, override = null }) => {
     const state = get()
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const result = await executeWorkspaceAction(sessionKey, {
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const result = await runtime.executeWorkspaceAction({
       widgetId,
       name: actionName,
       params,
@@ -1144,8 +1148,9 @@ export const useAppStore = create((set, get) => ({
   },
   undoSelectionHistory: async () => {
     const state = get()
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const result = await executeWorkspaceAction(sessionKey, {
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const result = await runtime.executeWorkspaceAction({
       widgetId: state.selectedWidgetId,
       name: 'widget.undoSelection',
     })
@@ -1166,8 +1171,9 @@ export const useAppStore = create((set, get) => ({
   },
   redoSelectionHistory: async () => {
     const state = get()
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const result = await executeWorkspaceAction(sessionKey, {
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const result = await runtime.executeWorkspaceAction({
       widgetId: state.selectedWidgetId,
       name: 'widget.redoSelection',
     })
@@ -1188,8 +1194,9 @@ export const useAppStore = create((set, get) => ({
   },
   resetWorkspaceInteractions: async () => {
     const state = get()
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const result = await executeWorkspaceAction(sessionKey, {
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const result = await runtime.executeWorkspaceAction({
       widgetId: state.selectedWidgetId,
       name: 'workspace.resetWorkspace',
     })
@@ -1213,12 +1220,13 @@ export const useAppStore = create((set, get) => ({
   },
   restorePreviousWorkspaceState: async () => {
     const state = get()
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const history = readWorkspaceStateHistory(sessionKey, { limit: 24 })
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const history = runtime.readStateHistory({ limit: 24 })
     const target = history.length > 1 ? history.at(-2) : null
     if (!target?.stateId) return null
-    const beforeReplayStateId = readWorkspaceCoordinationState(sessionKey)?.stateId || null
-    const result = await jumpWorkspaceToState(sessionKey, target.stateId)
+    const beforeReplayStateId = runtime.readCoordinationState()?.stateId || null
+    const result = await runtime.jumpWorkspaceToState(target.stateId)
     const replayContext = buildReplayContext({
       source: 'history_restore',
       triggerId: target.stateId,
@@ -1254,12 +1262,13 @@ export const useAppStore = create((set, get) => ({
   },
   restoreEarliestWorkspaceState: async () => {
     const state = get()
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
-    const history = readWorkspaceStateHistory(sessionKey, { limit: 200 })
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
+    const history = runtime.readStateHistory({ limit: 200 })
     const target = history[0] || null
     if (!target?.stateId) return null
-    const beforeReplayStateId = readWorkspaceCoordinationState(sessionKey)?.stateId || null
-    const result = await jumpWorkspaceToState(sessionKey, target.stateId)
+    const beforeReplayStateId = runtime.readCoordinationState()?.stateId || null
+    const result = await runtime.jumpWorkspaceToState(target.stateId)
     const replayContext = buildReplayContext({
       source: 'history_restore',
       triggerId: target.stateId,
@@ -1295,7 +1304,8 @@ export const useAppStore = create((set, get) => ({
   },
   runAgentStep: async (objectiveOverride) => {
     const state = get()
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
     const objective = typeof objectiveOverride === 'string' && objectiveOverride.trim().length > 0
       ? objectiveOverride.trim()
       : state.agentObjective
@@ -1313,7 +1323,7 @@ export const useAppStore = create((set, get) => ({
           current.selectedWidgetId,
         )
         const focusedWidgetId = typeof scopedWidgetId === 'string' && scopedWidgetId.length > 0
-          ? setFocusedWidgetId(sessionKey, scopedWidgetId) || null
+          ? runtime.setFocusedWidgetId(scopedWidgetId) || null
           : null
         const nextOverrides = { ...(current.widgetActionOverrides || {}) }
         if (result?.act?.kind === 'action' && scopedWidgetId) {
@@ -1322,7 +1332,7 @@ export const useAppStore = create((set, get) => ({
             nextOverrides[scopedWidgetId] = derivedOverride
           }
         }
-        const nextTrace = readRuntimeTrace(sessionKey)
+        const nextTrace = runtime.readRuntimeTrace()
         const traceStep = Array.isArray(nextTrace) && nextTrace.length > 0 ? nextTrace.at(-1) : null
         return {
           agentStatus: 'idle',
@@ -1331,11 +1341,7 @@ export const useAppStore = create((set, get) => ({
           agentLastStep: {
             objective,
             model: current.agentModel,
-            observe: result?.observe || null,
-            plan: result?.plan || null,
-            act: result?.act || null,
-            verify: result?.verify || null,
-            reason: result?.reason || null,
+            turn: result || null,
             traceStep,
             recordedAt: Date.now(),
           },
@@ -1346,13 +1352,13 @@ export const useAppStore = create((set, get) => ({
           selectedWidgetId: focusedWidgetId || interactionPatch.selectedWidgetId || current.selectedWidgetId,
           trace: nextTrace,
           selectedTraceStepId: traceStep?.id || current.selectedTraceStepId,
-          agentMessages: readAgentMessages(sessionKey),
+          agentMessages: runtime.readAgentMessages(),
         }
       })
       return result
     } catch (error) {
       const errorText = formatAgentRuntimeError(error)
-      const failureStep = appendRuntimeTraceStep(sessionKey, {
+      const failureStep = runtime.appendTraceStep({
         actor: 'agent',
         kind: 'action',
         widgetTitle: 'Agent runtime',
@@ -1368,18 +1374,14 @@ export const useAppStore = create((set, get) => ({
         agentLastStep: {
           objective,
           model: state.agentModel,
-          observe: null,
-          plan: null,
-          act: null,
-          verify: null,
-          reason: null,
+          turn: null,
           traceStep: failureStep || null,
           error: errorText,
           recordedAt: Date.now(),
         },
-        trace: readRuntimeTrace(sessionKey),
+        trace: runtime.readRuntimeTrace(),
         selectedTraceStepId: failureStep?.id || state.selectedTraceStepId,
-        agentMessages: readAgentMessages(sessionKey),
+        agentMessages: runtime.readAgentMessages(),
       })
       throw error
     }
@@ -1449,9 +1451,10 @@ export const useAppStore = create((set, get) => ({
       return get().selectTraceStep(finding.traceStepId)
     }
 
-    const sessionKey = state.runtimeSessionKey || state.activeCaseId
+    const sessionKey = readRuntimeSessionKeyFromState(state)
+    const runtime = readRuntimeSessionFacade(sessionKey)
     if (!finding.stateId) return null
-    const result = await jumpWorkspaceToState(sessionKey, finding.stateId)
+    const result = await runtime.jumpWorkspaceToState(finding.stateId)
     const replayContext = buildReplayContextFromFinding(finding, finding.stateId)
     set((current) => ({
       coordinationVersion: current.coordinationVersion + 1,
@@ -1489,11 +1492,11 @@ export const useAppStore = create((set, get) => ({
     set((state) => {
       const analysisOrigin = cycleAnalysisOrigin(state)
       const nextState = { ...state, analysisOrigin }
-      syncWorkspaceGlobalFilters(state.runtimeSessionKey || state.activeCaseId, nextState)
+      readRuntimeFacadeFromState(state).syncWorkspaceGlobalFilters(nextState)
       return { analysisOrigin }
     }),
   resetWorkspaceView: () => set((state) => {
-    disposeRuntimeSession(state.runtimeSessionKey || state.activeCaseId)
+    disposeRuntimeSession(readRuntimeSessionKeyFromState(state))
     registerWorkspaceProviderEnvironment(state.activeCaseId, state.workspaceProviderEnvironment || DEFAULT_WORKSPACE_PROVIDER_ENVIRONMENT)
     return {
       ...createInitialSessionState(state.activeCaseId),

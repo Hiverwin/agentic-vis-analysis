@@ -16,46 +16,65 @@ function postResponse(root, payload) {
   }, '*')
 }
 
-export function installOfficialPageAgentBridge(root = window) {
-  if (installed || !root) return
-  installed = true
+function summarizeBridgeError(error) {
+  return {
+    name: error?.name || 'Error',
+    message: error?.message || String(error || 'WidgetVA extension bridge failed.'),
+  }
+}
 
-  root.addEventListener('message', (event) => {
+export function createOfficialPageAgentBridgeMessageHandler(root) {
+  return (event) => {
     if (event.source !== root) return
     const message = event.data
     if (!message || message.source !== WIDGETVA_AGENT_BRIDGE_SOURCE_PAGE || message.type !== WIDGETVA_AGENT_BRIDGE_REQUEST) {
       return
     }
 
-    chrome.runtime.sendMessage({
-      type: WIDGETVA_AGENT_BRIDGE_RUNTIME,
-      method: message.method,
-      params: message.params || null,
-    }, (response) => {
-      if (chrome.runtime.lastError) {
+    try {
+      chrome.runtime.sendMessage({
+        type: WIDGETVA_AGENT_BRIDGE_RUNTIME,
+        method: message.method,
+        params: message.params || null,
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          postResponse(root, {
+            id: message.id,
+            ok: false,
+            error: {
+              name: 'Error',
+              message: chrome.runtime.lastError.message || 'WidgetVA extension bridge failed.',
+            },
+          })
+          return
+        }
+
         postResponse(root, {
           id: message.id,
-          ok: false,
-          error: {
-            name: 'Error',
-            message: chrome.runtime.lastError.message || 'WidgetVA extension bridge failed.',
-          },
+          ok: response?.ok === true,
+          ...(response?.ok === true
+            ? { result: response?.result ?? null }
+            : {
+                error: response?.error || {
+                  name: 'Error',
+                  message: 'WidgetVA extension bridge failed.',
+                },
+              }),
         })
-        return
-      }
-
+      })
+    } catch (error) {
       postResponse(root, {
         id: message.id,
-        ok: response?.ok === true,
-        ...(response?.ok === true
-          ? { result: response?.result ?? null }
-          : {
-              error: response?.error || {
-                name: 'Error',
-                message: 'WidgetVA extension bridge failed.',
-              },
-            }),
+        ok: false,
+        error: summarizeBridgeError(error),
       })
-    })
-  })
+    }
+  }
+}
+
+export function installOfficialPageAgentBridge(root = window) {
+  if (installed || !root) return
+  installed = true
+
+  root.addEventListener('message', createOfficialPageAgentBridgeMessageHandler(root))
 }

@@ -5,14 +5,14 @@ import {
   createParallelCoordinatesWidget,
   createSankeyWidget,
   createScatterWidget,
-} from '../../../../widgetva-kit/src/index.js'
-import { makeWidgetRef } from '../../../../widgetva-kit/src/core/protocol/refs.js'
+} from '../../../../widgetva-kit/src/widgets.js'
 import {
+  makeWidgetRef,
+  normalizeWidgetLink,
   readDeclaredLinkEffect,
   readLinkActivationPolicy,
   readLinkEffectConstraint,
-} from '../../../../widgetva-kit/src/core/runtime/linkSemantics.js'
-import { normalizeWidgetLink } from '../../../../widgetva-kit/src/core/protocol/widgetLinks.js'
+} from '../../../../widgetva-kit/src/coreInspect.js'
 import { buildWorkspaceComposition } from './workspaceComposition.js'
 import { createWidgetRuntimeSource, createWidgetRuntimeSpec } from './carsWidgetDerivation.js'
 import { createProviderWidgetAdapter } from './providerWidgetAdapters.js'

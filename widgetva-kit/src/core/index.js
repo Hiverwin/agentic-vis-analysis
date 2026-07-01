@@ -1,6 +1,7 @@
 export {
   createWidgetVARuntime,
 } from './runtime/createWidgetRuntime.js'
+export { createRuntimeManager } from './runtime/RuntimeManager.js'
 export {
   createDefaultWidgetVAHostBridge,
   createWidgetVAHostBridge,
@@ -11,8 +12,14 @@ export {
   createNaturalLanguagePlanner,
   formatAgentPlannerError,
   runNaturalLanguagePagePortAgentLoop,
+  runNaturalLanguagePagePortAgentSession,
+  runNaturalLanguagePagePortAgentTurn,
 } from './runtime/naturalLanguagePlanner.js'
-export { runPagePortAgentLoop } from './runtime/pagePortAgentLoop.js'
+export {
+  runPagePortAgentLoop,
+  runPagePortAgentSession,
+  runPagePortAgentTurn,
+} from './runtime/pagePortAgentLoop.js'
 export {
   applyWidgetRuntimeState,
   attachWidgetRendererBridge,
