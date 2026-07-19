@@ -2,9 +2,10 @@
   "manifest_version": 3,
   "name": "WidgetVA Official Page Integration",
   "version": "0.1.0",
-  "description": "Automatically injects WidgetVA into official Vega-Lite examples pages.",
+  "description": "Adds a user-triggered WidgetVA Dock to supported visualization pages.",
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab"
   ],
   "host_permissions": [
     "https://openrouter.ai/*"
@@ -13,13 +14,17 @@
     "service_worker": "backgroundServiceWorker.js",
     "type": "module"
   },
+  "action": {
+    "default_title": "WidgetVA",
+    "default_popup": "popup.html"
+  },
   "content_scripts": [
     {
       "matches": [
         "https://vega.github.io/vega-lite/examples/*"
       ],
       "js": [
-        "vegaExamplesEarlyCaptureContentScript.js"
+        "officialVegaLiteEarlyCaptureContentScript.js"
       ],
       "run_at": "document_start",
       "world": "MAIN"
@@ -29,13 +34,13 @@
         "https://vega.github.io/vega-lite/examples/*"
       ],
       "js": [
-        "vegaExamplesContentScript.js"
+        "officialVegaLiteContentScript.js"
       ],
       "run_at": "document_start"
     },
     {
       "matches": [
-        "https://observablehq.com/@d3/*"
+        "https://observablehq.com/@*/*"
       ],
       "js": [
         "observableD3ContentScript.js"
@@ -44,20 +49,22 @@
     },
     {
       "matches": [
+        "https://observablehq.com/@*/*",
         "https://*.observableusercontent.com/*"
       ],
       "js": [
         "observableD3WorkerContentScript.js"
       ],
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": true,
+      "world": "MAIN"
     }
   ],
   "web_accessible_resources": [
     {
       "resources": [
-        "vegaExamplesEarlyCaptureContentScript.js",
-        "vegaExamplesPageScript.js",
+        "officialVegaLiteEarlyCaptureContentScript.js",
+        "officialVegaLitePageScript.js",
         "observableD3PageScript.js"
       ],
       "matches": [

@@ -1,4 +1,4 @@
-import { PAGE_PORT_ALIASES } from '../core/protocol/pagePort.js'
+import { PAGE_PORT_ALIASES } from './pagePortProtocol.js'
 
 export const TRANSPORT_PAGE_PORT_ALIASES = Object.keys(PAGE_PORT_ALIASES)
 
@@ -41,13 +41,13 @@ export function invokePagePortAlias(alias, args = [], root = window) {
 export async function evaluatePagePortAlias(page, alias, args = []) {
   const safeArgs = Array.isArray(args) ? args : [args]
   return page.evaluate(
-    ({ nextAlias, nextArgs }) => {
+    ({ nextAlias, nextArgs, aliasMap }) => {
       const port = window.__widgetVA
       if (!port) {
         throw new Error('WidgetVA page port is not installed.')
       }
       const aliasedMethod = port[nextAlias]
-      const stableMethodName = PAGE_PORT_ALIASES[nextAlias]
+      const stableMethodName = aliasMap[nextAlias]
       const method = typeof aliasedMethod === 'function'
         ? aliasedMethod
         : (typeof stableMethodName === 'string' ? port[stableMethodName] : null)
@@ -56,6 +56,6 @@ export async function evaluatePagePortAlias(page, alias, args = []) {
       }
       return method(...nextArgs)
     },
-    { nextAlias: alias, nextArgs: safeArgs },
+    { nextAlias: alias, nextArgs: safeArgs, aliasMap: PAGE_PORT_ALIASES },
   )
 }

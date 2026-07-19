@@ -1,9 +1,7 @@
 import { clearOfficialPageRuntime } from './officialPageRuntimeManager.js'
-import {
-  clearOfficialPageAgentRuntime,
-} from './officialPageRuntimeBindings.js'
+import { clearOfficialVegaLitePageAgentRuntime } from './officialVegaLitePageBindings.js'
 
-export async function clearOfficialPageBootstrapRuntime({
+export async function clearOfficialVegaLitePageBootstrapRuntime({
   entry,
   root,
   capturePreviousState = false,
@@ -21,7 +19,7 @@ export async function clearOfficialPageBootstrapRuntime({
     resetEntry(entry)
   }
 
-  clearOfficialPageAgentRuntime({
+  clearOfficialVegaLitePageAgentRuntime({
     entry,
     root,
     clearWidgetVA,
@@ -29,7 +27,7 @@ export async function clearOfficialPageBootstrapRuntime({
   })
 }
 
-export function resetOfficialPageBootstrapBindings({
+export function resetOfficialVegaLitePageBootstrapBindings({
   entry,
   root,
   clearWidgetVA = false,
@@ -40,7 +38,7 @@ export function resetOfficialPageBootstrapBindings({
     resetEntry(entry)
   }
 
-  clearOfficialPageAgentRuntime({
+  clearOfficialVegaLitePageAgentRuntime({
     entry,
     root,
     clearWidgetVA,

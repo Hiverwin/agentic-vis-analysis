@@ -1,4 +1,5 @@
-(function() {
+var WidgetVAOfficialVegaLiteContentScript = (function(exports) {
+	Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 	var WIDGETVA_AGENT_BRIDGE_SOURCE_CONTENT = "widgetva-official-page-agent-content";
 	var WIDGETVA_AGENT_BRIDGE_RESPONSE = "widgetva:official-page-agent-response";
 	var WIDGETVA_AGENT_BRIDGE_RUNTIME = "widgetva:official-page-agent-runtime";
@@ -1745,9 +1746,10 @@ input:focus-visible {
 		return controller;
 	}
 	//#endregion
-	//#region extension/src/content/observableD3ContentScript.js
-	var PAGE_SCRIPT_ID = "widgetva-observable-d3-page-script";
-	var PAGE_SCRIPT_PATH = "observableD3PageScript.js";
+	//#region extension/src/content/officialVegaLiteContentScript.js
+	var WIDGETVA_LOAD_OFFICIAL_VEGA_LITE_PAGE = "widgetva:load-official-vega-lite-page";
+	var PAGE_SCRIPT_ID = "widgetva-official-vega-lite-page-script";
+	var PAGE_SCRIPT_PATH = "officialVegaLitePageScript.js";
 	var pageScriptPromise = null;
 	function injectPageScript() {
 		if (pageScriptPromise) return pageScriptPromise;
@@ -1758,7 +1760,7 @@ input:focus-visible {
 			}
 			const pageScriptUrl = globalThis.chrome?.runtime?.getURL?.(PAGE_SCRIPT_PATH);
 			if (!pageScriptUrl) {
-				reject(/* @__PURE__ */ new Error("Unable to resolve the Observable D3 page-script URL from the extension runtime."));
+				reject(/* @__PURE__ */ new Error("Unable to resolve the official Vega-Lite page-script URL from the extension runtime."));
 				return;
 			}
 			const script = document.createElement("script");
@@ -1772,23 +1774,70 @@ input:focus-visible {
 			script.addEventListener("error", () => {
 				script.remove();
 				pageScriptPromise = null;
-				reject(/* @__PURE__ */ new Error("Failed to inject the Observable D3 page script."));
+				reject(/* @__PURE__ */ new Error("Failed to inject the official Vega-Lite page script."));
 			}, { once: true });
 			const target = document.documentElement || document.head;
 			if (!target) {
 				pageScriptPromise = null;
-				reject(/* @__PURE__ */ new Error("Unable to inject the Observable D3 page script because no root element is available."));
+				reject(/* @__PURE__ */ new Error("Unable to inject the official Vega-Lite page script because no root element is available."));
 				return;
 			}
 			target.prepend(script);
 		});
 		return pageScriptPromise;
 	}
-	installOfficialPageAgentBridge(window);
-	installWidgetVADock({
-		routeLabel: "Observable D3 notebook",
-		provider: "d3",
-		ensurePageScript: injectPageScript
-	});
+	function summarizeError(error) {
+		return {
+			name: error?.name || "Error",
+			message: error?.message || String(error || "WidgetVA failed to load.")
+		};
+	}
+	function createOfficialVegaLitePageLoadHandler({ root = window, installBridge = installOfficialPageAgentBridge, installDock = installWidgetVADock, ensurePageScript = injectPageScript } = {}) {
+		let dockController = null;
+		return async function loadOfficialVegaLitePage(message = {}) {
+			if (!message || message.type !== "widgetva:load-official-vega-lite-page") return null;
+			installBridge(root);
+			dockController = installDock({
+				routeLabel: "Vega-Lite official page",
+				provider: "vega-lite",
+				root,
+				ensurePageScript,
+				openOnInstall: true
+			}) || dockController;
+			if (!dockController) throw new Error("WidgetVA Dock could not be installed on this page.");
+			if (typeof dockController.open === "function") dockController.open();
+			if (message.autoBind !== false && typeof dockController.bind === "function") await dockController.bind();
+			return {
+				loaded: true,
+				bound: typeof dockController.isBound === "function" ? dockController.isBound() : null
+			};
+		};
+	}
+	function installOfficialVegaLitePageLoadListener({ root = window, runtime = globalThis.chrome?.runtime } = {}) {
+		if (!runtime || typeof runtime.onMessage?.addListener !== "function") return null;
+		const loadPage = createOfficialVegaLitePageLoadHandler({ root });
+		const listener = (message, _sender, sendResponse) => {
+			if (!message || message.type !== "widgetva:load-official-vega-lite-page") return false;
+			loadPage(message).then((result) => {
+				sendResponse({
+					ok: true,
+					result
+				});
+			}).catch((error) => {
+				sendResponse({
+					ok: false,
+					error: summarizeError(error)
+				});
+			});
+			return true;
+		};
+		runtime.onMessage.addListener(listener);
+		return listener;
+	}
+	if (typeof window !== "undefined") installOfficialVegaLitePageLoadListener({ root: window });
 	//#endregion
-})();
+	exports.WIDGETVA_LOAD_OFFICIAL_VEGA_LITE_PAGE = WIDGETVA_LOAD_OFFICIAL_VEGA_LITE_PAGE;
+	exports.createOfficialVegaLitePageLoadHandler = createOfficialVegaLitePageLoadHandler;
+	exports.installOfficialVegaLitePageLoadListener = installOfficialVegaLitePageLoadListener;
+	return exports;
+})({});

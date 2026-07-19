@@ -4,21 +4,20 @@ import { defineConfig } from 'vite'
 const extensionRoot = resolve(__dirname)
 const distDir = resolve(extensionRoot, 'dist')
 const publicDir = resolve(extensionRoot, 'public')
-const widgetvaPageIntegrationsPath = resolve(extensionRoot, '../../../widgetva-kit/src/pageIntegrations.js')
 
 const ENTRY_CONFIG_BY_MODE = {
   'extension-early-capture': {
-    entry: 'src/content/vegaExamplesEarlyCaptureContentScript.js',
-    globalName: 'WidgetVAVegaExamplesEarlyCaptureContentScript',
-    outputFile: 'vegaExamplesEarlyCaptureContentScript.js',
+    entry: 'src/content/officialVegaLiteEarlyCaptureContentScript.js',
+    globalName: 'WidgetVAOfficialVegaLiteEarlyCaptureContentScript',
+    outputFile: 'officialVegaLiteEarlyCaptureContentScript.js',
     format: 'iife',
     emptyOutDir: true,
     copyPublicDir: true,
   },
   'extension-content': {
-    entry: 'src/content/vegaExamplesContentScript.js',
-    globalName: 'WidgetVAVegaExamplesContentScript',
-    outputFile: 'vegaExamplesContentScript.js',
+    entry: 'src/content/officialVegaLiteContentScript.js',
+    globalName: 'WidgetVAOfficialVegaLiteContentScript',
+    outputFile: 'officialVegaLiteContentScript.js',
     format: 'iife',
     emptyOutDir: false,
     copyPublicDir: false,
@@ -40,9 +39,9 @@ const ENTRY_CONFIG_BY_MODE = {
     copyPublicDir: false,
   },
   'extension-page': {
-    entry: 'src/page/vegaExamplesPageScript.js',
-    globalName: 'WidgetVAVegaExamplesPageScript',
-    outputFile: 'vegaExamplesPageScript.js',
+    entry: 'src/page/officialVegaLitePageScript.js',
+    globalName: 'WidgetVAOfficialVegaLitePageScript',
+    outputFile: 'officialVegaLitePageScript.js',
     format: 'iife',
     emptyOutDir: false,
     copyPublicDir: false,
@@ -72,11 +71,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     publicDir: entryConfig.copyPublicDir ? publicDir : false,
-    resolve: {
-      alias: {
-        'widgetva-kit/page-integrations': widgetvaPageIntegrationsPath,
-      },
-    },
     build: {
       outDir: distDir,
       emptyOutDir: entryConfig.emptyOutDir,

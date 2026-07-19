@@ -1,6 +1,7 @@
-import { DEFAULT_OPENROUTER_AGENT_MODEL } from '../../../../../widgetva-kit/src/coreRuntime.js'
+import { DEFAULT_WIDGETVA_AGENT_MODEL } from '../../../../../widgetva-kit/src/index.js'
 
 export const WIDGETVA_AGENT_CONFIG_KEY = 'widgetvaOfficialPageAgentConfig'
+export const MAX_OPENROUTER_MESSAGE_CHARS = 250000
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value))
@@ -12,7 +13,7 @@ function trimString(value) {
 
 export function normalizeStoredAgentConfig(config = {}) {
   const apiKey = trimString(config?.apiKey)
-  const model = trimString(config?.model) || DEFAULT_OPENROUTER_AGENT_MODEL
+  const model = trimString(config?.model) || DEFAULT_WIDGETVA_AGENT_MODEL
   const siteUrl = trimString(config?.siteUrl)
   const appName = trimString(config?.appName) || 'WidgetVA Official Page Integration'
   return {
@@ -50,6 +51,24 @@ export function buildOpenRouterChatRequest({
     throw new Error('WidgetVA agent is not configured with an OpenRouter API key.')
   }
 
+  const messages = Array.isArray(payload?.messages) ? clone(payload.messages) : []
+  const messageSizes = messages.map((message, index) => ({
+    index,
+    role: trimString(message?.role) || 'unknown',
+    chars: typeof message?.content === 'string'
+      ? message.content.length
+      : JSON.stringify(message?.content ?? '').length,
+  }))
+  const totalMessageChars = messageSizes.reduce((total, entry) => total + entry.chars, 0)
+  if (totalMessageChars > MAX_OPENROUTER_MESSAGE_CHARS) {
+    const summary = messageSizes
+      .map((entry) => `${entry.index}:${entry.role}:${entry.chars}`)
+      .join(', ')
+    throw new Error(
+      `WidgetVA refused to send an oversized OpenRouter prompt (${totalMessageChars} chars; messages ${summary}). This usually means raw page text, code, rows, or full history leaked into the agent prompt.`,
+    )
+  }
+
   return {
     url: 'https://openrouter.ai/api/v1/chat/completions',
     init: {
@@ -61,9 +80,9 @@ export function buildOpenRouterChatRequest({
         ...(config?.appName ? { 'X-Title': config.appName } : {}),
       },
       body: JSON.stringify({
-        model: trimString(payload?.model) || config.model || DEFAULT_OPENROUTER_AGENT_MODEL,
+        model: trimString(payload?.model) || config.model || DEFAULT_WIDGETVA_AGENT_MODEL,
         temperature: Number.isFinite(payload?.temperature) ? Number(payload.temperature) : 0.2,
-        messages: Array.isArray(payload?.messages) ? clone(payload.messages) : [],
+        messages,
       }),
     },
   }
@@ -88,7 +107,7 @@ export async function executeOpenRouterChat({
   }
 
   return {
-    model: trimString(payload?.model) || config.model || DEFAULT_OPENROUTER_AGENT_MODEL,
+    model: trimString(payload?.model) || config.model || DEFAULT_WIDGETVA_AGENT_MODEL,
     raw: json,
     content: json?.choices?.[0]?.message?.content || '',
   }
@@ -113,7 +132,7 @@ export function createOpenRouterAgentService({
       const config = await readStoredAgentConfig(storage)
       return {
         apiKeyConfigured: Boolean(config.apiKey),
-        model: config.model || DEFAULT_OPENROUTER_AGENT_MODEL,
+        model: config.model || DEFAULT_WIDGETVA_AGENT_MODEL,
         siteUrl: config.siteUrl || null,
         appName: config.appName || null,
       }

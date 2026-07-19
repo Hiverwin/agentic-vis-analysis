@@ -115,6 +115,9 @@ export function installVegaEmbedCapture(root = globalThis.window) {
     getLatest() {
       return state.latest
     },
+    clearLatest() {
+      state.latest = null
+    },
     listCalls() {
       return [...state.calls]
     },
@@ -129,4 +132,8 @@ export function installVegaEmbedCapture(root = globalThis.window) {
 
 export function readLatestVegaEmbedCapture(root = globalThis.window) {
   return root?.__widgetvaVegaEmbedCapture?.getLatest?.() || null
+}
+
+export function clearLatestVegaEmbedCapture(root = globalThis.window) {
+  root?.__widgetvaVegaEmbedCapture?.clearLatest?.()
 }

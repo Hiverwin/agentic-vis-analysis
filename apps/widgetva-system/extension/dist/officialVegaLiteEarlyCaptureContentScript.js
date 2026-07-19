@@ -1,5 +1,5 @@
 (function() {
-	//#region extension/src/content/vegaExamplesEarlyCapture.js
+	//#region extension/src/content/officialVegaLiteEarlyCapture.js
 	function installEarlyVegaEmbedCapture(root = globalThis.window) {
 		function clone(value) {
 			return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -97,7 +97,7 @@
 		return api;
 	}
 	//#endregion
-	//#region extension/src/content/vegaExamplesEarlyCaptureContentScript.js
+	//#region extension/src/content/officialVegaLiteEarlyCaptureContentScript.js
 	installEarlyVegaEmbedCapture(window);
 	//#endregion
 })();

@@ -28,6 +28,10 @@ function shouldRetryOfficialPageBridgeError(error) {
       || error?.code === 'bridge_response_error')
 }
 
+export function isRecoverableOfficialPageBridgeError(error) {
+  return shouldRetryOfficialPageBridgeError(error)
+}
+
 function wait(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms)
