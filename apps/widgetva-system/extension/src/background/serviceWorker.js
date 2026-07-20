@@ -1,7 +1,7 @@
-import { createOpenRouterAgentService } from './openRouterAgentService.js'
+import { createOpenAICompatibleAgentService } from './openRouterAgentService.js'
 import { WIDGETVA_AGENT_BRIDGE_RUNTIME } from '../shared/officialPageAgentBridge.js'
 
-const agentService = createOpenRouterAgentService({
+const agentService = createOpenAICompatibleAgentService({
   storage: chrome.storage.local,
   fetchImpl: globalThis.fetch.bind(globalThis),
 })

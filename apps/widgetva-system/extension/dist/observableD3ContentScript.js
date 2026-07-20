@@ -344,6 +344,7 @@
 	//#region extension/src/content/dock/installWidgetVADock.js
 	var DOCK_HOST_ID = "widgetva-dock-host";
 	var DEFAULT_MODEL = "deepseek/deepseek-v4-flash";
+	var DEFAULT_CHAT_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 	var installedDockController = null;
 	var DOCK_STYLES = `
 :host {
@@ -1108,8 +1109,9 @@ input:focus-visible {
         <div class="result-time" data-role="result-time"></div>
       </section>
       <section class="api-panel" data-role="api-panel" hidden>
-        <p class="section-title">OpenRouter</p>
+        <p class="section-title">Model endpoint</p>
         <div class="api-grid">
+          <label>Endpoint<input data-role="api-endpoint" type="url" autocomplete="off"></label>
           <label>API key<input data-role="api-key" type="password" autocomplete="off"></label>
           <label>Model<input data-role="api-model" type="text"></label>
         </div>
@@ -1151,6 +1153,7 @@ input:focus-visible {
 			composer: $("[data-role=\"composer\"]"),
 			input: $("[data-role=\"input\"]"),
 			apiPanel: $("[data-role=\"api-panel\"]"),
+			apiEndpoint: $("[data-role=\"api-endpoint\"]"),
 			apiKey: $("[data-role=\"api-key\"]"),
 			apiModel: $("[data-role=\"api-model\"]"),
 			saveApi: $("[data-action=\"save-api\"]"),
@@ -1363,6 +1366,7 @@ input:focus-visible {
 		}
 		function renderApiPanel() {
 			elements.apiPanel.hidden = !state.pendingObjective;
+			if (!elements.apiEndpoint.value) elements.apiEndpoint.value = state.apiConfig?.endpoint || DEFAULT_CHAT_ENDPOINT;
 			if (!elements.apiModel.value) elements.apiModel.value = state.apiConfig?.model || DEFAULT_MODEL;
 		}
 		function render() {
@@ -1449,7 +1453,7 @@ input:focus-visible {
 			await refreshAgentConfig();
 			if (!state.apiConfig?.apiKeyConfigured) {
 				state.pendingObjective = objective;
-				addMessage("system", "Add your OpenRouter API key once. It will be stored by the extension runtime.", { label: "API key" });
+				addMessage("system", "Add an API key once. You can use OpenRouter or any OpenAI-compatible chat endpoint.", { label: "API key" });
 				render();
 				return false;
 			}
@@ -1561,14 +1565,16 @@ input:focus-visible {
 			}
 		}
 		async function saveApiAndRun() {
+			const endpoint = elements.apiEndpoint.value.trim() || DEFAULT_CHAT_ENDPOINT;
 			const apiKey = elements.apiKey.value.trim();
 			const model = elements.apiModel.value.trim() || DEFAULT_MODEL;
 			if (!apiKey) {
-				addMessage("system", "Enter an OpenRouter API key to continue.", { label: "API key" });
+				addMessage("system", "Enter an API key to continue.", { label: "API key" });
 				return;
 			}
 			try {
 				state.apiConfig = await client.configureAgent({
+					endpoint,
 					apiKey,
 					model,
 					appName: "WidgetVA Dock",
@@ -1577,7 +1583,7 @@ input:focus-visible {
 				elements.apiKey.value = "";
 				const objective = state.pendingObjective;
 				state.pendingObjective = null;
-				addMessage("system", "Agent configuration saved.", { label: "API key" });
+				addMessage("system", "Agent endpoint configuration saved.", { label: "API key" });
 				render();
 				if (objective) runObjective(objective, { recordUser: false });
 			} catch (error) {

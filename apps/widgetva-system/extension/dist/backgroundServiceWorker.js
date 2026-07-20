@@ -7416,18 +7416,33 @@ var DEFAULT_WIDGETVA_AGENT_MODEL = DEFAULT_OPENROUTER_AGENT_MODEL;
 //#endregion
 //#region extension/src/background/openRouterAgentService.js
 var WIDGETVA_AGENT_CONFIG_KEY = "widgetvaOfficialPageAgentConfig";
+var DEFAULT_OPENAI_COMPATIBLE_CHAT_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 function clone(value) {
 	return value == null ? value : JSON.parse(JSON.stringify(value));
 }
 function trimString(value) {
 	return typeof value === "string" ? value.trim() : "";
 }
+function normalizeEndpoint(value) {
+	const endpoint = trimString(value);
+	if (!endpoint) return DEFAULT_OPENAI_COMPATIBLE_CHAT_ENDPOINT;
+	try {
+		const url = new URL(endpoint);
+		if (url.protocol !== "https:" && url.protocol !== "http:") return DEFAULT_OPENAI_COMPATIBLE_CHAT_ENDPOINT;
+		return url.toString();
+	} catch {
+		return DEFAULT_OPENAI_COMPATIBLE_CHAT_ENDPOINT;
+	}
+}
 function normalizeStoredAgentConfig(config = {}) {
 	const apiKey = trimString(config?.apiKey);
 	const model = trimString(config?.model) || DEFAULT_WIDGETVA_AGENT_MODEL;
+	const endpoint = normalizeEndpoint(config?.endpoint || config?.chatEndpoint);
 	const siteUrl = trimString(config?.siteUrl);
 	const appName = trimString(config?.appName) || "WidgetVA Official Page Integration";
 	return {
+		provider: "openai-compatible",
+		endpoint,
 		...apiKey ? { apiKey } : {},
 		model,
 		...siteUrl ? { siteUrl } : {},
@@ -7442,14 +7457,17 @@ async function writeStoredAgentConfig(storage, config = {}) {
 	await storage.set({ [WIDGETVA_AGENT_CONFIG_KEY]: next });
 	return {
 		apiKeyConfigured: Boolean(next.apiKey),
+		provider: next.provider,
+		endpoint: next.endpoint,
 		model: next.model,
 		siteUrl: next.siteUrl || null,
 		appName: next.appName || null
 	};
 }
-function buildOpenRouterChatRequest({ config = {}, payload = {} } = {}) {
+function buildOpenAICompatibleChatRequest({ config = {}, payload = {} } = {}) {
 	const apiKey = trimString(config?.apiKey);
-	if (!apiKey) throw new Error("WidgetVA agent is not configured with an OpenRouter API key.");
+	if (!apiKey) throw new Error("WidgetVA agent is not configured with an API key.");
+	const endpoint = normalizeEndpoint(config?.endpoint || config?.chatEndpoint);
 	const messages = Array.isArray(payload?.messages) ? clone(payload.messages) : [];
 	const messageSizes = messages.map((message, index) => ({
 		index,
@@ -7459,10 +7477,10 @@ function buildOpenRouterChatRequest({ config = {}, payload = {} } = {}) {
 	const totalMessageChars = messageSizes.reduce((total, entry) => total + entry.chars, 0);
 	if (totalMessageChars > 25e4) {
 		const summary = messageSizes.map((entry) => `${entry.index}:${entry.role}:${entry.chars}`).join(", ");
-		throw new Error(`WidgetVA refused to send an oversized OpenRouter prompt (${totalMessageChars} chars; messages ${summary}). This usually means raw page text, code, rows, or full history leaked into the agent prompt.`);
+		throw new Error(`WidgetVA refused to send an oversized OpenAI-compatible prompt (${totalMessageChars} chars; messages ${summary}). This usually means raw page text, code, rows, or full history leaked into the agent prompt.`);
 	}
 	return {
-		url: "https://openrouter.ai/api/v1/chat/completions",
+		url: endpoint,
 		init: {
 			method: "POST",
 			headers: {
@@ -7481,14 +7499,14 @@ function buildOpenRouterChatRequest({ config = {}, payload = {} } = {}) {
 }
 async function executeOpenRouterChat({ storage, fetchImpl, payload = {} } = {}) {
 	const config = await readStoredAgentConfig(storage);
-	const request = buildOpenRouterChatRequest({
+	const request = buildOpenAICompatibleChatRequest({
 		config,
 		payload
 	});
 	const response = await fetchImpl(request.url, request.init);
 	const json = await response.json();
 	if (!response.ok) {
-		const message = json?.error?.message || json?.message || "OpenRouter request failed.";
+		const message = json?.error?.message || json?.message || "OpenAI-compatible chat request failed.";
 		throw new Error(message);
 	}
 	return {
@@ -7497,9 +7515,9 @@ async function executeOpenRouterChat({ storage, fetchImpl, payload = {} } = {}) 
 		content: json?.choices?.[0]?.message?.content || ""
 	};
 }
-function createOpenRouterAgentService({ storage, fetchImpl } = {}) {
-	if (!storage || typeof storage.get !== "function" || typeof storage.set !== "function") throw new Error("createOpenRouterAgentService requires a storage facade with get/set.");
-	if (typeof fetchImpl !== "function") throw new Error("createOpenRouterAgentService requires fetchImpl().");
+function createOpenAICompatibleAgentService({ storage, fetchImpl } = {}) {
+	if (!storage || typeof storage.get !== "function" || typeof storage.set !== "function") throw new Error("createOpenAICompatibleAgentService requires a storage facade with get/set.");
+	if (typeof fetchImpl !== "function") throw new Error("createOpenAICompatibleAgentService requires fetchImpl().");
 	return {
 		async configure(params = {}) {
 			return writeStoredAgentConfig(storage, params);
@@ -7508,6 +7526,8 @@ function createOpenRouterAgentService({ storage, fetchImpl } = {}) {
 			const config = await readStoredAgentConfig(storage);
 			return {
 				apiKeyConfigured: Boolean(config.apiKey),
+				provider: config.provider,
+				endpoint: config.endpoint,
 				model: config.model || DEFAULT_WIDGETVA_AGENT_MODEL,
 				siteUrl: config.siteUrl || null,
 				appName: config.appName || null
@@ -7524,7 +7544,7 @@ function createOpenRouterAgentService({ storage, fetchImpl } = {}) {
 }
 //#endregion
 //#region extension/src/background/serviceWorker.js
-var agentService = createOpenRouterAgentService({
+var agentService = createOpenAICompatibleAgentService({
 	storage: chrome.storage.local,
 	fetchImpl: globalThis.fetch.bind(globalThis)
 });
