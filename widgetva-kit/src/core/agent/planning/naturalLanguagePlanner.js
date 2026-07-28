@@ -421,7 +421,6 @@ function buildFinalSynthesisMessages({
   history,
   turns,
   stopReason,
-  answerContract = null,
 } = {}) {
   const systemPrompt = [
     'You are the final synthesis stage of a widget-based visual analytics agent.',
@@ -431,9 +430,6 @@ function buildFinalSynthesisMessages({
     'Ground the answer in WidgetVA observations and action/perception results.',
     'Return JSON only.',
     'The JSON must contain answer.',
-    'When answerContract is provided, the JSON must also contain values as an array.',
-    'Each values entry must use the declared key and type. Numeric and boolean entries use value; categorical entries use a string value; interval entries use start and end.',
-    'Do not include values whose key or type is absent from answerContract.',
   ].join(' ')
 
   const compactTurns = Array.isArray(turns)
@@ -458,41 +454,12 @@ function buildFinalSynthesisMessages({
     history: normalizeHistoryForPrompt(history),
     turns: compactTurns,
     stopReason,
-    answerContract: clone(answerContract),
   })
 
   return [
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt },
   ]
-}
-
-function normalizeFinalAnswerValues(values, answerContract = null) {
-  if (!Array.isArray(values)) return []
-  const contractValues = Array.isArray(answerContract?.values) ? answerContract.values : []
-  const declared = new Map(contractValues.map((item) => [item?.key, item?.type]))
-  if (declared.size === 0) return []
-
-  const normalized = []
-  for (const item of values) {
-    const key = typeof item?.key === 'string' ? item.key : null
-    const type = typeof item?.type === 'string' ? item.type : null
-    if (!key || declared.get(key) !== type || normalized.some((value) => value.key === key)) continue
-    if (type === 'numeric' && Number.isFinite(item?.value)) {
-      normalized.push({ key, type, value: item.value })
-    } else if (type === 'boolean' && typeof item?.value === 'boolean') {
-      normalized.push({ key, type, value: item.value })
-    } else if (type === 'categorical' && typeof item?.value === 'string' && item.value.trim().length > 0) {
-      normalized.push({ key, type, value: item.value.trim() })
-    } else if (
-      type === 'interval'
-      && (typeof item?.start === 'string' || Number.isFinite(item?.start))
-      && (typeof item?.end === 'string' || Number.isFinite(item?.end))
-    ) {
-      normalized.push({ key, type, start: item.start, end: item.end })
-    }
-  }
-  return normalized
 }
 
 function looksLikeAgentObservation(observe = null) {
@@ -976,7 +943,6 @@ export function createNaturalLanguageFinalSynthesizer({
     history = null,
     turns = [],
     stopReason = null,
-    answerContract = null,
   } = {}) {
     const response = await completeChat({
       model,
@@ -987,7 +953,6 @@ export function createNaturalLanguageFinalSynthesizer({
         history,
         turns,
         stopReason,
-        answerContract,
       }),
     })
 
@@ -1002,7 +967,6 @@ export function createNaturalLanguageFinalSynthesizer({
       answer: typeof parsed?.answer === 'string' && parsed.answer.trim().length > 0
         ? parsed.answer.trim()
         : fallbackAnswer,
-      values: normalizeFinalAnswerValues(parsed?.values, answerContract),
       rawResponse: clone(response?.raw || null),
       rawContent: content,
     }

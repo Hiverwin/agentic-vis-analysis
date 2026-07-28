@@ -8,6 +8,7 @@ import {
   buildPlannerContext,
   buildPlannerContextFromInstance,
 } from '../widgetva-kit/src/core/agent/context/plannerContext.js'
+import { normalizeBenchmarkSpec } from './benchmark_spec_normalization.mjs'
 if (!globalThis.window) globalThis.window = {}
 
 function clone(value) {
@@ -34,7 +35,7 @@ function buildRuntime(instancePath) {
   const specs = {}
   for (const [widgetId, widgetDef] of widgetEntries) {
     const specPath = resolvePath(baseDir, materializedWidgets?.[widgetId]?.spec_path)
-    specs[widgetId] = specPath ? readJson(specPath) : null
+    specs[widgetId] = specPath ? normalizeBenchmarkSpec(readJson(specPath)) : null
   }
   const primaryWidgetId = widgetEntries[0]?.[0] || null
   const workspaceSpec = {
@@ -200,7 +201,6 @@ input.on('line', async (line) => {
         sessionKnowledge: request.sessionKnowledge || undefined,
         plannerContext,
         plannerLevel,
-        answerContract: request.answerContract || undefined,
         onTurn: async ({ index, turn }) => {
           // The observation image is captured before the action. Capture a
           // second image after the action so one-turn tasks expose the actual

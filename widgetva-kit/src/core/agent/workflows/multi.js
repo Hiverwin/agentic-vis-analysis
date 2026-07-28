@@ -404,6 +404,40 @@ export const multiWidgetWorkflows = Object.freeze({
     "id": "WF-2V-REPEATED-INTERVAL-DISTRIBUTION-COMPARISON-13",
     "scope": "multi_widget",
     "semanticName": "Repeated interval distribution comparison"
+  },
+  {
+    "name": "repeated_temporal_composition_comparison",
+    "slug": "multi.repeated_temporal_composition_comparison",
+    "families": ["line", "bar"],
+    "viewCount": 2,
+    "scenarioExamples": [
+      "Select two time windows independently and compare their linked category composition."
+    ],
+    "steps": [
+      {
+        "kind": "action",
+        "operation": "line.zoomXRegion",
+        "purpose": "Select the first time window with replacement semantics."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Read and retain the linked category composition and denominator for the active window."
+      },
+      {
+        "kind": "action",
+        "operation": "line.zoomXRegion",
+        "purpose": "Replace the first window with the second independent time window."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Read the second linked composition and compare normalized shares with the retained first snapshot."
+      }
+    ],
+    "id": "WF-2V-REPEATED-TEMPORAL-COMPOSITION-COMPARISON-14",
+    "scope": "multi_widget",
+    "semanticName": "Repeated temporal composition comparison"
   }
 ]),
   '3V': Object.freeze([
@@ -479,7 +513,7 @@ export const multiWidgetWorkflows = Object.freeze({
     "steps": [
       { "kind": "action", "operation": "scatter.brushRegion", "purpose": "Define the initial cohort." },
       { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Derive the category from fresh linked composition evidence." },
-      { "kind": "action", "operation": "heatmap.filterCells", "purpose": "Condition the outcome view on the observed category while preserving cohort context." }
+      { "kind": "action", "operation": "widget.filterByValues", "purpose": "Condition the outcome view on the observed category while preserving cohort context." }
     ],
     "id": "WF-3V-DERIVED-COHORT-TRIANGULATION-13",
     "scope": "multi_widget",
@@ -492,7 +526,7 @@ export const multiWidgetWorkflows = Object.freeze({
     "viewCount": 3,
     "scenarioExamples": ["Compare two flows and explain their contributor composition and contextual difference."],
     "steps": [
-      { "kind": "action", "operation": "sankey.traceNode", "purpose": "Select one flow or path and expose its contributor membership." },
+      { "kind": "action", "operation": "sankey.focusFlow", "purpose": "Select one flow or path and expose its contributor membership." },
       { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Read linked contributor composition and context, then repeat for a comparison flow." },
       { "kind": "perception", "operation": "perception.compareGroups", "purpose": "Compare the two independently captured flow snapshots." }
     ],
@@ -507,9 +541,9 @@ export const multiWidgetWorkflows = Object.freeze({
     "viewCount": 3,
     "scenarioExamples": ["Apply two high-dimensional cohort rules and compare linked projection and category composition."],
     "steps": [
-      { "kind": "action", "operation": "parallelCoordinates.filterDimension", "purpose": "Apply an explicit cohort rule with replacement semantics." },
+      { "kind": "action", "operation": "parallelCoordinates.selectCohort", "purpose": "Apply an explicit multi-dimensional cohort rule with inclusive AND semantics." },
       { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Read projection and composition evidence for the active cohort." },
-      { "kind": "action", "operation": "parallelCoordinates.resetHiddenDimensions", "purpose": "Clear prior constraints before the next independent cohort rule." }
+      { "kind": "action", "operation": "parallelCoordinates.selectCohort", "purpose": "Replace the prior cohort with the next independent multi-dimensional rule." }
     ],
     "id": "WF-3V-HIGHDIM-COHORT-PROFILE-15",
     "scope": "multi_widget",
@@ -524,7 +558,7 @@ export const multiWidgetWorkflows = Object.freeze({
     "steps": [
       { "kind": "action", "operation": "line.zoomXRegion", "purpose": "Select one frozen period without retaining the previous period." },
       { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Read linked relationship and composition evidence with its denominator." },
-      { "kind": "perception", "operation": "perception.compareGroups", "purpose": "Compare normalized snapshots across independently selected periods." }
+      { "kind": "perception", "operation": "perception.computeCorrelation", "purpose": "Compare the relationship evidence across independently selected periods." }
     ],
     "id": "WF-3V-PERIOD-CONDITION-COMPARISON-16",
     "scope": "multi_widget",
@@ -544,6 +578,45 @@ export const multiWidgetWorkflows = Object.freeze({
     "id": "WF-3V-RELATIONSHIP-TRIANGULATION-17",
     "scope": "multi_widget",
     "semanticName": "Relationship candidate triangulation"
+  },
+  {
+    "name": "anomaly_context_triangulation",
+    "slug": "multi.anomaly_context_triangulation",
+    "families": ["line", "parallelCoordinates", "bar"],
+    "viewCount": 3,
+    "scenarioExamples": [
+      "Detect a temporal anomaly and compare its linked feature and context evidence with a nearby reference point."
+    ],
+    "steps": [
+      {
+        "kind": "perception",
+        "operation": "perception.detectAnomalies",
+        "purpose": "Identify the evidence-derived anomaly using the requested statistical rule."
+      },
+      {
+        "kind": "action",
+        "operation": "line.selectXValue",
+        "purpose": "Select the anomaly and expose its linked feature and context records."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Read and retain both linked evidence views for the anomaly."
+      },
+      {
+        "kind": "action",
+        "operation": "line.selectXValue",
+        "purpose": "Replace the anomaly selection with the requested non-anomalous reference point."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Read both reference views and compare them with the retained anomaly snapshot without claiming causation."
+      }
+    ],
+    "id": "WF-3V-ANOMALY-CONTEXT-TRIANGULATION-18",
+    "scope": "multi_widget",
+    "semanticName": "Anomaly feature-context triangulation"
   }
 ]),
 })

@@ -454,31 +454,6 @@ test('runAgentSession can synthesize a final answer from the compact multi-turn 
   assert.equal(result.answer, 'Final synthesized answer from brush and correlation turns.')
 })
 
-test('runAgentSession preserves structured final answer values', async () => {
-  const { port } = createObservedPort()
-
-  const result = await runAgentSession(port, {
-    objective: 'State the selected cohort size.',
-    maxTurns: 1,
-    planner: async () => ({
-      operation: {
-        kind: 'perception',
-        name: 'perception.getSummary',
-        target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
-        params: {},
-      },
-    }),
-    reasoner: async () => ({ answer: 'The cohort size is available.', completion: { status: 'answered' } }),
-    finalSynthesizer: async () => ({
-      answer: 'Group C contains 319 students.',
-      values: [{ key: 'largest_count', type: 'numeric', value: 319 }],
-    }),
-  })
-
-  assert.equal(result.answer, 'Group C contains 319 students.')
-  assert.deepEqual(result.answerValues, [{ key: 'largest_count', type: 'numeric', value: 319 }])
-})
-
 test('runAgentSession emits compact turn progress after each appended turn', async () => {
   const { port } = createObservedPort()
   const progressEvents = []

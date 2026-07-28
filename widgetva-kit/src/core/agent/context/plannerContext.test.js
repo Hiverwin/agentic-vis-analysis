@@ -56,6 +56,16 @@ test('relation guidance has stable multi-widget ids and is not a workflow catalo
   assert.deepEqual(getRelationGuidance('missing-relation'), null)
 })
 
+test('relation catalog resolves canonical multidimensional filter guidance', () => {
+  const context = buildPlannerContext({
+    relationIds: ['REL-2V-PARALLELCOORDINATES-SELECTCOHORT-01'],
+    level: 2,
+  })
+
+  assert.equal(context.relations.length, 1)
+  assert.equal(context.relations[0].action, 'parallelCoordinates.selectCohort')
+})
+
 test('benchmark planner projections remove global agent guidance', () => {
   const knowledge = buildAgentKnowledge({ widgetKinds: ['bar'] })
   const observation = {

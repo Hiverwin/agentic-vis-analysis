@@ -66,10 +66,10 @@ test('heatmap family contract enumerates the heatmap action/perception surface',
 test('parallel coordinates family contract enumerates the parallel coordinates action/perception surface', () => {
   const contract = describeParallelCoordinatesWidgetContract()
   assert.equal(contract.kind, 'parallelCoordinates')
-  assert.deepEqual(contract.actionNames, ['parallelCoordinates.selectRecord', 'parallelCoordinates.reorderDimensions', 'parallelCoordinates.filterDimension', 'parallelCoordinates.filterByCategory', 'parallelCoordinates.highlightCategory', 'parallelCoordinates.hideDimensions', 'parallelCoordinates.resetHiddenDimensions'])
+  assert.deepEqual(contract.actionNames, ['parallelCoordinates.selectRecord', 'parallelCoordinates.selectCohort', 'parallelCoordinates.reorderDimensions', 'parallelCoordinates.filterDimension', 'parallelCoordinates.filterByCategory', 'parallelCoordinates.highlightCategory', 'parallelCoordinates.hideDimensions', 'parallelCoordinates.resetHiddenDimensions'])
   assert.deepEqual(contract.perceptionNames, ['perception.findOutliers'])
   assert.equal(contract.localSelection?.localSelectionFamily, 'record')
-  assert.deepEqual(contract.localSelection?.sourceActionNames, ['parallelCoordinates.selectRecord'])
+  assert.deepEqual(contract.localSelection?.sourceActionNames, ['parallelCoordinates.selectRecord', 'parallelCoordinates.selectCohort'])
   assert.equal(contract.verification?.supportedEffectTypes.includes('focus'), true)
 })
 

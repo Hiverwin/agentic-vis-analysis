@@ -12,10 +12,10 @@ function clone(value) {
 
 const PARALLEL_COORDINATES_LOCAL_SELECTION_CONTRACT = Object.freeze({
   localSelectionFamily: 'record',
-  selectionKinds: ['record'],
-  sourceActionNames: ['parallelCoordinates.selectRecord'],
+  selectionKinds: ['record', 'predicate'],
+  sourceActionNames: ['parallelCoordinates.selectRecord', 'parallelCoordinates.selectCohort'],
   cardinality: 'singleActiveSelection',
-  selectionValueShape: 'recordId',
+  selectionValueShape: 'recordIdOrPredicateRules',
   observationFields: [
     'state.selections',
     'coordination.localSelectionRefs',
@@ -26,7 +26,7 @@ const PARALLEL_COORDINATES_LOCAL_SELECTION_CONTRACT = Object.freeze({
     'selection.activeSelectionFields',
   ],
   perceptionExpectations: [
-    'record-level selections should preserve the selected record identifier for downstream focus and comparison',
+    'record-level or predicate selections should preserve the selected cohort for downstream focus and comparison',
   ],
 })
 
@@ -66,7 +66,7 @@ export function describeParallelCoordinatesVerificationContract() {
 export function describeParallelCoordinatesWidgetContract() {
   return {
     kind: 'parallelCoordinates',
-    actionNames: ['parallelCoordinates.selectRecord', 'parallelCoordinates.reorderDimensions', 'parallelCoordinates.filterDimension', 'parallelCoordinates.filterByCategory', 'parallelCoordinates.highlightCategory', 'parallelCoordinates.hideDimensions', 'parallelCoordinates.resetHiddenDimensions'],
+    actionNames: ['parallelCoordinates.selectRecord', 'parallelCoordinates.selectCohort', 'parallelCoordinates.reorderDimensions', 'parallelCoordinates.filterDimension', 'parallelCoordinates.filterByCategory', 'parallelCoordinates.highlightCategory', 'parallelCoordinates.hideDimensions', 'parallelCoordinates.resetHiddenDimensions'],
     perceptionNames: ['perception.findOutliers'],
     localSelection: describeParallelCoordinatesLocalSelectionContract(),
     verification: describeParallelCoordinatesVerificationContract(),

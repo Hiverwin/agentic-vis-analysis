@@ -2,10 +2,106 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { PerceptionExecutor } from './PerceptionExecutor.js'
+import { JsArrayDataQueryEngine } from '../data/JsArrayDataQueryEngine.js'
 import { QUERY_SCOPE_SCHEMA } from '../../schemas/query-scope.schema.js'
 import { registerScatterPerceptionQueries } from '../../widgets/families/scatter/index.js'
 import { registerSankeyPerceptionQueries } from '../../widgets/families/sankey/index.js'
 import { registerLinePerceptionQueries } from '../../widgets/families/line/index.js'
+
+function createVisibleSummaryExecutor() {
+  const widgetRef = 'wl://widgetva-app/workspace/main/widget/bar_summary'
+  const dataRef = 'wl://widgetva-app/workspace/main/data/bar_summary'
+  const rows = [
+    { segment: 'A', revenue: 10 },
+    { segment: 'A', revenue: 30 },
+    { segment: 'B', revenue: 50 },
+  ]
+  const widget = {
+    ref: widgetRef,
+    kind: 'bar',
+    primaryDataRef: dataRef,
+    data: {
+      currentDataRef: dataRef,
+      sourceDataRef: dataRef,
+    },
+    rawSpec: null,
+  }
+  return {
+    widgetRef,
+    executor: new PerceptionExecutor({
+      store: {
+        listPerceptionQueries() {
+          return []
+        },
+        getPerceptionDescriptor() {
+          return null
+        },
+        getResolvedWidgetForTarget(ref) {
+          return ref === widgetRef ? widget : null
+        },
+        getResolvedWidget(ref) {
+          return this.getResolvedWidgetForTarget(ref)
+        },
+        getWidgetDescription(ref) {
+          return this.getResolvedWidgetForTarget(ref)
+        },
+        listWidgetDescriptions() {
+          return [widget]
+        },
+        getDataHandle(ref) {
+          return ref === dataRef ? { ref: dataRef } : null
+        },
+        readRuntimeData(ref) {
+          return ref === dataRef ? { ref: dataRef, widgetRef, rows } : null
+        },
+        readState() {
+          return {
+            shared: { focusedWidget: widgetRef },
+            widgets: { [widgetRef]: widget },
+          }
+        },
+        resolveSelectionDataRef() {
+          return null
+        },
+      },
+      dataQueryEngine: new JsArrayDataQueryEngine(),
+    }),
+  }
+}
+
+test('PerceptionExecutor summarizeVisible treats fields plus metrics and explicit measures equivalently', async () => {
+  const { executor, widgetRef } = createVisibleSummaryExecutor()
+
+  const shorthand = await executor.run({
+    callId: 'summary_shorthand',
+    name: 'perception.summarizeVisible',
+    targetRef: widgetRef,
+    params: {
+      groupBy: ['segment'],
+      fields: ['revenue'],
+      metrics: ['mean', 'count'],
+    },
+  })
+  const explicit = await executor.run({
+    callId: 'summary_explicit',
+    name: 'perception.summarizeVisible',
+    targetRef: widgetRef,
+    params: {
+      groupBy: ['segment'],
+      measures: [
+        { op: 'mean', field: 'revenue', as: 'revenue_mean' },
+        { op: 'count', as: 'count' },
+      ],
+    },
+  })
+
+  assert.equal(shorthand.ok, true)
+  assert.deepEqual(shorthand.result?.aggregates, [
+    { segment: 'A', revenue_mean: 20, count: 2 },
+    { segment: 'B', revenue_mean: 50, count: 1 },
+  ])
+  assert.deepEqual(shorthand.result?.aggregates, explicit.result?.aggregates)
+})
 
 test('PerceptionExecutor.describeRegistry exposes verification and evidence metadata across handler variants', () => {
   const registry = new PerceptionExecutor({
@@ -952,6 +1048,8 @@ test('PerceptionExecutor can run line-specific perception.detectAnomalies over v
     targetRef: widgetRef,
     params: {
       threshold: 1.5,
+      xField: 'date',
+      yField: 'value',
     },
   })
 

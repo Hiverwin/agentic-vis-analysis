@@ -17,7 +17,7 @@ from typing import Any
 
 from benchmark.artifacts import result_directory
 from benchmark.matrix import RunSpec, expand_run_specs
-from benchmark.model_registry import list_benchmark_models
+from benchmark.model_registry import get_benchmark_model, list_benchmark_models
 
 
 ROOT = Path(__file__).resolve().parent
@@ -76,6 +76,7 @@ async def run_job(
     semaphore: asyncio.Semaphore,
     retries: int,
     timeout: int,
+    max_iterations: int | None,
 ) -> dict[str, Any]:
     result_path = result_path_for(spec, results_root)
     evaluator_cmd = [
@@ -99,6 +100,8 @@ async def run_job(
         "--results-root",
         str(results_root),
     ]
+    if max_iterations is not None:
+        runner_cmd.extend(["--max-iterations", str(max_iterations)])
 
     async with semaphore:
         for attempt in range(retries + 1):
@@ -170,6 +173,7 @@ async def main() -> None:
     parser.add_argument("--concurrency", type=int, default=1)
     parser.add_argument("--retries", type=int, default=1)
     parser.add_argument("--job-timeout", type=int, default=0)
+    parser.add_argument("--max-iterations", type=int, default=None)
     args = parser.parse_args()
 
     instances = filter_instances(load_instances(args.instances), args.task_filter, args.task_pattern)
@@ -188,6 +192,11 @@ async def main() -> None:
         "created_at": datetime.now().isoformat(),
         "models": list(args.models),
         "planner_levels": list(args.planner_levels),
+        "max_iterations": args.max_iterations,
+        "model_max_iterations": {
+            model_key: (args.max_iterations if args.max_iterations is not None else get_benchmark_model(model_key).max_iterations)
+            for model_key in args.models
+        },
         "instances": [str(path) for path in instances],
         "runtime": "widgetva-kit",
     }
@@ -209,6 +218,7 @@ async def main() -> None:
                     semaphore=semaphore,
                     retries=max(0, args.retries),
                     timeout=max(0, args.job_timeout),
+                    max_iterations=args.max_iterations,
                 )
             )
             jobs.append((spec, result_path, task))

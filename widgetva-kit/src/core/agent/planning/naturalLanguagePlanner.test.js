@@ -1462,9 +1462,6 @@ test('runNaturalLanguageAgentSession returns a final synthesis answer from the e
     objective: 'Brush the central scatterplot window and summarize it.',
     model: 'test-model',
     maxTurns: 2,
-    answerContract: {
-      values: [{ key: 'selected_count', type: 'numeric' }],
-    },
     completeChat: async (request) => {
       requests.push(request)
       const systemPrompt = request?.messages?.[0]?.content || ''
@@ -1472,7 +1469,6 @@ test('runNaturalLanguageAgentSession returns a final synthesis answer from the e
         return {
           content: JSON.stringify({
             answer: 'Final synthesized answer based on the completed brush turn.',
-            values: [{ key: 'selected_count', type: 'numeric', value: 12 }],
           }),
         }
       }
@@ -1510,12 +1506,10 @@ test('runNaturalLanguageAgentSession returns a final synthesis answer from the e
   assert.equal(result.turns.length, 1)
   assert.equal(result.answer, 'Final synthesized answer based on the completed brush turn.')
   assert.equal(result.finalAnswer, 'Final synthesized answer based on the completed brush turn.')
-  assert.deepEqual(result.answerValues, [{ key: 'selected_count', type: 'numeric', value: 12 }])
   const finalRequest = requests.find((request) => {
     const systemPrompt = request?.messages?.[0]?.content || ''
     return systemPrompt.includes('final synthesis stage')
   })
-  assert.match(finalRequest.messages[1].content, /selected_count/)
   const finalPrompt = finalRequest?.messages?.[1]?.content || ''
   assert.match(finalPrompt, /"history":\{/)
   assert.match(finalPrompt, /scatter\.brushRegion/)

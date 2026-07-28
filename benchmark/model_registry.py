@@ -24,7 +24,7 @@ class BenchmarkModel:
     max_tokens: int = 4096
     temperature: float = 0.2
     timeout: int = 180
-    max_iterations: int = 8
+    max_iterations: int = 16
 
 
 # Keep experiment aliases stable. The model ID is part of the experiment

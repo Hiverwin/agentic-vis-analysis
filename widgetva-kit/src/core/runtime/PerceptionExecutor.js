@@ -1025,7 +1025,10 @@ export class PerceptionExecutor {
             spec: currentSpec,
             rows: filteredRows,
           })
-          const summary = this.dataQueryEngine.summarize(filteredRows, params)
+          const summary = await this.dataQueryEngine.query(filteredRows, {
+            kind: 'summary',
+            spec: params,
+          })
           const summaryRows = Array.isArray(summary?.rows) ? summary.rows : []
           const selectionSummaries = selections.map((selection) => selection.summary || '').filter(Boolean)
           result = {
@@ -1094,7 +1097,10 @@ export class PerceptionExecutor {
           spec: activeSpec,
           rows: rawVisibleRows,
         })
-        const summary = this.dataQueryEngine.summarize(visibleRows, params)
+        const summary = await this.dataQueryEngine.query(visibleRows, {
+          kind: 'summary',
+          spec: params,
+        })
         const summaryRows = Array.isArray(summary?.rows) ? summary.rows : []
         ctx.recordQuery({
           affectedRefs: [targetWidget.ref],

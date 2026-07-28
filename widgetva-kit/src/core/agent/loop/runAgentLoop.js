@@ -628,7 +628,6 @@ export async function runAgentSession(target, options = {}) {
 
   const lastTurn = turns.at(-1) || null
   let finalAnswer = lastTurn?.reason?.answer || ''
-  let answerValues = []
 
   if (typeof finalSynthesizer === 'function') {
     const synthesis = await finalSynthesizer({
@@ -636,7 +635,6 @@ export async function runAgentSession(target, options = {}) {
       turns: clone(turns),
       history: clone(history),
       stopReason,
-      answerContract: clone(options.answerContract || null),
       knowledge: clone(knowledge || buildAgentKnowledge({})),
       lastTurn: clone(lastTurn),
     })
@@ -644,7 +642,6 @@ export async function runAgentSession(target, options = {}) {
       finalAnswer = synthesis
     } else if (synthesis && typeof synthesis === 'object') {
       finalAnswer = synthesis.finalAnswer || synthesis.answer || finalAnswer
-      answerValues = Array.isArray(synthesis.values) ? clone(synthesis.values) : []
     }
   }
 
@@ -663,7 +660,6 @@ export async function runAgentSession(target, options = {}) {
     ok: Boolean(lastTurn?.verify?.ok),
     answer: finalAnswer,
     finalAnswer,
-    answerValues,
     stopReason,
     knowledge: knowledge || buildAgentKnowledge({}),
     history,

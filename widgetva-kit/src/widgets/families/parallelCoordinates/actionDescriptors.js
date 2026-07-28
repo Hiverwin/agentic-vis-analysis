@@ -101,6 +101,54 @@ const DESCRIPTORS = [
     ]
   },
   {
+    "name": "parallelCoordinates.selectCohort",
+    "description": "Select a multi-dimensional cohort using inclusive numeric ranges so linked views can inspect the same cohort.",
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "dimension": { "type": "string" },
+              "range": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": { "type": "number" }
+              }
+            },
+            "required": ["dimension", "range"]
+          }
+        },
+        "queryScope": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "dataRef": { "type": "string" },
+            "selectionRef": { "type": "string" },
+            "focusRef": { "type": "string" },
+            "viewportRef": { "type": "string" }
+          }
+        }
+      },
+      "required": ["rules"]
+    },
+    "examples": [
+      {
+        "userGoal": "Select users aged 20 to 35 with engagement from 70 to 100 before comparing linked views.",
+        "params": {
+          "rules": [
+            { "dimension": "age", "range": [20, 35] },
+            { "dimension": "engagement", "range": [70, 100] }
+          ]
+        }
+      }
+    ]
+  },
+  {
     "name": "parallelCoordinates.filterDimension",
     "description": "Filter rows by a numeric range on one named dimension, inserting the predicate before the fold stage when the view is defined in wide format.",
     "paramsSchema": {

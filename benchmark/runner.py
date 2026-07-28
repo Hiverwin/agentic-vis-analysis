@@ -35,7 +35,7 @@ CONFIG = {
     # by default; text-only models will be rejected by OpenRouter when the
     # multimodal message part is present.
     "model": "google/gemini-2.5-flash",
-    "max_iterations": 8,
+    "max_iterations": None,
     "temperature": 0.2,
     "timeout": 180,
     "max_tokens": 4096,
@@ -238,26 +238,6 @@ def build_evaluation_trace(session: dict[str, Any]) -> list[dict[str, Any]]:
     return trace
 
 
-def build_answer_contract(evaluation: dict[str, Any] | None) -> dict[str, Any] | None:
-    """Expose answer shape, never ground-truth values, to the agent."""
-    answer = (evaluation or {}).get("answer") if isinstance(evaluation, dict) else None
-    checks = answer.get("checks") if isinstance(answer, dict) else None
-    if not isinstance(checks, list) or not checks:
-        return None
-    values = []
-    for index, check in enumerate(checks):
-        if not isinstance(check, dict):
-            continue
-        value_type = check.get("check")
-        if value_type not in {"numeric", "boolean", "interval", "categorical"}:
-            continue
-        values.append({
-            "key": check.get("field") or f"answer_{index + 1}",
-            "type": value_type,
-        })
-    return {"values": values} if values else None
-
-
 def build_scoring_result(
     session: dict[str, Any],
     final_state: dict[str, Any],
@@ -324,7 +304,6 @@ def build_scoring_result(
     return {
         "answer": {
             "answer": session.get("answer") if isinstance(session, dict) else None,
-            "values": session.get("answerValues") if isinstance(session, dict) else [],
             "turns": answer_turns,
         },
         "state": {
@@ -508,7 +487,7 @@ def configure_model(model_key: str, *, max_iterations: int | None = None) -> str
         "max_tokens": model.max_tokens,
         "temperature": model.temperature,
         "timeout": model.timeout,
-        "max_iterations": max_iterations or model.max_iterations,
+        "max_iterations": max_iterations if max_iterations is not None else model.max_iterations,
     })
     return model_key
 
@@ -634,7 +613,6 @@ def run_benchmark(
             maxTurns=CONFIG["max_iterations"],
             plannerContext=instance.get("planner_context") or instance.get("plannerContext"),
             plannerLevel=planner_level,
-            answerContract=build_answer_contract(instance.get("evaluation")),
         )
         final_state = bridge.call("state")
         output_dir = result_directory(
@@ -662,6 +640,7 @@ def run_benchmark(
             "query": query,
             "model_key": model_key,
             "model": CONFIG["model"],
+            "max_iterations": CONFIG["max_iterations"],
             "started_at": started,
             "finished_at": datetime.now().isoformat(),
             "runtime": "widgetva-kit",
@@ -705,7 +684,12 @@ def main() -> None:
         help="One or more instance JSON files, or directories containing JSON instances.",
     )
     parser.add_argument("--model", choices=list_benchmark_models(), default="gemini")
-    parser.add_argument("--max-iterations", type=int, default=CONFIG["max_iterations"])
+    parser.add_argument(
+        "--max-iterations",
+        type=int,
+        default=None,
+        help="Override the model's agent-turn safety budget.",
+    )
     parser.add_argument(
         "--planner-level",
         type=int,
@@ -719,7 +703,6 @@ def main() -> None:
         help="Root directory for result.json and images.",
     )
     args = parser.parse_args()
-    CONFIG["max_iterations"] = args.max_iterations
     results = []
     for task_path in expand_task_paths(args.task_paths):
         result = run_benchmark(

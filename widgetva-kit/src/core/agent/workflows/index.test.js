@@ -68,8 +68,20 @@ test('registers repeated category-to-profile comparison separately from generic 
   assert.equal(workflow?.steps.filter((step) => step.operation === 'perception.summarizeVisible').length, 3)
 })
 
+test('registers formal temporal-composition and anomaly-context workflows without legacy ids', () => {
+  const temporal = getSingleWidgetWorkflow('WF-2V-REPEATED-TEMPORAL-COMPOSITION-COMPARISON-14')
+  const anomaly = getSingleWidgetWorkflow('WF-3V-ANOMALY-CONTEXT-TRIANGULATION-18')
+
+  assert.deepEqual(temporal?.families, ['line', 'bar'])
+  assert.equal(temporal?.steps.filter((step) => step.operation === 'line.zoomXRegion').length, 2)
+  assert.deepEqual(anomaly?.families, ['line', 'parallelCoordinates', 'bar'])
+  assert.equal(anomaly?.steps[0]?.operation, 'perception.detectAnomalies')
+  assert.equal(anomaly?.steps.filter((step) => step.operation === 'line.selectXValue').length, 2)
+})
+
 test('consolidates the distinct three-view workflows into the canonical multi-widget catalog', () => {
   const expected = [
+    'WF-3V-ANOMALY-CONTEXT-TRIANGULATION-18',
     'WF-3V-CATEGORY-COHORT-TRIANGULATION-11',
     'WF-3V-CATEGORY-TREND-DRILLDOWN-12',
     'WF-3V-DERIVED-COHORT-TRIANGULATION-13',
@@ -86,6 +98,18 @@ test('consolidates the distinct three-view workflows into the canonical multi-wi
     assert.ok(workflow.steps.some((step) => step.kind === 'action'))
     assert.ok(workflow.steps.some((step) => step.kind === 'perception'))
   }
+})
+
+test('high-dimensional cohort workflow uses the canonical multi-axis action', () => {
+  const workflow = getSingleWidgetWorkflow('WF-3V-HIGHDIM-COHORT-PROFILE-15')
+  const operations = workflow.steps.map((step) => step.operation)
+
+  assert.deepEqual(operations, [
+    'parallelCoordinates.selectCohort',
+    'perception.summarizeVisible',
+    'parallelCoordinates.selectCohort',
+  ])
+  assert.equal(operations.includes('parallelCoordinates.resetHiddenDimensions'), false)
 })
 
 test('indexes analysis-to-action handbook entries by stable ids', () => {

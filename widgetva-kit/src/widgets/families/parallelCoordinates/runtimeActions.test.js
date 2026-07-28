@@ -16,6 +16,14 @@ test('parallel category actions require values as an array in the agent contract
   }
 })
 
+test('parallelCoordinates.selectCohort writes a predicate selection for linked propagation', () => {
+  const descriptors = buildParallelCoordinatesActionDescriptors()
+  const descriptor = descriptors.find((entry) => entry.name === 'parallelCoordinates.selectCohort')
+
+  assert.deepEqual(descriptor?.paramsSchema?.required, ['rules'])
+  assert.equal(descriptor?.paramsSchema?.properties?.rules?.minItems, 1)
+})
+
 function buildParallelCoordinatesSpec() {
   return {
     kind: 'parallelCoordinates',
@@ -126,6 +134,42 @@ test('parallelCoordinates.highlightCategory writes semantic highlight state with
     assert.deepEqual(widget.data.analysis.highlight.predicates, [
       { field: 'Origin', op: 'in', value: ['USA'] },
     ])
+  } finally {
+    runtime.dispose()
+    globalThis.window = previousWindow
+  }
+})
+
+test('parallelCoordinates.selectCohort writes semantic predicate selection without calling the provider', async () => {
+  const previousWindow = globalThis.window
+  globalThis.window = {}
+  const { runtime, readProviderActionCallCount } = createParallelCoordinatesRuntime()
+
+  try {
+    const widgetRef = runtime.describeWorkspace().widgets[0].ref
+    const result = await runtime.executeAction({
+      callId: 'select_parallel_cohort',
+      actor: 'agent',
+      name: 'parallelCoordinates.selectCohort',
+      target: { widgetRef },
+      params: {
+        rules: [
+          { dimension: 'Horsepower', range: [80, 160] },
+          { dimension: 'Weight', range: [1900, 2500] },
+        ],
+      },
+    })
+    const widget = runtime.readState().widgets[widgetRef]
+    const selection = Object.values(widget.selections || {})[0]
+
+    assert.equal(result.ok, true)
+    assert.equal(readProviderActionCallCount(), 0)
+    assert.equal(selection.kind, 'predicate')
+    assert.deepEqual(selection.predicates, [
+      { field: 'Horsepower', op: 'between', value: [80, 160] },
+      { field: 'Weight', op: 'between', value: [1900, 2500] },
+    ])
+    assert.equal(result.result?.propagationSourceRef, `${widgetRef}/selection/Horsepower-Weight`)
   } finally {
     runtime.dispose()
     globalThis.window = previousWindow

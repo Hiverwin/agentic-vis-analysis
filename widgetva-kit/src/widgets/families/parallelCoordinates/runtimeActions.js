@@ -166,6 +166,63 @@ export function registerParallelCoordinatesActions(actionExecutor) {
     )
   }
 
+  if (!actionExecutor.has('parallelCoordinates.selectCohort')) {
+    actionExecutor.register(
+      { name: 'parallelCoordinates.selectCohort' },
+      async (params, ctx) => {
+        const targetWidget = ctx.targetWidget()
+        const rules = Array.isArray(params.rules)
+          ? params.rules
+            .filter((rule) => (
+              typeof rule?.dimension === 'string'
+              && rule.dimension.trim().length > 0
+              && Array.isArray(rule.range)
+              && rule.range.length === 2
+              && rule.range.every((value) => typeof value === 'number' && Number.isFinite(value))
+            ))
+            .map((rule) => ({
+              dimension: rule.dimension.trim(),
+              range: [Math.min(...rule.range), Math.max(...rule.range)],
+            }))
+          : []
+        if (!targetWidget || rules.length === 0) {
+          throw new Error('parallelCoordinates.selectCohort requires a parallel coordinates target and at least one dimension range rule.')
+        }
+
+        const rows = ctx.readRows(targetWidget.ref)
+        const matchedRows = rows.filter((row) => rules.every((rule) => {
+          const value = row?.[rule.dimension]
+          return typeof value === 'number' && value >= rule.range[0] && value <= rule.range[1]
+        }))
+        const selectionId = rules.map((rule) => rule.dimension).join('-')
+        const selection = {
+          selection_id: selectionId,
+          selection_type: 'predicate',
+          source_widget_id: targetWidget.widgetId || undefined,
+          fields: rules.map((rule) => rule.dimension),
+          predicates: rules.map((rule) => ({ field: rule.dimension, op: 'between', value: rule.range })),
+          count: countParallelSemanticRows(matchedRows, targetWidget?.currentSpec || targetWidget?.rawSpec || null),
+          summary: rules.map((rule) => `${rule.dimension} in [${rule.range[0]}, ${rule.range[1]}]`).join(' and '),
+        }
+
+        return {
+          patch: buildWidgetSelectionPatch({ targetWidget, selection }),
+          affectedRefs: [targetWidget.ref],
+          result: {
+            widgetId: targetWidget.widgetId,
+            rules,
+            selectedCount: selection.count,
+          },
+          verificationHints: [
+            'Read the updated parallel-coordinates predicate selection state.',
+            'Read linked widgets to confirm the same multidimensional cohort was propagated.',
+          ],
+          propagateFromSelection: true,
+        }
+      },
+    )
+  }
+
   if (!actionExecutor.has('parallelCoordinates.filterDimension')) {
     actionExecutor.register(
       { name: 'parallelCoordinates.filterDimension' },
