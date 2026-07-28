@@ -7,7 +7,7 @@ import {
 import { createOfficialPageHostBridge } from '../../host/hostBridge.js'
 import {
   createOfficialPageMaterializer,
-} from '../../core/runtime/materializers/vegaLiteOfficialPageMaterializer.js'
+} from '../../core/runtime/materializers/providers/vegaLite/vegaLiteOfficialPageMaterializer.js'
 import { buildVegaLiteRenderSpecFromRuntimeState } from '../../adapters/vegaLite/renderSpecFromRuntimeState.js'
 import { runAgentLoopOnTarget } from '../../core/agent/adapters/agentTargetPort.js'
 import { createWidgetInstance } from '../../core/rendering/widgetRuntimeSurface.js'
@@ -33,6 +33,26 @@ import {
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value))
+}
+
+export function readOfficialPageSelectionState({
+  widgetState = {},
+  workspaceState = {},
+  hostSelections = {},
+} = {}) {
+  const runtimeSelections = workspaceState?.shared?.selections?.registry
+    || workspaceState?.shared?.activeSelections
+    || {}
+  const normalizedHostSelections = hostSelections && typeof hostSelections === 'object' && !Array.isArray(hostSelections)
+    ? hostSelections
+    : {}
+  return {
+    ...(widgetState || {}),
+    selections: {
+      ...(runtimeSelections || {}),
+      ...normalizedHostSelections,
+    },
+  }
 }
 
 function uniqueByName(entries = []) {
@@ -1243,9 +1263,41 @@ function inferExplicitWidgetKindHint(spec) {
     return null
   }
 
-  if (spec?.kind === 'parallelCoordinates') return 'parallelCoordinates'
-  if (spec?.kind === 'sankey') return 'sankey'
-  if (spec?.kind === 'map') return 'map'
+  const explicitKind = normalizeExplicitWidgetKindHint(spec?.widgetKind)
+    || normalizeExplicitWidgetKindHint(spec?.kind)
+    || normalizeExplicitWidgetKindHint(spec?.usermeta?.widgetva?.widgetKind)
+    || normalizeExplicitWidgetKindHint(spec?.usermeta?.widgetva?.kind)
+    || inferExplicitWidgetKindHintFromTitle(spec?.title)
+  if (explicitKind) return explicitKind
+  return null
+}
+
+function normalizeExplicitWidgetKindHint(value) {
+  const normalized = typeof value === 'string' ? value.trim() : ''
+  if (!normalized) return null
+  if (normalized === 'parallelCoordinates') return 'parallelCoordinates'
+  const lower = normalized.toLowerCase()
+  if (lower === 'parallelcoordinates' || lower === 'parallel-coordinates' || lower === 'parallel_coordinates') return 'parallelCoordinates'
+  if (lower === 'sankey') return 'sankey'
+  if (lower === 'map') return 'map'
+  return null
+}
+
+function readVegaLiteTitleText(title) {
+  if (typeof title === 'string') return title
+  if (title && typeof title === 'object' && !Array.isArray(title) && typeof title.text === 'string') return title.text
+  return ''
+}
+
+function inferExplicitWidgetKindHintFromTitle(title) {
+  const normalizedTitle = readVegaLiteTitleText(title).toLowerCase()
+  if (!normalizedTitle) return null
+  if (normalizedTitle.includes('parallel coordinates') || normalizedTitle.includes('parallel coordinate') || normalizedTitle.includes('平行坐标')) {
+    return 'parallelCoordinates'
+  }
+  if (normalizedTitle.includes('sankey') || normalizedTitle.includes('桑基')) {
+    return 'sankey'
+  }
   return null
 }
 
@@ -1559,9 +1611,10 @@ async function createAttachedVegaLiteController({
     renderedSpecRef,
     viewRef,
   })
-  const readOfficialPageSelectionState = () => ({
-    ...(clone(widget.readState?.() || {}) || {}),
-    selections: clone(widget.readWorkspaceState?.()?.shared?.activeSelections || {}),
+  const readOfficialPageSelectionStateForWidget = () => readOfficialPageSelectionState({
+    widgetState: clone(widget.readState?.() || {}) || {},
+    workspaceState: clone(widget.readWorkspaceState?.() || {}) || {},
+    hostSelections: clone(hostBridge.readCurrentSelections?.() || {}) || {},
   })
   const sourceWidgetId = widget.resolveWidgetId() || widget.resolveWidgetRef() || sessionId || `vega-lite-${normalizedInput.kind}`
   const sourceWidgetRef = widget.resolveWidgetRef() || null
@@ -1570,7 +1623,7 @@ async function createAttachedVegaLiteController({
   const materializeFromSharedState = async () => {
     const renderSpec = buildVegaLiteRenderSpecFromRuntimeState({
       semanticSpec: currentSpecRef.current,
-      state: readOfficialPageSelectionState(),
+      state: readOfficialPageSelectionStateForWidget(),
       runtime: widget.runtime,
     })
     const renderMatchesCurrent = JSON.stringify(renderedSpecRef.current) === JSON.stringify(renderSpec)

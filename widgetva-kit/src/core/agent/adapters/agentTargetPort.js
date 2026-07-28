@@ -23,7 +23,6 @@ export function createAgentTargetPort(target) {
     readObservation: targetReadObservation,
     describeWorkspace: bindOptionalMethod(target, 'describeWorkspace'),
     readLatestCoordinationResult: bindOptionalMethod(target, 'readLatestCoordinationResult'),
-    listAvailableDataQueries: bindOptionalMethod(target, 'listAvailableDataQueries'),
     executeVerifiedAction: bindOptionalMethod(target, 'executeVerifiedAction'),
     executeAction: bindOptionalMethod(target, 'executeAction'),
     queryPerception: bindOptionalMethod(target, 'queryPerception'),

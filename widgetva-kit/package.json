@@ -5,21 +5,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./capabilities": "./src/capabilities.js",
-    "./core": "./src/core.js",
-    "./core-compose": "./src/coreCompose.js",
-    "./core-inspect": "./src/coreInspect.js",
-    "./core-runtime": "./src/coreRuntime.js",
-    "./core-examples": "./src/coreExamples.js",
-    "./adapters": "./src/adapters.js",
-    "./transport": "./src/transport.js",
-    "./transports": "./src/transports.js",
-    "./transport-execute": "./src/transportExecute.js",
-    "./transport-inspect": "./src/transportInspect.js",
-    "./transport-runtime": "./src/transportRuntime.js",
-    "./transport-examples": "./src/transportExamples.js",
-    "./page-integrations": "./src/pageIntegrations.js",
-    "./widgets": "./src/widgets.js",
-    "./workspace": "./src/workspace.js"
+    "./internal/core": "./src/core/index.js",
+    "./internal/transport": "./src/transports/index.js"
   }
 }

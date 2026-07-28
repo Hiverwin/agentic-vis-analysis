@@ -7,12 +7,33 @@ export {
 } from './history.js'
 export {
   buildAgentKnowledge,
+  projectPlannerKnowledge,
   findWidgetFamilyKnowledge,
-  listCommonAgentActionNames,
-  listCommonAgentPerceptionNames,
   listWidgetFamilyActionNames,
   listWidgetFamilyPerceptionNames,
 } from './knowledge.js'
+export {
+  buildPlannerContext,
+  buildPlannerContextFromInstance,
+} from './plannerContext.js'
+export {
+  getRelationGuidance,
+  listRelationGuidance,
+  relationGuidance,
+  resolveRelationGuidance,
+} from './relationCatalog.js'
+export { actionLinks } from '../relations/actionLinks/index.js'
+export {
+  getWorkflow,
+  getSingleWidgetWorkflow,
+  analysisToAction,
+  getAnalysisToAction,
+  listAnalysisToAction,
+  listMultiWidgetWorkflows,
+  listWorkflows,
+  listSingleWidgetWorkflows,
+  singleWidgetWorkflows,
+} from '../workflows/index.js'
 export {
   buildAgentObservation,
   buildAgentObservationFromWorkspaceState,

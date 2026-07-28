@@ -1,8 +1,0 @@
-export * as scatterWidgetModules from './scatter/index.js'
-export * as barWidgetModules from './bar/index.js'
-export * as tableWidgetModules from './table/index.js'
-export * as lineWidgetModules from './line/index.js'
-export * as heatmapWidgetModules from './heatmap/index.js'
-export * as parallelCoordinatesWidgetModules from './parallelCoordinates/index.js'
-export * as sankeyWidgetModules from './sankey/index.js'
-export * as mapWidgetModules from './map/index.js'

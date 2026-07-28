@@ -1,5 +1,3 @@
-import { bindWidgetHumanInteractions } from '../../adapters/humanInteractionBindings.js'
-
 function noop() {}
 
 function bindRuntimeStateSubscription({
@@ -48,30 +46,23 @@ export function attachWidgetRendererBridge({
   actionTargetRef,
   onActionCall,
   onSelectionChange,
+  bindHumanInteractions = true,
 }) {
   const adapter = widgetAdapter || runtime?.store?.getWidgetAdapter?.(widgetRef) || null
 
-  const bindCleanup = adapter?.bindHumanInteractions
-    ? adapter.bindHumanInteractions({
-        view,
-        surface,
-        spec,
-        state: widgetState,
-        interactionConfig,
-        selectionSourceWidgetId,
-        actionTargetRef,
-        onActionCall,
-        onSelectionChange,
-      })
-    : bindWidgetHumanInteractions({
-        view,
-        spec,
-        interactionConfig,
-        selectionSourceWidgetId,
-        actionTargetRef,
-        onActionCall,
-        onSelectionChange,
-      })
+  const bindCleanup = bindHumanInteractions
+    ? adapter?.bindHumanInteractions?.({
+      view,
+      surface,
+      spec,
+      state: widgetState,
+      interactionConfig,
+      selectionSourceWidgetId,
+      actionTargetRef,
+      onActionCall,
+      onSelectionChange,
+    }) || noop
+    : noop
 
   const unsubscribe = bindRuntimeStateSubscription({
     runtime,

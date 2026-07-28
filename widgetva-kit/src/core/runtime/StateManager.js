@@ -1,11 +1,32 @@
-import {
-  makeStateManagerCapabilities,
-  makeStateManagerCounters,
-  makeStateManagerSummary,
-} from '../protocol/stateManager.js'
-
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value))
+}
+
+function makeStateManagerCapabilities(capabilities = {}) {
+  return {
+    stateIdGeneration: true,
+    deltaCreation: true,
+    statePatchCreation: true,
+    refScopedReads: true,
+    ...capabilities,
+  }
+}
+
+function makeStateManagerCounters(counters = {}) {
+  return {
+    generatedStateCount: 0,
+    lastGeneratedStateId: null,
+    ...counters,
+  }
+}
+
+function makeStateManagerSummary(summary = {}) {
+  return {
+    capabilities: makeStateManagerCapabilities(summary?.capabilities),
+    reservedRefs: [],
+    counters: makeStateManagerCounters(summary?.counters),
+    ...summary,
+  }
 }
 
 function stableSerialize(value) {

@@ -1,547 +1,134 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
+import * as inPageTransport from './inPageTransport.js'
 import {
   actionRun,
-  listAvailableActions,
-  listAvailablePerceptions,
-  readCoordinationState,
-  readObservation,
-  readPropagationSummary,
-  describeWidget,
+  branchFromState,
+  branchList,
+  dataQuery,
   executeAction,
-  executeWidgetAction,
-  executeWorkspaceAction,
   interactionTraceRead,
-  listAvailableWidgetVAMcpTools,
-  queryWidgetPerception,
-  queryWorkspacePerception,
+  jumpToState,
+  linkPropagationEvaluate,
+  listAgentResponses,
+  parseWidgetVARef,
+  perceptionQuery,
+  readLatestAgentResponse,
   readState,
   readTrace,
-  readWidgetState,
-  readWidgetTrace,
-  readWorkspaceState,
-  readWorkspaceTrace,
+  recordAgentResponse,
   replay,
-  replayWidget,
-  replayWorkspace,
-  perceptionQuery,
   runDataQuery,
-  stateManagerDescribe,
+  snapshotRead,
+  stateHistoryRead,
+  traceGraphRead,
+  verifiedActionRun,
   viewRead,
   workspaceDescribe,
 } from './inPageTransport.js'
 
-test('inPageTransport.listAvailableWidgetVAMcpTools returns only the runtime-installed MCP tool subset', async () => {
+test('inPageTransport dispatches stable page-port aliases only', async () => {
   const previousWindow = globalThis.window
   globalThis.window = {
     __widgetVA: {
-      page_port_describe() {
-        return {
-          aliases: {
-            page_port_describe: 'describePagePort',
-            workspace_describe: 'describeWorkspace',
-            view_read: 'readView',
-          },
-        }
-      },
-    },
-    __widgetVAEval: {
-      describeEvaluationSurface() {
-        return {
-          aliases: {
-            evaluation_surface_describe: 'describeEvaluationSurface',
-            evaluation_action_verification: 'evaluateActionVerification',
-          },
-        }
-      },
-    },
-  }
-
-  try {
-    const tools = await listAvailableWidgetVAMcpTools()
-
-    assert.deepEqual(
-      tools.map((tool) => tool.name),
-      [
-        'page_port_describe',
-        'workspace_describe',
-        'view_read',
-      ],
-    )
-  } finally {
-    globalThis.window = previousWindow
-  }
-})
-
-test('inPageTransport dispatches the documented core workspace tools through the page port aliases', async () => {
-  const previousWindow = globalThis.window
-  globalThis.window = {
-    __widgetVA: {
-      workspace_describe(options = {}) {
-        return {
-          workspaceId: options.workspaceId || 'main',
-          widgets: [{ ref: 'wl://widgetva-app/workspace/main/widget/scatter_a', widgetId: 'scatter_a' }],
-        }
-      },
-      observation_read() {
-        return {
-          workspace: { workspaceId: 'main' },
-          state: { stateId: 'main:s1' },
-          availableActions: [{ name: 'workspace.focusWidget' }],
-          availablePerceptions: [{ name: 'perception.summarizeVisible' }],
-        }
-      },
-      coordination_state_read() {
-        return {
-          focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-        }
-      },
-      propagation_summary_read(options = {}) {
-        return {
-          sourceRef: options.sourceRef || null,
-          propagation: [],
-        }
-      },
-      available_actions_list() {
-        return [{ name: 'workspace.focusWidget' }]
-      },
-      available_perceptions_list() {
-        return [{ name: 'perception.summarizeVisible' }]
-      },
-      view_read(options = {}) {
-        return {
-          stateId: options.stateId || 'main:s1',
-          refs: options.refs || [],
-          widgets: {
-            'wl://widgetva-app/workspace/main/widget/scatter_a': {
-              rawSpec: { mark: 'point' },
-            },
-          },
-        }
-      },
-      action_run(call = {}) {
-        return {
-          ok: true,
-          callId: call.callId || null,
-          actionName: call.name || null,
-          updatedRefs: [call.queryScope?.widgetRef || 'wl://widgetva-app/workspace/main/widget/scatter_a'],
-        }
-      },
-      perception_query(call = {}) {
-        return {
-          ok: true,
-          callId: call.callId || null,
-          queryName: call.name || null,
-          result: { summary: 'Selected 12 points.' },
-        }
-      },
-      data_query(call = {}) {
-        return {
-          ok: true,
-          callId: call.callId || null,
-          queryName: call.query?.kind || null,
-          result: { rows: [{ count: 12 }] },
-        }
-      },
-      interaction_trace_read(options = {}) {
-        return [
-          {
-            stateId: options.sinceStateId || 'main:s1',
-            actor: 'agent',
-            eventKind: 'action',
-            eventFamily: 'action',
-            action: {
-              name: 'scatter.brushRegion',
-              targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-            },
-            affectedRefs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-          },
-        ]
-      },
-      jump_to_state(options = {}) {
-        return {
-          ok: true,
-          stateId: options.stateId || null,
-        }
-      },
-    },
-  }
-
-  try {
-    assert.deepEqual(
-      await readObservation(),
-      {
-        workspace: { workspaceId: 'main' },
-        state: { stateId: 'main:s1' },
-        availableActions: [{ name: 'workspace.focusWidget' }],
-        availablePerceptions: [{ name: 'perception.summarizeVisible' }],
-      },
-    )
-    assert.deepEqual(
-      await readCoordinationState(),
-      {
-        focusedWidgetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-      },
-    )
-    assert.deepEqual(
-      await readPropagationSummary({ sourceRef: 'wl://widgetva-app/workspace/main/widget/scatter_a' }),
-      {
-        sourceRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-        propagation: [],
-      },
-    )
-    assert.deepEqual(
-      await listAvailableActions(),
-      [{ name: 'workspace.focusWidget' }],
-    )
-    assert.deepEqual(
-      await listAvailablePerceptions(),
-      [{ name: 'perception.summarizeVisible' }],
-    )
-    assert.deepEqual(
-      await workspaceDescribe({ workspaceId: 'workspace_b' }),
-      {
-        workspaceId: 'workspace_b',
-        widgets: [{ ref: 'wl://widgetva-app/workspace/main/widget/scatter_a', widgetId: 'scatter_a' }],
-      },
-    )
-    assert.deepEqual(
-      await describeWidget({ widgetId: 'scatter_a' }),
-      { ref: 'wl://widgetva-app/workspace/main/widget/scatter_a', widgetId: 'scatter_a' },
-    )
-    assert.deepEqual(
-      await viewRead({ stateId: 'main:s1' }),
-      {
-        stateId: 'main:s1',
-        refs: [],
-        widgets: {
-          'wl://widgetva-app/workspace/main/widget/scatter_a': {
-            rawSpec: { mark: 'point' },
-          },
-        },
-      },
-    )
-    assert.deepEqual(
-      await readWorkspaceState({ refs: ['wl://widgetva-app/workspace/main/widget/scatter_a'] }),
-      {
-        stateId: 'main:s1',
-        refs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-        widgets: {
-          'wl://widgetva-app/workspace/main/widget/scatter_a': {
-            rawSpec: { mark: 'point' },
-          },
-        },
-      },
-    )
-    assert.deepEqual(
-      await readState({ refs: ['wl://widgetva-app/workspace/main/widget/scatter_a'] }),
-      {
-        stateId: 'main:s1',
-        refs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-        widgets: {
-          'wl://widgetva-app/workspace/main/widget/scatter_a': {
-            rawSpec: { mark: 'point' },
-          },
-        },
-      },
-    )
-    assert.deepEqual(
-      await readWidgetState({ widgetId: 'scatter_a' }),
-      {
-        stateId: 'main:s1',
-        refs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-        widgets: {
-          'wl://widgetva-app/workspace/main/widget/scatter_a': {
-            rawSpec: { mark: 'point' },
-          },
-        },
-      },
-    )
-    assert.deepEqual(
-      await actionRun({
-        callId: 'call-001',
-        name: 'scatter.brushRegion',
-        targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-        params: {
-          xField: 'latency',
-          yField: 'error_rate',
-          xRange: [100, 300],
-          yRange: [0.05, 0.2],
-        },
-        actor: 'agent',
-      }),
-      {
-        ok: true,
-        callId: 'call-001',
-        actionName: 'scatter.brushRegion',
-        updatedRefs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-      },
-    )
-    assert.deepEqual(
-      await executeWorkspaceAction({
-        callId: 'call-001b',
-        name: 'workspace.focusWidget',
-        targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-      }),
-      {
-        ok: true,
-        callId: 'call-001b',
-        actionName: 'workspace.focusWidget',
-        updatedRefs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-      },
-    )
-    assert.deepEqual(
-      await executeWidgetAction({
-        callId: 'call-001c',
-        name: 'scatter.brushRegion',
-        targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-      }),
-      {
-        ok: true,
-        callId: 'call-001c',
-        actionName: 'scatter.brushRegion',
-        updatedRefs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-      },
-    )
-    assert.deepEqual(
-      await executeAction({
-        callId: 'call-001d',
-        name: 'workspace.focusWidget',
-        targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-      }),
-      {
-        ok: true,
-        callId: 'call-001d',
-        actionName: 'workspace.focusWidget',
-        updatedRefs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-      },
-    )
-    assert.deepEqual(
-      await perceptionQuery({
-        callId: 'call-002',
-        name: 'perception.summarizeSelection',
-        targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-        actor: 'agent',
-      }),
-      {
-        ok: true,
-        callId: 'call-002',
-        queryName: 'perception.summarizeSelection',
-        result: { summary: 'Selected 12 points.' },
-      },
-    )
-    assert.deepEqual(
-      await queryWorkspacePerception({
-        callId: 'call-002b',
-        name: 'perception.findExtremes',
-      }),
-      {
-        ok: true,
-        callId: 'call-002b',
-        queryName: 'perception.findExtremes',
-        result: { summary: 'Selected 12 points.' },
-      },
-    )
-    assert.deepEqual(
-      await queryWidgetPerception({
-        callId: 'call-002c',
-        name: 'perception.summarizeSelection',
-        targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-      }),
-      {
-        ok: true,
-        callId: 'call-002c',
-        queryName: 'perception.summarizeSelection',
-        result: { summary: 'Selected 12 points.' },
-      },
-    )
-    assert.deepEqual(
-      await runDataQuery({
-        callId: 'call-003',
-        dataRef: 'wl://widgetva-app/workspace/main/data/current_view',
-        query: {
-          kind: 'summary',
-          spec: {},
-        },
-      }),
-      {
-        ok: true,
-        callId: 'call-003',
-        queryName: 'summary',
-        result: { rows: [{ count: 12 }] },
-      },
-    )
-    assert.deepEqual(
-      await interactionTraceRead({ sinceStateId: 'main:s0', limit: 10 }),
-      [
-        {
-          stateId: 'main:s0',
-          actor: 'agent',
-          eventKind: 'action',
-          eventFamily: 'action',
-          action: {
-            name: 'scatter.brushRegion',
-            targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-          },
-          affectedRefs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-        },
-      ],
-    )
-    assert.deepEqual(
-      await readWorkspaceTrace({ sinceStateId: 'main:s0', limit: 10 }),
-      [
-        {
-          stateId: 'main:s0',
-          actor: 'agent',
-          eventKind: 'action',
-          eventFamily: 'action',
-          action: {
-            name: 'scatter.brushRegion',
-            targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-          },
-          affectedRefs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-        },
-      ],
-    )
-    assert.deepEqual(
-      await readTrace({ sinceStateId: 'main:s0', limit: 10 }),
-      [
-        {
-          stateId: 'main:s0',
-          actor: 'agent',
-          eventKind: 'action',
-          eventFamily: 'action',
-          action: {
-            name: 'scatter.brushRegion',
-            targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-          },
-          affectedRefs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-        },
-      ],
-    )
-    assert.deepEqual(
-      await readWidgetTrace({ widgetId: 'scatter_a', sinceStateId: 'main:s0', limit: 10 }),
-      [
-        {
-          stateId: 'main:s0',
-          actor: 'agent',
-          eventKind: 'action',
-          eventFamily: 'action',
-          action: {
-            name: 'scatter.brushRegion',
-            targetRef: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-          },
-          affectedRefs: ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-        },
-      ],
-    )
-    assert.deepEqual(await replayWorkspace('main:s2'), { ok: true, stateId: 'main:s2' })
-    assert.deepEqual(await replay('main:s2'), { ok: true, stateId: 'main:s2' })
-    assert.deepEqual(await replayWidget({ stateId: 'main:s3' }), { ok: true, stateId: 'main:s3' })
-  } finally {
-    globalThis.window = previousWindow
-  }
-})
-
-test('inPageTransport dispatches state-manager introspection through the page port alias', async () => {
-  const previousWindow = globalThis.window
-  globalThis.window = {
-    __widgetVA: {
-      state_manager_describe() {
-        return {
-          capabilities: {
-            stateIdGeneration: true,
-            deltaCreation: true,
-            statePatchCreation: true,
-            refScopedReads: true,
-          },
-          reservedRefs: ['shared', 'taskContext', 'replayContext'],
-          counters: {
-            generatedStateCount: 2,
-            lastGeneratedStateId: 'main:s2',
-          },
-        }
-      },
-    },
-  }
-
-  try {
-    assert.deepEqual(
-      await stateManagerDescribe(),
-      {
-        capabilities: {
-          stateIdGeneration: true,
-          deltaCreation: true,
-          statePatchCreation: true,
-          refScopedReads: true,
-        },
-        reservedRefs: ['shared', 'taskContext', 'replayContext'],
-        counters: {
-          generatedStateCount: 2,
-          lastGeneratedStateId: 'main:s2',
-        },
-      },
-    )
-  } finally {
-    globalThis.window = previousWindow
-  }
-})
-
-test('inPageTransport falls back to stable page-port methods when alias methods are unavailable', async () => {
-  const previousWindow = globalThis.window
-  globalThis.window = {
-    __widgetVA: {
-      describeWorkspace(options = {}) {
-        return {
-          workspaceId: options.workspaceId || 'main',
-        }
-      },
-      readView(options = {}) {
-        return {
-          stateId: options.stateId || 'main:s1',
-        }
-      },
-      executeAction(call = {}) {
-        return {
-          ok: true,
-          actionName: call.name || null,
-        }
-      },
-      queryPerception(call = {}) {
-        return {
-          ok: true,
-          queryName: call.name || null,
-        }
-      },
-      getInteractionTrace(options = {}) {
-        return [
-          {
-            stateId: options.sinceStateId || 'main:s1',
-            actor: 'agent',
-            eventKind: 'action',
-          },
-        ]
-      },
+      workspace_describe: (options = {}) => ({ workspaceId: options.workspaceId || 'main' }),
+      ref_parse: ({ ref }) => ({ ref }),
+      view_read: (options = {}) => ({ stateId: options.stateId || 'main:s1', refs: options.refs || [] }),
+      state_read: (options = {}) => ({ stateId: options.stateId || 'main:s1', refs: options.refs || [] }),
+      read_snapshot: (options = {}) => ({ stateId: options.stateId || null }),
+      state_history_read: () => [{ stateId: 'main:s1' }],
+      branch_list: () => [{ branchId: 'main' }],
+      action_run: (call = {}) => ({ ok: true, actionName: call.name || null }),
+      verified_action_run: (call = {}, options = {}) => ({ ok: true, actionName: call.name || null, options }),
+      jump_to_state: (options = {}) => ({ ok: true, stateId: options.stateId || null }),
+      branch_from_state: (options = {}) => ({ ok: true, branchId: options.branchId || 'branch_1' }),
+      workspace_replay: (options = {}) => ({ ok: true, stateId: options.stateId || null }),
+      perception_query: (call = {}) => ({ ok: true, queryName: call.name || null }),
+      data_query: (call = {}) => ({ ok: true, queryName: call.name || null }),
+      interaction_trace_read: (options = {}) => [{ stateId: options.sinceStateId || 'main:s1' }],
+      trace_graph_read: () => ({ nodes: [], edges: [] }),
+      agent_response_read: (options = {}) => ({ responseId: 'response_1', workspaceId: options.workspaceId || null }),
+      agent_response_list: () => [{ responseId: 'response_1' }],
+      link_propagation_evaluate: (options = {}) => ({ ok: true, sourceRef: options.sourceRef || null }),
+      agent_response_record: (record = {}) => ({ responseId: 'response_2', content: record.content || null }),
     },
   }
 
   try {
     assert.deepEqual(await workspaceDescribe({ workspaceId: 'workspace_b' }), { workspaceId: 'workspace_b' })
-    assert.deepEqual(await viewRead({ stateId: 'main:s7' }), { stateId: 'main:s7' })
-    assert.deepEqual(
-      await actionRun({ name: 'scatter.brushRegion' }),
-      { ok: true, actionName: 'scatter.brushRegion' },
-    )
-    assert.deepEqual(
-      await perceptionQuery({ name: 'perception.summarizeSelection' }),
-      { ok: true, queryName: 'perception.summarizeSelection' },
-    )
-    assert.deepEqual(
-      await interactionTraceRead({ sinceStateId: 'main:s0' }),
-      [{ stateId: 'main:s0', actor: 'agent', eventKind: 'action' }],
-    )
+    assert.deepEqual(await parseWidgetVARef('wl://demo/workspace/main/widget/a'), {
+      ref: 'wl://demo/workspace/main/widget/a',
+    })
+    assert.deepEqual(await viewRead({ stateId: 'main:s2', refs: ['a'] }), { stateId: 'main:s2', refs: ['a'] })
+    assert.deepEqual(await readState({ refs: ['a'] }), { stateId: 'main:s1', refs: ['a'] })
+    assert.deepEqual(await snapshotRead({ stateId: 'main:s1' }), { stateId: 'main:s1' })
+    assert.deepEqual(await stateHistoryRead(), [{ stateId: 'main:s1' }])
+    assert.deepEqual(await branchList(), [{ branchId: 'main' }])
+    assert.deepEqual(await actionRun({ name: 'scatter.brushRegion' }), {
+      ok: true,
+      actionName: 'scatter.brushRegion',
+    })
+    assert.deepEqual(await executeAction({ name: 'workspace.focusWidget' }), {
+      ok: true,
+      actionName: 'workspace.focusWidget',
+    })
+    assert.deepEqual(await verifiedActionRun({ name: 'scatter.brushRegion' }, { verify: true }), {
+      ok: true,
+      actionName: 'scatter.brushRegion',
+      options: { verify: true },
+    })
+    assert.deepEqual(await jumpToState({ stateId: 'main:s0' }), { ok: true, stateId: 'main:s0' })
+    assert.deepEqual(await branchFromState({ branchId: 'branch_2' }), { ok: true, branchId: 'branch_2' })
+    assert.deepEqual(await replay({ stateId: 'main:s3' }), { ok: true, stateId: 'main:s3' })
+    assert.deepEqual(await perceptionQuery({ name: 'perception.inspectViewConfig' }), {
+      ok: true,
+      queryName: 'perception.inspectViewConfig',
+    })
+    assert.deepEqual(await dataQuery({ name: 'summary' }), { ok: true, queryName: 'summary' })
+    assert.deepEqual(await runDataQuery({ name: 'rows' }), { ok: true, queryName: 'rows' })
+    assert.deepEqual(await interactionTraceRead({ sinceStateId: 'main:s0' }), [{ stateId: 'main:s0' }])
+    assert.deepEqual(await readTrace({ sinceStateId: 'main:s0' }), [{ stateId: 'main:s0' }])
+    assert.deepEqual(await traceGraphRead(), { nodes: [], edges: [] })
+    assert.deepEqual(await readLatestAgentResponse({ workspaceId: 'workspace_b' }), {
+      responseId: 'response_1',
+      workspaceId: 'workspace_b',
+    })
+    assert.deepEqual(await listAgentResponses(), [{ responseId: 'response_1' }])
+    assert.deepEqual(await linkPropagationEvaluate({ sourceRef: 'scatter' }), { ok: true, sourceRef: 'scatter' })
+    assert.deepEqual(await recordAgentResponse({ content: 'done' }), {
+      responseId: 'response_2',
+      content: 'done',
+    })
   } finally {
     globalThis.window = previousWindow
+  }
+})
+
+test('inPageTransport does not expose runtime, agent-loop, MCP, or widget/workspace convenience surfaces', () => {
+  for (const removedName of [
+    'listAvailableWidgetVAMcpTools',
+    'describeWidget',
+    'readWorkspaceState',
+    'readWidgetState',
+    'executeWorkspaceAction',
+    'executeWidgetAction',
+    'queryWorkspacePerception',
+    'queryWidgetPerception',
+    'readWorkspaceTrace',
+    'readWidgetTrace',
+    'replayWorkspace',
+    'replayWidget',
+    'runtimeCoreDescribe',
+    'stateManagerDescribe',
+    'actionExecutorDescribe',
+    'agentLoopDescribe',
+    'workspacePlan',
+    'listWidgetAdapters',
+    'readObservation',
+    'readCoordinationState',
+    'readPropagationSummary',
+  ]) {
+    assert.equal(removedName in inPageTransport, false)
   }
 })

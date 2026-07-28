@@ -48,9 +48,11 @@ function computeFrameArea(frame) {
 export function isObservableD3NotebookPage(pageUrl) {
   const parsedUrl = tryParseUrl(pageUrl)
   if (!parsedUrl) return false
+  const segments = parsedUrl.pathname.split('/').filter(Boolean)
   return (
     parsedUrl.hostname === 'observablehq.com'
-    && parsedUrl.pathname.startsWith('/@d3/')
+    && segments.length >= 2
+    && segments[0].startsWith('@')
   )
 }
 
@@ -70,7 +72,7 @@ export function parseObservableNotebookIdentity(pageUrl) {
   }
 
   const segments = parsedUrl.pathname.split('/').filter(Boolean)
-  if (segments.length < 2 || segments[0] !== '@d3') {
+  if (segments.length < 2 || !segments[0].startsWith('@')) {
     return null
   }
 
@@ -140,5 +142,59 @@ export function describeObservableD3PageShape(root = globalThis.window) {
         }
       : null,
     bodyTextPreview: bodyText.slice(0, 400),
+    bodyTextHint: bodyText.slice(0, 4000),
+  }
+}
+
+function normalizeObservableFieldName(value) {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+function readObservableAccessorField(code = '', channel = 'x') {
+  if (typeof code !== 'string' || code.length === 0) return null
+  const patterns = [
+    new RegExp(`${channel}\\s*:\\s*d\\s*=>\\s*d\\.([A-Za-z_][A-Za-z0-9_]*)`),
+    new RegExp(`${channel}\\s*:\\s*d\\s*=>\\s*d\\[(?:\"|')([^\"']+)(?:\"|')\\]`),
+    new RegExp(`${channel}\\s*:\\s*(?:\"|')([^\"']+)(?:\"|')`),
+  ]
+  for (const pattern of patterns) {
+    const match = code.match(pattern)
+    if (match?.[1]) return normalizeObservableFieldName(match[1])
+  }
+  return null
+}
+
+function readQuotedFieldList(text = '') {
+  if (typeof text !== 'string' || text.length === 0) return []
+  const listPatterns = [
+    /columns\s*=\s*\[([^\]]+)\]/i,
+    /domain\s*\(\s*\[([^\]]+)\]\s*\)/i,
+  ]
+  for (const pattern of listPatterns) {
+    const match = text.match(pattern)
+    if (!match?.[1]) continue
+    const fields = [...match[1].matchAll(/["']([^"']+)["']/g)]
+      .map((entry) => normalizeObservableFieldName(entry?.[1]))
+      .filter(Boolean)
+    if (fields.length >= 2) return fields
+  }
+  return []
+}
+
+export function inferObservableD3ScatterSemanticHints(pageShape = {}) {
+  const text = typeof pageShape?.bodyTextHint === 'string' && pageShape.bodyTextHint.length > 0
+    ? pageShape.bodyTextHint
+    : typeof pageShape?.bodyTextPreview === 'string'
+      ? pageShape.bodyTextPreview
+      : ''
+  const xField = readObservableAccessorField(text, 'x')
+  const yField = readObservableAccessorField(text, 'y')
+  const matrixFields = readQuotedFieldList(text)
+  return {
+    xField,
+    yField,
+    matrixFields,
   }
 }

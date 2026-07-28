@@ -12,7 +12,11 @@ function applyPredicate(row, predicate) {
   if (predicate.op === 'between' && Array.isArray(predicate.value)) {
     return value >= predicate.value[0] && value <= predicate.value[1]
   }
-  if (predicate.op === 'equals') return value === predicate.value
+  if (predicate.op === 'gte' || predicate.op === 'greaterThanOrEqual') return value >= predicate.value
+  if (predicate.op === 'lte' || predicate.op === 'lessThanOrEqual') return value <= predicate.value
+  if (predicate.op === 'gt' || predicate.op === 'greaterThan') return value > predicate.value
+  if (predicate.op === 'lt' || predicate.op === 'lessThan') return value < predicate.value
+  if (predicate.op === 'equals' || predicate.op === 'eq') return value === predicate.value
   if (predicate.op === 'in' && Array.isArray(predicate.value)) {
     return predicate.value.includes(value)
   }

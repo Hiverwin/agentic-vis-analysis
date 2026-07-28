@@ -1,20 +1,65 @@
-import { createProviderFamilyAdapter } from '../../adapters/widgetFamilies/index.js'
+import { createD3WidgetAdapter } from '../../adapters/d3/D3WidgetAdapter.js'
 import { installBrowserExtensionBridge } from '../../transports/browserExtensionBridge.js'
-import { runPagePortAgentLoop } from '../../core/runtime/pagePortAgentLoop.js'
-import { createWidgetInstance } from '../../widgets/widgetInstance.js'
+import {
+  createPostActionSyncProxy,
+  readControllerRecoverableState,
+  restoreControllerRecoverableState,
+} from './officialPageController.js'
+import { createOfficialPageHostBridge } from '../../host/hostBridge.js'
+import { makeWidgetRef } from '../../contracts/refs-contracts.js'
+import {
+  syncObservableD3BarControllerState,
+  syncObservableD3LineControllerState,
+  syncObservableD3ScatterControllerState,
+} from './observableD3OfficialPageController.js'
+import { runAgentLoopOnTarget } from '../../core/agent/adapters/agentTargetPort.js'
+import { createWidgetInstance } from '../../core/rendering/widgetRuntimeSurface.js'
+import { createWidgetWorkspace } from '../../workspace/widgetWorkspace.js'
 import {
   describeObservableD3PageShape,
+  inferObservableD3ScatterSemanticHints,
   isObservableD3NotebookPage,
-  waitForObservableWorkerFrame,
 } from './observableD3Pages.js'
 import {
+  attachWidgetVAToObservableD3ExplicitWorkspacePage,
+  createObservableD3ExplicitWorkspaceRpcController,
+  readWidgetVAWorkspaceContract,
+} from './observableD3ExplicitWorkspaceContract.js'
+import {
+  createObservableBarSurfaceWrapper,
+  createObservableLineSurfaceWrapper,
+  createObservableScatterMatrixSurfaceWrapper,
+  createObservableScatterSurfaceWrapper,
+  invokeObservableWorker,
+  waitForObservableD3RpcHost,
+  waitForObservableWorkerBarSurface,
+  waitForObservableWorkerLineSurface,
+  waitForObservableWorkerScatterMatrixSurface,
+  waitForObservableWorkerScatterSurface,
+} from './observableD3Materializers.js'
+import {
+  inferObservableD3LineBindings,
+  inferObservableD3ScatterFieldBindings,
   readObservableD3BarRows,
   readObservableD3LineRows,
   summarizeObservableD3ScatterRows,
 } from './observableD3Surface.js'
+import { buildObservableD3NativeContract } from './observableD3NativeContract.js'
+import { getWidgetFamily } from '../../widgets/families/index.js'
+
+export {
+  createObservableBarSurfaceWrapper,
+  createObservableLineSurfaceWrapper,
+  createObservableScatterMatrixSurfaceWrapper,
+  createObservableScatterSurfaceWrapper,
+} from './observableD3Materializers.js'
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value))
+}
+
+function createD3FamilyAdapter(kind) {
+  return createD3WidgetAdapter({ kind: getWidgetFamily(kind).kind })
 }
 
 function readNumber(value) {
@@ -23,16 +68,326 @@ function readNumber(value) {
 }
 
 function buildObservableScatterSpec(rows = []) {
+  const fieldBindings = inferObservableD3ScatterFieldBindings(rows)
+  const xField = fieldBindings?.xField || '__screenX'
+  const yField = fieldBindings?.yField || '__screenY'
   return {
     data: {
       values: rows,
     },
     mark: 'point',
     encoding: {
-      x: { field: '__screenX', type: 'quantitative' },
-      y: { field: '__screenY', type: 'quantitative' },
+      x: { field: xField, type: 'quantitative' },
+      y: { field: yField, type: 'quantitative' },
     },
   }
+}
+
+function normalizeIdToken(value, fallback = 'field') {
+  const token = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+  return token || fallback
+}
+
+function buildObservableScatterMatrixCellWidgetId(cell = {}, index = 0) {
+  return `cell_${normalizeIdToken(cell.xField, `x_${index + 1}`)}_${normalizeIdToken(cell.yField, `y_${index + 1}`)}`
+}
+
+function buildObservableScatterMatrixCellSpec(cell = {}, rows = []) {
+  return {
+    data: {
+      values: rows,
+    },
+    mark: 'point',
+    encoding: {
+      x: {
+        field: cell.xField || '__screenX',
+        type: 'quantitative',
+      },
+      y: {
+        field: cell.yField || '__screenY',
+        type: 'quantitative',
+      },
+    },
+  }
+}
+
+function readNumericExtent(rows = [], fieldName = null) {
+  if (!fieldName) return null
+  const values = (Array.isArray(rows) ? rows : [])
+    .map((row) => row?.[fieldName])
+    .filter((value) => typeof value === 'number' && Number.isFinite(value))
+  if (values.length === 0) return null
+  return [Math.min(...values), Math.max(...values)]
+}
+
+function buildObservableScatterMatrixWorkspaceSpec({ cells = [], rows = [], nativeContract = null } = {}) {
+  const nativeActionsByTargetRef = new Map()
+  for (const action of Array.isArray(nativeContract?.actions) ? nativeContract.actions : []) {
+    if (typeof action?.targetRef !== 'string' || typeof action?.name !== 'string') continue
+    const names = nativeActionsByTargetRef.get(action.targetRef) || []
+    names.push(action.name)
+    nativeActionsByTargetRef.set(action.targetRef, names)
+  }
+
+  const widgets = cells.map((cell, index) => {
+    const nativeActionNames = nativeActionsByTargetRef.get(cell.ref) || []
+    const exposedActionNames = nativeActionNames.length > 0
+      ? [...new Set([...nativeActionNames, 'widget.clearSelection'])]
+      : []
+    return {
+      widgetId: buildObservableScatterMatrixCellWidgetId(cell, index),
+      role: index === 0 ? 'primary' : 'linkedScatter',
+      kind: 'scatter',
+      provider: 'd3',
+      title: `${cell.yField || 'y'} vs ${cell.xField || 'x'}`,
+      description: 'Observable D3 scatterplot matrix cell.',
+      exposedActionNames,
+      exposedPerceptionNames: [
+        'perception.inspectViewConfig',
+        'perception.summarizeSelection',
+        'perception.summarizeVisible',
+      ],
+      source: {
+        kind: 'templateSpec',
+        spec: buildObservableScatterMatrixCellSpec(cell, rows),
+      },
+      usageNotes: exposedActionNames.includes('scatter.brushRegion')
+        ? [
+            'This widget is one cell in the Observable D3 scatterplot matrix.',
+            'Use scatter.brushRegion with this widget ref to drive the page native D3 brush for this cell.',
+          ]
+        : [
+            'This widget is one cell in the Observable D3 scatterplot matrix.',
+            'This official page cell did not expose a captured native D3 brush action.',
+          ],
+    }
+  })
+
+  const links = []
+  for (const source of widgets) {
+    for (const target of widgets) {
+      if (source.widgetId === target.widgetId) continue
+      links.push({
+        linkId: `${source.widgetId}_shares_selection_${target.widgetId}`,
+        kind: 'sharesSelection',
+        sourceWidgetId: source.widgetId,
+        targetWidgetId: target.widgetId,
+        activationPolicy: 'automatic',
+        description: `${source.title} shares selected rows with ${target.title}.`,
+      })
+    }
+  }
+
+  return {
+    topology: 'T3',
+    widgets,
+    links,
+  }
+}
+
+async function readObservableD3NativeContract(rpcHost, { timeoutMs = 5000 } = {}) {
+  try {
+    const captureSnapshot = await invokeObservableWorker(rpcHost, 'readNativeCapture', null, {
+      timeoutMs: Math.min(timeoutMs, 1000),
+    })
+    return buildObservableD3NativeContract(captureSnapshot || {})
+  } catch {
+    return buildObservableD3NativeContract({ brushBindings: [] })
+  }
+}
+
+function buildObservableScatterMatrixAgentCells(cellModels = []) {
+  return cellModels.map((model) => {
+    const rows = Array.isArray(model.cell?.rows)
+      ? model.cell.rows
+      : Array.isArray(model.spec?.data?.values)
+        ? model.spec.data.values
+        : []
+    const xField = model.cell?.xField || null
+    const yField = model.cell?.yField || null
+    return {
+      ref: model.widgetRef,
+      xField,
+      yField,
+      xDomain: readNumericExtent(rows, xField),
+      yDomain: readNumericExtent(rows, yField),
+    }
+  })
+}
+
+function summarizeObservableScatterMatrix({ cells = [], brush = null } = {}) {
+  const cellCount = Array.isArray(cells) ? cells.length : 0
+  const brushText = brush?.targetRef
+    ? ` Current brush targets ${brush.targetRef}.`
+    : ' No brush is currently active.'
+  return `Observable D3 scatterplot matrix with ${cellCount} targetable scatter cells.${brushText}`
+}
+
+function buildObservableScatterMatrixObservationMeta({ cells = [], brush = null } = {}) {
+  return {
+    provider: 'd3',
+    kind: 'scatterMatrix',
+    cellCount: Array.isArray(cells) ? cells.length : 0,
+    cells: clone(cells),
+    currentBrush: brush ? clone(brush) : null,
+    summary: summarizeObservableScatterMatrix({ cells, brush }),
+  }
+}
+
+function normalizeAllowedActionNamesByWidgetRef(allowedActionNamesByWidgetRef = {}) {
+  const entries = allowedActionNamesByWidgetRef instanceof Map
+    ? [...allowedActionNamesByWidgetRef.entries()]
+    : Object.entries(allowedActionNamesByWidgetRef || {})
+  return new Map(entries.map(([widgetRef, names]) => [
+    widgetRef,
+    new Set((Array.isArray(names) ? names : []).filter((name) => typeof name === 'string' && name.length > 0)),
+  ]))
+}
+
+function filterObservableD3WidgetActionNames(widget = {}, allowedByWidgetRef = new Map()) {
+  const allowedNames = allowedByWidgetRef.get(widget?.ref) || new Set()
+  return {
+    ...(widget || {}),
+    actionNames: (Array.isArray(widget?.actionNames) ? widget.actionNames : [])
+      .filter((name) => allowedNames.has(name)),
+  }
+}
+
+function filterObservableD3WorkspaceDescription(description = {}, allowedByWidgetRef = new Map()) {
+  const allowedNames = new Set([...allowedByWidgetRef.values()].flatMap((names) => [...names]))
+  return {
+    ...(description || {}),
+    widgets: (Array.isArray(description?.widgets) ? description.widgets : [])
+      .map((widget) => filterObservableD3WidgetActionNames(widget, allowedByWidgetRef)),
+    actions: (Array.isArray(description?.actions) ? description.actions : [])
+      .filter((action) => allowedNames.has(action?.name)),
+  }
+}
+
+function assertObservableD3ActionAllowed(call = {}, allowedByWidgetRef = new Map()) {
+  const actionName = typeof call?.name === 'string' ? call.name : null
+  if (!actionName) return
+  const targetRef = call?.target?.widgetRef || call?.queryScope?.widgetRef || null
+  if (targetRef && allowedByWidgetRef.get(targetRef)?.has(actionName)) return
+  if (!targetRef && [...allowedByWidgetRef.values()].some((names) => names.has(actionName))) return
+  throw new Error(`Unsupported Observable D3 official-page action: ${actionName}.`)
+}
+
+function createObservableD3ActionFilteredWorkspaceApi(workspaceApi, {
+  allowedActionNamesByWidgetRef = {},
+} = {}) {
+  if (!workspaceApi || typeof workspaceApi !== 'object') return workspaceApi
+  const allowedByWidgetRef = normalizeAllowedActionNamesByWidgetRef(allowedActionNamesByWidgetRef)
+
+  return new Proxy(workspaceApi, {
+    get(target, prop, receiver) {
+      if (prop === 'describeWorkspace' || prop === 'describe') {
+        const original = Reflect.get(target, prop, receiver)
+        if (typeof original !== 'function') return original
+        return (...args) => filterObservableD3WorkspaceDescription(
+          original.apply(target, args),
+          allowedByWidgetRef,
+        )
+      }
+      if (prop === 'readObservation') {
+        const original = Reflect.get(target, prop, receiver)
+        if (typeof original !== 'function') return original
+        return (...args) => {
+          const observation = original.apply(target, args)
+          return {
+            ...(observation || {}),
+            state: {
+              ...(observation?.state || {}),
+              widgets: Array.isArray(observation?.state?.widgets)
+                ? observation.state.widgets.map((widget) => filterObservableD3WidgetActionNames(widget, allowedByWidgetRef))
+                : observation?.state?.widgets,
+            },
+          }
+        }
+      }
+      if (prop === 'executeAction' || prop === 'executeActionAndCommitCoordination') {
+        const original = Reflect.get(target, prop, receiver)
+        if (typeof original !== 'function') return original
+        return async (call, ...args) => {
+          assertObservableD3ActionAllowed(call, allowedByWidgetRef)
+          return original.call(target, call, ...args)
+        }
+      }
+      const value = Reflect.get(target, prop, receiver)
+      return typeof value === 'function' ? value.bind(target) : value
+    },
+  })
+}
+
+function createObservableScatterMatrixWorkspaceApi(workspaceApi, {
+  cells = [],
+  readBrush = null,
+  allowedActionNamesByWidgetRef = {},
+} = {}) {
+  if (!workspaceApi || typeof workspaceApi !== 'object') return workspaceApi
+  const allowedByWidgetRef = normalizeAllowedActionNamesByWidgetRef(allowedActionNamesByWidgetRef)
+
+  function readMatrixMeta() {
+    return buildObservableScatterMatrixObservationMeta({
+      cells,
+      brush: typeof readBrush === 'function' ? readBrush() : null,
+    })
+  }
+
+  return new Proxy(workspaceApi, {
+    get(target, prop, receiver) {
+      if (prop === 'describeWorkspace' || prop === 'describe') {
+        const original = Reflect.get(target, prop, receiver)
+        if (typeof original !== 'function') return original
+        return (...args) => {
+          const description = original.apply(target, args)
+          return filterObservableD3WorkspaceDescription({
+            ...(description || {}),
+            provider: 'd3',
+            workspaceKind: 'scatterMatrix',
+            matrix: readMatrixMeta(),
+          }, allowedByWidgetRef)
+        }
+      }
+      if (prop === 'readObservation') {
+        const original = Reflect.get(target, prop, receiver)
+        if (typeof original !== 'function') return original
+        return (...args) => {
+          const observation = original.apply(target, args)
+          const matrix = readMatrixMeta()
+          return {
+            ...(observation || {}),
+            state: {
+              ...(observation?.state || {}),
+              widgets: Array.isArray(observation?.state?.widgets)
+                ? observation.state.widgets.map((widget) => filterObservableD3WidgetActionNames(widget, allowedByWidgetRef))
+                : observation?.state?.widgets,
+              summary: matrix.summary,
+              matrix,
+            },
+            view: {
+              ...(observation?.view || {}),
+              summary: matrix.summary,
+            },
+          }
+        }
+      }
+      if (prop === 'executeAction' || prop === 'executeActionAndCommitCoordination') {
+        const original = Reflect.get(target, prop, receiver)
+        if (typeof original !== 'function') return original
+        return async (call, ...args) => {
+          assertObservableD3ActionAllowed(call, allowedByWidgetRef)
+          return original.call(target, call, ...args)
+        }
+      }
+      const value = Reflect.get(target, prop, receiver)
+      return typeof value === 'function' ? value.bind(target) : value
+    },
+  })
 }
 
 function buildObservableBarSpec(rows = []) {
@@ -49,16 +404,28 @@ function buildObservableBarSpec(rows = []) {
 }
 
 function buildObservableLineSpec(rows = []) {
+  const bindings = inferObservableD3LineBindings(rows)
+  const encoding = {
+    x: {
+      field: bindings?.xField || 'xValue',
+      type: bindings?.xType || 'nominal',
+    },
+    y: {
+      field: bindings?.yField || '__seriesIndex',
+      type: 'quantitative',
+    },
+  }
+
+  if (Array.isArray(rows) && rows.some((row) => row?.series != null && row.series !== '')) {
+    encoding.color = { field: 'series', type: 'nominal' }
+  }
+
   return {
     data: {
       values: rows,
     },
     mark: 'line',
-    encoding: {
-      x: { field: 'xValue', type: 'nominal' },
-      y: { field: '__seriesIndex', type: 'quantitative' },
-      color: { field: 'series', type: 'nominal' },
-    },
+    encoding,
   }
 }
 
@@ -81,832 +448,12 @@ function buildSelectionFromRowSummary(summary) {
   }
 }
 
-function createOfficialPageHostBridge({ sessionId, baselineSpec, currentSpecRef, userIntent = null }) {
-  const listeners = new Set()
-  const emit = () => {
-    for (const listener of listeners) {
-      try {
-        listener()
-      } catch {}
-    }
-  }
-  return {
-    subscribe(listener) {
-      if (typeof listener !== 'function') return () => {}
-      listeners.add(listener)
-      return () => {
-        listeners.delete(listener)
-      }
-    },
-    readSessionId: () => sessionId,
-    readBaselineSpec: () => clone(baselineSpec),
-    readCurrentSpec: () => clone(currentSpecRef.current),
-    writeCurrentSpec(nextSpec) {
-      currentSpecRef.current = clone(nextSpec)
-      emit()
-    },
-    readWorkspaceSpec: () => null,
-    readPlanningRequest: () => null,
-    readRunMode: () => 'goal_oriented',
-    readUserIntent: () => userIntent,
-    readCurrentSelection: () => null,
-    readCurrentSelections: () => ({}),
-    readFocusedWidgetRef: () => null,
-    readComparisonTargets: () => [],
-    readWorkspaceAnnotations: () => [],
-  }
-}
-
-function createOfficialPageAgentLoopRunner(root) {
+function createOfficialPageAgentLoopRunner(agentTarget) {
   return async function runOfficialPageAgentLoop(options = {}) {
-    const port = root?.__widgetVA || null
-    if (!port || typeof port.describeWorkspace !== 'function' || typeof port.describeAgentLoop !== 'function') {
+    if (!agentTarget || typeof agentTarget.describeWorkspace !== 'function') {
       throw new Error('WidgetVA page port is not ready for official-page agent-loop execution.')
     }
-    return runPagePortAgentLoop(port, options)
-  }
-}
-
-function createPostActionSyncProxy(target, syncAfterAction) {
-  if (!target || typeof target !== 'object') return target
-  return new Proxy(target, {
-    get(obj, prop, receiver) {
-      if (prop === 'executeAction' || prop === 'executeVerifiedAction') {
-        const original = Reflect.get(obj, prop, receiver)
-        if (typeof original !== 'function') return original
-        return async (...args) => {
-          const result = await original.apply(obj, args)
-          await syncAfterAction?.({
-            method: prop,
-            args,
-            result,
-          })
-          return result
-        }
-      }
-      const value = Reflect.get(obj, prop, receiver)
-      return typeof value === 'function' ? value.bind(obj) : value
-    },
-  })
-}
-
-function buildScatterBrushSelectionFromActionCall(actionCall) {
-  const params = actionCall?.params || {}
-  const xRange = Array.isArray(params.xRange) ? params.xRange : null
-  const yRange = Array.isArray(params.yRange) ? params.yRange : null
-  if (!xRange || !yRange || xRange.length < 2 || yRange.length < 2) return null
-  return {
-    kind: 'interval',
-    fields: [
-      typeof params.xField === 'string' ? params.xField : '__screenX',
-      typeof params.yField === 'string' ? params.yField : '__screenY',
-    ],
-    domain: {
-      xDomain: clone(xRange.slice(0, 2)),
-      yDomain: clone(yRange.slice(0, 2)),
-    },
-  }
-}
-
-function buildBarSelectionFromActionCall(actionCall) {
-  const params = actionCall?.params || {}
-  const values = Array.isArray(params.values)
-    ? params.values
-    : Array.isArray(params.categories)
-      ? params.categories
-      : params.value != null
-        ? [params.value]
-        : []
-  if (values.length === 0) return null
-  const field = typeof params.field === 'string' ? params.field : 'category'
-  return {
-    kind: 'category',
-    field,
-    values: clone(values),
-    summary: `${field}: ${values.join(', ')}`,
-    predicates: [{ field, op: 'in', value: clone(values) }],
-  }
-}
-
-function buildBarFilterFromActionCall(actionCall) {
-  const params = actionCall?.params || {}
-  const categories = Array.isArray(params.categories)
-    ? params.categories
-    : Array.isArray(params.values)
-      ? params.values
-      : []
-  if (categories.length === 0) return null
-  return {
-    field: typeof params.field === 'string' ? params.field : 'category',
-    categories: clone(categories),
-  }
-}
-
-function buildLineSelectionFromActionCall(actionCall) {
-  const params = actionCall?.params || {}
-  const values = Array.isArray(params.values)
-    ? params.values
-    : params.value != null
-      ? [params.value]
-      : params.xValue != null
-        ? [params.xValue]
-        : []
-  if (values.length === 0) return null
-  return {
-    kind: 'category',
-    field: typeof params.field === 'string' ? params.field : 'series',
-    values: clone(values),
-  }
-}
-
-function buildLineFocusFromActionCall(actionCall) {
-  const params = actionCall?.params || {}
-  const lines = Array.isArray(params.lines)
-    ? params.lines
-    : Array.isArray(params.values)
-      ? params.values
-      : params.line != null
-        ? [params.line]
-        : []
-  if (lines.length === 0) return null
-  return {
-    lines: clone(lines),
-    lineField: typeof params.lineField === 'string'
-      ? params.lineField
-      : typeof params.field === 'string'
-        ? params.field
-        : 'series',
-    ...(Number.isFinite(params.dimOpacity) ? { dimOpacity: Number(params.dimOpacity) } : {}),
-  }
-}
-
-function buildLineViewportFromActionCall(actionCall) {
-  const params = actionCall?.params || {}
-  const xDomain = Array.isArray(params.xDomain)
-    ? params.xDomain
-    : Array.isArray(params.xRange)
-      ? params.xRange
-      : params.start != null && params.end != null
-        ? [params.start, params.end]
-      : null
-  if (!xDomain || xDomain.length < 2) return null
-  return {
-    xDomain: clone(xDomain.slice(0, 2)),
-  }
-}
-
-const OBSERVABLE_D3_WORKER_REQUEST = 'widgetva:observable-d3-worker-request'
-const OBSERVABLE_D3_WORKER_RESPONSE = 'widgetva:observable-d3-worker-response'
-const OBSERVABLE_D3_TOP_SOURCE = 'widgetva-observable-d3-top'
-const OBSERVABLE_D3_WORKER_SOURCE = 'widgetva-observable-d3-worker'
-
-async function invokeObservableWorker(frame, method, params = null, { timeoutMs = 5000 } = {}) {
-  const targetWindow = frame?.contentWindow
-  if (!targetWindow || typeof targetWindow.postMessage !== 'function') {
-    throw new Error('Observable worker frame is not available for postMessage RPC.')
-  }
-  const listenerRoot = globalThis.window
-
-  const requestId = `observable_d3_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      cleanup()
-      reject(new Error(`Timed out waiting for Observable worker RPC: ${method}.`))
-    }, timeoutMs)
-
-    const cleanup = () => {
-      clearTimeout(timeout)
-      listenerRoot?.removeEventListener?.('message', handleMessage)
-    }
-
-    const handleMessage = (event) => {
-      const message = event?.data
-      if (!message || message.source !== OBSERVABLE_D3_WORKER_SOURCE || message.type !== OBSERVABLE_D3_WORKER_RESPONSE || message.id !== requestId) {
-        return
-      }
-
-      cleanup()
-      if (message.ok === false) {
-        reject(new Error(message?.error?.message || `Observable worker RPC failed: ${method}.`))
-        return
-      }
-      resolve(message.result || null)
-    }
-
-    listenerRoot?.addEventListener?.('message', handleMessage)
-    targetWindow.postMessage({
-      source: OBSERVABLE_D3_TOP_SOURCE,
-      type: OBSERVABLE_D3_WORKER_REQUEST,
-      id: requestId,
-      method,
-      params,
-    }, '*')
-  })
-}
-
-async function waitForObservableWorkerScatterSurface(frame, {
-  timeoutMs = 5000,
-  pollMs = 25,
-  notebook = null,
-} = {}) {
-  const startedAt = Date.now()
-  let lastSurface = null
-  let lastRowCount = 0
-
-  while ((Date.now() - startedAt) <= timeoutMs) {
-    try {
-      const surface = await invokeObservableWorker(frame, 'describeSurface', {
-        notebook,
-      }, { timeoutMs: Math.min(timeoutMs, 1000) })
-      const workerRows = await invokeObservableWorker(frame, 'readScatterRows', null, {
-        timeoutMs: Math.min(timeoutMs, 1000),
-      })
-      const rows = Array.isArray(workerRows?.rows) ? workerRows.rows : []
-
-      lastSurface = surface || null
-      lastRowCount = rows.length
-
-      if (surface?.inferredKind === 'scatter' && rows.length > 0) {
-        return {
-          surface,
-          rows,
-        }
-      }
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, pollMs))
-  }
-
-  throw new Error(
-    `Timed out waiting for a ready Observable D3 scatter surface after ${timeoutMs}ms (last inferred kind: ${lastSurface?.inferredKind || 'unknown'}, last row count: ${lastRowCount}).`,
-  )
-}
-
-async function waitForObservableWorkerBarSurface(frame, {
-  timeoutMs = 5000,
-  pollMs = 25,
-  notebook = null,
-} = {}) {
-  const startedAt = Date.now()
-  let lastSurface = null
-  let lastRowCount = 0
-
-  while ((Date.now() - startedAt) <= timeoutMs) {
-    try {
-      const surface = await invokeObservableWorker(frame, 'describeSurface', {
-        notebook,
-      }, { timeoutMs: Math.min(timeoutMs, 1000) })
-      const workerRows = await invokeObservableWorker(frame, 'readBarRows', null, {
-        timeoutMs: Math.min(timeoutMs, 1000),
-      })
-      const rows = Array.isArray(workerRows?.rows) ? workerRows.rows : []
-
-      lastSurface = surface || null
-      lastRowCount = rows.length
-
-      if (surface?.inferredKind === 'bar' && rows.length > 0) {
-        return {
-          surface,
-          rows,
-        }
-      }
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, pollMs))
-  }
-
-  throw new Error(
-    `Timed out waiting for a ready Observable D3 bar surface after ${timeoutMs}ms (last inferred kind: ${lastSurface?.inferredKind || 'unknown'}, last row count: ${lastRowCount}).`,
-  )
-}
-
-async function waitForObservableWorkerLineSurface(frame, {
-  timeoutMs = 5000,
-  pollMs = 25,
-  notebook = null,
-} = {}) {
-  const startedAt = Date.now()
-  let lastSurface = null
-  let lastRowCount = 0
-
-  while ((Date.now() - startedAt) <= timeoutMs) {
-    try {
-      const surface = await invokeObservableWorker(frame, 'describeSurface', {
-        notebook,
-      }, { timeoutMs: Math.min(timeoutMs, 1000) })
-      const workerRows = await invokeObservableWorker(frame, 'readLineRows', null, {
-        timeoutMs: Math.min(timeoutMs, 1000),
-      })
-      const rows = Array.isArray(workerRows?.rows) ? workerRows.rows : []
-
-      lastSurface = surface || null
-      lastRowCount = rows.length
-
-      if (surface?.inferredKind === 'line' && rows.length > 0) {
-        return {
-          surface,
-          rows,
-        }
-      }
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, pollMs))
-  }
-
-  throw new Error(
-    `Timed out waiting for a ready Observable D3 line surface after ${timeoutMs}ms (last inferred kind: ${lastSurface?.inferredKind || 'unknown'}, last row count: ${lastRowCount}).`,
-  )
-}
-
-export function createObservableScatterSurfaceWrapper({ frame, currentSpecRef = null }) {
-  let currentSelection = null
-  let currentViewport = null
-  let currentClusterAnnotation = null
-  let currentRegressionAnnotation = null
-
-  async function applySelection(selection = null) {
-    currentSelection = selection && typeof selection === 'object' ? clone(selection) : null
-    await invokeObservableWorker(frame, 'applyScatterSelection', {
-      selection: currentSelection,
-    })
-  }
-
-  async function applyViewport(viewport = null) {
-    const normalizedViewport = viewport && typeof viewport === 'object'
-      ? {
-          ...(Array.isArray(viewport.xDomain) ? { xDomain: clone(viewport.xDomain) } : {}),
-          ...(Array.isArray(viewport.yDomain) ? { yDomain: clone(viewport.yDomain) } : {}),
-        }
-      : null
-    currentViewport = normalizedViewport && Object.keys(normalizedViewport).length > 0
-      ? normalizedViewport
-      : null
-    await invokeObservableWorker(frame, 'applyScatterViewport', {
-      viewport: currentViewport,
-    })
-  }
-
-  async function applyClusterAnnotation(cluster = null) {
-    const normalizedCluster = cluster && typeof cluster === 'object'
-      ? {
-          ...(Number.isFinite(cluster.nClusters) ? { nClusters: Number(cluster.nClusters) } : {}),
-          ...(typeof cluster.clusterField === 'string' ? { clusterField: cluster.clusterField } : {}),
-          ...(typeof cluster.method === 'string' ? { method: cluster.method } : {}),
-        }
-      : null
-    currentClusterAnnotation = normalizedCluster
-    await invokeObservableWorker(frame, 'applyScatterClusters', {
-      cluster: currentClusterAnnotation,
-    })
-  }
-
-  async function applyRegressionAnnotation(regression = null) {
-    const normalizedRegression = regression && typeof regression === 'object'
-      ? {
-          ...(typeof regression.method === 'string' ? { method: regression.method } : {}),
-        }
-      : null
-    currentRegressionAnnotation = normalizedRegression
-    await invokeObservableWorker(frame, 'applyScatterRegression', {
-      regression: currentRegressionAnnotation,
-    })
-  }
-
-  function readClusterState(widgetState = {}) {
-    const clusterState = widgetState?.rawSpec?._scatter_cluster_state || currentSpecRef?.current?._scatter_cluster_state
-    if (!clusterState || typeof clusterState !== 'object') return null
-    return {
-      nClusters: Number.isFinite(clusterState.n_clusters) ? Number(clusterState.n_clusters) : 3,
-      clusterField: clusterState.cluster_field || null,
-      method: clusterState.method || 'kmeans',
-    }
-  }
-
-  function readRegressionState(widgetState = {}) {
-    const layers = Array.isArray(widgetState?.rawSpec?.layer)
-      ? widgetState.rawSpec.layer
-      : Array.isArray(currentSpecRef?.current?.layer)
-        ? currentSpecRef.current.layer
-        : []
-    const regressionLayer = layers.find((layer) => layer?._widgetvaTag === 'scatter.showRegression')
-    if (!regressionLayer) return null
-    const regressionTransform = Array.isArray(regressionLayer.transform)
-      ? regressionLayer.transform.find((transform) => typeof transform?.regression === 'string')
-      : null
-    return {
-      method: regressionTransform?.method || 'linear',
-    }
-  }
-
-  return {
-    getState() {
-      return {
-        view: {
-          ...(currentViewport ? clone(currentViewport) : {}),
-          ...(currentClusterAnnotation ? { cluster: clone(currentClusterAnnotation) } : {}),
-          ...(currentRegressionAnnotation ? { regression: clone(currentRegressionAnnotation) } : {}),
-        },
-        selections: currentSelection ? { localBrush: clone(currentSelection) } : {},
-      }
-    },
-    async renderFromState(widgetState = {}) {
-      const nextViewport = widgetState?.view && typeof widgetState.view === 'object'
-        ? {
-            ...(Array.isArray(widgetState.view.xDomain) ? { xDomain: widgetState.view.xDomain } : {}),
-            ...(Array.isArray(widgetState.view.yDomain) ? { yDomain: widgetState.view.yDomain } : {}),
-          }
-        : null
-      await applyViewport(nextViewport)
-      const selection = Object.values(widgetState?.selections || {}).find((entry) => entry?.kind === 'interval') || null
-      await applySelection(selection)
-      await applyClusterAnnotation(readClusterState(widgetState))
-      await applyRegressionAnnotation(readRegressionState(widgetState))
-    },
-    async setBrush(selection) {
-      return applySelection(selection)
-    },
-    async setSelection(selection) {
-      return applySelection(selection)
-    },
-    async setViewport(viewport) {
-      return applyViewport(viewport)
-    },
-    async setClusterAnnotation(cluster) {
-      return applyClusterAnnotation(cluster)
-    },
-    async setRegressionAnnotation(regression) {
-      return applyRegressionAnnotation(regression)
-    },
-    getViewport() {
-      return currentViewport ? clone(currentViewport) : null
-    },
-    async readDebugSnapshot() {
-      return invokeObservableWorker(frame, 'readDebugSnapshot', null)
-    },
-  }
-}
-
-export function createObservableBarSurfaceWrapper({ frame, currentSpecRef = null }) {
-  let currentSelection = null
-  let currentFilter = null
-  let currentSort = null
-
-  function normalizeSelection(selection = null) {
-    if (!selection || typeof selection !== 'object') return null
-    const values = Array.isArray(selection.values)
-      ? selection.values
-      : Array.isArray(selection.categories)
-        ? selection.categories
-        : selection.value != null
-          ? [selection.value]
-          : []
-    if (values.length === 0) return null
-    const field = typeof selection.field === 'string' ? selection.field : 'category'
-    const normalizedSelection = {
-      ...clone(selection),
-      kind: typeof selection.kind === 'string' ? selection.kind : 'category',
-      field,
-      values: clone(values),
-    }
-    if (typeof selection.summary === 'string') {
-      normalizedSelection.summary = selection.summary
-    }
-    if (Array.isArray(selection.predicates)) {
-      normalizedSelection.predicates = clone(selection.predicates)
-    }
-    return normalizedSelection
-  }
-
-  async function applySelection(selection = null) {
-    currentSelection = normalizeSelection(selection)
-    await invokeObservableWorker(frame, 'applyBarSelection', {
-      selection: currentSelection,
-    })
-  }
-
-  async function applyFilter(filter = null) {
-    const normalizedFilter = filter && typeof filter === 'object'
-      ? {
-          field: typeof filter.field === 'string' ? filter.field : 'category',
-          categories: Array.isArray(filter.categories) ? clone(filter.categories) : [],
-        }
-      : null
-    currentFilter = normalizedFilter && currentFilter?.categories?.length !== 0
-      ? normalizedFilter
-      : normalizedFilter
-    await invokeObservableWorker(frame, 'applyBarFilter', {
-      filter: currentFilter,
-    })
-  }
-
-  async function applySort(sort = null) {
-    const normalizedSort = sort && typeof sort === 'object'
-      ? {
-          ...(typeof sort.channel === 'string' ? { channel: sort.channel } : {}),
-          ...(typeof sort.field === 'string' ? { field: sort.field } : {}),
-          ...(typeof sort.mode === 'string' ? { mode: sort.mode } : {}),
-          ...(typeof sort.order === 'string' ? { order: sort.order } : {}),
-          ...(Array.isArray(sort.values) ? { values: clone(sort.values) } : {}),
-        }
-      : null
-    currentSort = normalizedSort && Array.isArray(normalizedSort.values) && normalizedSort.values.length > 0
-      ? normalizedSort
-      : null
-    await invokeObservableWorker(frame, 'applyBarSort', {
-      sort: currentSort,
-    })
-  }
-
-  function readFilterFromSpec() {
-    const transforms = Array.isArray(currentSpecRef?.current?.transform) ? currentSpecRef.current.transform : []
-    const categoricalFilter = transforms.find((transform) => transform?.filter?.field && Array.isArray(transform?.filter?.oneOf))
-    if (!categoricalFilter) return null
-    return {
-      field: categoricalFilter.filter.field,
-      categories: clone(categoricalFilter.filter.oneOf),
-    }
-  }
-
-  function readFilterFromWidgetState(widgetState = {}) {
-    const rawSpecTransforms = Array.isArray(widgetState?.rawSpec?.transform) ? widgetState.rawSpec.transform : []
-    const rawSpecFilter = rawSpecTransforms.find((transform) => transform?.filter?.field && Array.isArray(transform?.filter?.oneOf))
-    if (rawSpecFilter) {
-      return {
-        field: rawSpecFilter.filter.field,
-        categories: clone(rawSpecFilter.filter.oneOf),
-      }
-    }
-
-    const runtimeTransforms = Array.isArray(widgetState?.transforms) ? widgetState.transforms : []
-    const runtimeFilter = runtimeTransforms.find((transform) => transform?.spec?.filter?.field && Array.isArray(transform?.spec?.filter?.oneOf))
-    if (runtimeFilter) {
-      return {
-        field: runtimeFilter.spec.filter.field,
-        categories: clone(runtimeFilter.spec.filter.oneOf),
-      }
-    }
-
-    return null
-  }
-
-  function readSortFromWidgetState(widgetState = {}) {
-    const viewSort = widgetState?.view?.sort
-    if (viewSort && typeof viewSort === 'object' && Array.isArray(viewSort.values) && viewSort.values.length > 0) {
-      return clone(viewSort)
-    }
-
-    const rawSpecEncoding = widgetState?.rawSpec?.encoding || {}
-    for (const channel of ['x', 'y']) {
-      if (Array.isArray(rawSpecEncoding?.[channel]?.sort) && rawSpecEncoding[channel].sort.length > 0) {
-        return {
-          channel,
-          field: rawSpecEncoding?.[channel]?.field || null,
-          mode: 'explicitOrder',
-          values: clone(rawSpecEncoding[channel].sort),
-        }
-      }
-    }
-
-    return null
-  }
-
-  return {
-    getState() {
-      return {
-        view: currentSort ? { sort: clone(currentSort) } : {},
-        selections: currentSelection ? { localSelection: clone(currentSelection) } : {},
-      }
-    },
-    async renderFromState(widgetState = {}) {
-      const selection = Object.values(widgetState?.selections || {}).find((entry) => Array.isArray(entry?.values)) || null
-      if (selection) {
-        await applySelection(selection)
-      }
-      await applyFilter(readFilterFromWidgetState(widgetState) || readFilterFromSpec())
-      await applySort(readSortFromWidgetState(widgetState))
-    },
-    async setSelection(selection) {
-      return applySelection(selection)
-    },
-    async setFilter(filter) {
-      return applyFilter(filter)
-    },
-    async syncCurrentSpec() {
-      return applyFilter(readFilterFromSpec())
-    },
-    async readDebugSnapshot() {
-      return invokeObservableWorker(frame, 'readDebugSnapshot', null)
-    },
-  }
-}
-
-export function createObservableLineSurfaceWrapper({ frame, currentSpecRef = null }) {
-  let currentSelection = null
-  let currentFocus = null
-  let currentTrend = null
-  let currentMovingAverage = null
-  let currentDrilldown = null
-  let currentViewport = null
-
-  async function applySelection(selection = null) {
-    currentSelection = selection && typeof selection === 'object' ? clone(selection) : null
-    await invokeObservableWorker(frame, 'applyLineSelection', {
-      selection: currentSelection,
-    })
-  }
-
-  async function applyFocus(focus = null) {
-    const normalizedFocus = focus && typeof focus === 'object'
-      ? {
-          ...(Array.isArray(focus.lines) ? { lines: clone(focus.lines) } : {}),
-          ...(typeof focus.lineField === 'string' ? { lineField: focus.lineField } : {}),
-          ...(Number.isFinite(focus.dimOpacity) ? { dimOpacity: Number(focus.dimOpacity) } : {}),
-        }
-      : null
-    currentFocus = normalizedFocus && Array.isArray(normalizedFocus.lines) && normalizedFocus.lines.length > 0
-      ? normalizedFocus
-      : null
-    await invokeObservableWorker(frame, 'applyLineFocus', {
-      focus: currentFocus,
-    })
-  }
-
-  async function applyTrend(trend = null) {
-    const normalizedTrend = trend && typeof trend === 'object'
-      ? {
-          ...(typeof trend.trendType === 'string' ? { trendType: trend.trendType } : {}),
-        }
-      : null
-    currentTrend = normalizedTrend
-    await invokeObservableWorker(frame, 'applyLineTrend', {
-      trend: currentTrend,
-    })
-  }
-
-  async function applyMovingAverage(movingAverage = null) {
-    const normalizedMovingAverage = movingAverage && typeof movingAverage === 'object'
-      ? {
-          ...(Number.isFinite(movingAverage.windowSize) ? { windowSize: Number(movingAverage.windowSize) } : {}),
-        }
-      : null
-    currentMovingAverage = normalizedMovingAverage
-    await invokeObservableWorker(frame, 'applyLineMovingAverage', {
-      movingAverage: currentMovingAverage,
-    })
-  }
-
-  async function applyDrilldown(drilldown = null) {
-    const normalizedDrilldown = drilldown && typeof drilldown === 'object'
-      ? {
-          ...(typeof drilldown.level === 'string' ? { level: drilldown.level } : {}),
-          ...(Number.isFinite(drilldown.value) ? { value: Number(drilldown.value) } : {}),
-          ...(drilldown.parent && typeof drilldown.parent === 'object' && !Array.isArray(drilldown.parent)
-            ? { parent: clone(drilldown.parent) }
-            : {}),
-          ...(typeof drilldown.title === 'string' ? { title: drilldown.title } : {}),
-        }
-      : null
-    currentDrilldown = normalizedDrilldown && typeof normalizedDrilldown.level === 'string'
-      ? normalizedDrilldown
-      : null
-    await invokeObservableWorker(frame, 'applyLineDrilldown', {
-      drilldown: currentDrilldown,
-    })
-  }
-
-  async function applyViewport(viewport = null) {
-    const normalizedViewport = viewport && typeof viewport === 'object'
-      ? {
-          ...(Array.isArray(viewport.xDomain) ? { xDomain: clone(viewport.xDomain) } : {}),
-        }
-      : null
-    currentViewport = normalizedViewport && Array.isArray(normalizedViewport.xDomain)
-      ? normalizedViewport
-      : null
-    await invokeObservableWorker(frame, 'applyLineViewport', {
-      viewport: currentViewport,
-    })
-  }
-
-  function readFocusState(widgetState = {}) {
-    const rawSpec = widgetState?.rawSpec || currentSpecRef?.current || {}
-    const focusState = rawSpec?._line_focus_state
-    if (!focusState || typeof focusState !== 'object') return null
-    const opacityCondition = rawSpec?.encoding?.opacity?.condition
-    const dimOpacity = Number(rawSpec?.encoding?.opacity?.value)
-    return {
-      lines: Array.isArray(focusState.lines) ? clone(focusState.lines) : [],
-      lineField: focusState.line_field || 'series',
-      ...(Number.isFinite(dimOpacity) ? { dimOpacity } : {}),
-      ...(typeof opacityCondition?.test === 'string' ? { test: opacityCondition.test } : {}),
-    }
-  }
-
-  function readTrendState(widgetState = {}) {
-    const rawSpec = widgetState?.rawSpec || currentSpecRef?.current || {}
-    const layers = Array.isArray(rawSpec?.layer) ? rawSpec.layer : []
-    const trendLayer = layers.find((layer) => layer?._widgetvaTag === 'line.highlightTrend')
-    if (!trendLayer) return null
-    return {
-      trendType: 'regression',
-    }
-  }
-
-  function readMovingAverageState(widgetState = {}) {
-    const rawSpec = widgetState?.rawSpec || currentSpecRef?.current || {}
-    const layers = Array.isArray(rawSpec?.layer) ? rawSpec.layer : []
-    const maLayer = layers.find((layer) => layer?._widgetvaTag === 'line.showMovingAverage')
-    if (!maLayer) return null
-    const windowTransform = Array.isArray(maLayer.transform)
-      ? maLayer.transform.find((transform) => Array.isArray(transform?.frame))
-      : null
-    const frameRange = windowTransform?.frame
-    const windowSize = Array.isArray(frameRange) ? Math.abs(Number(frameRange[0])) + 1 : 3
-    return {
-      windowSize,
-    }
-  }
-
-  function readDrilldownState(widgetState = {}) {
-    const rawSpec = widgetState?.rawSpec || currentSpecRef?.current || {}
-    const drillState = rawSpec?._line_drilldown_state
-    if (!drillState || typeof drillState !== 'object') return null
-    const parent = drillState.parent && typeof drillState.parent === 'object' && !Array.isArray(drillState.parent)
-      ? clone(drillState.parent)
-      : {}
-    if (Number.isFinite(parent.month)) {
-      return {
-        level: 'month',
-        value: Number(parent.month),
-        parent: Number.isFinite(parent.year) ? { year: Number(parent.year) } : {},
-        title: rawSpec?.title || '',
-      }
-    }
-    if (Number.isFinite(parent.year)) {
-      return {
-        level: 'year',
-        value: Number(parent.year),
-        parent: {},
-        title: rawSpec?.title || '',
-      }
-    }
-    return {
-      level: 'drilldown',
-      parent,
-      title: rawSpec?.title || '',
-    }
-  }
-
-  function readViewportState(widgetState = {}) {
-    const rawSpec = widgetState?.rawSpec || currentSpecRef?.current || {}
-    const xDomain = rawSpec?.encoding?.x?.scale?.domain
-    if (!Array.isArray(xDomain) || xDomain.length !== 2) return null
-    return {
-      xDomain: clone(xDomain),
-    }
-  }
-
-  return {
-    getState() {
-      return {
-        view: {
-          ...(currentViewport ? clone(currentViewport) : {}),
-          ...(currentFocus ? { focus: clone(currentFocus) } : {}),
-          ...(currentTrend ? { trend: clone(currentTrend) } : {}),
-          ...(currentMovingAverage ? { movingAverage: clone(currentMovingAverage) } : {}),
-          ...(currentDrilldown ? { drilldown: clone(currentDrilldown) } : {}),
-        },
-        selections: currentSelection ? { localSelection: clone(currentSelection) } : {},
-      }
-    },
-    async renderFromState(widgetState = {}) {
-      const selection = Object.values(widgetState?.selections || {}).find((entry) => Array.isArray(entry?.values)) || null
-      await applySelection(selection)
-      await applyViewport(readViewportState(widgetState))
-      await applyFocus(readFocusState(widgetState))
-      await applyTrend(readTrendState(widgetState))
-      await applyMovingAverage(readMovingAverageState(widgetState))
-      await applyDrilldown(readDrilldownState(widgetState))
-    },
-    async setSelection(selection) {
-      return applySelection(selection)
-    },
-    async setFocus(focus) {
-      return applyFocus(focus)
-    },
-    async setTrend(trend) {
-      return applyTrend(trend)
-    },
-    async setMovingAverage(movingAverage) {
-      return applyMovingAverage(movingAverage)
-    },
-    async setDrilldown(drilldown) {
-      return applyDrilldown(drilldown)
-    },
-    async setViewport(viewport) {
-      return applyViewport(viewport)
-    },
-    async readDebugSnapshot() {
-      return invokeObservableWorker(frame, 'readDebugSnapshot', null)
-    },
+    return runAgentLoopOnTarget(agentTarget, options)
   }
 }
 
@@ -923,21 +470,20 @@ export async function attachWidgetVAToObservableD3ScatterPage({
   }
 
   const pageShape = describeObservableD3PageShape(root)
-  const workerFrame = await waitForObservableWorkerFrame({
+  const scatterSemanticHints = inferObservableD3ScatterSemanticHints(pageShape)
+  const rpcHost = await waitForObservableD3RpcHost(root, {
     root,
     timeoutMs,
     pollMs,
   })
-  const scatterSurface = await waitForObservableWorkerScatterSurface(workerFrame, {
+  const scatterSurface = await waitForObservableWorkerScatterSurface(rpcHost, {
     timeoutMs,
     pollMs,
     notebook: pageShape?.notebook || null,
+    semanticHints: scatterSemanticHints,
   })
   const surfaceDescription = scatterSurface?.surface || null
-
-  if (surfaceDescription?.inferredKind !== 'scatter') {
-    throw new Error(`Observable D3 page is not yet supported for WidgetVA runtime attachment: inferred kind ${surfaceDescription?.inferredKind || 'unknown'}.`)
-  }
+  const route = rpcHost === root ? 'top-page' : 'worker'
 
   const rows = Array.isArray(scatterSurface?.rows) ? scatterSurface.rows : []
 
@@ -945,10 +491,15 @@ export async function attachWidgetVAToObservableD3ScatterPage({
     throw new Error('No scatter points were detected on the Observable D3 surface.')
   }
 
+  const nativeContract = await readObservableD3NativeContract(rpcHost, { timeoutMs })
   const spec = buildObservableScatterSpec(rows)
-  const widgetAdapter = createProviderFamilyAdapter('scatter', 'd3')
+  const widgetAdapter = createD3FamilyAdapter('scatter')
   const currentSpecRef = { current: clone(spec) }
-  const wrapper = createObservableScatterSurfaceWrapper({ frame: workerFrame, currentSpecRef })
+  const wrapper = createObservableScatterSurfaceWrapper({
+    frame: rpcHost,
+    currentSpecRef,
+    nativeBrushBindings: nativeContract?.native?.brushBindings || [],
+  })
   const widget = createWidgetInstance({
     widgetAdapter,
     spec,
@@ -958,7 +509,9 @@ export async function attachWidgetVAToObservableD3ScatterPage({
         baselineSpec: spec,
         currentSpecRef,
         userIntent,
+        emitOnWrite: true,
       }),
+      registerDefaultWidgetFamilies: true,
     },
   })
 
@@ -968,40 +521,12 @@ export async function attachWidgetVAToObservableD3ScatterPage({
     spec,
   })
 
-  const syncSpecDrivenState = async (actionContext = null) => {
-    const widgetState = typeof widget.readState === 'function' ? widget.readState() : null
-    if (widgetState && typeof wrapper.renderFromState === 'function') {
-      await wrapper.renderFromState(widgetState)
-    } else {
-      await wrapper.syncCurrentSpec?.()
-    }
-
-    const actionCall = actionContext?.args?.[0]
-    const actionResult = actionContext?.result
-    if (!actionCall || typeof actionCall !== 'object') return
-
-    if (actionCall.name === 'scatter.brushRegion' && actionResult?.ok !== false) {
-      const selection = buildScatterBrushSelectionFromActionCall(actionCall)
-      if (selection) {
-        await wrapper.setBrush?.(selection)
-      }
-    }
-
-    if (actionCall.name === 'scatter.identifyClusters' && actionResult?.ok !== false) {
-      const nClusters = actionResult?.result?.nClusters || actionCall?.params?.nClusters || 3
-      await wrapper.setClusterAnnotation?.({
-        nClusters,
-        clusterField: actionResult?.result?.clusterField || `cluster_${nClusters}`,
-        method: actionResult?.result?.method || actionCall?.params?.method || 'kmeans',
-      })
-    }
-
-    if (actionCall.name === 'scatter.showRegression' && actionResult?.ok !== false) {
-      await wrapper.setRegressionAnnotation?.({
-        method: actionResult?.result?.method || actionCall?.params?.method || 'linear',
-      })
-    }
-  }
+  const syncSpecDrivenState = async (actionContext = null) => syncObservableD3ScatterControllerState({
+    widget,
+    wrapper,
+    currentSpecRef,
+    actionContext,
+  })
 
   const widgetApi = createPostActionSyncProxy(widget, syncSpecDrivenState)
   const pagePort = root?.__widgetVA
@@ -1010,6 +535,23 @@ export async function attachWidgetVAToObservableD3ScatterPage({
   if (pagePort) {
     root.__widgetVA = pagePort
   }
+  const workspace = createWidgetWorkspace({
+    runtime: widget.runtime,
+    widgets: [widgetApi],
+  })
+  const workspaceApi = createPostActionSyncProxy(workspace, syncSpecDrivenState)
+  const widgetRef = widget.resolveWidgetRef?.() || widgetApi.resolveWidgetRef?.() || null
+  const hasNativeBrushAction = (Array.isArray(nativeContract?.actions) ? nativeContract.actions : [])
+    .some((action) => action?.name === 'scatter.brushRegion')
+  const observedWorkspaceApi = createObservableD3ActionFilteredWorkspaceApi(workspaceApi, {
+    allowedActionNamesByWidgetRef: widgetRef
+      ? {
+          [widgetRef]: hasNativeBrushAction
+            ? ['scatter.brushRegion', 'widget.clearSelection']
+            : [],
+        }
+      : {},
+  })
 
   await syncSpecDrivenState()
 
@@ -1020,7 +562,7 @@ export async function attachWidgetVAToObservableD3ScatterPage({
       kind: 'scatter',
       pageShape,
       surface: surfaceDescription,
-      route: 'worker',
+      route,
       ...snapshot,
     }
   }
@@ -1041,7 +583,7 @@ export async function attachWidgetVAToObservableD3ScatterPage({
   }
 
   async function renderDebugProbe() {
-    return invokeObservableWorker(workerFrame, 'renderDebugProbe', null, {
+    return invokeObservableWorker(rpcHost, 'renderDebugProbe', null, {
       timeoutMs,
     })
   }
@@ -1053,16 +595,247 @@ export async function attachWidgetVAToObservableD3ScatterPage({
     surface: surfaceDescription,
     rows,
     widget: widgetApi,
+    workspace: observedWorkspaceApi,
     widgetAdapter,
-    runAgentLoop: createOfficialPageAgentLoopRunner(root),
+    runAgentLoop: createOfficialPageAgentLoopRunner(observedWorkspaceApi),
+    readRecoverableState() {
+      return readControllerRecoverableState(widget)
+    },
+    async restoreRecoverableState(state) {
+      return restoreControllerRecoverableState(widget, state, 'Observable D3 scatter controller')
+    },
     readDebugSnapshot,
     previewVisibleBrush,
     renderDebugProbe,
-    describeAgentContract() {
-      return widgetApi.describeAgentContract()
-    },
     dispose() {
+      workspace.dispose()
       widget.dispose()
+    },
+  }
+}
+
+export async function attachWidgetVAToObservableD3ScatterMatrixPage({
+  root = globalThis.window,
+  sessionId = null,
+  userIntent = 'Analyze and manipulate the current official Observable D3 scatterplot matrix through WidgetVA structured actions.',
+  timeoutMs = 5000,
+  pollMs = 25,
+} = {}) {
+  const pageUrl = root?.location?.href || ''
+  if (!isObservableD3NotebookPage(pageUrl)) {
+    throw new Error(`Unsupported Observable D3 URL: ${pageUrl}`)
+  }
+
+  const pageShape = describeObservableD3PageShape(root)
+  const scatterSemanticHints = inferObservableD3ScatterSemanticHints(pageShape)
+  const rpcHost = await waitForObservableD3RpcHost(root, {
+    root,
+    timeoutMs,
+    pollMs,
+  })
+  const matrixSurface = await waitForObservableWorkerScatterMatrixSurface(rpcHost, {
+    timeoutMs,
+    pollMs,
+    notebook: pageShape?.notebook || null,
+    semanticHints: scatterSemanticHints,
+  })
+  const cells = Array.isArray(matrixSurface?.cells) ? matrixSurface.cells : []
+  const rows = Array.isArray(matrixSurface?.matrix?.rows) ? matrixSurface.matrix.rows : []
+  if (cells.length < 2) {
+    throw new Error('No scatterplot matrix cells were detected on the Observable D3 surface.')
+  }
+  if (rows.length === 0) {
+    throw new Error('No scatterplot matrix rows were detected on the Observable D3 surface.')
+  }
+
+  const workspaceId = sessionId || `official-observable-d3-${pageShape?.notebook?.slug || 'scatterplot-matrix'}`
+  const nativeContract = await readObservableD3NativeContract(rpcHost, { timeoutMs })
+  const workspaceSpec = buildObservableScatterMatrixWorkspaceSpec({ cells, rows, nativeContract })
+  const primarySpec = buildObservableScatterMatrixCellSpec(cells[0], rows)
+  const currentSpecRef = { current: clone(primarySpec) }
+  const cellModels = cells.map((cell, index) => {
+    const widgetId = buildObservableScatterMatrixCellWidgetId(cell, index)
+    const widgetRef = makeWidgetRef({ workspaceId, widgetId })
+    return {
+      cell,
+      widgetId,
+      widgetRef,
+      spec: buildObservableScatterMatrixCellSpec(cell, rows),
+    }
+  })
+  const cellRefByWidgetRef = Object.fromEntries(
+    cellModels.map((model) => [model.widgetRef, model.cell.ref]),
+  )
+  const nativeActionNamesByTargetRef = new Map()
+  for (const action of Array.isArray(nativeContract?.actions) ? nativeContract.actions : []) {
+    if (typeof action?.targetRef !== 'string' || typeof action?.name !== 'string') continue
+    const names = nativeActionNamesByTargetRef.get(action.targetRef) || []
+    names.push(action.name)
+    nativeActionNamesByTargetRef.set(action.targetRef, names)
+  }
+  const allowedActionNamesByWidgetRef = Object.fromEntries(
+    cellModels.map((model) => {
+      const nativeActionNames = nativeActionNamesByTargetRef.get(model.cell.ref) || []
+      return [
+        model.widgetRef,
+        nativeActionNames.length > 0
+          ? [...new Set([...nativeActionNames, 'widget.clearSelection'])]
+          : [],
+      ]
+    }),
+  )
+  const agentCells = buildObservableScatterMatrixAgentCells(cellModels)
+  const wrapper = createObservableScatterMatrixSurfaceWrapper({
+    frame: rpcHost,
+    cellRefByWidgetRef,
+    nativeBrushBindings: nativeContract?.native?.brushBindings || [],
+  })
+  const hostBridge = createOfficialPageHostBridge({
+    sessionId: workspaceId,
+    baselineSpec: primarySpec,
+    currentSpecRef,
+    workspaceSpec,
+    userIntent,
+    emitOnWrite: true,
+  })
+
+  const widgets = []
+  let runtime = null
+  for (const model of cellModels) {
+    const widget = createWidgetInstance({
+      runtime,
+      widgetAdapter: createD3FamilyAdapter('scatter'),
+      widgetRef: model.widgetRef,
+      widgetId: model.widgetId,
+      spec: model.spec,
+      runtimeOptions: runtime
+        ? {}
+        : {
+            hostBridge,
+            registerDefaultWidgetFamilies: true,
+          },
+    })
+    runtime = runtime || widget.runtime
+    await widget.mount({
+      view: wrapper,
+      surface: root.document?.documentElement || null,
+      spec: model.spec,
+    })
+    widgets.push(widget)
+  }
+
+  const widgetApis = widgets.map((widget) => createPostActionSyncProxy(
+    widget,
+    async () => {
+      await wrapper.renderFromState(widget.readState?.() || null)
+      return { recoverableState: readRecoverableState() }
+    },
+  ))
+  const workspace = createWidgetWorkspace({
+    runtime,
+    widgets: widgetApis,
+  })
+  const syncWorkspaceAction = async ({ args = [], result = null } = {}) => {
+    const call = args[0] || {}
+    const targetRef =
+      call?.target?.widgetRef
+      || result?.actionResult?.updatedRefs?.[0]
+      || result?.updatedRefs?.[0]
+      || null
+    const targetWidget = targetRef
+      ? widgets.find((widget) => widget.resolveWidgetRef?.() === targetRef)
+      : null
+    if (targetWidget) {
+      await wrapper.renderFromState(targetWidget.readState?.() || null)
+    }
+    return { recoverableState: readRecoverableState() }
+  }
+  const workspaceApi = createPostActionSyncProxy(workspace, syncWorkspaceAction)
+  const observedWorkspaceApi = createObservableScatterMatrixWorkspaceApi(workspaceApi, {
+    cells: agentCells,
+    readBrush: () => wrapper.readRecoverableState?.()?.brush || null,
+    allowedActionNamesByWidgetRef,
+  })
+  const pagePort = root?.__widgetVA
+    ? createPostActionSyncProxy(root.__widgetVA, async () => {
+        const brush = wrapper.readRecoverableState()?.brush || null
+        const targetWidget = brush?.targetRef
+          ? widgets.find((widget) => widget.resolveWidgetRef?.() === brush.targetRef)
+          : null
+        if (targetWidget) {
+          await wrapper.renderFromState(targetWidget.readState?.() || null)
+        }
+        return { recoverableState: readRecoverableState() }
+      })
+    : null
+  if (pagePort) {
+    root.__widgetVA = pagePort
+  }
+
+  async function readDebugSnapshot() {
+    const snapshot = await wrapper.readDebugSnapshot()
+    return {
+      provider: 'd3',
+      kind: 'scatterMatrix',
+      pageShape,
+      surface: matrixSurface?.surface || null,
+      route: rpcHost === root ? 'top-page' : 'worker',
+      cells,
+      ...snapshot,
+    }
+  }
+
+  function readRecoverableState() {
+    return {
+      stateId: workspace.readState?.()?.stateId || null,
+      ...(wrapper.readRecoverableState?.() || {}),
+    }
+  }
+
+  async function restoreRecoverableState(state = {}) {
+    if (state?.stateId) {
+      await workspace.jumpToState({ stateId: state.stateId })
+    }
+    await wrapper.restoreRecoverableState({
+      brush: state && Object.prototype.hasOwnProperty.call(state, 'brush')
+        ? state.brush
+        : wrapper.readRecoverableState?.()?.brush || null,
+    })
+    return {
+      ok: true,
+      restored: true,
+      stateId: state?.stateId || workspace.readState?.()?.stateId || null,
+      brush: wrapper.readRecoverableState?.()?.brush || null,
+    }
+  }
+
+  async function renderDebugProbe() {
+    return invokeObservableWorker(rpcHost, 'renderDebugProbe', null, {
+      timeoutMs,
+    })
+  }
+
+  return {
+    provider: 'd3',
+    kind: 'scatterMatrix',
+    pageShape,
+    surface: matrixSurface?.surface || null,
+    rows,
+    cells,
+    widgets: widgetApis,
+    widget: widgetApis[0] || null,
+    workspace: observedWorkspaceApi,
+    widgetAdapter: widgetApis[0]?.widgetAdapter || null,
+    runAgentLoop: createOfficialPageAgentLoopRunner(observedWorkspaceApi),
+    readRecoverableState,
+    restoreRecoverableState,
+    readDebugSnapshot,
+    renderDebugProbe,
+    dispose() {
+      workspace.dispose()
+      for (const widget of widgets) {
+        widget.dispose()
+      }
     },
   }
 }
@@ -1080,21 +853,18 @@ export async function attachWidgetVAToObservableD3BarPage({
   }
 
   const pageShape = describeObservableD3PageShape(root)
-  const workerFrame = await waitForObservableWorkerFrame({
+  const rpcHost = await waitForObservableD3RpcHost(root, {
     root,
     timeoutMs,
     pollMs,
   })
-  const barSurface = await waitForObservableWorkerBarSurface(workerFrame, {
+  const barSurface = await waitForObservableWorkerBarSurface(rpcHost, {
     timeoutMs,
     pollMs,
     notebook: pageShape?.notebook || null,
   })
   const surfaceDescription = barSurface?.surface || null
-
-  if (surfaceDescription?.inferredKind !== 'bar') {
-    throw new Error(`Observable D3 page is not yet supported for WidgetVA runtime attachment: inferred kind ${surfaceDescription?.inferredKind || 'unknown'}.`)
-  }
+  const route = rpcHost === root ? 'top-page' : 'worker'
 
   const rows = Array.isArray(barSurface?.rows) ? barSurface.rows : []
   if (rows.length === 0) {
@@ -1102,9 +872,9 @@ export async function attachWidgetVAToObservableD3BarPage({
   }
 
   const spec = buildObservableBarSpec(rows)
-  const widgetAdapter = createProviderFamilyAdapter('bar', 'd3')
+  const widgetAdapter = createD3FamilyAdapter('bar')
   const currentSpecRef = { current: clone(spec) }
-  const wrapper = createObservableBarSurfaceWrapper({ frame: workerFrame, currentSpecRef })
+  const wrapper = createObservableBarSurfaceWrapper({ frame: rpcHost, currentSpecRef })
   const widget = createWidgetInstance({
     widgetAdapter,
     spec,
@@ -1114,7 +884,9 @@ export async function attachWidgetVAToObservableD3BarPage({
         baselineSpec: spec,
         currentSpecRef,
         userIntent,
+        emitOnWrite: true,
       }),
+      registerDefaultWidgetFamilies: true,
     },
   })
 
@@ -1124,32 +896,11 @@ export async function attachWidgetVAToObservableD3BarPage({
     spec,
   })
 
-  const syncSpecDrivenState = async (actionContext = null) => {
-    const widgetState = typeof widget.readState === 'function' ? widget.readState() : null
-    if (widgetState && typeof wrapper.renderFromState === 'function') {
-      await wrapper.renderFromState(widgetState)
-    } else {
-      await wrapper.syncCurrentSpec?.()
-    }
-
-    const actionCall = actionContext?.args?.[0]
-    const actionResult = actionContext?.result
-    if (!actionCall || typeof actionCall !== 'object' || actionResult?.ok === false) {
-      return
-    }
-
-    if (actionCall.name === 'bar.selectCategory') {
-      const selection = buildBarSelectionFromActionCall(actionCall)
-      if (selection) await wrapper.setSelection?.(selection)
-      return
-    }
-
-    if (actionCall.name === 'bar.filterCategories') {
-      const filter = buildBarFilterFromActionCall(actionCall)
-      if (filter) await wrapper.setFilter?.(filter)
-      return
-    }
-  }
+  const syncSpecDrivenState = async (actionContext = null) => syncObservableD3BarControllerState({
+    widget,
+    wrapper,
+    actionContext,
+  })
 
   const widgetApi = createPostActionSyncProxy(widget, syncSpecDrivenState)
   const pagePort = root?.__widgetVA
@@ -1158,6 +909,10 @@ export async function attachWidgetVAToObservableD3BarPage({
   if (pagePort) {
     root.__widgetVA = pagePort
   }
+  const workspace = createWidgetWorkspace({
+    runtime: widget.runtime,
+    widgets: [widgetApi],
+  })
 
   await syncSpecDrivenState()
 
@@ -1168,13 +923,13 @@ export async function attachWidgetVAToObservableD3BarPage({
       kind: 'bar',
       pageShape,
       surface: surfaceDescription,
-      route: 'worker',
+      route,
       ...snapshot,
     }
   }
 
   async function renderDebugProbe() {
-    return invokeObservableWorker(workerFrame, 'renderDebugProbe', null, {
+    return invokeObservableWorker(rpcHost, 'renderDebugProbe', null, {
       timeoutMs,
     })
   }
@@ -1186,14 +941,19 @@ export async function attachWidgetVAToObservableD3BarPage({
     surface: surfaceDescription,
     rows,
     widget: widgetApi,
+    workspace,
     widgetAdapter,
-    runAgentLoop: createOfficialPageAgentLoopRunner(root),
+    runAgentLoop: createOfficialPageAgentLoopRunner(workspace),
+    readRecoverableState() {
+      return readControllerRecoverableState(widget)
+    },
+    async restoreRecoverableState(state) {
+      return restoreControllerRecoverableState(widget, state, 'Observable D3 bar controller')
+    },
     readDebugSnapshot,
     renderDebugProbe,
-    describeAgentContract() {
-      return widgetApi.describeAgentContract()
-    },
     dispose() {
+      workspace.dispose()
       widget.dispose()
     },
   }
@@ -1212,21 +972,18 @@ export async function attachWidgetVAToObservableD3LinePage({
   }
 
   const pageShape = describeObservableD3PageShape(root)
-  const workerFrame = await waitForObservableWorkerFrame({
+  const rpcHost = await waitForObservableD3RpcHost(root, {
     root,
     timeoutMs,
     pollMs,
   })
-  const lineSurface = await waitForObservableWorkerLineSurface(workerFrame, {
+  const lineSurface = await waitForObservableWorkerLineSurface(rpcHost, {
     timeoutMs,
     pollMs,
     notebook: pageShape?.notebook || null,
   })
   const surfaceDescription = lineSurface?.surface || null
-
-  if (surfaceDescription?.inferredKind !== 'line') {
-    throw new Error(`Observable D3 page is not yet supported for WidgetVA runtime attachment: inferred kind ${surfaceDescription?.inferredKind || 'unknown'}.`)
-  }
+  const route = rpcHost === root ? 'top-page' : 'worker'
 
   const rows = Array.isArray(lineSurface?.rows) ? lineSurface.rows : []
   if (rows.length === 0) {
@@ -1234,9 +991,9 @@ export async function attachWidgetVAToObservableD3LinePage({
   }
 
   const spec = buildObservableLineSpec(rows)
-  const widgetAdapter = createProviderFamilyAdapter('line', 'd3')
+  const widgetAdapter = createD3FamilyAdapter('line')
   const currentSpecRef = { current: clone(spec) }
-  const wrapper = createObservableLineSurfaceWrapper({ frame: workerFrame, currentSpecRef })
+  const wrapper = createObservableLineSurfaceWrapper({ frame: rpcHost, currentSpecRef })
   const widget = createWidgetInstance({
     widgetAdapter,
     spec,
@@ -1246,7 +1003,9 @@ export async function attachWidgetVAToObservableD3LinePage({
         baselineSpec: spec,
         currentSpecRef,
         userIntent,
+        emitOnWrite: true,
       }),
+      registerDefaultWidgetFamilies: true,
     },
   })
 
@@ -1256,89 +1015,12 @@ export async function attachWidgetVAToObservableD3LinePage({
     spec,
   })
 
-  const syncState = async (actionContext = null) => {
-    const widgetState = typeof widget.readState === 'function' ? widget.readState() : null
-    if (widgetState && typeof wrapper.renderFromState === 'function') {
-      await wrapper.renderFromState(widgetState)
-    }
-
-    const actionCall = actionContext?.args?.[0]
-    const actionResult = actionContext?.result
-    if (!actionCall || typeof actionCall !== 'object' || actionResult?.ok === false) {
-      return
-    }
-
-    if (actionCall.name === 'line.selectSeries') {
-      const selection = buildLineSelectionFromActionCall(actionCall)
-      if (selection) await wrapper.setSelection?.(selection)
-      return
-    }
-
-    if (actionCall.name === 'line.selectXValue') {
-      const selection = buildLineSelectionFromActionCall({
-        ...actionCall,
-        params: {
-          ...(actionCall.params || {}),
-          field: actionCall.params?.field || 'xValue',
-        },
-      })
-      if (selection) await wrapper.setSelection?.(selection)
-      return
-    }
-
-    if (actionCall.name === 'line.focusLines') {
-      const focus = buildLineFocusFromActionCall(actionCall)
-      if (focus) await wrapper.setFocus?.(focus)
-      return
-    }
-
-    if (actionCall.name === 'line.highlightTrend') {
-      await wrapper.setTrend?.({
-        trendType: typeof actionCall.params?.trendType === 'string'
-          ? actionCall.params.trendType
-          : 'regression',
-      })
-      return
-    }
-
-    if (actionCall.name === 'line.showMovingAverage') {
-      await wrapper.setMovingAverage?.({
-        windowSize: Number.isFinite(actionCall.params?.windowSize)
-          ? Number(actionCall.params.windowSize)
-          : 3,
-      })
-      return
-    }
-
-    if (actionCall.name === 'line.drillDownXAxis') {
-      const drillValue = Number(actionCall.params?.value)
-      const parent = actionCall.params?.parent && typeof actionCall.params.parent === 'object'
-        ? clone(actionCall.params.parent)
-        : {}
-      await wrapper.setDrilldown?.({
-        level: actionCall.params?.level || 'drilldown',
-        ...(Number.isFinite(drillValue) ? { value: drillValue } : {}),
-        parent,
-        title: typeof actionCall.params?.title === 'string'
-          ? actionCall.params.title
-          : Number.isFinite(drillValue)
-            ? `${drillValue} monthly trend`
-            : '',
-      })
-      return
-    }
-
-    if (actionCall.name === 'line.resetDrilldownXAxis') {
-      await wrapper.setDrilldown?.(null)
-      return
-    }
-
-    if (actionCall.name === 'line.zoomXRegion') {
-      const viewport = buildLineViewportFromActionCall(actionCall)
-      if (viewport) await wrapper.setViewport?.(viewport)
-      return
-    }
-  }
+  const syncState = async (actionContext = null) => syncObservableD3LineControllerState({
+    widget,
+    wrapper,
+    currentSpecRef,
+    actionContext,
+  })
 
   const widgetApi = createPostActionSyncProxy(widget, syncState)
   const pagePort = root?.__widgetVA
@@ -1346,6 +1028,10 @@ export async function attachWidgetVAToObservableD3LinePage({
     : null
   if (pagePort) root.__widgetVA = pagePort
   await syncState()
+  const workspace = createWidgetWorkspace({
+    runtime: widget.runtime,
+    widgets: [widgetApi],
+  })
 
   async function readDebugSnapshot() {
     const snapshot = await wrapper.readDebugSnapshot()
@@ -1354,13 +1040,13 @@ export async function attachWidgetVAToObservableD3LinePage({
       kind: 'line',
       pageShape,
       surface: surfaceDescription,
-      route: 'worker',
+      route,
       ...snapshot,
     }
   }
 
   async function renderDebugProbe() {
-    return invokeObservableWorker(workerFrame, 'renderDebugProbe', null, {
+    return invokeObservableWorker(rpcHost, 'renderDebugProbe', null, {
       timeoutMs,
     })
   }
@@ -1372,13 +1058,19 @@ export async function attachWidgetVAToObservableD3LinePage({
     surface: surfaceDescription,
     rows,
     widget: widgetApi,
+    workspace,
     widgetAdapter,
+    runAgentLoop: createOfficialPageAgentLoopRunner(workspace),
+    readRecoverableState() {
+      return readControllerRecoverableState(widget)
+    },
+    async restoreRecoverableState(state) {
+      return restoreControllerRecoverableState(widget, state, 'Observable D3 line controller')
+    },
     readDebugSnapshot,
     renderDebugProbe,
-    describeAgentContract() {
-      return widgetApi.describeAgentContract()
-    },
     dispose() {
+      workspace.dispose()
       widget.dispose()
     },
   }
@@ -1386,8 +1078,92 @@ export async function attachWidgetVAToObservableD3LinePage({
 
 export async function attachWidgetVAToObservableD3Page(options = {}) {
   const root = options?.root || globalThis.window
+  if (readWidgetVAWorkspaceContract(root)) {
+    return attachWidgetVAToObservableD3ExplicitWorkspacePage(options)
+  }
+
   const pageShape = describeObservableD3PageShape(root)
   const notebook = pageShape?.notebook || null
+  const timeoutMs = options?.timeoutMs || 5000
+  const pollMs = options?.pollMs || 25
+  const notebookSlug = notebook?.slug || ''
+  if (notebookSlug.includes('scatterplot-matrix') || notebookSlug.includes('matrix')) {
+    return attachWidgetVAToObservableD3ScatterMatrixPage(options)
+  }
+  let inferredKind = null
+  try {
+    const rpcHost = await waitForObservableD3RpcHost(root, {
+      root,
+      timeoutMs,
+      pollMs,
+    })
+    const explicitWorkspaceDescription = await invokeObservableWorker(rpcHost, 'describeExplicitWorkspaceContract', null, {
+      timeoutMs: Math.min(timeoutMs, 1000),
+    }).catch(() => null)
+    if (explicitWorkspaceDescription) {
+      return createObservableD3ExplicitWorkspaceRpcController({
+        root,
+        rpcHost,
+        invokeWorker: invokeObservableWorker,
+        description: explicitWorkspaceDescription,
+        sessionId: options?.sessionId || null,
+        userIntent: options?.userIntent,
+        timeoutMs,
+      })
+    }
+
+    const scatterSemanticHints = inferObservableD3ScatterSemanticHints(pageShape)
+    const matrixResult = await invokeObservableWorker(rpcHost, 'readScatterMatrix', {
+      semanticHints: scatterSemanticHints,
+    }, {
+      timeoutMs: Math.min(timeoutMs, 1000),
+    }).catch(() => null)
+    if (Array.isArray(matrixResult?.cells) && matrixResult.cells.length > 1) {
+      return attachWidgetVAToObservableD3ScatterMatrixPage(options)
+    }
+
+    const surface = await invokeObservableWorker(rpcHost, 'describeSurface', {
+      notebook,
+    }, {
+      timeoutMs: Math.min(timeoutMs, 1000),
+    })
+    inferredKind = typeof surface?.inferredKind === 'string' ? surface.inferredKind : null
+
+    if (!['bar', 'line', 'scatter'].includes(inferredKind)) {
+      const [barRowsResult, lineRowsResult, scatterRowsResult] = await Promise.all([
+        invokeObservableWorker(rpcHost, 'readBarRows', null, {
+          timeoutMs: Math.min(timeoutMs, 1000),
+        }).catch(() => null),
+        invokeObservableWorker(rpcHost, 'readLineRows', null, {
+          timeoutMs: Math.min(timeoutMs, 1000),
+        }).catch(() => null),
+        invokeObservableWorker(rpcHost, 'readScatterRows', {
+          semanticHints: scatterSemanticHints,
+        }, {
+          timeoutMs: Math.min(timeoutMs, 1000),
+        }).catch(() => null),
+      ])
+
+      const barRows = Array.isArray(barRowsResult?.rows) ? barRowsResult.rows : []
+      const lineRows = Array.isArray(lineRowsResult?.rows) ? lineRowsResult.rows : []
+      const scatterRows = Array.isArray(scatterRowsResult?.rows) ? scatterRowsResult.rows : []
+
+      if (barRows.length > 0) inferredKind = 'bar'
+      else if (lineRows.length > 0) inferredKind = 'line'
+      else if (scatterRows.length > 0) inferredKind = 'scatter'
+    }
+  } catch {}
+
+  if (inferredKind === 'bar') {
+    return attachWidgetVAToObservableD3BarPage(options)
+  }
+  if (inferredKind === 'line') {
+    return attachWidgetVAToObservableD3LinePage(options)
+  }
+  if (inferredKind === 'scatter') {
+    return attachWidgetVAToObservableD3ScatterPage(options)
+  }
+
   const inferredSlug = notebook?.slug || ''
   if (inferredSlug.includes('bar')) {
     return attachWidgetVAToObservableD3BarPage(options)
@@ -1405,6 +1181,7 @@ export async function bootstrapObservableD3ScatterPage({
   timeoutMs = 5000,
   pollMs = 25,
   enableExtensionBridge = true,
+  forceReattach = false,
 } = {}) {
   const controller = await attachWidgetVAToObservableD3ScatterPage({
     root,
@@ -1412,6 +1189,7 @@ export async function bootstrapObservableD3ScatterPage({
     userIntent,
     timeoutMs,
     pollMs,
+    forceReattach,
   })
 
   const disposeBridge = enableExtensionBridge
@@ -1421,7 +1199,7 @@ export async function bootstrapObservableD3ScatterPage({
   return {
     ...controller,
     pagePort: root?.__widgetVA || null,
-    runAgentLoop: createOfficialPageAgentLoopRunner(root),
+    runAgentLoop: createOfficialPageAgentLoopRunner(controller.workspace),
     dispose() {
       try {
         disposeBridge?.()
@@ -1439,6 +1217,7 @@ export async function bootstrapObservableD3Page({
   timeoutMs = 5000,
   pollMs = 25,
   enableExtensionBridge = true,
+  forceReattach = false,
 } = {}) {
   const controller = await attachWidgetVAToObservableD3Page({
     root,
@@ -1446,6 +1225,7 @@ export async function bootstrapObservableD3Page({
     userIntent,
     timeoutMs,
     pollMs,
+    forceReattach,
   })
 
   const disposeBridge = enableExtensionBridge
@@ -1454,8 +1234,8 @@ export async function bootstrapObservableD3Page({
 
   return {
     ...controller,
-    pagePort: root?.__widgetVA || null,
-    runAgentLoop: createOfficialPageAgentLoopRunner(root),
+    pagePort: root?.__widgetVA || controller?.pagePort || null,
+    runAgentLoop: createOfficialPageAgentLoopRunner(controller.workspace),
     dispose() {
       try {
         disposeBridge?.()

@@ -7,7 +7,21 @@ import {
 } from '../contracts/turnPayloads.js'
 
 export const DEFAULT_OPENROUTER_AGENT_MODEL = 'deepseek/deepseek-v4-flash'
-const TEMP_DEMO_WEATHER_CATEGORIES = ['rain', 'fog', 'snow']
+
+const JSON_OBJECT_RESPONSE_FORMAT = Object.freeze({ type: 'json_object' })
+
+const PLANNER_RESPONSE_SHAPE = Object.freeze({
+  assistantMessage: 'string',
+  rationale: 'string',
+  operation: {
+    kind: 'action|perception',
+    name: 'string when kind is action/perception',
+    target: {
+      widgetRef: 'copy one exact full ref string from observe.state.widgets[].ref',
+    },
+    params: {},
+  },
+})
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value))
@@ -29,7 +43,17 @@ function stripPromptExamples(value) {
 }
 
 function normalizeKnowledgeForPrompt(knowledge = null) {
-  return stripPromptExamples(clone(knowledge))
+  const normalized = stripPromptExamples(clone(knowledge))
+  if (Array.isArray(knowledge?.agentGuidance?.workflows)) {
+    normalized.agentGuidance = {
+      ...normalized.agentGuidance,
+      workflows: knowledge.agentGuidance.workflows.map((workflow) => ({
+      ...workflow,
+      examples: Array.isArray(workflow?.examples) ? clone(workflow.examples) : [],
+      })),
+    }
+  }
+  return normalized
 }
 
 const PROMPT_DROP_KEYS = new Set([
@@ -45,6 +69,7 @@ const PROMPT_DROP_KEYS = new Set([
   'source',
   'sourceCode',
   'spec',
+  'widgetId',
 ])
 
 const PROMPT_ARRAY_LIMITS = {
@@ -106,8 +131,78 @@ function sanitizeAgentObservationForPrompt(observe = null) {
   }
   if (sanitized?.view && typeof sanitized.view === 'object') {
     delete sanitized.view.snapshot
+    // Image bytes are transported as a separate multimodal message part;
+    // keep only metadata in the JSON observation to avoid duplicating a
+    // potentially large data URL in the text prompt.
+    if (sanitized.view.image && typeof sanitized.view.image === 'object') {
+      const { data: _data, dataUrl: _dataUrl, base64: _base64, ...imageMeta } = sanitized.view.image
+      sanitized.view.image = imageMeta
+    }
   }
   return sanitized
+}
+
+function readObservationImageUrl(observe = null) {
+  const image = observe?.view?.image
+  if (!image || typeof image !== 'object') return null
+  if (typeof image.dataUrl === 'string' && image.dataUrl.length > 0) return image.dataUrl
+  if (typeof image.data === 'string' && image.data.length > 0) {
+    if (image.data.startsWith('data:')) return image.data
+    const mimeType = typeof image.mimeType === 'string' && image.mimeType.length > 0
+      ? image.mimeType
+      : 'image/png'
+    return `data:${mimeType};base64,${image.data}`
+  }
+  if (typeof image.base64 === 'string' && image.base64.length > 0) {
+    const mimeType = typeof image.mimeType === 'string' && image.mimeType.length > 0
+      ? image.mimeType
+      : 'image/png'
+    return `data:${mimeType};base64,${image.base64}`
+  }
+  return null
+}
+
+function buildPromptUserContent(userPrompt, observe = null) {
+  const imageUrl = readObservationImageUrl(observe)
+  if (!imageUrl) return userPrompt
+  return [
+    { type: 'text', text: userPrompt },
+    { type: 'image_url', image_url: { url: imageUrl } },
+  ]
+}
+
+function textOnlyConversationContent(content) {
+  if (typeof content === 'string') return content
+  if (!Array.isArray(content)) return null
+  const text = content
+    .filter((part) => part && part.type === 'text' && typeof part.text === 'string')
+    .map((part) => part.text)
+    .join('\n')
+  return text || null
+}
+
+function buildConversationalMessages(currentMessages, conversation = []) {
+  const [systemMessage, currentUserMessage] = currentMessages || []
+  const priorMessages = (Array.isArray(conversation) ? conversation : [])
+    .slice(-12)
+    .map((message) => {
+      const content = textOnlyConversationContent(message?.content)
+      if (!content || !['user', 'assistant'].includes(message?.role)) return null
+      return { role: message.role, content }
+    })
+    .filter(Boolean)
+
+  return [systemMessage, ...priorMessages, currentUserMessage].filter(Boolean)
+}
+
+function appendConversationExchange(conversation, userMessage, assistantContent) {
+  if (!Array.isArray(conversation)) return
+  const userContent = textOnlyConversationContent(userMessage?.content)
+  if (userContent) conversation.push({ role: 'user', content: userContent })
+  if (typeof assistantContent === 'string' && assistantContent.length > 0) {
+    conversation.push({ role: 'assistant', content: assistantContent })
+  }
+  if (conversation.length > 12) conversation.splice(0, conversation.length - 12)
 }
 
 function summarizePromptParams(params = null) {
@@ -181,116 +276,6 @@ function normalizeHistoryForPrompt(history = null) {
   return sanitizePromptValue(history)
 }
 
-function isTemporarySeattleWeatherDemo({ objective = null, observe = null } = {}) {
-  const objectiveText = typeof objective === 'string' ? objective.toLowerCase() : ''
-  const observeText = JSON.stringify(observe || {}).toLowerCase()
-  const looksLikeSeattleWeather =
-    observeText.includes('seattle')
-    || observeText.includes('weather')
-    || observeText.includes('temp_max')
-  const mentionsExplicitDemoCategories =
-    objectiveText.includes('rain')
-    && objectiveText.includes('fog')
-    && objectiveText.includes('snow')
-  const asksWeatherTemperaturePattern =
-    (
-      objectiveText.includes('different weather')
-      || objectiveText.includes('weather condition')
-      || objectiveText.includes('weather conditions')
-    )
-    && (
-      objectiveText.includes('temperature')
-      || objectiveText.includes('temp')
-    )
-    && (
-      objectiveText.includes('over the year')
-      || objectiveText.includes('across the year')
-      || objectiveText.includes('season')
-      || objectiveText.includes('year in seattle')
-    )
-  return looksLikeSeattleWeather && (mentionsExplicitDemoCategories || asksWeatherTemperaturePattern)
-}
-
-function buildTemporaryDemoWorkflowHints({ objective = null, observe = null } = {}) {
-  // TEMP DEMO HINT: remove after the Seattle weather extension demo.
-  if (!isTemporarySeattleWeatherDemo({ objective, observe })) return []
-
-  return [
-    'Temporary Seattle Weather demo workflow: when the objective asks how weather conditions relate to temperature over the year, every unfinished turn must execute exactly one action that changes the visible weather category. Do not use perception-only or data-query-only operations as substitutes for these category view changes. Work category-by-category across turns: first call bar.filterCategories with field weather and categories ["rain"], then call bar.filterCategories with categories ["fog"], then call bar.filterCategories with categories ["snow"]. After each action, summarize what the resulting single-weather view shows. Only synthesize the comparison after rain, fog, and snow have each been shown in separate rendered views. Use history to remember which weather category has already been inspected.',
-  ]
-}
-
-function buildTemporaryWorkflowHints({ objective = null, observe = null } = {}) {
-  return [
-    ...buildTemporaryDemoWorkflowHints({ objective, observe }),
-  ]
-}
-
-function readTemporaryDemoCompletedCategories({ history = null, plan = null } = {}) {
-  const operationPayloads = []
-  if (Array.isArray(history?.turns)) {
-    for (const turn of history.turns) {
-      operationPayloads.push(
-        turn?.operation || null,
-        turn?.act?.operation || null,
-        turn?.plan?.operation || null,
-        turn?.act || null,
-        turn?.plan?.step || null,
-      )
-    }
-  }
-  operationPayloads.push(plan?.operation || plan || null)
-  const operationText = JSON.stringify(operationPayloads.filter(Boolean)).toLowerCase()
-  return TEMP_DEMO_WEATHER_CATEGORIES.filter((category) => operationText.includes(category))
-}
-
-function readTemporaryDemoNextCategory(history = null) {
-  const completedCategories = readTemporaryDemoCompletedCategories({ history })
-  return TEMP_DEMO_WEATHER_CATEGORIES.find((category) => !completedCategories.includes(category)) || null
-}
-
-function hasAvailableTemporaryDemoAction({ observe = null, knowledge = null } = {}) {
-  const observeText = JSON.stringify(observe || {}).toLowerCase()
-  const knowledgeText = JSON.stringify(knowledge || {}).toLowerCase()
-  return observeText.includes('bar.filtercategories') || knowledgeText.includes('bar.filtercategories')
-}
-
-function matchesTemporaryDemoOperation({ operation = null, objective = null, observe = null, history = null } = {}) {
-  if (!isTemporarySeattleWeatherDemo({ objective, observe })) return true
-  const nextCategory = readTemporaryDemoNextCategory(history)
-  if (!nextCategory) return true
-  if (!operation || operation.kind !== 'action' || operation.name !== 'bar.filterCategories') return false
-  const paramsText = JSON.stringify(operation.params || {}).toLowerCase()
-  return paramsText.includes('weather') && paramsText.includes(nextCategory)
-}
-
-function buildTemporaryDemoFallbackOperation({ objective = null, observe = null, knowledge = null, history = null } = {}) {
-  const nextCategory = readTemporaryDemoNextCategory(history)
-  if (!nextCategory || !hasAvailableTemporaryDemoAction({ observe, knowledge })) return null
-  const focusedWidgetRef = readFocusedWidgetRef(observe)
-  if (!focusedWidgetRef) return null
-  return {
-    assistantMessage: `I will filter the weather view to ${nextCategory} so this category can be inspected as its own rendered view.`,
-    rationale: 'The temporary Seattle Weather demo workflow requires one weather-category action per turn before synthesis.',
-    kind: 'action',
-    name: 'bar.filterCategories',
-    target: { widgetRef: focusedWidgetRef },
-    params: {
-      field: 'weather',
-      categories: [nextCategory],
-    },
-    dataRef: null,
-    query: null,
-  }
-}
-
-function shouldContinueTemporaryDemo({ objective = null, observe = null, history = null, plan = null, result = null } = {}) {
-  if (!isTemporarySeattleWeatherDemo({ objective, observe })) return false
-  void result
-  const completedCategories = readTemporaryDemoCompletedCategories({ history, plan })
-  return TEMP_DEMO_WEATHER_CATEGORIES.some((category) => !completedCategories.includes(category))
-}
-
 export function formatAgentPlannerError(error) {
   if (typeof error === 'string') return error
   if (error instanceof Error) {
@@ -315,32 +300,31 @@ export function formatAgentPlannerError(error) {
   return 'Agent planning failed.'
 }
 
-function buildAgentMessages({ objective, observe, knowledge = null, history = null }) {
+function buildAgentMessages({ objective, observe, knowledge = null, history = null, plannerContext = null }) {
   const systemPrompt = [
     'You are an analyst agent operating a widget-based visual analytics workspace.',
     'Your job is to convert the user objective into exactly one next structured operation.',
-    'Use only the actions, perceptions, and data-query surfaces already exposed by the provided knowledge and current observation.',
+    'Use only the actions and perceptions already exposed by the provided knowledge and current observation.',
     'Use history to avoid repeating operations unless repetition is necessary with different parameters.',
     'If the objective requires comparing multiple subsets, use history to track which subset has already been inspected.',
     'Treat action names as semantic widget operations: the runtime will update widget/workspace state and the provider will apply that state to the active visualization environment.',
-    'For page-linked visualizations, use the page-linked action surface for brush, overview-detail, and domain-sync semantics when those actions are exposed.',
-    'For page-linked visualizations, use the page-linked action surface for click, select, hover, and bound-parameter semantics when those actions are exposed.',
     'Prefer shared-state updates that let the provider rematerialize the page instead of trying to mutate private provider internals directly.',
     'Do not reason as if you need to touch private Vega runtime internals, tuple stores, or signal handles.',
-    'When bar actions are available, use bar.clickCategory for explicit click/tap language that should preserve the page’s existing category-linked interaction, and use bar.selectCategory for general selection semantics.',
-    'If the user asks to update linked views, propagate a bar choice, drive cross-widget filtering, create a source selection, or use existing coordination links from a bar chart, choose bar.selectCategory unless the language explicitly says click/tap.',
-    'Use bar.filterCategories only when the user explicitly wants to keep only, filter to, exclude, or remove categories from the visible view, and never for linked-view propagation.',
-    'When the user asks to reset or undo a chart/view/zoom/filter view state, use widget.resetView or widget.undoView when those actions are exposed; do not substitute workspace.resetWorkspace or widget.undoSelection for view reset/undo requests.',
     'Return JSON only.',
     'The JSON must contain assistantMessage, rationale, and operation.',
-    'operation.kind must be exactly one of: action, perception, data_query.',
+    'operation.kind must be exactly one of: action or perception.',
     'If operation.kind is action or perception, include operation.name.',
-    'If operation.kind is action or perception, include operation.target.widgetRef. Choose exactly one widgetRef from observe.state.widgets[].ref.',
+    'If operation.kind is action or perception, include operation.target.widgetRef. Copy exactly one full ref string from observe.state.widgets[].ref.',
+    'Do not use widgetId, title, kind, or a shortened identifier as operation.target.widgetRef.',
     'For action/perception operations, put arguments in operation.params.',
+    'If the objective explicitly requests a state-changing action, execute that action; a perception result that could answer the numeric question is not a substitute for the requested view change.',
+    'For a linked subset, cohort, category, or interval objective, prioritize the source action that establishes the relevant linked state before using perceptions. Then use perceptions to verify the propagated target state and gather the requested evidence.',
+    'Before choosing a perception, compare the requested fields and visual state with the current encodings. If the requested visual state is not present, plan the state-changing operation first.',
     'When an action requires category, series, or line identifiers, choose exact values from observe.state.widgets[].data.fieldValues when available.',
-    'For data_query operations, include operation.dataRef and operation.query.',
+    'Use plannerContext only when it is present. It contains instance-selected analysis guidance, relation guidance, and at most one selected workflow; it is not a catalog of all possible workflows.',
+    'When plannerContext.workflow is present, treat its steps as the required next-step sequence: use history to find the first unfinished step, and do not substitute another exposed operation merely because it is available.',
     'Do not return markdown fences.',
-    ...buildTemporaryWorkflowHints({ objective, observe }),
+    `Return exactly one JSON object matching this shape: ${JSON.stringify(PLANNER_RESPONSE_SHAPE)}.`,
   ].join(' ')
 
   const normalizedObserve = normalizeObserveForPrompt(observe, { objective })
@@ -350,30 +334,32 @@ function buildAgentMessages({ objective, observe, knowledge = null, history = nu
     knowledge: normalizeKnowledgeForPrompt(knowledge),
     observe: normalizedObserve,
     history: normalizeHistoryForPrompt(history),
+    plannerContext: sanitizePromptValue(plannerContext),
+    requiredResponseShape: PLANNER_RESPONSE_SHAPE,
   })
 
   return [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
+    { role: 'user', content: buildPromptUserContent(userPrompt, observe) },
   ]
 }
 
-function buildRepairMessages({ objective, observe, knowledge = null, history = null, previousContent = '' }) {
+function buildRepairMessages({ objective, observe, knowledge = null, history = null, plannerContext = null, previousContent = '' }) {
   const systemPrompt = [
     'You previously returned an invalid plan for a widget-based visual analytics agent.',
-    'Remember: use only currently exposed actions, perceptions, and data-query surfaces from the provided knowledge and observation.',
+    'Remember: use only currently exposed actions and perceptions from the provided knowledge and observation.',
     'Remember: action names are semantic widget operations; do not touch private Vega runtime internals, tuple stores, or signal handles.',
-    'Remember: bar.clickCategory is for explicit in-page category click semantics, bar.selectCategory is for general selection semantics, and bar.filterCategories is for keep-only/filter-visible semantics.',
-    'Remember: linked-view bar interactions must use bar.selectCategory or bar.clickCategory because bar.filterCategories is view-local and does not create a source selection for coordination links.',
-    'Remember: reset or undo chart/view/zoom/filter view requests should use widget.resetView or widget.undoView when exposed, not workspace.resetWorkspace or widget.undoSelection.',
     'Return JSON only.',
     'Your JSON must contain assistantMessage, rationale, and operation.',
-    'operation.kind must be exactly one of: action, perception, data_query.',
+    'operation.kind must be exactly one of: action or perception.',
     'If operation.kind is action or perception, include operation.name.',
-    'If operation.kind is action or perception, include operation.target.widgetRef. Choose exactly one widgetRef from observe.state.widgets[].ref.',
+    'If operation.kind is action or perception, include operation.target.widgetRef. Copy exactly one full ref string from observe.state.widgets[].ref.',
+    'Do not use widgetId, title, kind, or a shortened identifier as operation.target.widgetRef.',
     'When required params need category, series, or line identifiers, choose exact values from observe.state.widgets[].data.fieldValues when available.',
-    ...buildTemporaryWorkflowHints({ objective, observe }),
+    'Use only the instance-selected plannerContext when present; do not assume an unseen workflow or relation.',
+    'When plannerContext.workflow is present, repair toward the first unfinished workflow step instead of choosing a different available operation.',
     'Do not include markdown fences or explanatory prose.',
+    `Return exactly one JSON object matching this shape: ${JSON.stringify(PLANNER_RESPONSE_SHAPE)}.`,
   ].join(' ')
 
   const userPrompt = JSON.stringify({
@@ -381,26 +367,14 @@ function buildRepairMessages({ objective, observe, knowledge = null, history = n
     knowledge: normalizeKnowledgeForPrompt(knowledge),
     observe: normalizeObserveForPrompt(observe, { objective }),
     history: normalizeHistoryForPrompt(history),
+    plannerContext: sanitizePromptValue(plannerContext),
     previousContent,
-    requiredShape: {
-      assistantMessage: 'string',
-      rationale: 'string',
-      operation: {
-        kind: 'action|perception|data_query',
-        name: 'string when kind is action/perception',
-        target: {
-          widgetRef: 'string',
-        },
-        params: {},
-        dataRef: 'string when kind is data_query',
-        query: {},
-      },
-    },
+    requiredResponseShape: PLANNER_RESPONSE_SHAPE,
   })
 
   return [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
+    { role: 'user', content: buildPromptUserContent(userPrompt, observe) },
   ]
 }
 
@@ -424,7 +398,6 @@ function buildReasonMessages({
     'The JSON must contain answer.',
     'If the overall user objective has been sufficiently answered, include completion.status as "answered".',
     'If another turn is still needed, omit completion or set completion.status to "continue".',
-    ...buildTemporaryWorkflowHints({ objective, observe }),
   ].join(' ')
 
   const userPrompt = JSON.stringify({
@@ -448,6 +421,7 @@ function buildFinalSynthesisMessages({
   history,
   turns,
   stopReason,
+  answerContract = null,
 } = {}) {
   const systemPrompt = [
     'You are the final synthesis stage of a widget-based visual analytics agent.',
@@ -457,6 +431,9 @@ function buildFinalSynthesisMessages({
     'Ground the answer in WidgetVA observations and action/perception results.',
     'Return JSON only.',
     'The JSON must contain answer.',
+    'When answerContract is provided, the JSON must also contain values as an array.',
+    'Each values entry must use the declared key and type. Numeric and boolean entries use value; categorical entries use a string value; interval entries use start and end.',
+    'Do not include values whose key or type is absent from answerContract.',
   ].join(' ')
 
   const compactTurns = Array.isArray(turns)
@@ -481,12 +458,41 @@ function buildFinalSynthesisMessages({
     history: normalizeHistoryForPrompt(history),
     turns: compactTurns,
     stopReason,
+    answerContract: clone(answerContract),
   })
 
   return [
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt },
   ]
+}
+
+function normalizeFinalAnswerValues(values, answerContract = null) {
+  if (!Array.isArray(values)) return []
+  const contractValues = Array.isArray(answerContract?.values) ? answerContract.values : []
+  const declared = new Map(contractValues.map((item) => [item?.key, item?.type]))
+  if (declared.size === 0) return []
+
+  const normalized = []
+  for (const item of values) {
+    const key = typeof item?.key === 'string' ? item.key : null
+    const type = typeof item?.type === 'string' ? item.type : null
+    if (!key || declared.get(key) !== type || normalized.some((value) => value.key === key)) continue
+    if (type === 'numeric' && Number.isFinite(item?.value)) {
+      normalized.push({ key, type, value: item.value })
+    } else if (type === 'boolean' && typeof item?.value === 'boolean') {
+      normalized.push({ key, type, value: item.value })
+    } else if (type === 'categorical' && typeof item?.value === 'string' && item.value.trim().length > 0) {
+      normalized.push({ key, type, value: item.value.trim() })
+    } else if (
+      type === 'interval'
+      && (typeof item?.start === 'string' || Number.isFinite(item?.start))
+      && (typeof item?.end === 'string' || Number.isFinite(item?.end))
+    ) {
+      normalized.push({ key, type, start: item.start, end: item.end })
+    }
+  }
+  return normalized
 }
 
 function looksLikeAgentObservation(observe = null) {
@@ -645,12 +651,9 @@ function readPlannedOperation(plan = {}) {
       && (
         normalizedKey === 'action'
         || normalizedKey === 'perception'
-        || normalizedKey === 'data_query'
-        || normalizedKey === 'dataquery'
       )
     ) {
-      const kind = normalizedKey === 'dataquery' ? 'data_query' : normalizedKey
-      return { kind, ...value }
+      return { kind: normalizedKey, ...value }
     }
   }
   return {}
@@ -679,7 +682,6 @@ function readFocusedWidgetRef(observe = {}) {
 function inferOperationKind(plan = {}, operation = {}) {
   const explicitKind = operation.kind || plan.kind
   if (explicitKind) return explicitKind
-  if (operation.dataRef || operation.query) return 'data_query'
   if (operation.name) {
     if (String(operation.name).startsWith('perception.')) return 'perception'
     return 'action'
@@ -705,21 +707,33 @@ function normalizeOperation(plan = {}, observe = {}) {
     name: operation.name || null,
     target: widgetRef ? { widgetRef } : undefined,
     params: clone(operation.params || {}),
-    dataRef: operation.dataRef || null,
-    query: clone(operation.query || null),
   }
 }
 
-function isExecutableOperation(operation = {}) {
+function operationMatchesTargetFamily(operation = {}, observe = {}, knowledge = null) {
+  const widgetKind = readWidgetKindForRef(observe, operation?.target?.widgetRef || null)
+  if (!widgetKind) return true
+  const fieldName = operation.kind === 'perception' ? 'perceptions' : 'actions'
+  const familyNames = readFamilyNamesForWidget(knowledge, widgetKind, fieldName)
+  const availableNames = [...new Set(familyNames)]
+  if (availableNames.length === 0) return true
+  return availableNames.includes(operation.name)
+}
+
+function isExecutableOperation(operation = {}, observe = {}, knowledge = null) {
   if (!operation || typeof operation !== 'object') return false
   if (operation.kind === 'action' || operation.kind === 'perception') {
-    return typeof operation.name === 'string'
+    if (!(typeof operation.name === 'string'
       && operation.name.trim().length > 0
       && typeof operation?.target?.widgetRef === 'string'
-      && operation.target.widgetRef.length > 0
-  }
-  if (operation.kind === 'data_query') {
-    return typeof operation.dataRef === 'string' && operation.dataRef.length > 0 && Boolean(operation.query)
+      && operation.target.widgetRef.length > 0)) {
+      return false
+    }
+    const widgets = readObservationWidgets(observe)
+    if (widgets.length > 0 && !widgets.some((widget) => widget?.ref === operation.target.widgetRef)) {
+      return false
+    }
+    return operationMatchesTargetFamily(operation, observe, knowledge)
   }
   return false
 }
@@ -744,14 +758,6 @@ function readFamilyNamesForWidget(knowledge = null, widgetKind = null, fieldName
     .filter((name, index, names) => typeof name === 'string' && name.length > 0 && names.indexOf(name) === index)
 }
 
-function readCommonToolNames(knowledge = null, fieldName = '') {
-  if (!fieldName) return []
-  const descriptors = Array.isArray(knowledge?.commonTools?.[fieldName]) ? knowledge.commonTools[fieldName] : []
-  return descriptors
-    .map((descriptor) => descriptor?.name)
-    .filter((name, index, names) => typeof name === 'string' && name.length > 0 && names.indexOf(name) === index)
-}
-
 function choosePreferredName(names = [], preferredNames = []) {
   for (const preferredName of preferredNames) {
     if (names.includes(preferredName)) return preferredName
@@ -764,12 +770,12 @@ function buildSafeFallbackOperation(observe = {}, knowledge = null) {
   const focusedWidgetKind = readWidgetKindForRef(observe, focusedWidgetRef)
   const perceptionNames = [
     ...readFamilyNamesForWidget(knowledge, focusedWidgetKind, 'perceptions'),
-    ...readCommonToolNames(knowledge, 'perceptions'),
   ].filter((name, index, names) => names.indexOf(name) === index)
   const fallbackPerception = choosePreferredName(perceptionNames, [
-    'perception.inspectVisibleRows',
-    'perception.inspectSelection',
     'perception.inspectViewConfig',
+    'perception.summarizeVisible',
+    'perception.inspectSelection',
+    'perception.inspectVisibleRows',
   ])
 
   if (fallbackPerception) {
@@ -780,8 +786,6 @@ function buildSafeFallbackOperation(observe = {}, knowledge = null) {
       name: fallbackPerception,
       ...(focusedWidgetRef ? { target: { widgetRef: focusedWidgetRef } } : {}),
       params: {},
-      dataRef: null,
-      query: null,
     }
   }
 
@@ -792,8 +796,6 @@ function buildSafeFallbackOperation(observe = {}, knowledge = null) {
     name: null,
     ...(focusedWidgetRef ? { target: { widgetRef: focusedWidgetRef } } : {}),
     params: {},
-    dataRef: null,
-    query: null,
   }
 }
 
@@ -806,28 +808,35 @@ export function createNaturalLanguagePlanner({
     throw new Error('createNaturalLanguagePlanner requires completeChat().')
   }
 
+  const conversation = []
+
   return async function planner({
     objective = null,
     observe = null,
     knowledge = null,
     history = null,
+    plannerContext = null,
   } = {}) {
     const safeObjective = typeof objective === 'string' && objective.trim().length > 0
       ? objective.trim()
       : 'Inspect the current visualization workspace and take the next useful step.'
 
+    const primaryMessages = buildConversationalMessages(buildAgentMessages({
+      objective: safeObjective,
+      knowledge,
+      observe,
+      history,
+      plannerContext,
+    }), conversation)
     const primaryResponse = await completeChat({
       model,
       temperature,
-      messages: buildAgentMessages({
-        objective: safeObjective,
-        knowledge,
-        observe,
-        history,
-      }),
+      responseFormat: JSON_OBJECT_RESPONSE_FORMAT,
+      messages: primaryMessages,
     })
 
     const primaryContent = primaryResponse?.content || ''
+    appendConversationExchange(conversation, primaryMessages.at(-1), primaryContent)
     const primaryPlan = extractJsonObject(primaryContent)
     if (!primaryPlan) {
       throw new Error('Agent response did not contain valid JSON.')
@@ -837,54 +846,39 @@ export function createNaturalLanguagePlanner({
     let resolvedResponse = primaryResponse
     let resolvedPlan = primaryPlan
 
-    if (
-      !isExecutableOperation(normalizedOperation)
-      || !matchesTemporaryDemoOperation({
-        operation: normalizedOperation,
+    if (!isExecutableOperation(normalizedOperation, observe, knowledge)) {
+      const repairMessages = buildConversationalMessages(buildRepairMessages({
         objective: safeObjective,
+        knowledge,
         observe,
         history,
-      })
-    ) {
+        plannerContext,
+        previousContent: primaryContent,
+      }), conversation)
       const repairedResponse = await completeChat({
         model,
         temperature,
-        messages: buildRepairMessages({
-          objective: safeObjective,
-          knowledge,
-          observe,
-          history,
-          previousContent: primaryContent,
-        }),
+        responseFormat: JSON_OBJECT_RESPONSE_FORMAT,
+        messages: repairMessages,
       })
       const repairedContent = repairedResponse?.content || ''
+      appendConversationExchange(conversation, repairMessages.at(-1), repairedContent)
       const repairedPlan = extractJsonObject(repairedContent)
       const repairedOperation = repairedPlan ? normalizeOperation(repairedPlan, observe) : null
 
       if (
         repairedPlan
-        && isExecutableOperation(repairedOperation)
-        && matchesTemporaryDemoOperation({
-          operation: repairedOperation,
-          objective: safeObjective,
-          observe,
-          history,
-        })
+        && isExecutableOperation(repairedOperation, observe, knowledge)
       ) {
         resolvedResponse = repairedResponse
         resolvedPlan = repairedPlan
         normalizedOperation = repairedOperation
       } else {
-        normalizedOperation = buildTemporaryDemoFallbackOperation({
-          objective: safeObjective,
-          observe,
-          knowledge,
-          history,
-        }) || buildSafeFallbackOperation(observe, knowledge)
+        normalizedOperation = buildSafeFallbackOperation(observe, knowledge)
       }
     }
 
-    if (!isExecutableOperation(normalizedOperation)) {
+    if (!isExecutableOperation(normalizedOperation, observe, knowledge)) {
       throw new Error(normalizedOperation?.rationale || 'Agent planning did not yield an executable operation.')
     }
 
@@ -896,8 +890,6 @@ export function createNaturalLanguagePlanner({
         ...(normalizedOperation.name ? { name: normalizedOperation.name } : {}),
         ...(normalizedOperation.target ? { target: normalizedOperation.target } : {}),
         ...(normalizedOperation.params ? { params: normalizedOperation.params } : {}),
-        ...(normalizedOperation.dataRef ? { dataRef: normalizedOperation.dataRef } : {}),
-        ...(normalizedOperation.query ? { query: normalizedOperation.query } : {}),
       },
       source: 'planner',
       model,
@@ -929,6 +921,7 @@ export function createNaturalLanguageReasoner({
     const response = await completeChat({
       model,
       temperature,
+      responseFormat: JSON_OBJECT_RESPONSE_FORMAT,
       messages: buildReasonMessages({
         objective,
         observe,
@@ -943,22 +936,10 @@ export function createNaturalLanguageReasoner({
     const content = response?.content || ''
     const parsed = extractJsonObject(content)
     if (parsed && typeof parsed.answer === 'string' && parsed.answer.trim().length > 0) {
-      let completionStatus =
+      const completionStatus =
         typeof parsed?.completion?.status === 'string' && parsed.completion.status.trim().length > 0
           ? parsed.completion.status.trim()
           : null
-      if (
-        completionStatus === 'answered'
-        && shouldContinueTemporaryDemo({
-          objective,
-          observe,
-          history,
-          plan,
-          result,
-        })
-      ) {
-        completionStatus = 'continue'
-      }
       return {
         answer: parsed.answer.trim(),
         ...(completionStatus ? { completion: { status: completionStatus } } : {}),
@@ -995,15 +976,18 @@ export function createNaturalLanguageFinalSynthesizer({
     history = null,
     turns = [],
     stopReason = null,
+    answerContract = null,
   } = {}) {
     const response = await completeChat({
       model,
       temperature,
+      responseFormat: JSON_OBJECT_RESPONSE_FORMAT,
       messages: buildFinalSynthesisMessages({
         objective,
         history,
         turns,
         stopReason,
+        answerContract,
       }),
     })
 
@@ -1018,6 +1002,7 @@ export function createNaturalLanguageFinalSynthesizer({
       answer: typeof parsed?.answer === 'string' && parsed.answer.trim().length > 0
         ? parsed.answer.trim()
         : fallbackAnswer,
+      values: normalizeFinalAnswerValues(parsed?.values, answerContract),
       rawResponse: clone(response?.raw || null),
       rawContent: content,
     }
@@ -1029,6 +1014,8 @@ export async function runNaturalLanguageAgentLoop(target, {
   completeChat,
   model = DEFAULT_OPENROUTER_AGENT_MODEL,
   temperature = 0.2,
+  plannerContext = null,
+  plannerLevel = null,
   ...loopOptions
 } = {}) {
   const planner = createNaturalLanguagePlanner({
@@ -1045,6 +1032,8 @@ export async function runNaturalLanguageAgentLoop(target, {
   return runAgentLoop(target, {
     ...loopOptions,
     objective,
+    plannerContext,
+    plannerLevel,
     planner,
     reasoner,
   })
@@ -1055,6 +1044,8 @@ export async function runNaturalLanguageAgentSession(target, {
   completeChat,
   model = DEFAULT_OPENROUTER_AGENT_MODEL,
   temperature = 0.2,
+  plannerContext = null,
+  plannerLevel = null,
   ...loopOptions
 } = {}) {
   const planner = createNaturalLanguagePlanner({
@@ -1078,6 +1069,8 @@ export async function runNaturalLanguageAgentSession(target, {
   return runAgentSession(target, {
     ...loopOptions,
     objective,
+    plannerContext,
+    plannerLevel,
     planner,
     reasoner,
     finalSynthesizer,

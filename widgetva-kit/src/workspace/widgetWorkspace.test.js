@@ -1,9 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { createWidgetVARuntime } from '../core.js'
-import { deriveWorkspaceTopology } from '../core/runtime/deriveWorkspaceTopology.js'
-import { createWidgetInstance } from '../widgets/widgetInstance.js'
+import { createWidgetVARuntime } from '../core/index.js'
+import { deriveWorkspaceTopology } from './coordination/deriveWorkspaceTopology.js'
+import { createWidgetInstance } from '../core/rendering/widgetRuntimeSurface.js'
 import { createWidgetWorkspace, WidgetWorkspace, WIDGET_WORKSPACE_PUBLIC_METHODS } from './widgetWorkspace.js'
 
 function buildBarSpec() {
@@ -41,7 +41,6 @@ function buildRuntime() {
       readFocusedWidgetRef: () => null,
       readViewportState: () => null,
       readComparisonTargets: () => [],
-      readWorkspaceAnnotations: () => [],
     },
   })
   return {
@@ -84,7 +83,7 @@ test('WidgetWorkspace.describeContract documents the stable workspace public met
   assert.deepEqual(contract.methods, WIDGET_WORKSPACE_PUBLIC_METHODS)
   assert.equal(typeof contract.constructorOptions.widgets, 'string')
   assert.equal(typeof contract.composition.links, 'string')
-  assert.equal(typeof contract.composition.contractReads, 'string')
+  assert.equal('contractReads' in contract.composition, false)
   assert.equal(typeof contract.coordinationState.sharedAnalyticalState, 'string')
   assert.equal(typeof contract.coordinationState.sharedFilterContext, 'string')
   assert.equal(typeof contract.coordinationState.sharedViewportContext, 'string')
@@ -101,7 +100,7 @@ test('WidgetWorkspace.describeContract documents the stable workspace public met
   assert.equal(typeof contract.coordinationState.latestCoordinationResult, 'string')
 })
 
-test('WidgetWorkspace exposes coordination-state reads for focused widget, selections, and annotations', () => {
+test('WidgetWorkspace exposes coordination-state reads for focused widget and selections', () => {
   const focusedWidget = {
     resolveWidgetRef() {
       return 'wl://widgetva-app/workspace/main/widget/bar_a'
@@ -155,7 +154,6 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
           },
           comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
         },
-        annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
         }
       },
       listLinks() {
@@ -215,6 +213,9 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
         entries: [],
         activeWidgetRefs: [],
       },
+      coordination: {
+        relations: {},
+      },
       globalFilters: {
         value: { op: '>=', value: 10 },
       },
@@ -224,7 +225,6 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
         yDomain: [5, 15],
         zoom: null,
       },
-      annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
       links: {
         definitions: [],
         topology: {
@@ -294,7 +294,6 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
         zoom: null,
       },
       comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
-      annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
       links: {
         definitions: [],
         topology: {
@@ -360,7 +359,6 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
         comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
         structure: {
           linkCount: 0,
-          annotationCount: 1,
         },
         transformationContext: {
           activeWidgetRefs: [],
@@ -409,10 +407,16 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
           },
         },
         comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
-        annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
       },
     })
-    assert.deepEqual(workspace.readObservation().sharedAnalyticalState, workspace.readSharedAnalyticalState())
+    assert.equal('readAgentObservation' in workspace, false)
+    assert.deepEqual(workspace.readObservation().state.sharedAnalyticalState.filters, {
+      value: { op: '>=', value: 10 },
+    })
+    assert.equal(
+      workspace.readObservation().state.sharedAnalyticalState.viewport.sourceWidgetRef,
+      'wl://widgetva-app/workspace/main/widget/bar_a',
+    )
     assert.deepEqual(workspace.readSharedFilterContext(), {
       globalFilters: {
         value: { op: '>=', value: 10 },
@@ -471,7 +475,6 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
         },
       },
       comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
-      annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
     })
     assert.deepEqual(workspace.readViewStatesByWidget(), {})
     assert.deepEqual(workspace.readSharedViewContext(), {
@@ -507,7 +510,6 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
       comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
       structure: {
         linkCount: 0,
-        annotationCount: 1,
       },
       transformationContext: {
         activeWidgetRefs: [],
@@ -555,7 +557,6 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
         },
       },
     })
-    assert.deepEqual(workspace.readAnnotations(), [{ id: 'ann_1', label: 'Peak bucket' }])
     assert.deepEqual(workspace.readGlobalFilters(), {
       value: { op: '>=', value: 10 },
     })
@@ -569,7 +570,7 @@ test('WidgetWorkspace exposes coordination-state reads for focused widget, selec
 })
 
 test('WidgetWorkspace.readHighlightState derives cross-widget highlight summaries from widget feedback', () => {
-  const widgetRef = 'wl://widgetva-app/workspace/main/widget/table_b'
+  const widgetRef = 'wl://widgetva-app/workspace/main/widget/detail_b'
   const runtime = {
     store: {
       currentBranchId: 'main',
@@ -577,7 +578,7 @@ test('WidgetWorkspace.readHighlightState derives cross-widget highlight summarie
         return {
           appId: 'widgetva-app',
           workspaceId: 'main',
-          widgets: [{ ref: widgetRef, widgetId: 'table_b', kind: 'table' }],
+          widgets: [{ ref: widgetRef, widgetId: 'detail_b', kind: 'detail' }],
           links: [],
         }
       },
@@ -587,12 +588,12 @@ test('WidgetWorkspace.readHighlightState derives cross-widget highlight summarie
           widgets: {
             [widgetRef]: {
               ref: widgetRef,
-              widgetId: 'table_b',
-              kind: 'table',
+              widgetId: 'detail_b',
+              kind: 'detail',
               feedback: {
                 highlightedKeys: ['USA'],
-                inboundLinkIds: ['summary_highlights_table'],
-                highlightLinkIds: ['summary_highlights_table'],
+                inboundLinkIds: ['summary_highlights_detail'],
+                highlightLinkIds: ['summary_highlights_detail'],
                 linkedSourceRefs: ['wl://widgetva-app/workspace/main/widget/bar_a/selection/current'],
               },
             },
@@ -610,10 +611,10 @@ test('WidgetWorkspace.readHighlightState derives cross-widget highlight summarie
       return widgetRef
     },
     resolveWidgetId() {
-      return 'table_b'
+      return 'detail_b'
     },
     describe() {
-      return { ref: widgetRef, widgetId: 'table_b', kind: 'table' }
+      return { ref: widgetRef, widgetId: 'detail_b', kind: 'detail' }
     },
   }
   const workspace = createWidgetWorkspace({
@@ -625,15 +626,15 @@ test('WidgetWorkspace.readHighlightState derives cross-widget highlight summarie
     assert.deepEqual(workspace.readHighlightState(), {
       entries: [{
         widgetRef,
-        widgetId: 'table_b',
+        widgetId: 'detail_b',
         sourceWidgetRef: null,
         sourceWidgetId: null,
         selectionRef: null,
         summary: null,
         predicates: [],
         highlightedKeys: ['USA'],
-        inboundLinkIds: ['summary_highlights_table'],
-        highlightLinkIds: ['summary_highlights_table'],
+        inboundLinkIds: ['summary_highlights_detail'],
+        highlightLinkIds: ['summary_highlights_detail'],
         linkedSourceRefs: ['wl://widgetva-app/workspace/main/widget/bar_a/selection/current'],
       }],
       activeWidgetRefs: [widgetRef],
@@ -700,7 +701,6 @@ test('WidgetWorkspace manages workspaceShared coordination writes without taking
       globalFilters: {},
       focusedWidget: null,
       comparisonTargets: [],
-      annotations: [],
     },
   }
 
@@ -751,8 +751,6 @@ test('WidgetWorkspace manages workspaceShared coordination writes without taking
     workspace.setGlobalFilters({
       value: { op: '>=', value: 20 },
     })
-    workspace.addAnnotation({ id: 'ann_2', label: 'Focus region' })
-    workspace.setAnnotations([{ id: 'ann_3', label: 'Pinned note' }])
 
     assert.equal(workspace.readCoordinationState().focusedWidgetRef, widgetB.resolveWidgetRef())
     assert.deepEqual(workspace.readSelectionState(), {
@@ -830,15 +828,12 @@ test('WidgetWorkspace manages workspaceShared coordination writes without taking
     assert.deepEqual(workspace.readGlobalFilters(), {
       value: { op: '>=', value: 20 },
     })
-    assert.deepEqual(workspace.readAnnotations(), [{ id: 'ann_3', label: 'Pinned note' }])
     assert.equal(state.widgets[widgetA.resolveWidgetRef()].view.localTransform, 'keep-me')
     assert.equal(state.widgets[widgetB.resolveWidgetRef()].view.localTransform, 'keep-me-too')
 
-    workspace.clearAnnotations()
     workspace.clearGlobalFilters()
     workspace.clearSelectionState()
 
-    assert.deepEqual(workspace.readAnnotations(), [])
     assert.deepEqual(workspace.readGlobalFilters(), {})
     assert.deepEqual(workspace.readSelectionState(), {
       registry: {},
@@ -914,7 +909,7 @@ test('WidgetWorkspace exposes neutral default control-state and binding surfaces
       focusedWidgetId: 'bar_a',
     })
 
-    assert.deepEqual(workspace.readInteractionBindings({
+    assert.deepEqual(workspace.readControlProjection({
       rangeDomains: {
         horsepower: [40, 230],
       },
@@ -1017,7 +1012,6 @@ test('WidgetWorkspace exposes an ephemeral latest coordination result read/write
       globalFilters: {},
       focusedWidget: null,
       comparisonTargets: [],
-      annotations: [],
     },
   }
 
@@ -1068,7 +1062,8 @@ test('WidgetWorkspace exposes an ephemeral latest coordination result read/write
     assert.deepEqual(stored, result)
     result.verification.status = 'failed'
     assert.equal(workspace.readLatestCoordinationResult().verification.status, 'verified')
-    assert.equal(workspace.readObservation().latestCoordinationResult?.verification?.status, 'verified')
+    assert.equal('latestCoordinationResult' in workspace.readObservation(), false)
+    assert.equal('readAgentObservation' in workspace, false)
     assert.deepEqual(workspace.readCoordinationState().selections, {
       registry: {},
       views: {
@@ -1115,7 +1110,7 @@ test('WidgetWorkspace.readComputedCoordinationResult computes propagation and ve
       linkId: 'bar_to_scatter',
       sourceWidgetId: 'bar_a',
       targetWidgetId: 'scatter_b',
-      primitive: 'filter',
+      kind: 'filter',
       effect: 'applyFilter',
       activationPolicy: 'automatic',
       effectConstraint: 'highlightOnly',
@@ -1956,11 +1951,10 @@ test('createWidgetWorkspace composes widget instances over a shared runtime and 
     assert.equal(workspace.readWidgetState(widgetRef)?.ref, widgetRef)
     assert.equal(Array.isArray(workspace.listWidgetDescriptions()), true)
     assert.equal(workspace.listWidgetDescriptions().some((entry) => entry?.ref === widgetRef), true)
-    assert.equal(workspace.listActionNames().includes('widget.changeEncoding'), true)
-    assert.equal(workspace.listActionNames().includes('workspace.jumpToState'), true)
-    assert.equal(workspace.listPerceptionNames().includes('perception.findExtremes'), true)
-    assert.equal(workspace.listActionDescriptors().some((entry) => entry?.name === 'widget.changeEncoding'), true)
-    assert.equal(workspace.listPerceptionDescriptors().some((entry) => entry?.name === 'perception.findExtremes'), true)
+    assert.equal('listActionNames' in workspace, false)
+    assert.equal('listPerceptionNames' in workspace, false)
+    assert.equal('listActionDescriptors' in workspace, false)
+    assert.equal('listPerceptionDescriptors' in workspace, false)
     assert.equal(Array.isArray(workspace.getTrace({ limit: 5 })), true)
     assert.equal(workspace.describeComposition().widgetRefs.includes(widgetRef), true)
     assert.equal(workspace.readLinkTopology().topology, 'T1')
@@ -2033,7 +2027,6 @@ test('WidgetWorkspace registers links, exposes topology, and can remove them', a
   try {
     const link = workspace.registerLink({
       kind: 'filter',
-      primitive: 'filter',
       from: scatterRef,
       to: barRef,
       sourceWidgetId: 'scatter_secondary',
@@ -2123,14 +2116,9 @@ test('WidgetWorkspace delegates workspace-level action, perception, and replay t
     const replayResult = await workspace.replay('main:s1')
 
     assert.equal(description.workspaceId, 'main')
-    assert.equal(
-      description.actions.find((entry) => entry?.name === 'scatter.brushRegion')?.analyticalPlacement,
-      'workspace-shared-state',
-    )
-    assert.equal(
-      description.actions.find((entry) => entry?.name === 'scatter.brushRegion')?.sharedAnalyticalSurface,
-      'sharedSemanticFocus',
-    )
+    const brushDescriptor = description.actions.find((entry) => entry?.name === 'scatter.brushRegion') || {}
+    assert.equal('analyticalPlacement' in brushDescriptor, false)
+    assert.equal('sharedAnalyticalSurface' in brushDescriptor, false)
     assert.equal(view.stateId, 'main:s1')
     assert.equal(actionResult.ok, true)
     assert.equal(perceptionResult.ok, true)
@@ -2204,4 +2192,99 @@ test('WidgetWorkspace.executeActionAndCommitCoordination commits workspace-owned
   assert.equal(result.ok, true)
   assert.equal(result.coordinationResult?.changed, true)
   assert.deepEqual(workspace.readLatestCoordinationResult(), result.coordinationResult)
+})
+
+test('WidgetWorkspace.executeActionAndCommitCoordination keeps the action propagation source for computed coordination results', async () => {
+  const sourceRef = 'wl://widgetva-app/workspace/main/widget/scatter_a/view/zoom'
+  const actionCalls = []
+  const committedOptions = []
+  const runtime = {
+    executeAction: async (call) => {
+      actionCalls.push(call)
+      return {
+        ok: true,
+        callId: call.callId,
+        actionName: call.name || null,
+        result: {
+          propagationSourceRef: sourceRef,
+        },
+      }
+    },
+    store: {
+      currentBranchId: 'main',
+      readDescription() {
+        return {
+          appId: 'widgetva-app',
+          workspaceId: 'main',
+          widgets: [],
+          links: [],
+        }
+      },
+      readState() {
+        return {
+          stateId: 'main:s1',
+          branchId: 'main',
+          shared: {},
+          widgets: {},
+        }
+      },
+      listLinks() {
+        return []
+      },
+    },
+  }
+
+  const workspace = createWidgetWorkspace({ runtime, widgets: [] })
+  workspace.commitCoordinationOperationResult = (options = {}) => {
+    committedOptions.push(options)
+    return {
+      changed: options.changed === true,
+      propagationSummary: {
+        sourceRef: options.sourceRef || null,
+      },
+    }
+  }
+
+  const result = await workspace.executeActionAndCommitCoordination({
+    name: 'scatter.zoomDomain',
+    params: { xDomain: [2400, 3600] },
+  })
+
+  assert.equal(actionCalls.length, 1)
+  assert.equal(result.ok, true)
+  assert.equal(committedOptions[0]?.sourceRef, sourceRef)
+  assert.equal(result.coordinationResult.propagationSummary.sourceRef, sourceRef)
+})
+
+test('workspace observation attaches a renderer-provided visual image', () => {
+  const runtime = {
+    store: {
+      readState() {
+        return { stateId: 'main:s1', summary: 'Current view', shared: {}, widgets: {} }
+      },
+      readWorkspaceDescription() {
+        return { workspaceRef: 'wl://workspace/main', widgets: [], links: [] }
+      },
+      listWidgetDescriptions() { return [] },
+    },
+  }
+  const workspace = createWidgetWorkspace({
+    runtime,
+    widgets: [],
+    viewSnapshotProvider: ({ state }) => ({
+      image: {
+        ref: `view-image:${state.stateId}`,
+        mimeType: 'image/png',
+        data: 'data:image/png;base64,TEST',
+      },
+      summary: 'Rendered current view',
+    }),
+  })
+
+  const observation = workspace.readObservation({ query: 'Inspect the chart.' })
+  assert.equal(observation.view.image.ref, 'view-image:main:s1')
+  assert.equal(observation.view.image.mimeType, 'image/png')
+  assert.equal(observation.view.summary, 'Rendered current view')
+  workspace.setViewSnapshotProvider(null)
+  assert.equal(workspace.readObservation().view.image, null)
 })

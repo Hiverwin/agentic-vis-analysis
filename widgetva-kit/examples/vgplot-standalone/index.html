@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WidgetVA Vgplot Standalone Harness</title>
+    <style>
+      :root {
+        --bg: #f3f7fc;
+        --panel: #ffffff;
+        --line: #d6e3f2;
+        --text: #16324f;
+        --muted: #6a7f96;
+        --blue: #2f6fb0;
+        --blue-soft: #dcecff;
+        --gold: #c6912b;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "SF Pro Text", "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #f8fbff 0%, #edf4fb 100%);
+        color: var(--text);
+      }
+      .page {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 24px;
+        display: grid;
+        gap: 16px;
+      }
+      .hero {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px 20px;
+      }
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--blue);
+      }
+      .hero p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--muted);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr) 380px;
+        gap: 16px;
+        align-items: start;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 16px;
+        min-height: 100%;
+      }
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 15px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--blue);
+      }
+      .controls {
+        display: grid;
+        gap: 10px;
+      }
+      .agent-panel {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        background: #fbfdff;
+        display: grid;
+        gap: 10px;
+      }
+      .agent-panel p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      .agent-grid {
+        display: grid;
+        gap: 8px;
+      }
+      .agent-grid.two {
+        grid-template-columns: minmax(0, 1fr) 96px;
+      }
+      .agent-label {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      textarea,
+      input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: white;
+        color: var(--text);
+        padding: 10px 11px;
+        font-size: 13px;
+        font-family: inherit;
+      }
+      textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+      .prompt-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .prompt-chip {
+        border: 1px solid rgba(47, 111, 176, 0.16);
+        background: #f5f9ff;
+        color: #56708b;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .agent-status {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .control-group {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        background: #fbfdff;
+      }
+      .control-group h3 {
+        margin: 0 0 8px;
+        font-size: 13px;
+        color: var(--text);
+      }
+      .control-group p {
+        margin: 0 0 10px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+      button {
+        width: 100%;
+        border: 1px solid rgba(47, 111, 176, 0.18);
+        background: linear-gradient(180deg, #fdfefe 0%, #edf5ff 100%);
+        color: var(--blue);
+        border-radius: 10px;
+        padding: 9px 11px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button + button {
+        margin-top: 8px;
+      }
+      .workspace {
+        display: grid;
+        gap: 12px;
+      }
+      .workspace-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        background: #fbfdff;
+      }
+      .workspace-card h3 {
+        margin: 0 0 6px;
+        font-size: 14px;
+      }
+      .workspace-card p {
+        margin: 0 0 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .chip {
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #eef5ff;
+        color: #56708b;
+        font-size: 12px;
+      }
+      svg {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid var(--line);
+      }
+      .axis-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .sidebar {
+        display: grid;
+        gap: 12px;
+      }
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--text);
+        background: #f8fbff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        max-height: 240px;
+        overflow: auto;
+      }
+      .legend {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <h1>WidgetVA Vgplot Harness</h1>
+        <p>
+          A standalone runtime harness for the current `vgplot` provider path. This page does not depend on
+          `apps/widgetva-system`; it only exercises WidgetVA's `canonical action -> provider execution -> capture -> verify` chain
+          against a minimal context/plot runtime assembly.
+        </p>
+      </section>
+
+      <section class="grid">
+        <aside class="panel">
+          <h2>Controls</h2>
+          <div class="controls">
+            <section class="agent-panel">
+              <h3>Natural Language Agent</h3>
+              <p>
+                This panel sends the current workspace observation to a real model, lets it choose structured
+                actions/perceptions, executes them on the vgplot runtime, and returns the final answer.
+              </p>
+              <div class="agent-grid">
+                <label class="agent-label" for="agent-objective">Objective</label>
+                <textarea id="agent-objective" placeholder="Ask the agent to inspect, zoom, filter, or answer a question about the current scatter view."></textarea>
+              </div>
+              <div class="prompt-list" id="agent-prompt-list"></div>
+              <div class="agent-grid two">
+                <div>
+                  <label class="agent-label" for="agent-model">Model</label>
+                  <input id="agent-model" value="deepseek/deepseek-v4-flash" />
+                </div>
+                <div>
+                  <label class="agent-label" for="agent-max-turns">Turns</label>
+                  <input id="agent-max-turns" value="3" />
+                </div>
+              </div>
+              <button type="button" id="run-agent-button">Run Agent</button>
+              <div class="agent-status" id="agent-status">Agent idle.</div>
+              <pre id="agent-response"></pre>
+            </section>
+            <div id="control-groups"></div>
+          </div>
+        </aside>
+
+        <main class="panel workspace">
+          <div class="workspace-card">
+            <h2>Workspace</h2>
+            <h3>Scatter Runtime Harness</h3>
+            <p>
+              Human controls mutate provider-native runtime state directly. Agent controls route canonical action
+              names into the vgplot provider executor, then we read provider-native verification evidence back.
+            </p>
+            <div class="chips" id="workspace-chips"></div>
+            <svg id="scatter-view" viewBox="0 0 780 420" aria-label="Scatter harness"></svg>
+            <div class="axis-labels">
+              <span>Horsepower</span>
+              <span>MPG</span>
+            </div>
+            <div class="legend">
+              <span><span class="dot" style="background:#2f6fb0"></span>Visible point</span>
+              <span><span class="dot" style="background:#c6912b"></span>Selected point</span>
+              <span><span class="dot" style="background:#8fa9c2"></span>Dimmed point</span>
+            </div>
+          </div>
+        </main>
+
+        <aside class="panel sidebar">
+          <div>
+            <h2>Provider State</h2>
+            <pre id="provider-state"></pre>
+          </div>
+          <div>
+            <h2>Provider Verify</h2>
+            <pre id="provider-verify"></pre>
+          </div>
+          <div>
+            <h2>Action Request</h2>
+            <pre id="widget-verify"></pre>
+          </div>
+          <div>
+            <h2>Last Action</h2>
+            <pre id="action-log"></pre>
+          </div>
+        </aside>
+      </section>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-import { readWorkspaceStateFromStore } from '../../core/runtime/workspaceStoreReaders.js'
+import { readWorkspaceStateFromStore } from '../store/workspaceStoreReaders.js'
 import {
   withSelectionSubmodel,
 } from './selectionStateModel.js'

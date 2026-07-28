@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import {
   describeObservableD3PageShape,
   findObservableWorkerFrame,
+  inferObservableD3ScatterSemanticHints,
   isObservableD3NotebookPage,
   isObservableWorkerFrameUrl,
   parseObservableNotebookIdentity,
@@ -40,6 +41,7 @@ function makeRoot({ href, bodyText = '', iframes = [] } = {}) {
 test('isObservableD3NotebookPage recognizes official Observable D3 notebook urls', () => {
   assert.equal(isObservableD3NotebookPage('https://observablehq.com/@d3/scatterplot'), true)
   assert.equal(isObservableD3NotebookPage('https://observablehq.com/@d3/bar-chart/2'), true)
+  assert.equal(isObservableD3NotebookPage('https://observablehq.com/@ytchen/penguin-scatter-bar'), true)
   assert.equal(isObservableD3NotebookPage('https://vega.github.io/vega-lite/examples/point_2d.html'), false)
 })
 
@@ -57,6 +59,16 @@ test('parseObservableNotebookIdentity extracts owner slug and version', () => {
       version: '2',
       path: '/@d3/index-chart/2',
       url: 'https://observablehq.com/@d3/index-chart/2',
+    },
+  )
+  assert.deepEqual(
+    parseObservableNotebookIdentity('https://observablehq.com/@ytchen/penguin-scatter-bar'),
+    {
+      owner: '@ytchen',
+      slug: 'penguin-scatter-bar',
+      version: null,
+      path: '/@ytchen/penguin-scatter-bar',
+      url: 'https://observablehq.com/@ytchen/penguin-scatter-bar',
     },
   )
 })
@@ -133,5 +145,32 @@ test('describeObservableD3PageShape summarizes the currently observed Observable
       src: 'https://d3.static.observableusercontent.com/next/worker-CMofg8OD.html',
     },
     bodyTextPreview: 'D3\nchart = Scatterplot(cars, { x: d => d.mpg, y: d => d.hp })',
+    bodyTextHint: 'D3\nchart = Scatterplot(cars, { x: d => d.mpg, y: d => d.hp })',
   })
+})
+
+test('inferObservableD3ScatterSemanticHints extracts field accessors from notebook text', () => {
+  assert.deepEqual(
+    inferObservableD3ScatterSemanticHints({
+      bodyTextHint: 'D3\nchart = Scatterplot(cars, { x: d => d.Miles_per_Gallon, y: d => d.Horsepower })',
+    }),
+    {
+      xField: 'Miles_per_Gallon',
+      yField: 'Horsepower',
+      matrixFields: [],
+    },
+  )
+})
+
+test('inferObservableD3ScatterSemanticHints extracts scatterplot matrix columns from notebook text', () => {
+  assert.deepEqual(
+    inferObservableD3ScatterSemanticHints({
+      bodyTextHint: 'columns = ["economy (mpg)", "power (hp)", "weight (lb)", "displacement (cc)"]',
+    }),
+    {
+      xField: null,
+      yField: null,
+      matrixFields: ['economy (mpg)', 'power (hp)', 'weight (lb)', 'displacement (cc)'],
+    },
+  )
 })

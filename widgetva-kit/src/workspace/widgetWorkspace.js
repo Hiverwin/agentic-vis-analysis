@@ -8,44 +8,58 @@ import {
   readLatestResponseFromStore,
   readSnapshotFromStore,
   readWorkspaceDescriptionFromStore,
-} from '../core/runtime/workspaceStoreReaders.js'
+} from './store/workspaceStoreReaders.js'
 import { updateSharedStateInStore } from './state/workspaceSharedStateMutators.js'
 import {
-  normalizePrimarySelectionView,
-  readSelectionByWidgetView,
-  readSelectionPrimaryView,
-  readSelectionRegistry,
-  withSelectionSubmodel,
-} from './state/selectionStateModel.js'
-import {
-  readLinkDefinitions,
-  readLinkTopologyState,
-  withLinkSubmodel,
-} from './state/linkStateModel.js'
-import { stripWidgetLinkCompatibilityFields } from '../core/protocol/widgetLinks.js'
+  describeWorkspaceComposition,
+  getWorkspaceLink,
+  listWorkspaceLinks,
+  readWorkspaceLinkTopology,
+  registerWorkspaceLink,
+  removeWorkspaceLink,
+} from './coordination/workspaceLinkOperations.js'
 import { readFocusState } from './state/focusStateModel.js'
-import { deriveHighlightState, withHighlightSubmodel } from './state/highlightStateModel.js'
-import { readViewportState } from './state/viewportStateModel.js'
-import { deriveWorkspaceTopology } from '../core/runtime/deriveWorkspaceTopology.js'
-import { makeLinkRef, parseRef } from '../core/protocol/refs.js'
-import { makeWidgetLink } from '../core/protocol/widgetLinks.js'
+import { deriveHighlightState } from './state/highlightStateModel.js'
+import { deriveGlobalFiltersFromSelection } from './state/sharedStateDerivation.js'
 import {
-  deriveGlobalFiltersFromSelection,
-  deriveHighlightStateFromSelection,
-} from '../core/runtime/sharedStateDerivation.js'
+  readActiveAnalyticalContext as readActiveAnalyticalContextFromState,
+  readSharedAnalyticalState as readSharedAnalyticalStateFromState,
+  readSharedFilterContext as readSharedFilterContextFromState,
+  readSharedSemanticFocus as readSharedSemanticFocusFromState,
+  readSharedStructuralContext as readSharedStructuralContextFromState,
+  readSharedTransformationContext as readSharedTransformationContextFromState,
+  readSharedViewContext as readSharedViewContextFromState,
+  readSharedViewportContext as readSharedViewportContextFromState,
+  readViewStatesByWidget as readViewStatesByWidgetFromState,
+} from './state/sharedAnalyticalStateModel.js'
+import { buildCoordinationStateFromWorkspaceState } from './state/coordinationStateModel.js'
 import {
-  buildSharedFilterContext,
-  buildSharedSemanticFocus,
-  buildSharedStructuralContext,
+  buildCoordinationOperationResult as buildCoordinationOperationResultPayload,
   buildCoordinationResult,
-  buildPropagationSummary,
-  buildSharedAnalyticalStateFromWorkspaceState,
-  buildSharedViewportContext,
-  buildSharedTransformationContext,
-  buildSharedViewContext,
-  buildSharedViewStateByWidget,
-  buildRuntimeObservation,
-} from '../core/runtime/agentFacingSurface.js'
+  buildEmptyComputedPropagationSummary,
+  buildEmptyCoordinationOperationResult,
+} from './coordinationOperationResult.js'
+import { buildPropagationSummary } from './coordination/linkPropagationSummary.js'
+import {
+  clearGlobalFilters as clearGlobalFiltersOperation,
+  clearHighlightState as clearHighlightStateOperation,
+  clearSelectionState as clearSelectionStateOperation,
+  commitClearHighlightState as commitClearHighlightStateOperation,
+  commitPrimarySelectionToGlobalFilters as commitPrimarySelectionToGlobalFiltersOperation,
+  commitPrimarySelectionToHighlight as commitPrimarySelectionToHighlightOperation,
+  promotePrimarySelectionToGlobalFilters as promotePrimarySelectionToGlobalFiltersOperation,
+  promotePrimarySelectionToHighlight as promotePrimarySelectionToHighlightOperation,
+  setFocusedWidget as setFocusedWidgetOperation,
+  setGlobalFilters as setGlobalFiltersOperation,
+  setHighlightState as setHighlightStateOperation,
+  setSelectionPrimary as setSelectionPrimaryOperation,
+  setSelectionRegistry as setSelectionRegistryOperation,
+  setSelectionViewsByWidget as setSelectionViewsByWidgetOperation,
+  syncGlobalFiltersFromControlState as syncGlobalFiltersFromControlStateOperation,
+  syncPrimarySelectionEntry as syncPrimarySelectionEntryOperation,
+  upsertSelectionEntry as upsertSelectionEntryOperation,
+} from './coordination/workspaceCoordinationOperations.js'
+import { readObservation as readObservationFromContext } from '../core/agent/context/observation.js'
 
 export const WIDGET_WORKSPACE_PUBLIC_METHODS = [
   'listWidgetDescriptions',
@@ -53,12 +67,6 @@ export const WIDGET_WORKSPACE_PUBLIC_METHODS = [
   'getWidget',
   'registerWidget',
   'removeWidget',
-  'listActionNames',
-  'listAvailableActions',
-  'listPerceptionNames',
-  'listAvailablePerceptions',
-  'listActionDescriptors',
-  'listPerceptionDescriptors',
   'listLinks',
   'getLink',
   'registerLink',
@@ -69,6 +77,7 @@ export const WIDGET_WORKSPACE_PUBLIC_METHODS = [
   'readView',
   'readState',
   'readObservation',
+  'setViewSnapshotProvider',
   'readCoordinationState',
   'readSharedAnalyticalState',
   'readSharedFilterContext',
@@ -92,10 +101,9 @@ export const WIDGET_WORKSPACE_PUBLIC_METHODS = [
   'readSelectionState',
   'readGlobalFilters',
   'readCoordinationControlState',
-  'readInteractionBindings',
+  'readControlProjection',
   'buildGlobalFiltersFromControlState',
   'syncGlobalFiltersFromControlState',
-  'readAnnotations',
   'setLatestCoordinationResult',
   'clearLatestCoordinationResult',
   'resetEphemeralCoordinationState',
@@ -115,9 +123,6 @@ export const WIDGET_WORKSPACE_PUBLIC_METHODS = [
   'setFocusedWidget',
   'setGlobalFilters',
   'clearGlobalFilters',
-  'setAnnotations',
-  'addAnnotation',
-  'clearAnnotations',
   'readStateHistory',
   'listBranches',
   'readCurrentSnapshotMeta',
@@ -148,12 +153,6 @@ function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
-function uniqueNames(descriptors = []) {
-  return descriptors
-    .map((descriptor) => descriptor?.name)
-    .filter((name, index, names) => typeof name === 'string' && name.length > 0 && names.indexOf(name) === index)
-}
-
 function uniqueRefs(values = []) {
   return values.filter((value, index) => typeof value === 'string' && value.length > 0 && values.indexOf(value) === index)
 }
@@ -171,7 +170,7 @@ function defaultControlStateAdapter() {
         focusedWidgetId: focusedWidgetId || null,
       }
     },
-    deriveInteractionBindings(controlState = {}, {
+    deriveControlProjection(controlState = {}, {
       fallbackSelectedWidgetId = null,
     } = {}) {
       return {
@@ -189,45 +188,6 @@ function defaultControlStateAdapter() {
     deriveGlobalFiltersFromSelection(primarySelection = null, { rangeDomains = {} } = {}) {
       return deriveGlobalFiltersFromSelection(primarySelection, { rangeDomains })
     },
-  }
-}
-
-function cloneObject(value) {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? clone(value)
-    : {}
-}
-
-export function buildEmptyComputedPropagationSummary() {
-  return {
-    active: false,
-    sourceWidgetId: null,
-    sourceSelectionRef: null,
-    selectionRef: null,
-    selectionSummary: null,
-    targetWidgetIds: [],
-    linkCount: 0,
-    links: [],
-    activatedLinks: [],
-    affectedTargets: [],
-    skippedTargets: [],
-    verificationGuidance: [],
-    verificationSteps: [],
-    topology: null,
-  }
-}
-
-export function buildEmptyCoordinationOperationResult({
-  changed = false,
-  coordinationState = null,
-} = {}) {
-  return {
-    changed,
-    coordinationState,
-    propagationSummary: buildEmptyComputedPropagationSummary(),
-    verificationSteps: [],
-    verificationResults: [],
-    verification: null,
   }
 }
 
@@ -262,57 +222,6 @@ function uniqueWidgets(widgets = []) {
   return result
 }
 
-function resolveWorkspaceIdentity(runtime) {
-  const description = runtime?.store?.readDescription?.() || {}
-  return {
-    appId: description?.appId || parseRef(description?.widgets?.[0]?.ref)?.appId || 'widgetva-app',
-    workspaceId: description?.workspaceId || parseRef(description?.widgets?.[0]?.ref)?.workspaceId || 'main',
-  }
-}
-
-function resolveLinkEndpointWidgetId(value, widgets = []) {
-  if (typeof value !== 'string' || value.length === 0) return null
-  const parsedWidgetId = parseRef(value)?.widgetId
-  if (parsedWidgetId) return parsedWidgetId
-  const byWidgetRef = widgets.find((widget) => widget?.resolveWidgetRef?.() === value)?.resolveWidgetId?.()
-  if (byWidgetRef) return byWidgetRef
-  const byWidgetId = widgets.find((widget) => widget?.resolveWidgetId?.() === value)?.resolveWidgetId?.()
-  if (byWidgetId) return byWidgetId
-  return value
-}
-
-function inferLinkId(link = {}, widgets = []) {
-  const explicitId = parseRef(link?.ref)?.linkId || link?.linkId || null
-  if (explicitId) return explicitId
-  const sourceRef = link?.from || link?.sourceRef || null
-  const targetRef = link?.to || link?.targetRef || null
-  const sourceWidgetId = link?.sourceWidgetId
-    || resolveLinkEndpointWidgetId(sourceRef, widgets)
-    || 'source'
-  const targetWidgetId = link?.targetWidgetId
-    || resolveLinkEndpointWidgetId(targetRef, widgets)
-    || 'target'
-  const primitive = link?.primitive || link?.kind || 'link'
-  return `${sourceWidgetId}_${primitive}_${targetWidgetId}`
-}
-
-function normalizeWorkspaceLink(link, widgets, runtime) {
-  const { appId, workspaceId } = resolveWorkspaceIdentity(runtime)
-  const linkId = inferLinkId(link, widgets)
-  const sourceWidgetId = link?.sourceWidgetId
-    || resolveLinkEndpointWidgetId(link?.from || link?.sourceRef || null, widgets)
-    || null
-  const targetWidgetId = link?.targetWidgetId
-    || resolveLinkEndpointWidgetId(link?.to || link?.targetRef || null, widgets)
-    || null
-  return makeWidgetLink({
-    ...link,
-    ...(sourceWidgetId ? { sourceWidgetId } : {}),
-    ...(targetWidgetId ? { targetWidgetId } : {}),
-    ref: link?.ref || makeLinkRef({ appId, workspaceId, linkId }),
-  })
-}
-
 export class WidgetWorkspace {
   constructor({
     widgets = [],
@@ -320,6 +229,7 @@ export class WidgetWorkspace {
     runtime = null,
     disposeWidgetsOnDispose = false,
     controlStateAdapter = null,
+    viewSnapshotProvider = null,
   } = {}) {
     this.widgets = uniqueWidgets(widgets)
     this.runtime = resolveSharedRuntime(this.widgets, runtime)
@@ -328,6 +238,14 @@ export class WidgetWorkspace {
       ...defaultControlStateAdapter(),
       ...(controlStateAdapter && typeof controlStateAdapter === 'object' ? controlStateAdapter : {}),
     }
+    // Optional renderer/browser capability. The provider must return a
+    // normalized view payload (for example { image: { ref, mimeType, data } })
+    // synchronously for the current committed runtime state. Keeping this at
+    // the workspace boundary lets every Kit agent consumer share screenshot
+    // capture without coupling the agent loop to a particular renderer.
+    this.viewSnapshotProvider = typeof viewSnapshotProvider === 'function'
+      ? viewSnapshotProvider
+      : null
     this.links = []
     this.latestCoordinationResult = null
 
@@ -345,19 +263,19 @@ export class WidgetWorkspace {
         runtime: 'optional explicit shared runtime if widgets are added later',
         disposeWidgetsOnDispose: 'whether workspace.dispose() should also dispose registered widgets',
         controlStateAdapter: 'optional app-level adapter for mapping workspace coordination state to human control-state bindings and back',
+        viewSnapshotProvider: 'optional renderer/browser adapter invoked by readObservation() to attach the current visual snapshot/image to agent observation; may return the payload directly or a Promise',
       },
       composition: {
         widgets: 'workspace registers and resolves widget instances by ref or widgetId',
         links: 'workspace registers coordination links and exposes topology summaries',
-        actions: 'workspace-level executeAction/queryPerception delegate through the shared runtime',
-        contractReads: 'workspace can enumerate widget descriptions plus workspace-level action/perception descriptors and names',
+        actions: 'workspace-level executeAction/queryPerception delegate through the shared runtime public API',
       },
       coordinationState: {
         sharedAnalyticalState: 'canonical workspace-level shared analytical state bundle, including shared sub-contexts for filter, viewport, semantic focus, structural context, shared view, and shared transformations',
         sharedFilterContext: 'stable read surface for the shared filtering context that subsequent analysis turns should inherit',
         sharedViewportContext: 'stable read surface for the shared viewport/focus region that subsequent analysis turns should inherit',
         sharedSemanticFocus: 'stable read surface for the workspace-shared focus/selection/highlight context',
-        sharedStructuralContext: 'stable read surface for shared structural comparison context, including links and annotations',
+        sharedStructuralContext: 'stable read surface for shared structural comparison context, including links and comparison targets',
         sharedViewContext: 'workspace-level summary of currently active widget view-state overrides',
         sharedTransformationContext: 'workspace-level summary of view/data/structure transformations that affect later analysis turns',
         activeAnalyticalContext: 'compact workspace-level summary of which shared analytical contexts are currently active',
@@ -372,9 +290,8 @@ export class WidgetWorkspace {
         },
         globalFilters: 'workspace-level shared filter state',
         highlight: 'derived convenience read exposing cross-widget highlight feedback summaries',
-        annotations: 'workspace-level shared notes/evidence markers',
         links: {
-          definitions: 'canonical registered workspace link definitions with explicit primitive, effect, activationPolicy, effectConstraint, and optional advanced responseSpec',
+          definitions: 'canonical registered workspace link definitions with explicit kind, effect, activationPolicy, effectConstraint, and optional advanced responseSpec',
           topology: 'derived coordination topology read surface built from registered links and widget descriptions',
         },
         latestCoordinationResult: 'ephemeral workspace-level runtime result bundle for the most recent coordination-driving interaction',
@@ -435,76 +352,20 @@ export class WidgetWorkspace {
     return existing
   }
 
-  listActionDescriptors() {
-    return this.describe()?.actions || []
-  }
-
-  listPerceptionDescriptors() {
-    return this.describe()?.perceptionQueries || []
-  }
-
-  listActionNames() {
-    return uniqueNames(this.listActionDescriptors())
-  }
-
-  listAvailableActions() {
-    return this.listActionDescriptors()
-  }
-
-  listPerceptionNames() {
-    return uniqueNames(this.listPerceptionDescriptors())
-  }
-
-  listAvailablePerceptions() {
-    return this.listPerceptionDescriptors()
-  }
-
   listLinks() {
-    const registeredLinks = this.runtime?.store?.listLinks?.() || []
-    if (registeredLinks.length > 0) return registeredLinks.map((link) => stripWidgetLinkCompatibilityFields(link))
-    return this.links.map((link) => stripWidgetLinkCompatibilityFields(link))
+    return listWorkspaceLinks(this)
   }
 
   getLink(refOrId) {
-    const links = this.listLinks()
-    return links.find((link) => link?.ref === refOrId || parseRef(link?.ref)?.linkId === refOrId || link?.linkId === refOrId) || null
+    return getWorkspaceLink(this, refOrId)
   }
 
   registerLink(link) {
-    if (!link || typeof link !== 'object') {
-      throw new Error('WidgetWorkspace.registerLink requires a link object.')
-    }
-    const normalizedLink = normalizeWorkspaceLink(link, this.widgets, this.runtime)
-    if (typeof this.runtime?.store?.registerLink === 'function') {
-      this.runtime.store.registerLink(normalizedLink)
-    }
-    const existingIndex = this.links.findIndex((entry) => entry?.ref === normalizedLink.ref)
-    if (existingIndex >= 0) {
-      this.links.splice(existingIndex, 1, normalizedLink)
-    } else {
-      this.links.push(normalizedLink)
-    }
-    this.updateSharedCoordinationState((shared) => withLinkSubmodel(shared, {
-      definitions: this.links,
-      topology: this.readLinkTopology(),
-    }))
-    return normalizedLink
+    return registerWorkspaceLink(this, link)
   }
 
   removeLink(refOrId) {
-    const existing = this.getLink(refOrId)
-    if (!existing) return null
-    if (typeof this.runtime?.store?.removeLinkDefinition === 'function') {
-      this.runtime.store.removeLinkDefinition(existing.ref)
-    } else if (this.runtime?.store?.links && existing.ref in this.runtime.store.links) {
-      delete this.runtime.store.links[existing.ref]
-    }
-    this.links = this.links.filter((entry) => entry?.ref !== existing.ref)
-    this.updateSharedCoordinationState((shared) => withLinkSubmodel(shared, {
-      definitions: this.links,
-      topology: this.readLinkTopology(),
-    }))
-    return existing
+    return removeWorkspaceLink(this, refOrId)
   }
 
   describe() {
@@ -518,12 +379,7 @@ export class WidgetWorkspace {
   }
 
   describeComposition() {
-    return {
-      widgetRefs: this.listWidgets().map((widget) => widget?.resolveWidgetRef?.()).filter(Boolean),
-      widgetIds: this.listWidgets().map((widget) => widget?.resolveWidgetId?.()).filter(Boolean),
-      links: this.listLinks(),
-      topology: this.readLinkTopology(),
-    }
+    return describeWorkspaceComposition(this)
   }
 
   readState(options = {}) {
@@ -535,140 +391,116 @@ export class WidgetWorkspace {
   }
 
   readObservation(options = {}) {
-    const state = this.readState(options.readStateOptions || options)
+    const state = this.readState(options?.readStateOptions || options)
     const sharedAnalyticalState = this.readSharedAnalyticalState({ state })
-    return buildRuntimeObservation({
-      description: this.describeWorkspace(),
-      state,
-      coordinationState: this.readCoordinationState(),
-      sharedAnalyticalState,
-      availableActions: this.listAvailableActions(),
-      availablePerceptions: this.listAvailablePerceptions(),
-      propagationSummary: this.readPropagationSummary(options.propagationOptions || {}),
-      latestCoordinationResult: this.readLatestCoordinationResult(),
-    })
+    const suppliedView = options?.view && typeof options.view === 'object'
+      ? options.view
+      : {}
+    const buildObservation = (providedView = null) => {
+      const capturedView = providedView && typeof providedView === 'object' && !Array.isArray(providedView)
+        ? { ...suppliedView, ...providedView }
+        : suppliedView
+      return readObservationFromContext({
+        query: options?.query || null,
+        describeWorkspace: () => this.describeWorkspace(),
+        state,
+        sharedAnalyticalState,
+        view: Object.keys(capturedView).length > 0 ? capturedView : null,
+        options,
+      })
+    }
+    if (this.viewSnapshotProvider) {
+      const provided = this.viewSnapshotProvider({
+        workspace: this,
+        state,
+        sharedAnalyticalState,
+        options,
+      })
+      if (provided && typeof provided.then === 'function') {
+        return provided.then((resolvedView) => buildObservation(resolvedView))
+      }
+      return buildObservation(provided)
+    }
+    return buildObservation()
+  }
+
+  setViewSnapshotProvider(provider = null) {
+    if (provider != null && typeof provider !== 'function') {
+      throw new Error('WidgetWorkspace.setViewSnapshotProvider requires a function or null.')
+    }
+    this.viewSnapshotProvider = provider || null
+    return this.viewSnapshotProvider
   }
 
   readCoordinationState() {
-    const state = this.readState() || {}
-    const derivedTopology = this.readLinkTopology()
-    return {
-      stateId: state?.stateId || null,
-      branchId: state?.branchId || this.runtime?.store?.currentBranchId || null,
-      focusedWidgetRef: state?.shared?.focusedWidget || null,
-      selections: {
-        registry: readSelectionRegistry(state?.shared || {}),
-        views: {
-          primary: readSelectionPrimaryView(state?.shared || {}),
-          byWidget: readSelectionByWidgetView(state?.shared || {}),
-        },
-      },
-      focus: readFocusState(state?.shared || {}, state?.widgets || {}),
-      highlight: deriveHighlightState(state),
-      viewport: readViewportState(state?.shared || {}),
-      globalFilters: clone(state?.shared?.globalFilters || {}),
-      annotations: clone(state?.annotations || state?.shared?.annotations || []),
-      links: {
-        definitions: readLinkDefinitions(state?.shared || {}),
-        topology: (() => {
-          const sharedTopology = readLinkTopologyState(state?.shared || {})
-          return Object.keys(sharedTopology).length > 0 ? sharedTopology : derivedTopology
-        })(),
-      },
-    }
+    return buildCoordinationStateFromWorkspaceState(this.readState() || {}, {
+      currentBranchId: this.runtime?.store?.currentBranchId || null,
+      derivedTopology: this.readLinkTopology(),
+    })
   }
 
   readSharedAnalyticalState(options = {}) {
     const state = options?.state || this.readState() || {}
-    return buildSharedAnalyticalStateFromWorkspaceState(state, {
+    return readSharedAnalyticalStateFromState(state, {
       derivedTopology: this.readLinkTopology(),
     })
   }
 
   readSharedFilterContext(options = {}) {
-    return clone(this.readSharedAnalyticalState(options)?.sharedFilterContext || {
-      globalFilters: {},
-      selectionRef: null,
-      selectionPredicates: [],
+    const state = options?.state || this.readState() || {}
+    return readSharedFilterContextFromState(state, {
+      derivedTopology: this.readLinkTopology(),
     })
   }
 
   readSharedViewportContext(options = {}) {
     const state = options?.state || this.readState() || {}
-    const sharedAnalyticalState = this.readSharedAnalyticalState({ state })
-    return clone(sharedAnalyticalState?.sharedViewportContext || buildSharedViewportContext({
-      focusedWidgetRef: sharedAnalyticalState?.focusedWidgetRef || null,
-      viewport: sharedAnalyticalState?.viewport || null,
-      comparisonTargets: sharedAnalyticalState?.comparisonTargets || [],
-    }))
+    return readSharedViewportContextFromState(state, {
+      derivedTopology: this.readLinkTopology(),
+    })
   }
 
   readSharedSemanticFocus(options = {}) {
     const state = options?.state || this.readState() || {}
-    const sharedAnalyticalState = this.readSharedAnalyticalState({ state })
-    return clone(sharedAnalyticalState?.sharedSemanticFocus || buildSharedSemanticFocus({
-      focusedWidgetRef: sharedAnalyticalState?.focusedWidgetRef || null,
-      focus: sharedAnalyticalState?.focus || null,
-      primarySelection: sharedAnalyticalState?.selections?.primary || null,
-      highlight: sharedAnalyticalState?.highlight || null,
-    }))
+    return readSharedSemanticFocusFromState(state, {
+      derivedTopology: this.readLinkTopology(),
+    })
   }
 
   readSharedStructuralContext(options = {}) {
     const state = options?.state || this.readState() || {}
-    const sharedAnalyticalState = this.readSharedAnalyticalState({ state })
-    return clone(sharedAnalyticalState?.sharedStructuralContext || buildSharedStructuralContext({
-      links: sharedAnalyticalState?.links || null,
-      comparisonTargets: sharedAnalyticalState?.comparisonTargets || [],
-      annotations: sharedAnalyticalState?.annotations || [],
-    }))
+    return readSharedStructuralContextFromState(state, {
+      derivedTopology: this.readLinkTopology(),
+    })
   }
 
   readActiveAnalyticalContext(options = {}) {
-    return clone(this.readSharedAnalyticalState(options)?.activeAnalyticalContext || {
-      activeContextKinds: [],
-      focusedWidgetRef: null,
-      globalFilters: null,
-      primarySelection: null,
-      highlight: null,
-      viewport: null,
-      comparisonTargets: null,
-      structure: {
-        linkCount: 0,
-        annotationCount: 0,
-      },
-      transformationContext: {
-        activeWidgetRefs: [],
-        widgets: {},
-      },
-      viewStatesByWidget: null,
+    const state = options?.state || this.readState() || {}
+    return readActiveAnalyticalContextFromState(state, {
+      derivedTopology: this.readLinkTopology(),
     })
   }
 
   readViewStatesByWidget(options = {}) {
     const state = options?.state || this.readState() || {}
-    return buildSharedViewStateByWidget(state)
+    return readViewStatesByWidgetFromState(state)
   }
 
   readSharedViewContext(options = {}) {
     const state = options?.state || this.readState() || {}
-    return buildSharedViewContext({
-      viewStatesByWidget: this.readViewStatesByWidget({ state }),
-    })
+    return readSharedViewContextFromState(state)
   }
 
   readSharedTransformationContext(options = {}) {
     const state = options?.state || this.readState() || {}
-    return buildSharedTransformationContext({
-      viewStatesByWidget: this.readViewStatesByWidget({ state }),
-    })
+    return readSharedTransformationContextFromState(state)
   }
 
   readPropagationSummary(options = {}) {
     return buildPropagationSummary({
       state: this.readState(),
       description: this.describeWorkspace(),
-      linkEngine: this.runtime?.linkEngine || null,
+      coordinationEngine: this.runtime?.coordinationEngine || null,
       sourceRef: options?.sourceRef || null,
     })
   }
@@ -682,7 +514,7 @@ export class WidgetWorkspace {
     return buildCoordinationResult({
       state: this.readState(),
       description: this.describeWorkspace(),
-      linkEngine: this.runtime?.linkEngine || null,
+      coordinationEngine: this.runtime?.coordinationEngine || null,
       store: this.runtime?.store || null,
       sourceRef: options?.sourceRef || null,
       resolveTargetWidget: (targetRef, targetWidgetId) => (
@@ -695,18 +527,11 @@ export class WidgetWorkspace {
 
   buildCoordinationOperationResult(options = {}) {
     const coordinationResult = this.readComputedCoordinationResult(options)
-    return {
+    return buildCoordinationOperationResultPayload({
       changed: options?.changed === true,
       coordinationState: this.readCoordinationState(),
-      propagationSummary: clone(coordinationResult?.propagationSummary || null),
-      verificationSteps: Array.isArray(coordinationResult?.verificationSteps)
-        ? [...coordinationResult.verificationSteps]
-        : [],
-      verificationResults: Array.isArray(coordinationResult?.verificationResults)
-        ? [...coordinationResult.verificationResults]
-        : [],
-      verification: clone(coordinationResult?.verification || null),
-    }
+      coordinationResult,
+    })
   }
 
   commitCoordinationOperationResult(options = {}) {
@@ -767,11 +592,11 @@ export class WidgetWorkspace {
     })
   }
 
-  readInteractionBindings({
+  readControlProjection({
     rangeDomains = {},
     fallbackSelectedWidgetId = null,
   } = {}) {
-    return this.controlStateAdapter.deriveInteractionBindings(
+    return this.controlStateAdapter.deriveControlProjection(
       this.readCoordinationControlState({ rangeDomains }),
       { fallbackSelectedWidgetId },
     )
@@ -782,13 +607,7 @@ export class WidgetWorkspace {
   }
 
   syncGlobalFiltersFromControlState(controlState = {}, { rangeDomains = {} } = {}) {
-    const globalFilters = this.buildGlobalFiltersFromControlState(controlState, { rangeDomains })
-    this.setGlobalFilters(globalFilters)
-    return globalFilters
-  }
-
-  readAnnotations() {
-    return this.readCoordinationState().annotations
+    return syncGlobalFiltersFromControlStateOperation(this, controlState, { rangeDomains })
   }
 
   setLatestCoordinationResult(result = null) {
@@ -809,335 +628,55 @@ export class WidgetWorkspace {
   }
 
   setHighlightState(highlight = null) {
-    return this.updateSharedCoordinationState((shared) => withHighlightSubmodel(shared, highlight))
+    return setHighlightStateOperation(this, highlight)
   }
 
   clearHighlightState() {
-    const previousHighlightState = this.readHighlightState()
-    const hadHighlight = Array.isArray(previousHighlightState?.entries) && previousHighlightState.entries.length > 0
-    if (!hadHighlight) {
-      return {
-        changed: false,
-        previousHighlightState,
-        nextHighlightState: previousHighlightState,
-      }
-    }
-    this.setHighlightState(null)
-    return {
-      changed: true,
-      previousHighlightState,
-      nextHighlightState: this.readHighlightState(),
-    }
+    return clearHighlightStateOperation(this)
   }
 
   commitClearHighlightState(options = {}) {
-    const transition = this.clearHighlightState()
-    return this.commitCoordinationOperationResult({
-      ...options,
-      changed: transition?.changed === true,
-    })
+    return commitClearHighlightStateOperation(this, options)
   }
 
   setSelectionPrimary(selection = null) {
-    const currentState = this.readState() || {}
-    const currentShared = currentState?.shared || {}
-    const normalizedSelection = selection == null
-      ? null
-      : normalizePrimarySelectionView(selection, readSelectionRegistry(currentShared))
-    return this.updateSharedCoordinationState((shared) => withSelectionSubmodel(shared, {
-      primary: normalizedSelection,
-    }))
+    return setSelectionPrimaryOperation(this, selection)
   }
 
   setSelectionViewsByWidget(selectionViewsByWidget = {}) {
-    return this.updateSharedCoordinationState((shared) => withSelectionSubmodel(shared, {
-      byWidget: cloneObject(selectionViewsByWidget),
-    }))
+    return setSelectionViewsByWidgetOperation(this, selectionViewsByWidget)
   }
 
   setSelectionRegistry(selectionRegistry = {}) {
-    return this.updateSharedCoordinationState((shared) => withSelectionSubmodel(shared, {
-      registry: cloneObject(selectionRegistry),
-    }))
+    return setSelectionRegistryOperation(this, selectionRegistry)
   }
 
   upsertSelectionEntry(selectionEntry, options = {}) {
-    if (!selectionEntry || typeof selectionEntry !== 'object') {
-      throw new Error('WidgetWorkspace.upsertSelectionEntry requires a selection entry object.')
-    }
-
-    const selectionRef = typeof selectionEntry.selectionRef === 'string' && selectionEntry.selectionRef.length > 0
-      ? selectionEntry.selectionRef
-      : null
-    if (!selectionRef) {
-      throw new Error('WidgetWorkspace.upsertSelectionEntry requires selectionEntry.selectionRef.')
-    }
-
-    const sourceWidget = this.getWidget(selectionEntry.sourceWidgetId || selectionEntry.sourceWidgetRef || null)
-    const sourceWidgetId = selectionEntry.sourceWidgetId
-      || sourceWidget?.resolveWidgetId?.()
-      || sourceWidget?.describe?.()?.widgetId
-      || null
-    const sourceWidgetRef = selectionEntry.sourceWidgetRef
-      || sourceWidget?.resolveWidgetRef?.()
-      || sourceWidget?.describe?.()?.ref
-      || null
-
-    if (!sourceWidgetId) {
-      throw new Error('WidgetWorkspace.upsertSelectionEntry requires a sourceWidgetId or resolvable source widget.')
-    }
-
-    const makePrimary = options?.makePrimary !== false
-    const updateByWidget = options?.updateByWidget !== false
-    const focusSourceWidget = options?.focusSourceWidget !== false
-
-    const currentSelectionState = this.readSelectionState() || { registry: {}, views: { primary: null, byWidget: {} } }
-    const previousFocusedWidgetRef = this.readCoordinationState()?.focusedWidgetRef || null
-    const nextRegistry = {
-      ...(currentSelectionState?.registry || {}),
-      [selectionRef]: clone({
-        ...selectionEntry,
-        selectionRef,
-        sourceWidgetId,
-        sourceWidgetRef,
-      }),
-    }
-    const nextByWidget = updateByWidget
-      ? {
-          ...(currentSelectionState?.views?.byWidget || {}),
-          [sourceWidgetId]: { selectionRef },
-        }
-      : (currentSelectionState?.views?.byWidget || {})
-    const nextPrimary = makePrimary
-      ? normalizePrimarySelectionView({ selectionRef }, nextRegistry)
-      : currentSelectionState?.views?.primary || null
-
-    this.updateSharedCoordinationState((shared) => {
-      const nextShared = withSelectionSubmodel(shared, {
-        registry: nextRegistry,
-        byWidget: cloneObject(nextByWidget),
-        primary: nextPrimary,
-      })
-      if (focusSourceWidget) {
-        nextShared.focusedWidget = sourceWidgetRef || nextShared.focusedWidget || null
-      }
-      return nextShared
-    })
-
-    const nextSelectionState = this.readSelectionState() || { registry: {}, views: { primary: null, byWidget: {} } }
-    const nextFocusedWidgetRef = this.readCoordinationState()?.focusedWidgetRef || null
-    return {
-      changed:
-        JSON.stringify(nextSelectionState) !== JSON.stringify(currentSelectionState)
-        || nextFocusedWidgetRef !== previousFocusedWidgetRef,
-      previousSelectionState: currentSelectionState,
-      nextSelectionState,
-      previousFocusedWidgetRef,
-      nextFocusedWidgetRef,
-      selectionRef,
-      sourceWidgetId,
-      sourceWidgetRef,
-    }
+    return upsertSelectionEntryOperation(this, selectionEntry, options)
   }
 
   syncPrimarySelectionEntry(selectionEntry = null, options = {}) {
-    if (selectionEntry == null) {
-      const transition = this.clearSelectionState()
-      return this.commitCoordinationOperationResult({
-        ...options,
-        changed: transition?.changed === true,
-      })
-    }
-
-    const transition = this.upsertSelectionEntry(selectionEntry, {
-      makePrimary: options?.makePrimary !== false,
-      updateByWidget: options?.updateByWidget !== false,
-      focusSourceWidget: options?.focusSourceWidget !== false,
-    })
-    return this.commitCoordinationOperationResult({
-      ...options,
-      changed: transition?.changed === true,
-    })
+    return syncPrimarySelectionEntryOperation(this, selectionEntry, options)
   }
 
   clearSelectionState() {
-    const previousSelectionState = this.readSelectionState() || { registry: {}, views: { primary: null, byWidget: {} } }
-    const hadSelection = Object.keys(previousSelectionState?.registry || {}).length > 0
-      || previousSelectionState?.views?.primary != null
-      || Object.keys(previousSelectionState?.views?.byWidget || {}).length > 0
-    if (!hadSelection) {
-      return {
-        changed: false,
-        previousSelectionState,
-        nextSelectionState: previousSelectionState,
-      }
-    }
-    this.updateSharedCoordinationState((shared) => withSelectionSubmodel(shared, {
-      primary: null,
-      byWidget: {},
-      registry: {},
-    }))
-    return {
-      changed: true,
-      previousSelectionState,
-      nextSelectionState: this.readSelectionState() || { registry: {}, views: { primary: null, byWidget: {} } },
-    }
+    return clearSelectionStateOperation(this)
   }
 
   promotePrimarySelectionToGlobalFilters(options = {}) {
-    const primarySelection = this.readSelectionState()?.views?.primary || null
-    if (!primarySelection?.selectionRef) {
-      return {
-        changed: false,
-        globalFilterPatch: null,
-        nextGlobalFilters: this.readGlobalFilters(),
-      }
-    }
-
-    const globalFilterPatch = this.controlStateAdapter.deriveGlobalFiltersFromSelection(primarySelection, {
-      rangeDomains: options?.rangeDomains || {},
-    })
-    if (!globalFilterPatch) {
-      return {
-        changed: false,
-        globalFilterPatch: null,
-        nextGlobalFilters: this.readGlobalFilters(),
-      }
-    }
-
-    const baseGlobalFilters = options?.baseGlobalFilters && typeof options.baseGlobalFilters === 'object' && !Array.isArray(options.baseGlobalFilters)
-      ? clone(options.baseGlobalFilters)
-      : clone(this.readGlobalFilters() || {})
-    const nextGlobalFilters = {
-      ...baseGlobalFilters,
-      ...globalFilterPatch,
-    }
-    const clearSelection = options?.clearSelection !== false
-    const focusSourceWidget = options?.focusSourceWidget !== false
-    const focusedWidgetRef = focusSourceWidget
-      ? this.resolveWorkspaceWidgetRef(primarySelection.sourceWidgetId || primarySelection.sourceWidgetRef, { allowNull: true })
-      : null
-
-    this.updateSharedCoordinationState((shared) => {
-      const nextShared = {
-        ...(shared || {}),
-        globalFilters: clone(nextGlobalFilters),
-      }
-      if (clearSelection) {
-        return withSelectionSubmodel({
-          ...nextShared,
-          focusedWidget: focusedWidgetRef || nextShared.focusedWidget || null,
-        }, {
-          primary: null,
-          byWidget: {},
-          registry: {},
-        })
-      }
-      if (focusSourceWidget) {
-        nextShared.focusedWidget = focusedWidgetRef || nextShared.focusedWidget || null
-      }
-      return nextShared
-    })
-
-    return {
-      changed: true,
-      selectionRef: primarySelection.selectionRef,
-      globalFilterPatch,
-      nextGlobalFilters,
-    }
+    return promotePrimarySelectionToGlobalFiltersOperation(this, options)
   }
 
   commitPrimarySelectionToGlobalFilters(options = {}) {
-    const promotionResult = this.promotePrimarySelectionToGlobalFilters(options)
-    if (!promotionResult?.changed) {
-      return {
-        ...this.commitCoordinationOperationResult({
-          ...options,
-          changed: false,
-        }),
-        changed: false,
-        selectionRef: promotionResult?.selectionRef || null,
-        globalFilterPatch: promotionResult?.globalFilterPatch || null,
-        nextGlobalFilters: promotionResult?.nextGlobalFilters || this.readGlobalFilters(),
-      }
-    }
-
-    return {
-      ...this.commitCoordinationOperationResult({
-        ...options,
-        changed: true,
-      }),
-      changed: true,
-      selectionRef: promotionResult.selectionRef || null,
-      globalFilterPatch: promotionResult.globalFilterPatch || null,
-      nextGlobalFilters: promotionResult.nextGlobalFilters || this.readGlobalFilters(),
-    }
+    return commitPrimarySelectionToGlobalFiltersOperation(this, options)
   }
 
   promotePrimarySelectionToHighlight(options = {}) {
-    const primarySelection = this.readSelectionState()?.views?.primary || null
-    if (!primarySelection?.selectionRef) {
-      return {
-        changed: false,
-        highlightState: this.readHighlightState(),
-      }
-    }
-
-    const highlightState = deriveHighlightStateFromSelection(primarySelection, this.listWidgets())
-    const clearSelection = options?.clearSelection !== false
-    const focusSourceWidget = options?.focusSourceWidget !== false
-    const focusedWidgetRef = focusSourceWidget
-      ? this.resolveWorkspaceWidgetRef(primarySelection.sourceWidgetId || primarySelection.sourceWidgetRef, { allowNull: true })
-      : null
-
-    this.updateSharedCoordinationState((shared) => {
-      const nextShared = withHighlightSubmodel(shared, highlightState)
-      if (clearSelection) {
-        return withSelectionSubmodel({
-          ...nextShared,
-          focusedWidget: focusedWidgetRef || nextShared.focusedWidget || null,
-        }, {
-          primary: null,
-          byWidget: {},
-          registry: {},
-        })
-      }
-      if (focusSourceWidget) {
-        nextShared.focusedWidget = focusedWidgetRef || nextShared.focusedWidget || null
-      }
-      return nextShared
-    })
-
-    return {
-      changed: true,
-      selectionRef: primarySelection.selectionRef,
-      highlightState: this.readHighlightState(),
-    }
+    return promotePrimarySelectionToHighlightOperation(this, options)
   }
 
   commitPrimarySelectionToHighlight(options = {}) {
-    const promotionResult = this.promotePrimarySelectionToHighlight(options)
-    if (!promotionResult?.changed) {
-      return {
-        ...this.commitCoordinationOperationResult({
-          ...options,
-          changed: false,
-        }),
-        changed: false,
-        selectionRef: promotionResult?.selectionRef || null,
-        highlightState: promotionResult?.highlightState || this.readHighlightState(),
-      }
-    }
-
-    return {
-      ...this.commitCoordinationOperationResult({
-        ...options,
-        changed: true,
-      }),
-      changed: true,
-      selectionRef: promotionResult.selectionRef || null,
-      highlightState: promotionResult.highlightState || this.readHighlightState(),
-    }
+    return commitPrimarySelectionToHighlightOperation(this, options)
   }
 
   resolveWorkspaceWidgetRef(refOrId, { allowNull = false } = {}) {
@@ -1164,44 +703,15 @@ export class WidgetWorkspace {
   }
 
   setFocusedWidget(refOrId) {
-    const widgetRef = this.resolveWorkspaceWidgetRef(refOrId, { allowNull: true })
-    return this.updateSharedCoordinationState((shared) => ({
-      ...shared,
-      focusedWidget: widgetRef,
-    }))
+    return setFocusedWidgetOperation(this, refOrId)
   }
 
   setGlobalFilters(globalFilters = {}) {
-    const nextGlobalFilters = globalFilters && typeof globalFilters === 'object' && !Array.isArray(globalFilters)
-      ? clone(globalFilters)
-      : {}
-    return this.updateSharedCoordinationState((shared) => ({
-      ...shared,
-      globalFilters: nextGlobalFilters,
-    }))
+    return setGlobalFiltersOperation(this, globalFilters)
   }
 
   clearGlobalFilters() {
-    return this.setGlobalFilters({})
-  }
-
-  setAnnotations(annotations = []) {
-    const nextAnnotations = Array.isArray(annotations) ? clone(annotations) : []
-    return this.updateSharedCoordinationState((shared) => ({
-      ...shared,
-      annotations: nextAnnotations,
-    }))
-  }
-
-  addAnnotation(annotation) {
-    return this.updateSharedCoordinationState((shared) => ({
-      ...shared,
-      annotations: [...(Array.isArray(shared?.annotations) ? shared.annotations : []), clone(annotation)],
-    }))
-  }
-
-  clearAnnotations() {
-    return this.setAnnotations([])
+    return clearGlobalFiltersOperation(this)
   }
 
   readStateHistory(options = {}) {
@@ -1242,11 +752,7 @@ export class WidgetWorkspace {
   }
 
   readLinkTopology() {
-    const widgets = this.describe()?.widgets || this.listWidgets().map((widget) => widget?.describe?.()).filter(Boolean)
-    return deriveWorkspaceTopology({
-      widgets,
-      links: this.listLinks(),
-    })
+    return readWorkspaceLinkTopology(this)
   }
 
   async executeAction(call) {
@@ -1254,7 +760,6 @@ export class WidgetWorkspace {
       throw new Error('WidgetWorkspace.executeAction requires an action call object.')
     }
     const executeAction = this.runtime?.executeAction
-      || this.runtime?.actionExecutor?.run?.bind(this.runtime.actionExecutor)
     if (typeof executeAction !== 'function') {
       throw new Error('WidgetWorkspace.executeAction requires a runtime with executeAction support.')
     }
@@ -1268,11 +773,13 @@ export class WidgetWorkspace {
   async executeActionAndCommitCoordination(call, options = {}) {
     const result = await this.executeAction(call)
     if (!result?.ok) return result
+    const propagationSourceRef = result?.result?.propagationSourceRef || null
     return {
       ...result,
       coordinationResult: this.commitCoordinationOperationResult({
         ...options,
         changed: options?.changed !== false,
+        ...(propagationSourceRef ? { sourceRef: propagationSourceRef } : {}),
       }),
     }
   }
@@ -1282,8 +789,6 @@ export class WidgetWorkspace {
       throw new Error('WidgetWorkspace.queryPerception requires a perception call object.')
     }
     const queryPerception = this.runtime?.queryPerception
-      || this.runtime?.perceptionQueryRegistry?.query?.bind(this.runtime.perceptionQueryRegistry)
-      || this.runtime?.perceptionQueryRegistry?.run?.bind(this.runtime.perceptionQueryRegistry)
     if (typeof queryPerception !== 'function') {
       throw new Error('WidgetWorkspace.queryPerception requires a runtime with queryPerception support.')
     }
@@ -1300,7 +805,6 @@ export class WidgetWorkspace {
     }
     const runDataQuery = this.runtime?.runDataQuery
       || this.runtime?.queryData
-      || this.runtime?.dataQueryExecutor?.run?.bind(this.runtime.dataQueryExecutor)
     if (typeof runDataQuery !== 'function') {
       throw new Error('WidgetWorkspace.runDataQuery requires a runtime with data-query support.')
     }
@@ -1330,7 +834,6 @@ export class WidgetWorkspace {
   async jumpToState(options = {}) {
     const normalizedOptions = typeof options === 'string' ? { stateId: options } : (options || {})
     const executeAction = this.runtime?.executeAction
-      || this.runtime?.actionExecutor?.run?.bind(this.runtime.actionExecutor)
     if (typeof executeAction !== 'function') {
       throw new Error('WidgetWorkspace.jumpToState requires a runtime with executeAction support.')
     }
@@ -1351,7 +854,6 @@ export class WidgetWorkspace {
   async branchFromState(options = {}) {
     const normalizedOptions = options && typeof options === 'object' ? options : {}
     const executeAction = this.runtime?.executeAction
-      || this.runtime?.actionExecutor?.run?.bind(this.runtime.actionExecutor)
     if (typeof executeAction !== 'function') {
       throw new Error('WidgetWorkspace.branchFromState requires a runtime with executeAction support.')
     }

@@ -1,23 +1,234 @@
-import { isActionPreconditionError, throwActionPrecondition } from './actionErrors.js'
-import { validateAgainstSchema } from './schemaValidation.js'
-import { ActionContext } from './ActionContext.js'
-import { buildActionVerificationPayload } from './actionVerification.js'
-import { beginBranchFromStateInStore } from './workspaceStoreMutators.js'
-import { createDefaultWidgetVAHostBridge, createWidgetVAHostBridge } from './hostBridge.js'
-import { makeTransformState } from '../protocol/state.js'
-import { makeActionResult, makeResultError } from '../protocol/results.js'
+import { isActionPreconditionError, throwActionPrecondition } from './support/actionErrors.js'
+import { validateAgainstSchema } from './support/schemaValidation.js'
+import { beginBranchFromStateInStore } from '../../workspace/store/workspaceStoreMutators.js'
 import {
-  makeActionExecutorActionEntry,
-  makeActionExecutorCapabilities,
-  makeActionExecutorCounts,
-  makeActionExecutorSummary,
-} from '../protocol/actionExecutor.js'
-import { buildSelectionPayloadFromState } from './materializers/selectionStateShape.js'
+  listStoreWidgets,
+  readRuntimeDataFromStore,
+  readSnapshotEntryFromStore,
+  readSnapshotFromStore,
+  readWorkspaceStateFromStore,
+  resolveWidgetRecordFromStore,
+} from '../../workspace/store/workspaceStoreReaders.js'
+import { createDefaultWidgetVAHostBridge, createWidgetVAHostBridge } from '../../host/hostBridge.js'
+import { makeActionResult, makeResultError } from '../../contracts/result-contracts.js'
+import { buildSelectionPayloadFromState } from './materializers/state/selectionStateShape.js'
 import { readSelectionRegistry } from '../../workspace/state/selectionStateModel.js'
-import { deriveHighlightState, withHighlightSubmodel } from '../../workspace/state/highlightStateModel.js'
-import { updateSharedStateInStore } from '../../workspace/state/workspaceSharedStateMutators.js'
-import { buildScopedParams, readNormalizedQueryScope } from './queryScope.js'
-import { describeActionUsageSurface } from './actionUsageSurface.js'
+import { withFocusSubmodel } from '../../workspace/state/focusStateModel.js'
+import {
+  hasRedoSelectionHistoryInStore,
+  hasUndoSelectionHistoryInStore,
+  resetWorkspaceInteractionsInStore,
+  restoreSnapshotStateInStore,
+  redoSelectionInStore,
+  undoSelectionInStore,
+} from '../../workspace/state/workspaceSharedStateMutators.js'
+import {
+  buildScopedParams,
+  hasScopedQueryScopeValues,
+  readNormalizedQueryScope,
+  readScopedQueryScope,
+} from './support/queryScope.js'
+import { ACTION_CALL_SCHEMA } from '../../schemas/actions.schema.js'
+import {
+  commitActionPatch,
+  enrichActionOutputWithPropagation,
+  finalizeActionCommit,
+} from './StateCommitter.js'
+
+function widgetMatchesKind(widget, kind) {
+  if (!widget || !kind) return Boolean(widget)
+  if (widget.kind === kind) return true
+  return Array.isArray(widget.recognizedKinds) && widget.recognizedKinds.includes(kind)
+}
+
+function makeActionHandlerContextSummary() {
+  return {
+    methods: [
+      'targetWidget',
+      'readRows',
+    ],
+    capabilities: {
+      workspaceRead: true,
+      workspaceWrite: false,
+      specMutation: false,
+      snapshotReplay: false,
+      runtimeDataRead: true,
+      runtimeDataWrite: false,
+      widgetTargetResolution: true,
+      selectionMutation: false,
+      linkPropagation: false,
+    },
+    integrations: {
+      store: false,
+      appState: false,
+      coordinationEngine: false,
+      traceRecorder: false,
+    },
+  }
+}
+
+function createActionRuntimeContext({
+  store,
+  descriptor,
+  call,
+  hostBridge,
+  getState,
+  getAppState,
+  subscribe,
+  targetWidget = null,
+}) {
+  const context = {
+    store,
+    descriptor,
+    call,
+    hostBridge: hostBridge || createWidgetVAHostBridge({ getState, getAppState, subscribe }) || createDefaultWidgetVAHostBridge(),
+    resolvedTargetWidget: targetWidget || null,
+
+    readCurrentState(options = {}) {
+      return readWorkspaceStateFromStore(this.store, options)
+    },
+
+    readQueryScope() {
+      return readNormalizedQueryScope({
+        call: this.call,
+        descriptor: this.descriptor,
+      })
+    },
+
+    resolveTargetWidget({ kind, targetRef } = {}) {
+      const resolvedRef = targetRef || this.readQueryScope()?.widgetRef || null
+      if (resolvedRef) {
+        const explicitTarget = resolveWidgetRecordFromStore(this.store, resolvedRef)
+        if (!explicitTarget || !widgetMatchesKind(explicitTarget, kind)) return null
+        return explicitTarget
+      }
+
+      const widgets = listStoreWidgets(this.store)
+      if (kind) {
+        const matches = widgets
+          .filter((widget) => widgetMatchesKind(widget, kind))
+          .map((widget) => resolveWidgetRecordFromStore(this.store, widget.ref) || widget)
+          .filter(Boolean)
+        if (matches.length === 1) return matches[0]
+        return null
+      }
+
+      const focusedWidgetRef = this.readCurrentState()?.shared?.focusedWidget || this.hostBridge.readFocusedWidgetRef?.() || null
+      if (focusedWidgetRef) {
+        const focusedWidget = resolveWidgetRecordFromStore(this.store, focusedWidgetRef)
+        if (focusedWidget) return focusedWidget
+      }
+      const firstWidget = widgets[0] || null
+      return firstWidget
+        ? resolveWidgetRecordFromStore(this.store, firstWidget.ref) || firstWidget
+        : null
+    },
+
+    targetWidget(options = {}) {
+      const kind = options?.kind || this.descriptor?.supportedWidgetKinds?.[0] || null
+      const targetRef = options?.targetRef || this.readQueryScope()?.widgetRef || null
+      if (this.resolvedTargetWidget
+        && (!targetRef || this.resolvedTargetWidget.ref === targetRef || this.resolvedTargetWidget.widgetId === targetRef)
+        && widgetMatchesKind(this.resolvedTargetWidget, kind)) {
+        return this.resolvedTargetWidget
+      }
+      const resolvedTargetWidget = this.resolveTargetWidget({ kind, targetRef })
+      if (resolvedTargetWidget) return resolvedTargetWidget
+      if (kind) {
+        throw new Error(`No ${kind}-compatible target widget is available for this action.`)
+      }
+      throw new Error('No target widget is available for this action.')
+    },
+
+    readRows(widgetRef = null) {
+      const resolvedWidgetRef = widgetRef || this.targetWidget()?.ref || null
+      const widgetState = this.store.getWidgetState?.(resolvedWidgetRef)
+        || this.readCurrentState({ refs: [resolvedWidgetRef] })?.widgets?.[resolvedWidgetRef]
+      const currentDataRef = widgetState?.data?.materializedDataRef
+        || widgetState?.data?.currentDataRef
+        || widgetState?.data?.sourceDataRef
+      const runtimeData = readRuntimeDataFromStore(this.store, currentDataRef)
+      return Array.isArray(runtimeData?.rows) ? runtimeData.rows : []
+    },
+  }
+
+  return context
+}
+
+function createActionHandlerContext(runtimeContext) {
+  const context = {
+    call: runtimeContext.call,
+
+    targetWidget(options = {}) {
+      return runtimeContext.targetWidget(options)
+    },
+
+    readRows(widgetRef = null) {
+      return runtimeContext.readRows(widgetRef)
+    },
+  }
+
+  Object.defineProperty(context, '__widgetvaActionHandlerContext', {
+    value: true,
+    enumerable: false,
+    configurable: false,
+  })
+  return context
+}
+
+function cloneArray(value) {
+  return Array.isArray(value) ? [...value] : []
+}
+
+function makeActionExecutorCounts(counts = {}) {
+  return {
+    descriptorCount: 0,
+    handlerCount: 0,
+    preconditionCount: 0,
+    ...counts,
+  }
+}
+
+function makeActionExecutorCapabilities(capabilities = {}) {
+  return {
+    paramsValidation: false,
+    preconditionValidation: false,
+    stateSync: false,
+    traceRecording: false,
+    linkPropagation: false,
+    ...capabilities,
+  }
+}
+
+function makeActionExecutorActionEntry(action = {}) {
+  return {
+    name: action?.name || '',
+    category: action?.category ?? null,
+    targetRef: action?.targetRef ?? null,
+    affectedRefs: cloneArray(action?.affectedRefs),
+    affectedStatePaths: cloneArray(action?.affectedStatePaths),
+    supportedWidgetKinds: Array.isArray(action?.supportedWidgetKinds)
+      ? [...action.supportedWidgetKinds]
+      : null,
+    hasPreconditions: action?.hasPreconditions === true,
+    preconditionDescriptorCount: action?.preconditionDescriptorCount || 0,
+    preconditionHandlerRegistered: action?.preconditionHandlerRegistered === true,
+    postconditionCount: action?.postconditionCount || 0,
+    reversible: action?.reversible === true,
+    effectCount: action?.effectCount || 0,
+    effectKinds: cloneArray(action?.effectKinds),
+  }
+}
+
+function makeActionExecutorSummary(summary = {}) {
+  return {
+    counts: makeActionExecutorCounts(summary?.counts),
+    capabilities: makeActionExecutorCapabilities(summary?.capabilities),
+    actions: Array.isArray(summary?.actions)
+      ? summary.actions.map((action) => makeActionExecutorActionEntry(action))
+      : [],
+  }
+}
 
 function buildActionError({ call, code, message, recoveryHints, details }) {
   return makeActionResult({
@@ -110,34 +321,6 @@ function primaryWidgetSpecFromSnapshot(snapshot) {
   return firstWidget?.rawSpec || null
 }
 
-function isFilterTransformForField(transform, field) {
-  return transform?.filter?.field === field
-}
-
-function replaceFilterTransformForField(transforms, field, nextTransform) {
-  const safeTransforms = Array.isArray(transforms) ? transforms : []
-  const nextTransforms = safeTransforms.filter((transform) => !isFilterTransformForField(transform, field))
-  return [...nextTransforms, nextTransform]
-}
-
-function replaceAggregateTransforms(transforms, nextTransform) {
-  const safeTransforms = Array.isArray(transforms) ? transforms : []
-  const nextTransforms = safeTransforms.filter((transform) => !Array.isArray(transform?.aggregate))
-  return nextTransform ? [...nextTransforms, nextTransform] : nextTransforms
-}
-
-function isActionHighlightTransformForField(transform, field) {
-  return transform?.kind === 'highlight'
-    && transform?.source === 'action:widget.highlightValues'
-    && transform?.spec?.field === field
-}
-
-function replaceActionHighlightTransformForField(transforms, field, nextTransform) {
-  const safeTransforms = Array.isArray(transforms) ? transforms : []
-  const nextTransforms = safeTransforms.filter((transform) => !isActionHighlightTransformForField(transform, field))
-  return nextTransform ? [...nextTransforms, nextTransform] : nextTransforms
-}
-
 function resolvedWidgetRefForTarget(store, targetRef) {
   if (!targetRef) return null
   return store?.getResolvedWidgetForTarget?.(targetRef)?.ref
@@ -145,20 +328,28 @@ function resolvedWidgetRefForTarget(store, targetRef) {
     || null
 }
 
-function uniqueValues(values) {
-  return [...new Set((Array.isArray(values) ? values : []).filter((value) => value != null))]
+function readWidgetKindForTarget(store, targetRef) {
+  if (!targetRef) return null
+  const widget = store?.getResolvedWidgetForTarget?.(targetRef)
+    || store?.getResolvedWidget?.(targetRef)
+    || store?.getWidgetDescription?.(targetRef)
+    || store?.getWidgetState?.(targetRef)
+    || null
+  return typeof widget?.kind === 'string' && widget.kind.length > 0 ? widget.kind : null
 }
 
-function markHighlightedRows(rows, field, values) {
-  const highlightedValues = uniqueValues(values)
-  return (Array.isArray(rows) ? rows : []).map((row) => ({
-    ...row,
-    __widgetva_highlight: highlightedValues.includes(row?.[field]),
-  }))
+function actionFamilyName(actionName) {
+  if (typeof actionName !== 'string' || actionName.length === 0) return null
+  const [family] = actionName.split('.')
+  return family || null
 }
 
-function annotationsFromSnapshot(snapshot) {
-  return Array.isArray(snapshot?.shared?.annotations) ? snapshot.shared.annotations : []
+function descriptorCanTargetWidget(descriptor, actionName, targetKind) {
+  if (!descriptor?.name || descriptor.name !== actionName || !targetKind) return false
+  if (Array.isArray(descriptor.supportedWidgetKinds) && descriptor.supportedWidgetKinds.length > 0) {
+    return descriptor.supportedWidgetKinds.includes(targetKind)
+  }
+  return actionFamilyName(actionName) === targetKind
 }
 
 function mergeUniqueRefs(...groups) {
@@ -169,21 +360,13 @@ function mergeUniqueRefs(...groups) {
   )
 }
 
-function callRemovesSelection(output, descriptor) {
-  if (output?.clearsSelection === true) return true
-  const actionName = descriptor?.name || null
-  return actionName === 'widget.clearSelection'
-    || actionName === 'workspace.resetWorkspace'
-    || actionName === 'workspace.jumpToState'
-    || actionName === 'workspace.branchFromState'
-}
-
 function buildHandlerInput(call) {
   const params = buildScopedParams({
     params: call?.params || {},
     call,
   })
-  const queryScope = params?.queryScope || readNormalizedQueryScope({ call })
+  const targetRef = readNormalizedQueryScope({ call }).widgetRef || null
+  const scopedQueryScope = readScopedQueryScope({ call })
   const {
     targetRef: _legacyTargetRef,
     dataRef: _legacyDataRef,
@@ -194,9 +377,30 @@ function buildHandlerInput(call) {
   return {
     ...params,
     ...rawCall,
-    ...(queryScope?.widgetRef ? { targetRef: queryScope.widgetRef } : {}),
+    ...(targetRef ? { targetRef } : {}),
     params,
-    queryScope,
+    queryScope: hasScopedQueryScopeValues(scopedQueryScope) ? scopedQueryScope : null,
+  }
+}
+
+function buildHandlerParams(call) {
+  return buildScopedParams({
+    params: call?.params || {},
+    call,
+  })
+}
+
+function buildActionCallSchemaInput(call) {
+  const {
+    targetRef: _legacyTargetRef,
+    dataRef: _legacyDataRef,
+    queryScope: _legacyQueryScope,
+    ...rawCall
+  } = call && typeof call === 'object' ? call : {}
+  const queryScope = readScopedQueryScope({ call })
+  return {
+    ...rawCall,
+    ...(hasScopedQueryScopeValues(queryScope) ? { queryScope } : {}),
   }
 }
 
@@ -208,56 +412,49 @@ function hasOwnParam(params, name) {
   return Boolean(params) && Object.prototype.hasOwnProperty.call(params, name)
 }
 
-function buildResolvedQueryScope(normalizedCall, usageSummary) {
+function buildResolvedQueryScope(normalizedCall) {
   const currentScope = normalizedCall?.queryScope && typeof normalizedCall.queryScope === 'object'
     ? { ...normalizedCall.queryScope }
     : {}
 
-  if (!currentScope.widgetRef && typeof usageSummary?.targetRef === 'string' && usageSummary.targetRef.length > 0) {
-    currentScope.widgetRef = usageSummary.targetRef
-  }
-
   return currentScope
 }
 
-function buildExecutableCall(call, usageSummary) {
+function buildExecutableCall(call) {
   const normalizedCall = buildHandlerInput(call)
-  const resolvedQueryScope = buildResolvedQueryScope(normalizedCall, usageSummary)
-  const nextParams = {
-    ...(normalizedCall.params || {}),
-  }
-
-  if (Object.keys(resolvedQueryScope).length > 0) {
-    nextParams.queryScope = resolvedQueryScope
-  }
-
+  const resolvedQueryScope = buildResolvedQueryScope(normalizedCall)
   return {
     ...normalizedCall,
-    ...(resolvedQueryScope?.widgetRef ? { targetRef: resolvedQueryScope.widgetRef } : {}),
-    params: nextParams,
+    ...(normalizedCall?.targetRef ? { targetRef: normalizedCall.targetRef } : {}),
+    params: {
+      ...(normalizedCall.params || {}),
+    },
     queryScope: resolvedQueryScope,
   }
 }
 
-function buildInvalidParamsRecoveryHints({ call, usageSummary, usageEntry, executableCall }) {
+function readRequiredParamsFromSchema(schema) {
+  return Array.isArray(schema?.required)
+    ? schema.required.filter((param) => typeof param === 'string' && param.length > 0)
+    : []
+}
+
+function buildInvalidParamsRecoveryHints({ call, requiredParams, executableCall }) {
   const hints = []
   const params = executableCall?.params || {}
-  const missingParams = (usageEntry?.requiredParams || []).filter((param) => !hasOwnParam(params, param))
+  const missingParams = (requiredParams || []).filter((param) => !hasOwnParam(params, param))
 
   if (missingParams.length > 0) {
     hints.push(`Provide the required params for ${call?.name || 'this action'}: ${missingParams.join(', ')}.`)
   }
-  if (usageEntry && Object.keys(usageEntry.suggestedParams || {}).length > 0) {
-    hints.push(`The runtime suggests these params, but does not inject them automatically: ${Object.keys(usageEntry.suggestedParams).join(', ')}.`)
-  }
-  if (typeof usageSummary?.targetRef === 'string' && usageSummary.targetRef.length > 0 && call?.name) {
-    hints.push(`Call describeActionUsage({ targetRef: "${usageSummary.targetRef}", actionName: "${call.name}" }) to inspect recommended params.`)
+  if (call?.name) {
+    hints.push(`Call describeWorkspace() to inspect the action descriptor and params schema for ${call.name}.`)
   }
   return hints
 }
 
 export class ActionExecutor {
-  constructor({ store, sync, hostBridge, getState, getAppState, subscribe, linkEngine, traceRecorder } = {}) {
+  constructor({ store, sync, hostBridge, getState, getAppState, subscribe, coordinationEngine, traceRecorder } = {}) {
     this.store = store || {
       listActions() {
         return []
@@ -265,16 +462,20 @@ export class ActionExecutor {
     }
     this.sync = typeof sync === 'function' ? sync : () => {}
     this.hostBridge = hostBridge || createWidgetVAHostBridge({ getState, getAppState, subscribe }) || createDefaultWidgetVAHostBridge()
-    this.linkEngine = linkEngine || null
+    this.coordinationEngine = coordinationEngine || null
     this.traceRecorder = traceRecorder || null
     this.builtinDescriptors = new Map()
     this.handlers = new Map()
     this.preconditionHandlers = new Map()
+    this.runtimeHandlerNames = new Set()
+    this.isRegisteringRuntimeHandlers = false
     this.registerBuiltinPreconditions()
+    this.isRegisteringRuntimeHandlers = true
     this.registerBuiltinHandlers()
+    this.isRegisteringRuntimeHandlers = false
   }
 
-  register(descriptor, handler) {
+  register(descriptor, handler, options = {}) {
     if (!descriptor?.name || typeof handler !== 'function') {
       throw new Error('ActionExecutor.register requires a descriptor.name and handler.')
     }
@@ -283,12 +484,19 @@ export class ActionExecutor {
     }
     this.builtinDescriptors.set(descriptor.name, descriptor)
     this.handlers.set(descriptor.name, handler)
+    if (this.isRegisteringRuntimeHandlers || options.runtimeHandler === true) {
+      this.runtimeHandlerNames.add(descriptor.name)
+    }
   }
 
   list() {
     const descriptors = this.store?.listActions?.() || []
     if (descriptors.length > 0) {
-      return descriptors.filter((descriptor) => this.handlers.has(descriptor.name))
+      const listedDescriptors = descriptors.filter((descriptor) => this.handlers.has(descriptor.name))
+      const listedNames = new Set(listedDescriptors.map((descriptor) => descriptor?.name).filter(Boolean))
+      const exposedBuiltinDescriptors = Array.from(this.builtinDescriptors.values())
+        .filter((descriptor) => descriptor?.exposeInWorkspace === true && !listedNames.has(descriptor.name))
+      return [...listedDescriptors, ...exposedBuiltinDescriptors]
     }
     return Array.from(this.builtinDescriptors.values())
   }
@@ -300,7 +508,6 @@ export class ActionExecutor {
   describeExecutor() {
     const actions = this.list().map((descriptor) => makeActionExecutorActionEntry({
       name: descriptor.name,
-      primitive: descriptor.primitive || null,
       category: descriptor.category || null,
       targetRef: descriptor.targetRef || null,
       affectedRefs: Array.isArray(descriptor.affectedRefs) ? [...descriptor.affectedRefs] : [],
@@ -329,22 +536,14 @@ export class ActionExecutor {
         preconditionValidation: true,
         stateSync: typeof this.sync === 'function',
         traceRecording: typeof this.traceRecorder?.recordAction === 'function',
-        linkPropagation: Boolean(this.linkEngine),
+        linkPropagation: Boolean(this.coordinationEngine),
       }),
       actions,
     })
   }
 
   describeContext() {
-    return ActionContext.describeContract()
-  }
-
-  describeActionUsage(options = {}, contextOverride = null) {
-    return describeActionUsageSurface({
-      actionExecutor: this,
-      options,
-      contextOverride,
-    })
+    return makeActionHandlerContextSummary()
   }
 
   registerPrecondition(name, handler) {
@@ -362,13 +561,16 @@ export class ActionExecutor {
 
     const targetWidgetRef = resolvedWidgetRefForTarget(store, targetRef)
     if (!targetWidgetRef) return null
+    const targetWidgetKind = readWidgetKindForTarget(store, targetRef)
 
     const candidateDescriptors = (store?.listActions?.() || [])
       .filter((descriptor) => descriptor?.name === actionName)
 
     return candidateDescriptors.find((descriptor) => {
       const descriptorTargetRef = descriptor?.targetRef || null
-      if (!descriptorTargetRef) return false
+      if (!descriptorTargetRef) {
+        return descriptorCanTargetWidget(descriptor, actionName, targetWidgetKind)
+      }
       return resolvedWidgetRefForTarget(store, descriptorTargetRef) === targetWidgetRef
     }) || null
   }
@@ -381,15 +583,16 @@ export class ActionExecutor {
     )
   }
 
-  createContext(call, descriptor, contextOverride = null) {
+  createRuntimeContext(call, descriptor, contextOverride = null) {
     const normalizedCall = buildHandlerInput(call)
-    if (contextOverride instanceof ActionContext) {
+    if (contextOverride?.__widgetvaActionRuntimeContext === true) {
       contextOverride.descriptor = descriptor
       contextOverride.call = normalizedCall
       return contextOverride
     }
 
     const store = contextOverride?.store || this.store
+    const targetRef = resolveActionTargetRef(normalizedCall, descriptor)
     const hasStateAccessOverride = typeof contextOverride?.getState === 'function'
       || typeof contextOverride?.getAppState === 'function'
       || typeof contextOverride?.subscribe === 'function'
@@ -408,42 +611,34 @@ export class ActionExecutor {
             }
           : null
       )
-    const ctx = new ActionContext({
+    const ctx = createActionRuntimeContext({
       store,
       descriptor,
       call: normalizedCall,
-      sync: contextOverride?.syncWorkspace || contextOverride?.sync || this.sync || (() => {}),
       hostBridge: overrideHostBridge || this.hostBridge,
       getAppState: contextOverride?.getAppState,
-      linkEngine: contextOverride?.linkEngine || this.linkEngine || null,
-      helpers: {
-        primaryWidgetSpecFromSnapshot,
-        selectionPayloadFromSnapshot,
-        selectionPayloadsFromSnapshot,
-        annotationsFromSnapshot,
-      },
+      targetWidget: contextOverride?.targetWidget || null,
     })
 
-    if (typeof contextOverride?.patchWidget === 'function') {
-      ctx.patchWidget = contextOverride.patchWidget.bind(contextOverride)
-    }
-    if (typeof contextOverride?.propagate === 'function') {
-      ctx.propagate = contextOverride.propagate.bind(contextOverride)
-    }
-    if (typeof contextOverride?.readStatePatch === 'function') {
-      ctx.readStatePatch = contextOverride.readStatePatch.bind(contextOverride)
+    if (!ctx.resolvedTargetWidget && (targetRef || descriptor?.supportedWidgetKinds?.length > 0)) {
+      ctx.resolvedTargetWidget = ctx.resolveTargetWidget({
+        targetRef,
+        kind: descriptor?.supportedWidgetKinds?.[0] || null,
+      })
     }
     if (typeof contextOverride?.readCurrentState === 'function') {
       ctx.readCurrentState = contextOverride.readCurrentState.bind(contextOverride)
     }
-    if (typeof contextOverride?.readDescription === 'function') {
-      ctx.readDescription = contextOverride.readDescription.bind(contextOverride)
-    }
-    if (typeof contextOverride?.clearSelection === 'function') {
-      ctx.clearSelection = contextOverride.clearSelection.bind(contextOverride)
-    }
-
+    Object.defineProperty(ctx, '__widgetvaActionRuntimeContext', {
+      value: true,
+      enumerable: false,
+      configurable: false,
+    })
     return ctx
+  }
+
+  createContext(call, descriptor, contextOverride = null) {
+    return createActionHandlerContext(this.createRuntimeContext(call, descriptor, contextOverride))
   }
 
   async checkPreconditions(call, descriptor, ctx) {
@@ -470,6 +665,23 @@ export class ActionExecutor {
   async run(call, contextOverride = null) {
     const effectiveStore = contextOverride?.store || this.store || null
     const traceRecorder = contextOverride?.traceRecorder || this.traceRecorder || null
+    try {
+      validateAgainstSchema(buildActionCallSchemaInput(call), ACTION_CALL_SCHEMA, 'action')
+    } catch (error) {
+      const result = buildActionError({
+        call,
+        code: 'INVALID_PARAMS',
+        message: error instanceof Error ? error.message : String(error),
+        recoveryHints: ['Inspect the action call schema in describeWorkspace() before retrying.'],
+      })
+      traceRecorder?.recordActionFailure?.({
+        call,
+        code: result.error.code,
+        message: result.error.message,
+        recoveryHints: result.recoveryHints,
+      })
+      return result
+    }
     const resolvedDescriptor = this.resolveDescriptor(call, effectiveStore)
     const targetRef = resolveActionTargetRef(call, resolvedDescriptor)
     const storeDescriptor = this.findCompatibleDescriptor(call?.name, targetRef, effectiveStore)
@@ -502,7 +714,6 @@ export class ActionExecutor {
       })
       traceRecorder?.recordActionFailure?.({
         call,
-        primitive: descriptor?.primitive || null,
         code: result.error.code,
         message: result.error.message,
         recoveryHints: result.recoveryHints,
@@ -510,41 +721,29 @@ export class ActionExecutor {
       return result
     }
 
-    const usageSummary = this.describeActionUsage({
-      targetRef,
-      actionName: call?.name || null,
-      includeSchemas: false,
-      includeExamples: false,
-    }, contextOverride)
-    const usageEntry = Array.isArray(usageSummary?.actions)
-      ? usageSummary.actions.find((entry) => entry?.name === call?.name) || null
-      : null
-    const executableCall = buildExecutableCall(call, usageSummary)
+    const executableCall = buildExecutableCall(call)
 
     if (descriptor?.paramsSchema) {
       try {
         validateAgainstSchema(executableCall.params || {}, descriptor.paramsSchema, 'params')
       } catch (error) {
+        const requiredParams = readRequiredParamsFromSchema(descriptor.paramsSchema)
         const result = buildActionError({
           call: executableCall,
           code: 'INVALID_PARAMS',
           message: error instanceof Error ? error.message : String(error),
           recoveryHints: buildInvalidParamsRecoveryHints({
             call,
-            usageSummary,
-            usageEntry,
+            requiredParams,
             executableCall,
           }),
           details: {
-            targetRef: usageSummary?.targetRef || targetRef || null,
-            requiredParams: usageEntry?.requiredParams || [],
-            suggestedParams: usageEntry?.suggestedParams || {},
-            diagnostics: usageEntry?.diagnostics || usageSummary?.diagnostics || [],
+            targetRef: targetRef || null,
+            requiredParams,
           },
         })
         traceRecorder?.recordActionFailure?.({
           call: executableCall,
-          primitive: descriptor?.primitive || null,
           code: result.error.code,
           message: result.error.message,
           recoveryHints: result.recoveryHints,
@@ -554,71 +753,34 @@ export class ActionExecutor {
     }
 
     try {
-      const ctx = this.createContext(executableCall, descriptor, contextOverride)
-      const previousState = ctx.readCurrentState()
-      await this.checkPreconditions(executableCall, descriptor, ctx)
-      const rawOutput = await handler(buildHandlerInput(executableCall), ctx)
-      const baseNextState = rawOutput?.nextState || ctx.readCurrentState()
-      const output = this.enrichActionOutput({
+      const runtimeCtx = this.createRuntimeContext(executableCall, descriptor, contextOverride)
+      const handlerCtx = this.runtimeHandlerNames.has(executableCall.name)
+        ? runtimeCtx
+        : createActionHandlerContext(runtimeCtx)
+      const runtimeCoordinationEngine = contextOverride?.coordinationEngine || this.coordinationEngine || null
+      const previousState = runtimeCtx.readCurrentState()
+      await this.checkPreconditions(executableCall, descriptor, runtimeCtx)
+      const rawOutput = commitActionPatch(await handler(buildHandlerParams(executableCall), handlerCtx), runtimeCtx)
+      const baseNextState = rawOutput?.nextState || runtimeCtx.readCurrentState()
+      const output = enrichActionOutputWithPropagation({
         output: rawOutput,
         descriptor,
-        ctx,
+        call: executableCall,
+        ctx: runtimeCtx,
+        coordinationEngine: runtimeCoordinationEngine,
         previousState,
         nextState: baseNextState,
+        collectUpdatedRefs: (state, extraRefs) => this.collectUpdatedRefs(state, extraRefs),
       })
       const nextState = output?.nextState || baseNextState
-      const updatedRefs = Array.isArray(output?.updatedRefs)
-        ? output.updatedRefs
-        : ctx.collectUpdatedRefs(nextState, output?.extraRefs || [])
-      const statePatch = output?.statePatch || ctx.readStatePatch(updatedRefs)
-      const primitive = descriptor?.primitive || null
-      const verificationPayload = buildActionVerificationPayload({
-        descriptor,
-        updatedRefs,
-        verificationHints: output?.verificationHints,
-      })
-      traceRecorder?.recordAction?.({
+      return finalizeActionCommit({
+        store: effectiveStore,
+        traceRecorder,
         call: executableCall,
-        updatedRefs,
-        stateId: nextState.stateId,
-        statePatch,
-        primitive,
-        notes: {
-          ...(output?.notes || {}),
-          ...(typeof verificationPayload.verificationNote === 'string'
-            && verificationPayload.verificationNote.length > 0
-            ? { verification: verificationPayload.verificationNote }
-            : {}),
-          ...(verificationPayload.verificationHints.length > 0
-            ? { verificationHints: verificationPayload.verificationHints }
-            : {}),
-        },
-      })
-      if (output?.transition && typeof traceRecorder?.recordSystemTransition === 'function') {
-        traceRecorder.recordSystemTransition({
-          actor: call?.actor || 'agent',
-          transitionType: output.transition.type || 'continue',
-          stateId: nextState.stateId,
-          affectedRefs: updatedRefs,
-          statePatch,
-          notes: output.transition.notes,
-        })
-      }
-      return makeActionResult({
-        ok: true,
-        callId: call?.callId || `call_${Date.now()}`,
-        actionName: call?.name || 'unknown',
-        updatedRefs,
-        stateId: nextState.stateId,
-        statePatch,
-        result: output?.result,
-        expectedPostconditions: verificationPayload.expectedPostconditions,
-        verificationHints: verificationPayload.verificationHints.length > 0
-          ? verificationPayload.verificationHints
-          : [
-              'Call readState({ refs: updatedRefs }) to verify the state update.',
-              'Call a perception query if the task requires numerical or aggregate evidence.',
-            ],
+        descriptor,
+        output,
+        nextState,
+        collectUpdatedRefs: (state, extraRefs) => this.collectUpdatedRefs(state, extraRefs),
       })
     } catch (error) {
       if (isActionPreconditionError(error)) {
@@ -631,7 +793,6 @@ export class ActionExecutor {
         })
         traceRecorder?.recordActionFailure?.({
           call,
-          primitive: descriptor?.primitive || null,
           code: result.error.code,
           message: result.error.message,
           details: result.error.details,
@@ -646,7 +807,6 @@ export class ActionExecutor {
       })
       traceRecorder?.recordActionFailure?.({
         call,
-        primitive: descriptor?.primitive || null,
         code: result.error.code,
         message: result.error.message,
       })
@@ -654,54 +814,116 @@ export class ActionExecutor {
     }
   }
 
-  enrichActionOutput({ output, descriptor, ctx, previousState, nextState }) {
-    if (!output || typeof output !== 'object') return output
+  collectUpdatedRefs(nextState, extraRefs = []) {
+    const changedRefs = nextState?.delta?.changedRefs?.length
+      ? nextState.delta.changedRefs
+      : Object.keys(nextState?.widgets || {})
+    return Array.from(new Set([...(changedRefs || []), ...(extraRefs || [])]))
+  }
 
-    const call = ctx?.call || null
-    const selectionResolveOptions = {
-      targetRef: resolveActionTargetRef(call, descriptor),
-      kind: descriptor?.supportedWidgetKinds?.[0] || null,
-    }
-    const previousSelectionRef = ctx.resolveSelectionRef(previousState, selectionResolveOptions)
-    const nextSelectionRef = ctx.resolveSelectionRef(nextState, selectionResolveOptions)
-    const shouldPropagateSelection = Boolean(output.propagateFromSelection)
-      || (descriptor?.primitive === 'select' && !Array.isArray(output.updatedRefs))
-    const propagateFromRef = output.propagateFromRef
-      || (shouldPropagateSelection ? nextSelectionRef : null)
-      || (
-        previousSelectionRef && !nextSelectionRef && (
-          descriptor?.primitive === 'select'
-          || descriptor?.primitive === 'reset'
-          || descriptor?.primitive === 'undo'
-          || callRemovesSelection(output, descriptor)
-        )
-          ? previousSelectionRef
-          : null
-      )
+  syncWorkspace() {
+    this.sync()
+    return readWorkspaceStateFromStore(this.store)
+  }
 
-    if (!propagateFromRef) {
-      return output
-    }
+  readSnapshot(stateId) {
+    return readSnapshotFromStore(this.store, stateId) || this.store.readSnapshot?.(stateId) || null
+  }
 
-      const propagation = ctx.collectPropagation(propagateFromRef, { state: nextState })
-      return {
-        ...output,
-        nextState: propagation.nextState || nextState,
-        updatedRefs: mergeUniqueRefs(
-          Array.isArray(output.updatedRefs) ? output.updatedRefs : ctx.collectUpdatedRefs(nextState, output?.extraRefs || []),
-          propagation.refs,
-      ),
-      result: {
-        ...(output.result || {}),
-        ...(output.result?.propagated ? {} : { propagated: propagation.links }),
-        ...(output.result?.propagationEffects ? {} : { propagationEffects: propagation.effects }),
-      },
+  readSnapshotEntry(stateId) {
+    return readSnapshotEntryFromStore(this.store, stateId)
+  }
+
+  hasUndoSelectionHistory() {
+    const history = this.hostBridge.readSelectionHistory()
+    const selectionsHistory = this.hostBridge.readSelectionsHistory()
+    return (Array.isArray(history) && history.length > 0)
+      || (Array.isArray(selectionsHistory) && selectionsHistory.length > 0)
+      || hasUndoSelectionHistoryInStore(this.store)
+  }
+
+  hasRedoSelectionHistory() {
+    const future = this.hostBridge.readSelectionFuture()
+    const selectionsFuture = this.hostBridge.readSelectionsFuture()
+    return (Array.isArray(future) && future.length > 0)
+      || (Array.isArray(selectionsFuture) && selectionsFuture.length > 0)
+      || hasRedoSelectionHistoryInStore(this.store)
+  }
+
+  undoSelection() {
+    if (typeof this.store?.beginTransition !== 'function'
+      || typeof this.hostBridge.undoSelection !== 'function') {
+      return undoSelectionInStore(this.store)
     }
+    this.store.beginTransition({ transitionType: 'undo' })
+    this.hostBridge.undoSelection()
+    return this.syncWorkspace()
+  }
+
+  redoSelection() {
+    if (typeof this.store?.beginTransition !== 'function'
+      || typeof this.hostBridge.redoSelection !== 'function') {
+      return redoSelectionInStore(this.store)
+    }
+    this.store.beginTransition({ transitionType: 'redo' })
+    this.hostBridge.redoSelection()
+    return this.syncWorkspace()
+  }
+
+  resetWorkspace() {
+    if (typeof this.store?.beginTransition !== 'function'
+      || typeof this.hostBridge.resetCurrentSpec !== 'function'
+      || typeof this.hostBridge.writeCurrentSelection !== 'function'
+      || typeof this.hostBridge.resetSelectionHistory !== 'function'
+      || typeof this.hostBridge.setFocusedWidgetRef !== 'function') {
+      return resetWorkspaceInteractionsInStore(this.store)
+    }
+    this.store.beginTransition({ transitionType: 'reset' })
+    this.store.resetWidgetPatches?.()
+    this.hostBridge.resetCurrentSpec()
+    this.hostBridge.writeCurrentSelection(null, { trackHistory: false })
+    this.hostBridge.resetSelectionHistory()
+    this.hostBridge.setFocusedWidgetRef(null)
+    return this.syncWorkspace()
+  }
+
+  restoreSnapshotState(snapshot) {
+    const snapshotState = snapshot?.state || snapshot
+    const replayContext = snapshot?.replayContext || null
+    const restoredSpec = primaryWidgetSpecFromSnapshot(snapshotState)
+    if (typeof this.hostBridge.resetSelectionHistory !== 'function'
+      || typeof this.hostBridge.writeCurrentSelections !== 'function'
+      || typeof this.hostBridge.setFocusedWidgetRef !== 'function'
+      || typeof this.hostBridge.writeCurrentSpec !== 'function') {
+      return restoreSnapshotStateInStore(this.store, snapshot)
+    }
+    this.store.resetWidgetPatches?.()
+    if (Object.prototype.hasOwnProperty.call(replayContext || {}, 'baselineSpec')) {
+      this.hostBridge.writeCurrentSpec(replayContext?.baselineSpec ?? null, {
+        replaceBaseline: true,
+        trackHistory: false,
+      })
+    }
+    this.hostBridge.writeWorkspaceSpec?.(replayContext?.workspaceSpec ?? null)
+    this.hostBridge.writePlanningRequest?.(replayContext?.planningRequest ?? null)
+    if (replayContext?.runMode) this.hostBridge.writeRunMode?.(replayContext.runMode)
+    this.hostBridge.writeUserIntent?.(replayContext?.userIntent ?? '')
+    if (restoredSpec) {
+      this.hostBridge.writeCurrentSpec(restoredSpec, { trackHistory: false })
+    } else if (Object.prototype.hasOwnProperty.call(replayContext || {}, 'currentSpec')) {
+      this.hostBridge.writeCurrentSpec(replayContext?.currentSpec ?? null, { trackHistory: false })
+    }
+    const selection = selectionPayloadFromSnapshot(snapshotState)
+    const selections = selectionPayloadsFromSnapshot(snapshotState)
+    this.hostBridge.resetSelectionHistory()
+    this.hostBridge.writeCurrentSelections(selections, { fallbackSelection: selection, trackHistory: false })
+    this.hostBridge.setFocusedWidgetRef(snapshotState?.shared?.focusedWidget || null)
+    return this.syncWorkspace()
   }
 
   registerBuiltinPreconditions() {
     this.registerPrecondition('widget.undoSelection', (call, ctx) => {
-      if (!ctx.hasUndoSelectionHistory()) {
+      if (!this.hasUndoSelectionHistory()) {
         return {
           ok: false,
           message: 'No prior selection state is available to restore.',
@@ -715,7 +937,7 @@ export class ActionExecutor {
     })
 
     this.registerPrecondition('widget.redoSelection', (call, ctx) => {
-      if (!ctx.hasRedoSelectionHistory()) {
+      if (!this.hasRedoSelectionHistory()) {
         return {
           ok: false,
           message: 'No redo selection state is available to restore.',
@@ -730,7 +952,7 @@ export class ActionExecutor {
 
     this.registerPrecondition('workspace.jumpToState', (call, ctx) => {
       const targetStateId = call?.params?.stateId
-      const snapshot = targetStateId ? ctx.readSnapshot(targetStateId) : null
+      const snapshot = targetStateId ? this.readSnapshot(targetStateId) : null
       if (!snapshot) {
         return {
           ok: false,
@@ -747,7 +969,7 @@ export class ActionExecutor {
 
     this.registerPrecondition('workspace.branchFromState', (call, ctx) => {
       const targetStateId = call?.params?.stateId
-      const snapshot = targetStateId ? ctx.readSnapshot(targetStateId) : null
+      const snapshot = targetStateId ? this.readSnapshot(targetStateId) : null
       if (!snapshot) {
         return {
           ok: false,
@@ -762,323 +984,6 @@ export class ActionExecutor {
       return { ok: true }
     })
 
-    this.registerPrecondition('table.focusRows', (call, ctx) => {
-      const targetWidgetCheck = this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'table',
-        message: 'table.focusRows requires a valid target table widget.',
-        recoveryHints: [
-          'Call describeWorkspace() to inspect valid table widget refs.',
-          'Retry table.focusRows with a targetRef that resolves to a table widget.',
-        ],
-      })
-      if (targetWidgetCheck?.ok === false) return targetWidgetCheck
-      const params = call?.params || {}
-      if (typeof params.keyField === 'string' && params.keyField.trim()) {
-        return { ok: true }
-      }
-      const targetWidget = ctx.requireTargetWidget({
-        targetRef: resolveActionTargetRef(call),
-        kind: 'table',
-        message: 'table.focusRows requires a valid target table widget.',
-      })
-      const widgetState = targetWidget?.ref ? ctx.readCurrentState({ refs: [targetWidget.ref] })?.widgets?.[targetWidget.ref] : null
-      const columns = Array.isArray(widgetState?.rawSpec?.columns) ? widgetState.rawSpec.columns : []
-      if (columns.length === 0) {
-        return {
-          ok: false,
-          message: 'No usable key field is available for row focus.',
-          details: { targetRef: targetWidget?.ref || null },
-          recoveryHints: [
-            'Provide an explicit keyField in the action params if the table has one.',
-            'Inspect the table schema to confirm whether a stable row identity field exists.',
-          ],
-        }
-      }
-      return { ok: true }
-    })
-
-    this.registerPrecondition('scatter.brushRegion', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'scatter',
-        message: 'scatter.brushRegion requires a valid scatter target widget.',
-      })
-    })
-
-    this.registerPrecondition('bar.selectCategory', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'bar',
-        message: 'bar.selectCategory requires a valid bar target widget.',
-      })
-    })
-
-    this.registerPrecondition('bar.highlightTopN', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'bar',
-        message: 'bar.highlightTopN requires a valid bar target widget.',
-      })
-    })
-
-    this.registerPrecondition('bar.filterCategories', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'bar',
-        message: 'bar.filterCategories requires a valid bar target widget.',
-      })
-    })
-
-    this.registerPrecondition('bar.filterSubcategories', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'bar',
-        message: 'bar.filterSubcategories requires a valid bar target widget.',
-      })
-    })
-
-    this.registerPrecondition('bar.expandStack', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'bar',
-        message: 'bar.expandStack requires a valid bar target widget.',
-      })
-    })
-
-    this.registerPrecondition('bar.toggleStackMode', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'bar',
-        message: 'bar.toggleStackMode requires a valid bar target widget.',
-      })
-    })
-
-    this.registerPrecondition('line.selectSeries', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'line',
-        message: 'line.selectSeries requires a valid line target widget.',
-      })
-    })
-
-    this.registerPrecondition('line.zoomXRegion', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'line',
-        message: 'line.zoomXRegion requires a valid line target widget.',
-      })
-    })
-
-    this.registerPrecondition('line.focusLines', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'line',
-        message: 'line.focusLines requires a valid line target widget.',
-      })
-    })
-
-    this.registerPrecondition('line.filterLines', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'line',
-        message: 'line.filterLines requires a valid line target widget.',
-      })
-    })
-
-    this.registerPrecondition('heatmap.selectCell', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'heatmap',
-        message: 'heatmap.selectCell requires a valid heatmap target widget.',
-      })
-    })
-
-    this.registerPrecondition('heatmap.highlightRegion', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'heatmap',
-        message: 'heatmap.highlightRegion requires a valid heatmap target widget.',
-      })
-    })
-
-    this.registerPrecondition('heatmap.adjustColorScale', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'heatmap',
-        message: 'heatmap.adjustColorScale requires a valid heatmap target widget.',
-      })
-    })
-
-    this.registerPrecondition('heatmap.thresholdMask', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'heatmap',
-        message: 'heatmap.thresholdMask requires a valid heatmap target widget.',
-      })
-    })
-
-    this.registerPrecondition('heatmap.filterCellsByRegion', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'heatmap',
-        message: 'heatmap.filterCellsByRegion requires a valid heatmap target widget.',
-      })
-    })
-
-    this.registerPrecondition('heatmap.highlightRegionByValue', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'heatmap',
-        message: 'heatmap.highlightRegionByValue requires a valid heatmap target widget.',
-      })
-    })
-
-    this.registerPrecondition('heatmap.transpose', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'heatmap',
-        message: 'heatmap.transpose requires a valid heatmap target widget.',
-      })
-    })
-
-    this.registerPrecondition('map.selectRegion', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'map',
-        message: 'map.selectRegion requires a valid map target widget.',
-      })
-    })
-
-    this.registerPrecondition('sankey.focusFlow', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'sankey',
-        message: 'sankey.focusFlow requires a valid sankey target widget.',
-      })
-    })
-
-    this.registerPrecondition('parallelCoordinates.brushAxes', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        kind: 'parallelCoordinates',
-        message: 'parallelCoordinates.brushAxes requires a valid parallel coordinates target widget.',
-      })
-    })
-
-    this.registerPrecondition('widget.highlightValues', (call, ctx) => {
-      const targetWidgetCheck = this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        message: 'widget.highlightValues requires a valid target widget.',
-      })
-      if (targetWidgetCheck?.ok === false) return targetWidgetCheck
-      return this.readBaseSpecPrecondition('highlight updates', ctx)
-    })
-
-    this.registerPrecondition('widget.aggregateData', (call, ctx) => {
-      const targetWidgetCheck = this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        message: 'widget.aggregateData requires a valid target widget.',
-      })
-      if (targetWidgetCheck?.ok === false) return targetWidgetCheck
-      return this.readBaseSpecPrecondition('aggregate updates', ctx)
-    })
-
-    this.registerPrecondition('widget.filterByRange', (call, ctx) => {
-      const targetWidgetCheck = this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        message: 'widget.filterByRange requires a valid target widget.',
-      })
-      if (targetWidgetCheck?.ok === false) return targetWidgetCheck
-      return this.readBaseSpecPrecondition('filter updates', ctx)
-    })
-
-    this.registerPrecondition('widget.sortEncoding', (call, ctx) => {
-      const targetWidgetCheck = this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        message: 'widget.sortEncoding requires a valid target widget.',
-      })
-      if (targetWidgetCheck?.ok === false) return targetWidgetCheck
-      const baseSpecCheck = this.readBaseSpecPrecondition('sort updates', ctx)
-      if (baseSpecCheck?.ok === false) return baseSpecCheck
-      const channel = typeof call?.params?.channel === 'string' ? call.params.channel : null
-      const spec = ctx.readCurrentSpec()
-      const currentChannel = channel ? spec?.encoding?.[channel] : null
-      if (!currentChannel || typeof currentChannel !== 'object') {
-        return {
-          ok: false,
-          message: `The active spec does not define encoding channel "${channel || 'unknown'}".`,
-          details: { channel: channel || null },
-        }
-      }
-      return { ok: true }
-    })
-
-    this.registerPrecondition('widget.changeEncoding', (call, ctx) => {
-      const targetWidgetCheck = this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        message: 'widget.changeEncoding requires a valid target widget.',
-      })
-      if (targetWidgetCheck?.ok === false) return targetWidgetCheck
-      return this.readBaseSpecPrecondition('encoding updates', ctx)
-    })
-
-    this.registerPrecondition('widget.zoomDomain', (call, ctx) => {
-      const targetWidgetCheck = this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        message: 'widget.zoomDomain requires a valid target widget.',
-      })
-      if (targetWidgetCheck?.ok === false) return targetWidgetCheck
-      const baseSpecCheck = this.readBaseSpecPrecondition('domain updates', ctx)
-      if (baseSpecCheck?.ok === false) return baseSpecCheck
-      const spec = ctx.readCurrentSpec()
-      const hasXDomain = Array.isArray(call?.params?.xDomain)
-      const hasYDomain = Array.isArray(call?.params?.yDomain)
-      if (hasXDomain && !spec?.encoding?.x) {
-        return {
-          ok: false,
-          message: 'The active spec does not define the requested zoom domain channel.',
-          details: { channel: 'x' },
-        }
-      }
-      if (hasYDomain && !spec?.encoding?.y) {
-        return {
-          ok: false,
-          message: 'The active spec does not define the requested zoom domain channel.',
-          details: { channel: 'y' },
-        }
-      }
-      return { ok: true }
-    })
-
     this.registerPrecondition('workspace.focusWidget', (call, ctx) => {
       return this.readTargetWidgetPrecondition({
         call,
@@ -1087,42 +992,6 @@ export class ActionExecutor {
       })
     })
 
-    this.registerPrecondition('workspace.addAnnotation', (call, ctx) => {
-      return this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        allowMissing: true,
-        message: 'workspace.addAnnotation targetRef must resolve to a valid widget when provided.',
-        recoveryHints: [
-          'Omit targetRef to create a workspace-level annotation, or use a valid widget ref from describeWorkspace().',
-        ],
-      })
-    })
-
-    this.registerPrecondition('widget.filterByValues', (call, ctx) => {
-      const targetWidgetCheck = this.readTargetWidgetPrecondition({
-        call,
-        ctx,
-        message: 'widget.filterByValues requires a valid target widget.',
-      })
-      if (targetWidgetCheck?.ok === false) return targetWidgetCheck
-      return this.readBaseSpecPrecondition('filter updates', ctx)
-    })
-  }
-
-  readBaseSpecPrecondition(operationName, ctx) {
-    const spec = ctx?.readCurrentSpec?.()
-    if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-      return {
-        ok: false,
-        message: `No active base spec is available for ${operationName}.`,
-        recoveryHints: [
-          'Retry the action on a base-spec widget rather than a derived or linked view.',
-          'Call describeWorkspace() and inspect supportsSpecMutation/sourceKind before retrying.',
-        ],
-      }
-    }
-    return { ok: true }
   }
 
   readTargetWidgetPrecondition({ call, ctx, kind = null, allowMissing = false, message = null, recoveryHints = null } = {}) {
@@ -1158,74 +1027,94 @@ export class ActionExecutor {
 
   registerBuiltinHandlers() {
     this.register(
-      { name: 'widget.updateSelection' },
-      async (call, ctx) => {
-        const params = call?.params || {}
-        const selectionType = typeof params.selection_type === 'string' ? params.selection_type : null
-        if (!selectionType) {
-          throw new Error('widget.updateSelection requires a selection_type.')
+      {
+        name: 'coordination.applyLink',
+        category: 'coordination',
+        exposeInWorkspace: true,
+        affectedStatePaths: ['shared.links', 'shared.selections', 'widgets'],
+        paramsSchema: {
+          type: 'object',
+          properties: {
+            linkId: { type: 'string' },
+            linkRef: { type: 'string' },
+            sourceSelectionRef: { type: 'string' },
+            sourceRef: { type: 'string' },
+          },
+        },
+        examples: [{
+          label: 'Apply an existing coordination link',
+          spec: {
+            linkId: 'scatter_filters_bar',
+            sourceSelectionRef: 'wl://widgetva-app/workspace/main/widget/scatter/selection/brush',
+          },
+        }],
+      },
+      async (params, ctx) => {
+        const linkRef = params.linkRef || params.linkId || params.ref || null
+        if (!linkRef) {
+          throwActionPrecondition('coordination.applyLink requires linkId or linkRef.', {
+            requiredParams: ['linkId'],
+          }, [
+            'Call describeWorkspace() or coordination.describeLinks to inspect available links.',
+          ])
         }
-        const targetWidget = ctx.resolveTargetWidget({ targetRef: resolveActionTargetRef(call) })
-        const selection = {
-          selection_id: typeof params.selection_id === 'string' ? params.selection_id : `sel_${Date.now()}`,
-          source_widget_id: typeof params.source_widget_id === 'string'
-            ? params.source_widget_id
-            : targetWidget?.widgetId || undefined,
-          selection_type: selectionType,
-          ...(params.domain && typeof params.domain === 'object' ? { domain: params.domain } : {}),
-          ...(Array.isArray(params.fields) ? { fields: params.fields } : {}),
-          ...(params.value && typeof params.value === 'object' && !Array.isArray(params.value) ? { value: params.value } : {}),
-          ...(typeof params.keyField === 'string' ? { keyField: params.keyField } : {}),
-          ...(Array.isArray(params.keys) ? { keys: params.keys } : {}),
-          ...(typeof params.field === 'string' ? { field: params.field } : {}),
-          ...(Array.isArray(params.values) ? { values: params.values } : {}),
-          predicates: Array.isArray(params.predicates) ? params.predicates : [],
-          count: Number.isFinite(params.count) ? params.count : 0,
-          summary: typeof params.summary === 'string' ? params.summary : '',
+        const coordinationEngine = this.coordinationEngine
+        if (typeof coordinationEngine?.applyLink !== 'function') {
+          throwActionPrecondition('No link engine is available for coordination.applyLink.', {
+            coordinationEngine: false,
+          }, [
+            'Use this action in a multi-widget runtime that provides CoordinationEngine.',
+          ])
         }
-        if (targetWidget?.ref) {
-          ctx.setFocusedWidgetRef(targetWidget.ref)
+
+        const sourceRef = params.sourceSelectionRef || params.sourceRef || null
+        const currentState = ctx.readCurrentState()
+        const coordinationResult = coordinationEngine.applyLink({
+          linkRef,
+          sourceRef,
+          state: currentState,
+        })
+
+        if (coordinationResult?.ok !== true) {
+          throwActionPrecondition(
+            `coordination.applyLink could not apply link ${linkRef}.`,
+            {
+              linkRef,
+              sourceRef,
+              reason: coordinationResult?.reason || null,
+              skippedTargets: coordinationResult?.skippedTargets || [],
+            },
+            [
+              'Confirm the link exists and has an active source selection.',
+              'If no source selection exists, create one first or pass sourceSelectionRef.',
+            ],
+          )
         }
+
         return {
-          nextState: ctx.commitSelection(selection),
-          propagateFromSelection: true,
+          patch: coordinationResult.patch,
+          nextState: coordinationResult.nextState || ctx.readCurrentState(),
+          updatedRefs: Array.isArray(coordinationResult.affectedRefs)
+            ? coordinationResult.affectedRefs
+            : [],
           result: {
-            selection,
-            widgetId: targetWidget?.widgetId || null,
+            coordination: coordinationResult,
           },
           verificationHints: [
-            'Read the widget selection state and confirm it matches the supplied runtime selection payload.',
-            'Read linked widgets to confirm propagation follows the updated selection.',
+            'Inspect the affected target widgets and confirm the visible view changed according to the link summary.',
+            'Read trace and coordination state to confirm this was an agent-invoked coordination link.',
           ],
           notes: {
-            userVisibleSummary: selection.summary || 'Human-driven selection was applied through the shared action pipeline.',
+            userVisibleSummary: `Applied coordination link ${linkRef}.`,
           },
-        }
-      },
-    )
-
-    this.register(
-      { name: 'widget.clearSelection' },
-      async (call, ctx) => {
-        const targetWidget = ctx.resolveTargetWidget({
-          targetRef: resolveActionTargetRef(call),
-        })
-        const targetAdapter = targetWidget?.ref ? ctx.readWidgetAdapter(targetWidget.ref) : null
-        if (typeof targetAdapter?.applySelectionClear === 'function') {
-          await Promise.resolve(targetAdapter.applySelectionClear(call?.params || {}))
-        }
-        return {
-          nextState: ctx.clearSelection(),
-          result: { cleared: true },
-          verificationHints: ['Read the widget state and confirm there is no active selection.'],
         }
       },
     )
 
     this.register(
       { name: 'widget.undoSelection' },
-      async (call, ctx) => ({
-        nextState: ctx.undoSelection(),
+      async (params, ctx) => ({
+        nextState: this.undoSelection(),
         result: { restored: true },
         verificationHints: ['Read the widget state and confirm the previous selection was restored.'],
         transition: {
@@ -1239,8 +1128,8 @@ export class ActionExecutor {
 
     this.register(
       { name: 'widget.redoSelection' },
-      async (call, ctx) => ({
-        nextState: ctx.redoSelection(),
+      async (params, ctx) => ({
+        nextState: this.redoSelection(),
         result: { restored: true },
         verificationHints: [
           'Read the widget state and confirm the selection matches the next recorded selection state.',
@@ -1259,8 +1148,8 @@ export class ActionExecutor {
 
     this.register(
       { name: 'workspace.resetWorkspace' },
-      async (call, ctx) => ({
-        nextState: ctx.resetWorkspace(),
+      async (params, ctx) => ({
+        nextState: this.resetWorkspace(),
         result: { reset: true },
         verificationHints: ['Read the workspace state and confirm selections and derived interaction state are cleared.'],
         transition: {
@@ -1274,9 +1163,9 @@ export class ActionExecutor {
 
     this.register(
       { name: 'workspace.jumpToState' },
-      async (call, ctx) => {
-        const targetStateId = call?.params?.stateId
-        const snapshot = targetStateId ? ctx.readSnapshotEntry(targetStateId) : null
+      async (params, ctx) => {
+        const targetStateId = params.stateId
+        const snapshot = targetStateId ? this.readSnapshotEntry(targetStateId) : null
         if (typeof this.store?.beginTransition === 'function') {
           this.store.beginTransition({
             transitionType: 'jump_back',
@@ -1284,7 +1173,7 @@ export class ActionExecutor {
           })
         }
         return {
-          nextState: ctx.restoreSnapshotState(snapshot),
+          nextState: this.restoreSnapshotState(snapshot),
           result: { restoredStateId: targetStateId },
           verificationHints: ['Read the workspace state and confirm the restored interaction state matches the target snapshot.'],
           transition: {
@@ -1299,15 +1188,15 @@ export class ActionExecutor {
 
     this.register(
       { name: 'workspace.branchFromState' },
-      async (call, ctx) => {
-        const targetStateId = call?.params?.stateId
-        const snapshot = targetStateId ? ctx.readSnapshotEntry(targetStateId) : null
+      async (params, ctx) => {
+        const targetStateId = params.stateId
+        const snapshot = targetStateId ? this.readSnapshotEntry(targetStateId) : null
         const branch = beginBranchFromStateInStore(this.store, {
           stateId: targetStateId,
-          label: call?.params?.branchLabel,
+          label: params.branchLabel,
         })
         return {
-          nextState: ctx.restoreSnapshotState(snapshot),
+          nextState: this.restoreSnapshotState(snapshot),
           result: {
             restoredStateId: targetStateId,
             branchId: branch.branchId,
@@ -1329,15 +1218,23 @@ export class ActionExecutor {
 
     this.register(
       { name: 'workspace.focusWidget' },
-      async (call, ctx) => {
-        const targetWidget = ctx.requireTargetWidget({
-          targetRef: resolveActionTargetRef(call),
-          message: 'workspace.focusWidget requires a valid target widget.',
-        })
-        const previousFocusedWidgetRef = ctx.readCurrentState()?.shared?.focusedWidget || null
+      async (params, ctx) => {
+        const targetWidget = ctx.targetWidget()
+        const currentState = ctx.readCurrentState()
+        const previousFocusedWidgetRef = currentState?.shared?.focusedWidget || null
+        const nextShared = withFocusSubmodel(currentState?.shared || {}, {
+          widgetRef: targetWidget.ref,
+          widgetId: targetWidget.widgetId || null,
+          source: 'workspace',
+        }, currentState?.widgets || {})
         return {
-          nextState: ctx.setFocusedWidgetRef(targetWidget.ref),
-          updatedRefs: mergeUniqueRefs([previousFocusedWidgetRef], [targetWidget.ref]),
+          patch: {
+            shared: {
+              ...nextShared,
+              focusedWidget: targetWidget.ref,
+            },
+          },
+          affectedRefs: mergeUniqueRefs([previousFocusedWidgetRef], [targetWidget.ref, 'shared']),
           result: {
             focusedWidgetRef: targetWidget.ref,
             widgetId: targetWidget.widgetId,
@@ -1348,462 +1245,6 @@ export class ActionExecutor {
           notes: {
             userVisibleSummary: `Focused widget set to ${targetWidget.widgetId}.`,
           },
-        }
-      },
-    )
-
-    this.register(
-      { name: 'workspace.addAnnotation' },
-      async (call, ctx) => {
-        const params = call?.params || {}
-        const text = typeof params.text === 'string' ? params.text.trim() : ''
-        const targetRef = resolveActionTargetRef(call)
-        const targetWidget = targetRef
-          ? ctx.requireTargetWidget({
-              targetRef,
-              message: 'workspace.addAnnotation targetRef must resolve to a valid widget when provided.',
-            })
-          : null
-        if (!text) {
-          throw new Error('workspace.addAnnotation requires non-empty annotation text.')
-        }
-        const annotation = {
-          annotationId: `annotation_${Date.now()}`,
-          targetRef: targetWidget?.ref || targetRef || ctx.readFocusedWidgetRef() || undefined,
-          kind: typeof params.kind === 'string' ? params.kind : 'note',
-          text,
-          actor: call?.actor || 'agent',
-          createdAt: new Date().toISOString(),
-        }
-        return {
-          nextState: ctx.addWorkspaceAnnotation(annotation),
-          updatedRefs: annotation.targetRef ? [annotation.targetRef] : [],
-          result: annotation,
-          verificationHints: [
-            'Read the workspace state and confirm shared.annotations contains the new annotation.',
-          ],
-          notes: {
-            userVisibleSummary: `Annotation added${annotation.targetRef ? ` for ${annotation.targetRef}.` : '.'}`,
-          },
-        }
-      },
-    )
-
-    this.register(
-      { name: 'workspace.clearAnnotations' },
-      async (call, ctx) => {
-        const currentAnnotations = Array.isArray(ctx.readWorkspaceAnnotations()) ? ctx.readWorkspaceAnnotations() : []
-        const affectedRefs = currentAnnotations
-          .map((annotation) => annotation?.targetRef)
-          .filter((ref) => typeof ref === 'string' && ref.length > 0)
-        return {
-          nextState: ctx.clearWorkspaceAnnotations(),
-          updatedRefs: mergeUniqueRefs(affectedRefs),
-          result: { cleared: true },
-          verificationHints: ['Read the workspace state and confirm shared.annotations is empty.'],
-        }
-      },
-    )
-
-    this.register(
-      { name: 'widget.aggregateData' },
-      async (call, ctx) => {
-        const params = call?.params || {}
-        const groupBy = Array.isArray(params.groupBy) ? params.groupBy.filter((field) => typeof field === 'string' && field.trim()) : []
-        const measures = Array.isArray(params.measures)
-          ? params.measures
-              .map((measure) => ({
-                op: typeof measure?.op === 'string' ? measure.op : null,
-                field: typeof measure?.field === 'string' ? measure.field : undefined,
-                as: typeof measure?.as === 'string' ? measure.as : null,
-              }))
-              .filter((measure) => measure.op && measure.as)
-          : []
-        const supportedMeasureOps = new Set(['count', 'sum', 'mean', 'min', 'max', 'median'])
-        if (groupBy.length === 0 || measures.length === 0 || measures.some((measure) => !supportedMeasureOps.has(measure.op))) {
-          throw new Error('widget.aggregateData requires non-empty groupBy and supported measures (count, sum, mean, min, max, or median) with explicit aliases.')
-        }
-
-        const targetWidget = ctx.requireTargetWidget({
-          targetRef: resolveActionTargetRef(call),
-          message: 'widget.aggregateData requires a valid target widget.',
-        })
-
-        const nextState = ctx.updateCurrentSpec((spec) => {
-          if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-            throwActionPrecondition('No active base spec is available for aggregate updates.')
-          }
-          const aggregateTransform = {
-            aggregate: measures.map((measure) => ({
-              op: measure.op,
-              ...(measure.field ? { field: measure.field } : {}),
-              as: measure.as,
-            })),
-            groupby: groupBy,
-          }
-          return {
-            ...spec,
-            transform: replaceAggregateTransforms(spec.transform, aggregateTransform),
-          }
-        })
-
-        return {
-          nextState,
-          result: {
-            widgetId: targetWidget.widgetId,
-            groupBy,
-            measures,
-          },
-          verificationHints: [
-            'Call perception.inspectViewConfig to verify the target spec now includes the requested aggregate transform.',
-            'Call perception.inspectVisibleRows or summarizeVisible to confirm the widget now exposes grouped summary rows.',
-          ],
-        }
-      },
-    )
-
-    this.register(
-      { name: 'widget.highlightValues' },
-      async (call, ctx) => {
-        const params = call?.params || {}
-        const field = typeof params.field === 'string' ? params.field : null
-        const values = uniqueValues(params.values)
-        const targetWidget = ctx.requireTargetWidget({
-          targetRef: resolveActionTargetRef(call),
-          message: 'widget.highlightValues requires a valid target widget.',
-        })
-        const targetWidgetRef = targetWidget?.ref || null
-        const currentDataRef = targetWidget?.data?.currentDataRef || targetWidget?.data?.sourceDataRef || null
-        if (!field || values.length === 0 || !targetWidgetRef || !currentDataRef) {
-          throw new Error('widget.highlightValues requires a target widget, field, and at least one value.')
-        }
-
-        const runtimeDataEntry = ctx.readRuntimeData(currentDataRef)
-        const highlightedRows = markHighlightedRows(runtimeDataEntry?.rows, field, values)
-        if (runtimeDataEntry) {
-          ctx.updateRuntimeData(currentDataRef, (entry) => ({
-            ...entry,
-            rows: markHighlightedRows(entry?.rows, field, values),
-          }))
-        }
-
-        const nextState = ctx.patchWidget(targetWidgetRef, {
-          transforms: replaceActionHighlightTransformForField(
-            targetWidget?.transforms,
-            field,
-            makeTransformState({
-              kind: 'highlight',
-              source: 'action:widget.highlightValues',
-              spec: {
-                field,
-                values,
-              },
-            }),
-          ),
-          feedback: {
-            ...(targetWidget?.feedback || {}),
-            highlightedKeys: values,
-          },
-          rawSpec: Array.isArray(targetWidget?.rawSpec?.data?.values)
-            ? {
-                ...targetWidget.rawSpec,
-                data: {
-                  ...targetWidget.rawSpec.data,
-                  values: markHighlightedRows(targetWidget.rawSpec.data.values, field, values),
-                },
-              }
-            : targetWidget?.rawSpec || null,
-        })
-        const nextStateWithSharedHighlight = updateSharedStateInStore(ctx.store, (shared) =>
-          withHighlightSubmodel(shared, deriveHighlightState(nextState)),
-        )
-
-        return {
-          nextState: nextStateWithSharedHighlight,
-          result: {
-            widgetId: targetWidget?.widgetId || null,
-            field,
-            values,
-            highlightedCount: highlightedRows.filter((row) => row?.__widgetva_highlight === true).length,
-          },
-          verificationHints: [
-            'Call perception.inspectVisibleRows to verify matching rows now carry highlight markers.',
-            'Read the target widget state and confirm feedback.highlightedKeys contains the requested values.',
-          ],
-        }
-      },
-    )
-
-    this.register(
-      { name: 'widget.filterByValues' },
-      async (call, ctx) => {
-        const params = call?.params || {}
-        const field = typeof params.field === 'string' ? params.field : null
-        const values = Array.isArray(params.values) ? params.values.filter((value) => value != null) : []
-        const targetWidget = ctx.requireTargetWidget({
-          targetRef: resolveActionTargetRef(call),
-          message: 'widget.filterByValues requires a valid target widget.',
-        })
-        const targetWidgetId = targetWidget?.widgetId || null
-        if (!field || values.length === 0 || !targetWidgetId) {
-          throw new Error('widget.filterByValues requires a target widget, field, and at least one value.')
-        }
-
-        const nextState = ctx.updateCurrentSpec((spec) => {
-          if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-            throwActionPrecondition('No active base spec is available for filter updates.')
-          }
-          return {
-            ...spec,
-            transform: replaceFilterTransformForField(spec.transform, field, {
-              filter: {
-                field,
-                oneOf: values,
-              },
-            }),
-          }
-        })
-
-        return {
-          nextState,
-          result: {
-            widgetId: targetWidgetId,
-            field,
-            values,
-          },
-          verificationHints: [
-            'Call perception.inspectViewConfig to verify the target spec now includes the requested categorical filter transform.',
-            'Read the target widget state or visible rows to confirm the filtered subset propagated.',
-          ],
-        }
-      },
-    )
-
-    this.register(
-      { name: 'widget.filterByRange' },
-      async (call, ctx) => {
-        const params = call?.params || {}
-        const field = typeof params.field === 'string' ? params.field : null
-        const range = Array.isArray(params.range) ? params.range : null
-        const targetWidget = ctx.requireTargetWidget({
-          targetRef: resolveActionTargetRef(call),
-          message: 'widget.filterByRange requires a valid target widget.',
-        })
-        const targetWidgetId = targetWidget?.widgetId || null
-        if (!field || !Array.isArray(range) || range.length !== 2 || !targetWidgetId) {
-          throw new Error('widget.filterByRange requires a target widget, field, and a two-value range.')
-        }
-
-        const nextState = ctx.updateCurrentSpec((spec) => {
-          if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-            throwActionPrecondition('No active base spec is available for filter updates.')
-          }
-          return {
-            ...spec,
-            transform: replaceFilterTransformForField(spec.transform, field, {
-              filter: {
-                field,
-                range,
-              },
-            }),
-          }
-        })
-
-        return {
-          nextState,
-          result: {
-            widgetId: targetWidgetId,
-            field,
-            range,
-          },
-          verificationHints: [
-            'Call perception.inspectViewConfig to verify the target spec now includes the requested range filter transform.',
-            'Read the target widget state or visible rows to confirm the filtered numeric interval propagated.',
-          ],
-        }
-      },
-    )
-
-    this.register(
-      { name: 'widget.sortEncoding' },
-      async (call, ctx) => {
-        const params = call?.params || {}
-        const channel = typeof params.channel === 'string' ? params.channel : null
-        const order = typeof params.order === 'string' ? params.order : null
-        const field = typeof params.field === 'string' ? params.field : null
-        const aggregate = typeof params.aggregate === 'string' ? params.aggregate : null
-        const targetWidget = ctx.requireTargetWidget({
-          targetRef: resolveActionTargetRef(call),
-          message: 'widget.sortEncoding requires a valid target widget.',
-        })
-        const targetWidgetId = targetWidget?.widgetId || null
-        if (!channel || !order || !targetWidgetId) {
-          throw new Error('widget.sortEncoding requires a target widget, channel, and order.')
-        }
-
-        const nextState = ctx.updateCurrentSpec((spec) => {
-          if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-            throwActionPrecondition('No active base spec is available for sort updates.')
-          }
-          const currentChannel = spec.encoding?.[channel]
-          if (!currentChannel || typeof currentChannel !== 'object') {
-            throwActionPrecondition(`The active spec does not define encoding channel "${channel}".`)
-          }
-
-          const sortField = field || currentChannel.field
-          const nextEncoding = {
-            ...(spec.encoding || {}),
-            [channel]: {
-              ...currentChannel,
-              sort: sortField
-                ? {
-                    field: sortField,
-                    order,
-                    ...(aggregate ? { op: aggregate } : {}),
-                  }
-                : order,
-            },
-          }
-          return {
-            ...spec,
-            encoding: nextEncoding,
-          }
-        })
-
-        return {
-          nextState,
-          result: {
-            widgetId: targetWidgetId,
-            channel,
-            order,
-            ...(field ? { field } : {}),
-            ...(aggregate ? { aggregate } : {}),
-          },
-          verificationHints: [
-            'Call perception.inspectViewConfig to verify the target encoding now includes the requested sort rule.',
-            'Read the target widget state to confirm the sort update propagated.',
-          ],
-        }
-      },
-    )
-
-    this.register(
-      { name: 'widget.changeEncoding' },
-      async (call, ctx) => {
-        const params = call?.params || {}
-        const channel = typeof params.channel === 'string' ? params.channel : null
-        const field = typeof params.field === 'string' ? params.field : null
-        const targetWidget = ctx.requireTargetWidget({
-          targetRef: resolveActionTargetRef(call),
-          message: 'widget.changeEncoding requires a valid target widget.',
-        })
-        const targetWidgetId = targetWidget?.widgetId || null
-        if (!channel || !field || !targetWidgetId) {
-          throw new Error('widget.changeEncoding requires a target widget, channel, and field.')
-        }
-
-        const targetAdapter = ctx.readWidgetAdapter(targetWidget.ref)
-        if (typeof targetAdapter?.applyEncodingChange === 'function') {
-          await Promise.resolve(targetAdapter.applyEncodingChange(channel, field, params))
-        }
-
-        const nextState = ctx.updateCurrentSpec((spec) => {
-          if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-            throwActionPrecondition('No active base spec is available for encoding updates.')
-          }
-          const nextEncoding = {
-            ...(spec.encoding || {}),
-            [channel]: {
-              ...(spec.encoding?.[channel] || {}),
-              field,
-              ...(typeof params.type === 'string' ? { type: params.type } : {}),
-              ...(params.aggregate ? { aggregate: params.aggregate } : {}),
-            },
-          }
-          return {
-            ...spec,
-            encoding: nextEncoding,
-          }
-        })
-
-        return {
-          nextState,
-          result: {
-            widgetId: targetWidgetId,
-            channel,
-            field,
-          },
-          verificationHints: [
-            'Call perception.inspectViewConfig to verify the encoding channel now points to the new field.',
-            'Read the target widget state to confirm the encoding update propagated.',
-          ],
-        }
-      },
-    )
-
-    this.register(
-      { name: 'widget.zoomDomain' },
-      async (call, ctx) => {
-        const params = call?.params || {}
-        const targetWidget = ctx.requireTargetWidget({
-          targetRef: resolveActionTargetRef(call),
-          message: 'widget.zoomDomain requires a valid target widget.',
-        })
-        const xDomain = Array.isArray(params.xDomain) ? params.xDomain : null
-        const yDomain = Array.isArray(params.yDomain) ? params.yDomain : null
-        if (!targetWidget || (!xDomain && !yDomain)) {
-          throw new Error('widget.zoomDomain requires a target widget and at least one domain range.')
-        }
-
-        const targetAdapter = ctx.readWidgetAdapter(targetWidget.ref)
-        if (typeof targetAdapter?.applyDomainZoom === 'function') {
-          await Promise.resolve(targetAdapter.applyDomainZoom({
-            xDomain,
-            yDomain,
-            options: params,
-          }))
-        }
-
-        const nextState = ctx.updateCurrentSpec((spec) => {
-          if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
-            throwActionPrecondition('No active base spec is available for domain updates.')
-          }
-          const nextEncoding = { ...(spec.encoding || {}) }
-          if (xDomain && nextEncoding.x) {
-            nextEncoding.x = {
-              ...nextEncoding.x,
-              scale: {
-                ...(nextEncoding.x.scale || {}),
-                domain: xDomain,
-              },
-            }
-          }
-          if (yDomain && nextEncoding.y) {
-            nextEncoding.y = {
-              ...nextEncoding.y,
-              scale: {
-                ...(nextEncoding.y.scale || {}),
-                domain: yDomain,
-              },
-            }
-          }
-          return {
-            ...spec,
-            encoding: nextEncoding,
-          }
-        })
-
-        return {
-          nextState,
-          result: {
-            widgetId: targetWidget.widgetId,
-            ...(xDomain ? { xDomain } : {}),
-            ...(yDomain ? { yDomain } : {}),
-          },
-          verificationHints: [
-            'Call perception.inspectViewConfig to verify the target domain was updated.',
-            'Read the target widget view state to confirm the new x/y domain values.',
-          ],
         }
       },
     )

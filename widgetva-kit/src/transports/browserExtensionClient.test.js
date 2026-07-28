@@ -19,16 +19,13 @@ function createMockWindow() {
       listeners.get(type).push(handler)
     },
     removeEventListener(type, handler) {
-      const nextHandlers = (listeners.get(type) || []).filter((entry) => entry !== handler)
-      listeners.set(type, nextHandlers)
+      listeners.set(type, (listeners.get(type) || []).filter((entry) => entry !== handler))
     },
     postMessage(message) {
       postedMessages.push(message)
     },
     emit(type, data) {
-      for (const handler of listeners.get(type) || []) {
-        handler({ data })
-      }
+      for (const handler of listeners.get(type) || []) handler({ data })
     },
   }
 }
@@ -44,7 +41,7 @@ async function respondLatest(windowRef, result) {
   })
 }
 
-test('createBrowserExtensionTransportClient dispatches documented core aliases', async () => {
+test('createBrowserExtensionTransportClient dispatches stable page-port aliases only', async () => {
   const mockWindow = createMockWindow()
   const client = createBrowserExtensionTransportClient({
     targetWindow: mockWindow,
@@ -59,81 +56,33 @@ test('createBrowserExtensionTransportClient dispatches documented core aliases',
   await respondLatest(mockWindow, { methods: ['describeWorkspace'] })
   assert.deepEqual(await describePromise, { methods: ['describeWorkspace'] })
 
+  const workspacePromise = client.describeWorkspace({ workspaceId: 'workspace_b' })
+  assert.equal(mockWindow.postedMessages[1]?.alias, 'workspace_describe')
+  await respondLatest(mockWindow, { workspaceId: 'workspace_b' })
+  assert.deepEqual(await workspacePromise, { workspaceId: 'workspace_b' })
+
   const actionPromise = client.runAction({ name: 'scatter.brushRegion' })
-  assert.equal(mockWindow.postedMessages[1]?.alias, 'action_run')
+  assert.equal(mockWindow.postedMessages[2]?.alias, 'action_run')
   await respondLatest(mockWindow, { ok: true, stateId: 'main:s1' })
   assert.deepEqual(await actionPromise, { ok: true, stateId: 'main:s1' })
 
-  const perceptionPromise = client.queryPerception({ name: 'perception.inspectSelection' })
-  assert.equal(mockWindow.postedMessages[2]?.alias, 'perception_query')
-  await respondLatest(mockWindow, { ok: true, result: {} })
-  assert.deepEqual(await perceptionPromise, { ok: true, result: {} })
-
-  const describeWidgetPromise = client.describeWidget({ widgetId: 'scatter_a' })
-  assert.equal(mockWindow.postedMessages[3]?.alias, 'workspace_describe')
-  await respondLatest(mockWindow, {
-    widgets: [{ ref: 'wl://widgetva-app/workspace/main/widget/scatter_a', widgetId: 'scatter_a' }],
-  })
-  assert.deepEqual(await describeWidgetPromise, {
-    ref: 'wl://widgetva-app/workspace/main/widget/scatter_a',
-    widgetId: 'scatter_a',
-  })
-
-  const readWidgetStatePromise = client.readWidgetState({ widgetId: 'scatter_a' })
-  assert.equal(mockWindow.postedMessages[4]?.alias, 'workspace_describe')
-  await respondLatest(mockWindow, {
-    widgets: [{ ref: 'wl://widgetva-app/workspace/main/widget/scatter_a', widgetId: 'scatter_a' }],
-  })
-  await Promise.resolve()
-  await Promise.resolve()
-  assert.equal(mockWindow.postedMessages[5]?.alias, 'view_read')
-  assert.deepEqual(
-    mockWindow.postedMessages[5]?.args?.[0]?.refs,
-    ['wl://widgetva-app/workspace/main/widget/scatter_a'],
-  )
-  await respondLatest(mockWindow, { stateId: 'main:s1', widgets: {} })
-  assert.deepEqual(await readWidgetStatePromise, { stateId: 'main:s1', widgets: {} })
-
-  const replayPromise = client.replayWorkspace('main:s2')
-  assert.equal(mockWindow.postedMessages[6]?.alias, 'jump_to_state')
-  assert.deepEqual(mockWindow.postedMessages[6]?.args?.[0], { stateId: 'main:s2' })
+  const replayPromise = client.replay({ stateId: 'main:s2' })
+  assert.equal(mockWindow.postedMessages[3]?.alias, 'workspace_replay')
+  assert.deepEqual(mockWindow.postedMessages[3]?.args?.[0], { stateId: 'main:s2' })
   await respondLatest(mockWindow, { ok: true, stateId: 'main:s2' })
   assert.deepEqual(await replayPromise, { ok: true, stateId: 'main:s2' })
-})
 
-test('createBrowserExtensionTransportClient no longer exposes evaluation helpers', () => {
-  const mockWindow = createMockWindow()
-  const client = createBrowserExtensionTransportClient({
-    targetWindow: mockWindow,
-    responseWindow: mockWindow,
-    timeoutMs: 50,
-  })
-
-  assert.equal('describeEvaluationSurface' in client, false)
-  assert.equal('evaluationActionVerification' in client, false)
-  assert.equal('evaluationBenchmarkTask' in client, false)
-})
-
-test('createBrowserExtensionTransportClient lists only installed page-port MCP tools', async () => {
-  const mockWindow = createMockWindow()
-  const client = createBrowserExtensionTransportClient({
-    targetWindow: mockWindow,
-    responseWindow: mockWindow,
-    timeoutMs: 50,
-  })
-
-  const promise = client.listAvailableWidgetVAMcpTools()
-  assert.equal(mockWindow.postedMessages[0]?.alias, 'page_port_describe')
-  await respondLatest(mockWindow, {
-    aliases: {
-      page_port_describe: 'describePagePort',
-      workspace_describe: 'describeWorkspace',
-      view_read: 'readView',
-    },
-  })
-
-  assert.deepEqual(
-    (await promise).map((tool) => tool.name),
-    ['page_port_describe', 'workspace_describe', 'view_read'],
-  )
+  for (const removedName of [
+    'describeWidget',
+    'readWidgetState',
+    'executeWidgetAction',
+    'queryWidgetPerception',
+    'readWidgetTrace',
+    'replayWorkspace',
+    'replayWidget',
+    'listAvailableWidgetVAMcpTools',
+    'describeEvaluationSurface',
+  ]) {
+    assert.equal(removedName in client, false)
+  }
 })

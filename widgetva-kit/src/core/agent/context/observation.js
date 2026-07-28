@@ -65,12 +65,6 @@ function normalizeObservationWidgetState(widget = {}) {
   if (typeof widget?.title === 'string' && widget.title.length > 0) {
     normalized.title = widget.title
   }
-  if (Array.isArray(widget?.actionNames) && widget.actionNames.length > 0) {
-    normalized.actionNames = [...new Set(widget.actionNames.filter((name) => typeof name === 'string' && name.length > 0))]
-  }
-  if (Array.isArray(widget?.perceptionNames) && widget.perceptionNames.length > 0) {
-    normalized.perceptionNames = [...new Set(widget.perceptionNames.filter((name) => typeof name === 'string' && name.length > 0))]
-  }
   if (widget?.data && typeof widget.data === 'object' && !Array.isArray(widget.data)) {
     const data = clone(widget.data)
     if (
@@ -273,8 +267,6 @@ export function buildAgentObservationFromWorkspaceState({
         title: widget?.title || null,
         kind: widget?.kind || widgetState?.kind || null,
         recognizedKinds: Array.isArray(widget?.recognizedKinds) ? [...widget.recognizedKinds] : [],
-        actionNames: Array.isArray(widget?.actionNames) ? [...widget.actionNames] : [],
-        perceptionNames: Array.isArray(widget?.perceptionNames) ? [...widget.perceptionNames] : [],
         data,
         encodings: widgetState?.encodings && typeof widgetState.encodings === 'object'
           ? clone(widgetState.encodings)

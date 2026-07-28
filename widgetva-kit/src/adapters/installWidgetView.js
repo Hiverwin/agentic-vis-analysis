@@ -1,58 +1,5 @@
-import { createD3WidgetAdapter } from './D3WidgetAdapter.js'
-import { createEChartsWidgetAdapter } from './EChartsWidgetAdapter.js'
-import { createVegaLiteWidgetAdapter } from './VegaLiteWidgetAdapter.js'
 import { applyWidgetRuntimeState, attachWidgetRendererBridge } from '../core/rendering/WidgetRendererBridge.js'
-import { createRendererAdapterRegistry } from '../core/rendering/RendererAdapterRegistry.js'
-import { createProviderFamilyAdapter } from './widgetFamilies/index.js'
-
-function createDefaultProviderBackedAdapter(provider, definition = {}) {
-  const normalizedDefinition = definition && typeof definition === 'object' && !Array.isArray(definition)
-    ? definition
-    : {}
-  const kind = typeof normalizedDefinition.kind === 'string' ? normalizedDefinition.kind : null
-
-  if (kind && !['vega-lite-view', 'd3-view', 'echarts-view'].includes(kind)) {
-    const familyAdapter = createProviderFamilyAdapter(kind, provider)
-    return {
-      ...familyAdapter,
-      ...normalizedDefinition,
-      provider: familyAdapter.provider,
-      providerCapabilities: {
-        ...(familyAdapter.providerCapabilities || {}),
-        ...(normalizedDefinition.providerCapabilities || {}),
-      },
-    }
-  }
-
-  if (provider === 'd3') {
-    return createD3WidgetAdapter(normalizedDefinition)
-  }
-  if (provider === 'echarts') {
-    return createEChartsWidgetAdapter(normalizedDefinition)
-  }
-  return createVegaLiteWidgetAdapter(normalizedDefinition)
-}
-
-const DEFAULT_RENDERER_ADAPTER_REGISTRY = createRendererAdapterRegistry([
-  {
-    provider: 'vega-lite',
-    createAdapter({ definition = {} } = {}) {
-      return createDefaultProviderBackedAdapter('vega-lite', definition)
-    },
-  },
-  {
-    provider: 'd3',
-    createAdapter({ definition = {} } = {}) {
-      return createDefaultProviderBackedAdapter('d3', definition)
-    },
-  },
-  {
-    provider: 'echarts',
-    createAdapter({ definition = {} } = {}) {
-      return createDefaultProviderBackedAdapter('echarts', definition)
-    },
-  },
-])
+import { orchestrateVgplotView } from './vgplot/vgplotOrchestration.js'
 
 export async function installWidgetVAOnView({
   runtime = null,
@@ -67,37 +14,32 @@ export async function installWidgetVAOnView({
   actionTargetRef = null,
   onActionCall = null,
   onSelectionChange = null,
+  bindHumanInteractions = true,
   widgetAdapter = null,
   provider = null,
-  adapterDefinition = {},
-  adapterRegistry = DEFAULT_RENDERER_ADAPTER_REGISTRY,
+  runtimeCapture = null,
+  binding = null,
 } = {}) {
   const effectiveSurface = surface || container || null
   if (!view && !effectiveSurface) {
     throw new Error('installWidgetVAOnView requires either a view, surface, or container.')
   }
-  const resolvedAdapter = widgetAdapter || (
-    provider
-      ? adapterRegistry?.createAdapter?.(provider, {
-          definition: adapterDefinition,
-          runtime,
-          view,
-          surface: effectiveSurface,
-          widgetRef,
-          widgetState,
-          spec,
-          interactionConfig,
-          selectionSourceWidgetId,
-          actionTargetRef: actionTargetRef || widgetRef,
-        })
-      : null
-  )
+  const resolvedAdapter = widgetAdapter || null
   if (!resolvedAdapter) {
-    throw new Error('installWidgetVAOnView requires a widgetAdapter or provider-backed adapterRegistry.')
+    throw new Error('installWidgetVAOnView requires an explicit widgetAdapter.')
+  }
+  const resolvedProvider = resolvedAdapter?.provider || provider || null
+  if (resolvedProvider === 'vgplot') {
+    orchestrateVgplotView({
+      view,
+      runtime,
+      runtimeCapture,
+      binding,
+      widgetKind: resolvedAdapter?.kind || widgetState?.kind || null,
+    })
   }
   const resolvedInteractionConfig = interactionConfig
     || widgetState?.humanInteraction
-    || resolvedAdapter.getHumanInteractionConfig?.()
     || null
 
   const bridge = attachWidgetRendererBridge({
@@ -113,6 +55,7 @@ export async function installWidgetVAOnView({
     actionTargetRef: actionTargetRef || widgetRef,
     onActionCall,
     onSelectionChange,
+    bindHumanInteractions,
   })
 
   async function apply({
@@ -143,48 +86,44 @@ export async function installWidgetVAOnView({
 
 export async function installWidgetVAOnVegaLiteView({
   widgetAdapter,
-  adapterDefinition = {},
   ...args
 } = {}) {
   return installWidgetVAOnView({
     ...args,
     provider: 'vega-lite',
     widgetAdapter,
-    adapterDefinition: {
-      kind: 'vega-lite-view',
-      ...adapterDefinition,
-    },
   })
 }
 
 export async function installWidgetVAOnD3View({
   widgetAdapter,
-  adapterDefinition = {},
   ...args
 } = {}) {
   return installWidgetVAOnView({
     ...args,
     provider: 'd3',
     widgetAdapter,
-    adapterDefinition: {
-      kind: 'd3-view',
-      ...adapterDefinition,
-    },
   })
 }
 
 export async function installWidgetVAOnEChartsView({
   widgetAdapter,
-  adapterDefinition = {},
   ...args
 } = {}) {
   return installWidgetVAOnView({
     ...args,
     provider: 'echarts',
     widgetAdapter,
-    adapterDefinition: {
-      kind: 'echarts-view',
-      ...adapterDefinition,
-    },
+  })
+}
+
+export async function installWidgetVAOnVgplotView({
+  widgetAdapter,
+  ...args
+} = {}) {
+  return installWidgetVAOnView({
+    ...args,
+    provider: 'vgplot',
+    widgetAdapter,
   })
 }

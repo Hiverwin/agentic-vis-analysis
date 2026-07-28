@@ -170,7 +170,7 @@ test('runAgentLoop executes an explicit observe-plan-act-verify-reason loop thro
       assert.equal('perceptionQueries' in observe, false)
       assert.equal(knowledge?.widgetFamilies?.[0]?.kind, 'scatter')
       assert.equal(knowledge?.widgetFamilies?.[0]?.actions?.some((descriptor) => descriptor?.name === 'scatter.brushRegion'), true)
-      assert.equal(Array.isArray(knowledge?.widgetFamilies?.[0]?.playbook?.analysisToAction), true)
+      assert.equal(Array.isArray(knowledge?.agentGuidance?.analysisToActionByFamily?.scatter?.analysisToAction), true)
       assert.equal(workspacePlan?.planningMode, 'topology_driven')
       return {
         assistantMessage: 'Brush the middle cluster in the scatterplot.',
@@ -368,9 +368,11 @@ test('runAgentSession carries session knowledge forward and continues after a su
   assert.equal(result.stopReason, 'answered')
   assert.equal(result.knowledge.widgetFamilies[0].kind, 'scatter')
   assert.equal(result.knowledge.widgetFamilies[0].actions.some((descriptor) => descriptor?.name === 'scatter.brushRegion'), true)
-  assert.equal(Array.isArray(result.knowledge.widgetFamilies[0].playbook.analysisToAction), true)
-  assert.equal(result.knowledge.commonTools.perceptions.some((descriptor) => descriptor?.name === 'perception.inspectViewConfig'), true)
-  assert.deepEqual(Object.keys(result.knowledge), ['commonTools', 'widgetFamilies'])
+  assert.equal(Array.isArray(result.knowledge.agentGuidance.analysisToActionByFamily.scatter.analysisToAction), true)
+  assert.equal(result.knowledge.widgetFamilies[0].perceptions.some((descriptor) => descriptor?.name === 'perception.inspectViewConfig'), true)
+  assert.deepEqual(result.knowledge.agentGuidance.relations, {})
+  assert.equal(result.knowledge.agentGuidance.workflows.some((workflow) => workflow.name === 'linked_time_window_distribution'), true)
+  assert.deepEqual(Object.keys(result.knowledge), ['widgetFamilies', 'agentGuidance'])
   assert.equal(Array.isArray(result.turns), true)
   assert.equal(result.turns.length, 2)
   assert.deepEqual(Object.keys(result.turns[0]), ['index', 'observe', 'plan', 'act', 'verify', 'reason'])
@@ -450,6 +452,31 @@ test('runAgentSession can synthesize a final answer from the compact multi-turn 
   assert.equal(result.stopReason, 'answered')
   assert.equal(result.finalAnswer, 'Final synthesized answer from brush and correlation turns.')
   assert.equal(result.answer, 'Final synthesized answer from brush and correlation turns.')
+})
+
+test('runAgentSession preserves structured final answer values', async () => {
+  const { port } = createObservedPort()
+
+  const result = await runAgentSession(port, {
+    objective: 'State the selected cohort size.',
+    maxTurns: 1,
+    planner: async () => ({
+      operation: {
+        kind: 'perception',
+        name: 'perception.getSummary',
+        target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+        params: {},
+      },
+    }),
+    reasoner: async () => ({ answer: 'The cohort size is available.', completion: { status: 'answered' } }),
+    finalSynthesizer: async () => ({
+      answer: 'Group C contains 319 students.',
+      values: [{ key: 'largest_count', type: 'numeric', value: 319 }],
+    }),
+  })
+
+  assert.equal(result.answer, 'Group C contains 319 students.')
+  assert.deepEqual(result.answerValues, [{ key: 'largest_count', type: 'numeric', value: 319 }])
 })
 
 test('runAgentSession emits compact turn progress after each appended turn', async () => {

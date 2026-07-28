@@ -1,7 +1,11 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { installVegaEmbedCapture, readLatestVegaEmbedCapture } from './vegaEmbedCapture.js'
+import {
+  clearLatestVegaEmbedCapture,
+  installVegaEmbedCapture,
+  readLatestVegaEmbedCapture,
+} from './vegaEmbedCapture.js'
 
 test('installVegaEmbedCapture wraps an existing vegaEmbed function and records the latest view', async () => {
   const fakeView = { id: 'view_a' }
@@ -51,4 +55,23 @@ test('installVegaEmbedCapture also captures embedExample assigned after installa
   assert.equal(readLatestVegaEmbedCapture(root)?.source, 'embedExample')
   assert.equal(readLatestVegaEmbedCapture(root)?.view, fakeView)
   assert.deepEqual(readLatestVegaEmbedCapture(root)?.spec, { mark: 'point' })
+})
+
+test('clearLatestVegaEmbedCapture drops the last captured view without removing the installed wrappers', async () => {
+  const fakeView = { id: 'view_d' }
+  const root = {
+    vegaEmbed: async () => ({ view: fakeView }),
+  }
+
+  installVegaEmbedCapture(root)
+  await root.vegaEmbed('#vis', { mark: 'point' })
+  assert.equal(readLatestVegaEmbedCapture(root)?.view, fakeView)
+
+  clearLatestVegaEmbedCapture(root)
+  assert.equal(readLatestVegaEmbedCapture(root), null)
+
+  const nextView = { id: 'view_e' }
+  root.vegaEmbed = async () => ({ view: nextView })
+  await root.vegaEmbed('#vis', { mark: 'line' })
+  assert.equal(readLatestVegaEmbedCapture(root)?.view, nextView)
 })

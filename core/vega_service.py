@@ -11,6 +11,7 @@ from typing import Dict, Any
 import tempfile
 import base64
 import copy
+from io import BytesIO
 
 from config.settings import Settings
 from core.utils import app_logger, encode_image_to_base64
@@ -22,6 +23,12 @@ try:
     ALTAIR_AVAILABLE = True
 except ImportError:
     ALTAIR_AVAILABLE = False
+
+try:
+    from PIL import Image, ImageDraw
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 
 
 class VegaService:
@@ -189,6 +196,96 @@ class VegaService:
         except Exception as e:
             app_logger.error(f"Render error: {e}")
             return {"success": False, "error": str(e)}
+
+    def render_workspace(
+        self,
+        widgets: list[Dict[str, Any]],
+        focused_widget_id: str | None = None,
+        output_format: str = "png",
+        gap: int = 24,
+        columns: int = 1,
+    ) -> Dict[str, Any]:
+        """Render multiple widget specs and compose one workspace image.
+
+        The Kit observation has one workspace-level image slot. This method
+        preserves that contract by rendering each provider spec independently
+        through the existing Vega CLI and composing the resulting images in a
+        deterministic grid. The per-widget results remain available in the
+        returned metadata for provenance and future richer transports.
+        """
+        if not PIL_AVAILABLE:
+            return {
+                "success": False,
+                "error": "Workspace composition requires Pillow (pip install Pillow).",
+            }
+
+        entries = [
+            entry for entry in (widgets or [])
+            if isinstance(entry, dict) and isinstance(entry.get("spec"), dict)
+        ]
+        if not entries:
+            return {"success": False, "error": "No widget specs supplied for workspace rendering."}
+
+        rendered = []
+        for entry in entries:
+            spec = entry["spec"]
+            if isinstance(spec.get("spec"), dict):
+                spec = spec["spec"]
+            result = self.render(spec, output_format=output_format)
+            if not result.get("success"):
+                return {
+                    "success": False,
+                    "error": f"Failed to render widget {entry.get('widgetId')}: {result.get('error')}",
+                }
+            try:
+                image_bytes = base64.b64decode(result.get("image_base64", ""))
+                image = Image.open(BytesIO(image_bytes)).convert("RGB")
+            except Exception as error:
+                return {
+                    "success": False,
+                    "error": f"Failed to decode rendered widget {entry.get('widgetId')}: {error}",
+                }
+            rendered.append({
+                "widgetId": entry.get("widgetId"),
+                "image": image,
+                "renderer": result.get("renderer"),
+            })
+
+        safe_columns = max(1, min(int(columns or 1), len(rendered)))
+        rows = (len(rendered) + safe_columns - 1) // safe_columns
+        cell_width = max(item["image"].width for item in rendered)
+        cell_height = max(item["image"].height for item in rendered)
+        canvas = Image.new(
+            "RGB",
+            (
+                safe_columns * cell_width + (safe_columns + 1) * gap,
+                rows * cell_height + (rows + 1) * gap,
+            ),
+            "white",
+        )
+        draw = ImageDraw.Draw(canvas)
+        for index, item in enumerate(rendered):
+            row, column = divmod(index, safe_columns)
+            x = gap + column * (cell_width + gap)
+            y = gap + row * (cell_height + gap)
+            canvas.paste(item["image"], (x, y))
+            widget_id = item.get("widgetId")
+            if widget_id:
+                draw.rectangle((x, y, x + cell_width, y + 22), fill=(255, 255, 255))
+                draw.text((x + 6, y + 5), str(widget_id), fill=(30, 30, 30))
+
+        output = BytesIO()
+        canvas.save(output, format="PNG")
+        return {
+            "success": True,
+            "image_base64": base64.b64encode(output.getvalue()).decode("ascii"),
+            "mimeType": "image/png",
+            "renderer": "workspace-composite",
+            "focusedWidgetId": focused_widget_id,
+            "widgetIds": [item.get("widgetId") for item in rendered],
+            "width": canvas.width,
+            "height": canvas.height,
+        }
     
     def _is_full_vega_spec(self, vega_spec: Dict) -> bool:
         """check if it is a full Vega specification (rather than Vega-Lite)"""

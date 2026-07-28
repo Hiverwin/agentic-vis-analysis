@@ -1,0 +1,873 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+
+import { makeCurrentSelectionDataRef, makeCurrentViewDataRef, makeWidgetRef } from '../../../../contracts/refs-contracts.js'
+import { materializeWorkspace } from './WorkspaceMaterializer.js'
+
+test('materializeWorkspace exposes current_selection as a shared data handle plus inspect/summarize selection targets', () => {
+  const currentSelectionDataRef = makeCurrentSelectionDataRef()
+  const widgetId = 'session_test-session'
+  const selectionRef = `wl://widgetva-app/workspace/main/widget/${widgetId}/selection/brush`
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'test-session',
+    spec: {
+      data: {
+        values: [
+          { Horsepower: 130, Origin: 'USA' },
+          { Horsepower: 95, Origin: 'Japan' },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Horsepower', type: 'quantitative' },
+        y: { field: 'Horsepower', type: 'quantitative' },
+        color: { field: 'Origin', type: 'nominal' },
+      },
+    },
+    selection: {
+      source_widget_id: widgetId,
+      selection_id: 'brush',
+      selection_type: 'point',
+      predicates: [{ field: 'Origin', op: 'equals', value: 'USA' }],
+      summary: 'Origin: USA',
+    },
+  })
+
+  const currentSelectionHandle = workspace.description.dataHandles.find((handle) => handle?.ref === currentSelectionDataRef)
+  const inspectSelectionDescriptor = workspace.description.perceptionQueries.find(
+    (descriptor) => descriptor?.name === 'perception.inspectSelection',
+  )
+  const summarizeSelectionDescriptor = workspace.description.perceptionQueries.find(
+    (descriptor) => descriptor?.name === 'perception.summarizeSelection',
+  )
+  const brushActionDescriptor = workspace.description.actions.find(
+    (descriptor) => descriptor?.name === 'scatter.brushRegion',
+  )
+  const clearSelectionDescriptor = workspace.description.actions.find(
+    (descriptor) => descriptor?.name === 'widget.clearSelection',
+  )
+  const updateSelectionDescriptor = workspace.description.actions.find(
+    (descriptor) => descriptor?.name === 'widget.updateSelection',
+  )
+  const focusWidgetDescriptor = workspace.description.actions.find(
+    (descriptor) => descriptor?.name === 'workspace.focusWidget',
+  )
+  const zoomDomainDescriptor = workspace.description.actions.find(
+    (descriptor) => descriptor?.name === 'widget.zoomDomain',
+  )
+  const resetViewDescriptor = workspace.description.actions.find(
+    (descriptor) => descriptor?.name === 'widget.resetView',
+  )
+  const undoViewDescriptor = workspace.description.actions.find(
+    (descriptor) => descriptor?.name === 'widget.undoView',
+  )
+
+  assert.ok(currentSelectionHandle)
+  assert.equal(currentSelectionHandle.scope, 'workspaceCurrent')
+  assert.equal(currentSelectionHandle.sourceSelectionRef, selectionRef)
+  assert.equal(currentSelectionHandle.supportedQueries?.includes('schema'), true)
+  assert.equal(inspectSelectionDescriptor?.targetRef, currentSelectionDataRef)
+  assert.equal(summarizeSelectionDescriptor?.targetRef, currentSelectionDataRef)
+  assert.deepEqual(brushActionDescriptor?.supportedWidgetKinds, ['scatter'])
+  assert.deepEqual(clearSelectionDescriptor?.affectedStatePaths, ['selections'])
+  assert.deepEqual(updateSelectionDescriptor?.affectedStatePaths, ['selections'])
+  assert.deepEqual(focusWidgetDescriptor?.affectedStatePaths, ['shared.focusedWidget'])
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'workspace.addAnnotation'), false)
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'workspace.clearAnnotations'), false)
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'workspace.resetWorkspace'), false)
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'widget.undoSelection'), false)
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'widget.redoSelection'), false)
+  assert.deepEqual(resetViewDescriptor?.affectedStatePaths, ['view', 'transforms', 'selections', 'feedback'])
+  assert.deepEqual(undoViewDescriptor?.affectedStatePaths, ['view', 'transforms', 'selections', 'feedback'])
+  assert.deepEqual(zoomDomainDescriptor?.affectedStatePaths, ['view.xDomain', 'view.yDomain', 'view.zoom'])
+  assert.deepEqual(clearSelectionDescriptor?.supportedWidgetKinds, ['scatter'])
+  assert.equal(updateSelectionDescriptor?.paramsSchema?.properties?.field?.type, 'string')
+  assert.equal(updateSelectionDescriptor?.paramsSchema?.properties?.values?.type, 'array')
+  assert.equal(updateSelectionDescriptor?.paramsSchema?.properties?.keyField?.type, 'string')
+  assert.equal(updateSelectionDescriptor?.paramsSchema?.properties?.keys?.type, 'array')
+  assert.equal(workspace.description.runtimeTopology?.topology, 'T1')
+  assert.equal(Array.isArray(workspace.description.widgetAdapters), true)
+  assert.equal(workspace.description.widgetAdapters[0]?.provider, 'vega-lite')
+  assert.equal(workspace.description.widgetAdapters[0]?.title, widgetId)
+  assert.deepEqual(
+    workspace.description.widgetAdapters[0]?.analyticRoles,
+    ['correlate', 'cluster', 'outlier', 'distribution'],
+  )
+  assert.equal(
+    workspace.description.widgetAdapters[0]?.primaryDataRef,
+    'wl://widgetva-app/workspace/main/data/primary',
+  )
+  assert.equal(workspace.description.widgetAdapters[0]?.sourceKind, 'baseSpec')
+  assert.equal(workspace.description.widgetAdapters[0]?.supportsSpecMutation, true)
+  assert.equal(workspace.description.widgetAdapters[0]?.humanInteraction?.mode, 'brush2d')
+  const widgetState = workspace.state.widgets[makeWidgetRef({ widgetId })]
+  assert.equal(widgetState?.humanInteraction?.mode, 'brush2d')
+  assert.equal(widgetState?.humanInteraction?.actionName, 'scatter.brushRegion')
+  assert.deepEqual(
+    workspace.description.transportHints?.recommendedTools,
+    ['workspace_describe', 'view_read', 'action_run', 'perception_query', 'interaction_trace_read'],
+  )
+  assert.equal('optionalTools' in workspace.description.transportHints, false)
+  assert.deepEqual(
+    workspace.description.planning?.supportedTopologies,
+    ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'],
+  )
+  assert.deepEqual(
+    workspace.description.planning?.supportedRunModes,
+    ['goal_oriented', 'open_ended', 'autonomous'],
+  )
+  assert.deepEqual(
+    workspace.description.planning?.supportedComplexityBudgets,
+    ['minimal', 'standard', 'extended'],
+  )
+  assert.deepEqual(
+    workspace.description.planning?.supportedPlanSources,
+    ['planner', 'runtime_default', 'workspace_spec'],
+  )
+  assert.deepEqual(
+    workspace.description.planning?.supportedPlanningModes,
+    ['topology_driven', 'minimal_default', 'explicit_spec'],
+  )
+  assert.equal(workspace.description.benchmarkSupport, undefined)
+  const structuralKinds = workspace.description.links.map((link) => link.kind)
+  assert.ok(structuralKinds.includes('usesData'))
+  assert.ok(structuralKinds.includes('contains'))
+  assert.ok(structuralKinds.includes('derivesFrom'))
+})
+
+test('materializeWorkspace preserves structured point selection fields in shared and widget state', () => {
+  const widgetId = 'session_structured-selection'
+  const widgetRef = makeWidgetRef({ widgetId })
+  const selectionRef = `wl://widgetva-app/workspace/main/widget/${widgetId}/selection/row_focus`
+
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'structured-selection',
+    spec: {
+      data: {
+        values: [
+          { Name: 'ford pinto', Origin: 'USA' },
+          { Name: 'civic', Origin: 'Japan' },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Name', type: 'nominal' },
+        y: { field: 'Origin', type: 'nominal' },
+      },
+    },
+    selection: {
+      source_widget_id: widgetId,
+      selection_id: 'row_focus',
+      selection_type: 'point',
+      keyField: 'Name',
+      keys: ['ford pinto'],
+      predicates: [{ field: 'Name', op: 'equals', value: 'ford pinto' }],
+      summary: 'Focused row: ford pinto',
+    },
+  })
+
+  const sharedSelection = workspace.state.shared?.activeSelections?.[selectionRef]
+  const widgetSelection = workspace.state.widgets?.[widgetRef]?.selections?.[selectionRef]
+
+  assert.equal(sharedSelection?.keyField, 'Name')
+  assert.deepEqual(sharedSelection?.keys, ['ford pinto'])
+  assert.equal(widgetSelection?.keyField, 'Name')
+  assert.deepEqual(widgetSelection?.keys, ['ford pinto'])
+})
+
+test('materializeWorkspace materializes explicit widget source specs without a root spec', () => {
+  const barWidgetRef = makeWidgetRef({ workspaceId: 'declared', widgetId: 'w_bar' })
+  const lineWidgetRef = makeWidgetRef({ workspaceId: 'declared', widgetId: 'w_line' })
+  const rows = [
+    { region: 'Downtown', month: '2024-01-01', visitors: 10 },
+    { region: 'Harbor', month: '2024-01-01', visitors: 8 },
+  ]
+
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'declared',
+    sessionId: 'declared',
+    spec: null,
+    workspaceSpec: {
+      topology: 'T2',
+      widgets: [
+        {
+          widgetId: 'w_bar',
+          kind: 'bar',
+          provider: 'vega-lite',
+          title: 'Visitors by Region',
+          source: {
+            kind: 'nativeArtifact',
+            provider: 'vega-lite',
+            providerSpec: {
+              provider: 'vega-lite',
+              spec: {
+                data: { values: rows },
+                mark: 'bar',
+                encoding: {
+                  x: { field: 'region', type: 'nominal' },
+                  y: { field: 'visitors', type: 'quantitative', aggregate: 'sum' },
+                },
+              },
+            },
+          },
+        },
+        {
+          widgetId: 'w_line',
+          kind: 'line',
+          provider: 'vega-lite',
+          title: 'Monthly Visitors',
+          source: {
+            kind: 'nativeArtifact',
+            provider: 'vega-lite',
+            providerSpec: {
+              provider: 'vega-lite',
+              spec: {
+                data: { values: rows },
+                mark: 'line',
+                encoding: {
+                  x: { field: 'month', type: 'temporal' },
+                  y: { field: 'visitors', type: 'quantitative' },
+                  color: { field: 'region', type: 'nominal' },
+                },
+              },
+            },
+          },
+        },
+      ],
+      links: [
+        {
+          ref: 'wl://widgetva-app/workspace/declared/coordination/bar-to-line',
+          sourceStateRef: `${barWidgetRef}/selection/region`,
+          targetStateRef: `${lineWidgetRef}/transform/region-filter`,
+          relation: 'controls',
+          transform: {
+            kind: 'selectionToFilter',
+            fieldMapping: [{ sourceField: 'region', targetField: 'region' }],
+          },
+          activation: 'automatic',
+        },
+      ],
+    },
+  })
+
+  assert.equal(workspace.description.widgets.length, 2)
+  assert.deepEqual(workspace.description.widgets.map((widget) => widget.widgetId), ['w_bar', 'w_line'])
+  assert.deepEqual(workspace.description.widgets.map((widget) => widget.kind), ['bar', 'line'])
+  assert.equal(workspace.state.widgets[barWidgetRef]?.rawSpec?.mark, 'bar')
+  assert.equal(workspace.state.widgets[lineWidgetRef]?.rawSpec?.mark, 'line')
+  assert.equal(workspace.runtimeData[workspace.state.widgets[barWidgetRef]?.data?.currentDataRef]?.rows.length, 2)
+})
+
+test('materializeWorkspace preserves pure Vega named data sources during bind', () => {
+  const sankeyWidgetRef = makeWidgetRef({ workspaceId: 'vega-sankey', widgetId: 'w_sankey' })
+  const spec = {
+    $schema: 'https://vega.github.io/schema/vega/v5.json',
+    data: [
+      {
+        name: 'rawLinks',
+        values: [
+          { source: 'Landing Page', target: 'Product Detail', value: 10 },
+        ],
+      },
+      {
+        name: 'nodePositions',
+        source: 'rawLinks',
+        transform: [{ type: 'aggregate', groupby: ['source'] }],
+      },
+    ],
+    scales: [
+      { name: 'x', type: 'linear', domain: { data: 'nodePositions', field: 'source' } },
+    ],
+    marks: [
+      { name: 'nodes', type: 'rect', from: { data: 'nodePositions' } },
+    ],
+  }
+
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'vega-sankey',
+    sessionId: 'vega-sankey',
+    spec: null,
+    workspaceSpec: {
+      topology: 'T1',
+      widgets: [
+        {
+          widgetId: 'w_sankey',
+          kind: 'sankey',
+          provider: 'vega',
+          title: 'Sankey',
+          source: {
+            kind: 'templateSpec',
+            provider: 'vega',
+            spec,
+            providerSpec: {
+              provider: 'vega',
+              spec,
+            },
+          },
+        },
+      ],
+      links: [],
+    },
+  })
+
+  assert.equal(Array.isArray(workspace.state.widgets[sankeyWidgetRef]?.rawSpec?.data), true)
+  assert.deepEqual(
+    workspace.state.widgets[sankeyWidgetRef]?.rawSpec?.data.map((dataset) => dataset.name),
+    ['rawLinks', 'nodePositions'],
+  )
+  assert.equal(workspace.state.widgets[sankeyWidgetRef]?.rawSpec?.marks?.[0]?.from?.data, 'nodePositions')
+})
+
+test('materializeWorkspace keeps each imported widget on its own source rows', () => {
+  const parallelWidgetRef = makeWidgetRef({ workspaceId: 'mixed-sources', widgetId: 'w_parallel' })
+  const scatterWidgetRef = makeWidgetRef({ workspaceId: 'mixed-sources', widgetId: 'w_scatter' })
+  const parallelRows = [
+    { record: 'a', dimension: 'marketing_spend', value: 1200 },
+    { record: 'a', dimension: 'visitors', value: 3000 },
+  ]
+  const scatterRows = [
+    { marketing_spend: 2400, visitors: 7200, region: 'Central' },
+    { marketing_spend: 4100, visitors: 9800, region: 'Downtown' },
+  ]
+
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'mixed-sources',
+    sessionId: 'mixed-sources',
+    spec: null,
+    workspaceSpec: {
+      topology: 'T2',
+      widgets: [
+        {
+          widgetId: 'w_parallel',
+          kind: 'parallelCoordinates',
+          provider: 'vega-lite',
+          title: 'Acceptance Parallel Coordinates',
+          source: {
+            kind: 'nativeArtifact',
+            provider: 'vega-lite',
+            providerSpec: {
+              provider: 'vega-lite',
+              spec: {
+                data: { values: parallelRows },
+                mark: 'line',
+                encoding: {
+                  x: { field: 'dimension', type: 'nominal' },
+                  y: { field: 'value', type: 'quantitative' },
+                  detail: { field: 'record' },
+                },
+              },
+            },
+          },
+        },
+        {
+          widgetId: 'w_scatter',
+          kind: 'scatter',
+          provider: 'vega-lite',
+          title: 'Marketing Spend vs Visitors',
+          source: {
+            kind: 'nativeArtifact',
+            provider: 'vega-lite',
+            providerSpec: {
+              provider: 'vega-lite',
+              spec: {
+                data: { values: scatterRows },
+                mark: 'point',
+                encoding: {
+                  x: { field: 'marketing_spend', type: 'quantitative' },
+                  y: { field: 'visitors', type: 'quantitative' },
+                  color: { field: 'region', type: 'nominal' },
+                },
+              },
+            },
+          },
+        },
+      ],
+      links: [],
+    },
+  })
+
+  const parallelRowsAfterMaterialize = workspace.runtimeData[workspace.state.widgets[parallelWidgetRef]?.data?.currentDataRef]?.rows || []
+  const scatterRowsAfterMaterialize = workspace.runtimeData[workspace.state.widgets[scatterWidgetRef]?.data?.currentDataRef]?.rows || []
+  assert.deepEqual(parallelRowsAfterMaterialize, parallelRows)
+  assert.deepEqual(scatterRowsAfterMaterialize, scatterRows)
+  assert.equal(workspace.state.widgets[scatterWidgetRef]?.rawSpec?.data?.values?.[0]?.marketing_spend, 2400)
+})
+
+test('materializeWorkspace preserves shared viewport state from the host/runtime input', () => {
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'viewport-session',
+    spec: {
+      data: {
+        values: [
+          { Horsepower: 130, MPG: 18 },
+          { Horsepower: 95, MPG: 30 },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Horsepower', type: 'quantitative' },
+        y: { field: 'MPG', type: 'quantitative' },
+      },
+    },
+    viewportState: {
+      sourceWidgetRef: 'wl://widgetva-app/workspace/main/widget/session_viewport-session',
+      xDomain: [80, 160],
+      yDomain: [15, 35],
+      zoom: {
+        level: 2,
+        center: [120, 25],
+      },
+    },
+  })
+
+  assert.deepEqual(workspace.state.shared?.viewport, {
+    sourceWidgetRef: 'wl://widgetva-app/workspace/main/widget/session_viewport-session',
+    xDomain: [80, 160],
+    yDomain: [15, 35],
+    zoom: {
+      level: 2,
+      center: [120, 25],
+    },
+  })
+})
+
+test('materializeWorkspace materializes Vega-Lite fold transforms into visible rows for line series selection', () => {
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'line-fold-session',
+    spec: {
+      data: {
+        values: [
+          { date: '2024-01-01', AAPL: 10, AMZN: 20, GOOG: 30 },
+          { date: '2024-02-01', AAPL: 15, AMZN: 18, GOOG: 28 },
+        ],
+      },
+      transform: [
+        {
+          fold: ['AAPL', 'AMZN', 'GOOG'],
+          as: ['symbol', 'price'],
+        },
+      ],
+      mark: 'line',
+      encoding: {
+        x: { field: 'date', type: 'temporal' },
+        y: { field: 'price', type: 'quantitative' },
+        color: { field: 'symbol', type: 'nominal' },
+      },
+    },
+  })
+
+  const widgetRef = makeWidgetRef({ widgetId: 'session_line-fold-session' })
+  const visibleDataRef = workspace.state.widgets?.[widgetRef]?.data?.currentDataRef
+  const visibleRows = visibleDataRef ? workspace.runtimeData?.[visibleDataRef]?.rows : null
+
+  assert.equal(Array.isArray(visibleRows), true)
+  assert.equal(visibleRows.length, 6)
+  assert.deepEqual(
+    visibleRows.slice(0, 3),
+    [
+      { date: '2024-01-01', AAPL: 10, AMZN: 20, GOOG: 30, symbol: 'AAPL', price: 10 },
+      { date: '2024-01-01', AAPL: 10, AMZN: 20, GOOG: 30, symbol: 'AMZN', price: 20 },
+      { date: '2024-01-01', AAPL: 10, AMZN: 20, GOOG: 30, symbol: 'GOOG', price: 30 },
+    ],
+  )
+})
+
+test('materializeWorkspace materializes shared focus and highlight slices as first-class coordination state', () => {
+  const widgetRef = 'wl://widgetva-app/workspace/main/widget/session_focus-highlight'
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'focus-highlight',
+    spec: {
+      data: {
+        values: [
+          { Horsepower: 130, Origin: 'USA' },
+          { Horsepower: 95, Origin: 'Japan' },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Horsepower', type: 'quantitative' },
+        y: { field: 'Horsepower', type: 'quantitative' },
+        color: { field: 'Origin', type: 'nominal' },
+      },
+    },
+    focusedWidgetRef: widgetRef,
+    previousState: {
+      widgets: {
+        [widgetRef]: {
+          ref: widgetRef,
+          widgetId: 'session_focus-highlight',
+          feedback: {
+            highlightedKeys: ['USA'],
+            inboundLinkIds: ['link://highlight'],
+            highlightLinkIds: ['link://highlight'],
+            linkedSourceRefs: ['wl://widgetva-app/workspace/main/widget/session_focus-highlight/selection/current'],
+          },
+        },
+      },
+      shared: {},
+    },
+  })
+
+  assert.deepEqual(workspace.state.shared?.focus, {
+    widgetRef,
+    widgetId: 'session_focus-highlight',
+    source: 'workspace',
+  })
+  assert.deepEqual(workspace.state.shared?.highlight, {
+    entries: [{
+      widgetRef,
+      widgetId: 'session_focus-highlight',
+      sourceWidgetRef: null,
+      sourceWidgetId: null,
+      selectionRef: null,
+      summary: null,
+      predicates: [],
+      highlightedKeys: ['USA'],
+      inboundLinkIds: ['link://highlight'],
+      highlightLinkIds: ['link://highlight'],
+      linkedSourceRefs: ['wl://widgetva-app/workspace/main/widget/session_focus-highlight/selection/current'],
+    }],
+    activeWidgetRefs: [widgetRef],
+  })
+})
+
+test('materializeWorkspace exposes current_view as a shared data handle and visible perception targets', () => {
+  const currentViewDataRef = makeCurrentViewDataRef()
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'test-session',
+    spec: {
+      data: {
+        values: [
+          { Horsepower: 130, Origin: 'USA' },
+          { Horsepower: 95, Origin: 'Japan' },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Horsepower', type: 'quantitative' },
+        y: { field: 'Horsepower', type: 'quantitative' },
+        color: { field: 'Origin', type: 'nominal' },
+      },
+    },
+  })
+
+  const currentViewHandle = workspace.description.dataHandles.find((handle) => handle?.ref === currentViewDataRef)
+  const inspectVisibleDescriptor = workspace.description.perceptionQueries.find(
+    (descriptor) => descriptor?.name === 'perception.inspectVisibleRows',
+  )
+  const summarizeVisibleDescriptor = workspace.description.perceptionQueries.find(
+    (descriptor) => descriptor?.name === 'perception.summarizeVisible',
+  )
+
+  assert.ok(currentViewHandle)
+  assert.equal(currentViewHandle.scope, 'workspaceCurrentView')
+  assert.equal(currentViewHandle.supportedQueries?.includes('schema'), true)
+  assert.equal(inspectVisibleDescriptor?.targetRef, currentViewDataRef)
+  assert.equal(summarizeVisibleDescriptor?.targetRef, currentViewDataRef)
+  assert.equal(workspace.description.runtimeTopology?.topology, 'T1')
+  assert.equal(workspace.description.benchmarkSupport, undefined)
+  assert.equal(workspace.description.taskContext?.taskMode, 'goal_oriented')
+  assert.equal(workspace.description.taskContext?.coordinationScope, 'single_widget')
+  assert.equal(Array.isArray(workspace.description.taskContext?.targetWidgetRefs), true)
+  assert.equal(workspace.description.taskContext?.targetWidgetRefs?.length, 1)
+})
+
+test('materializeWorkspace derives zoom center and level from numeric view domains', () => {
+  const widgetRef = makeWidgetRef({ widgetId: 'session_zoom-metadata' })
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'zoom-metadata',
+    spec: {
+      data: {
+        values: [
+          { Horsepower: 90, Miles_per_Gallon: 32 },
+          { Horsepower: 130, Miles_per_Gallon: 24 },
+          { Horsepower: 160, Miles_per_Gallon: 18 },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Horsepower', type: 'quantitative', scale: { domain: [100, 150] } },
+        y: { field: 'Miles_per_Gallon', type: 'quantitative', scale: { domain: [20, 30] } },
+      },
+    },
+  })
+
+  const view = workspace.state.widgets?.[widgetRef]?.view
+  assert.deepEqual(view?.zoom?.center, [125, 25])
+  assert.equal(view?.zoom?.level, 1.4)
+})
+
+test('materializeWorkspace derives view.sort from encoding sort rules', () => {
+  const widgetRef = makeWidgetRef({ widgetId: 'session_sort-metadata' })
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'sort-metadata',
+    spec: {
+      data: {
+        values: [
+          { Origin: 'USA', count: 2 },
+          { Origin: 'Japan', count: 1 },
+        ],
+      },
+      mark: 'bar',
+      encoding: {
+        x: { field: 'Origin', type: 'nominal', sort: { field: 'count', order: 'descending' } },
+        y: { field: 'count', type: 'quantitative' },
+      },
+    },
+  })
+
+  const view = workspace.state.widgets?.[widgetRef]?.view
+  assert.deepEqual(view?.sort, {
+    channel: 'x',
+    field: 'count',
+    mode: 'direction',
+    order: 'descending',
+  })
+})
+
+test('materializeWorkspace preserves the full planner result in workspace description planning metadata', () => {
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'planned-workspace',
+    spec: {
+      data: {
+        values: [
+          { Horsepower: 130, Origin: 'USA' },
+          { Horsepower: 95, Origin: 'Japan' },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Horsepower', type: 'quantitative' },
+        y: { field: 'Horsepower', type: 'quantitative' },
+        color: { field: 'Origin', type: 'nominal' },
+      },
+    },
+    planningRequest: {
+      task: {
+        taskFamily: 'correlation',
+        coordinationScope: 'multi_widget',
+        evidenceType: 'cross_widget',
+        interactionHorizon: 'multi_step',
+      },
+      runMode: 'goal_oriented',
+      complexityBudget: 'standard',
+    },
+  })
+
+  const planner = workspace.description.planning?.planner
+
+  assert.equal(workspace.description.planning?.materializedFromPlanner, true)
+  assert.equal(workspace.description.planning?.workspaceSpecStatus, 'planned')
+  assert.equal(workspace.description.taskContext?.coordinationScope, 'multi_widget')
+  assert.equal(workspace.description.taskContext?.interactionHorizon, 'multi_step')
+  assert.equal(workspace.description.taskContext?.evidenceType, 'cross_widget')
+  assert.equal(planner?.topology, 'T3')
+  assert.equal(planner?.planningMode, 'topology_driven')
+  assert.equal(planner?.source, 'planner')
+  assert.equal(planner?.title, 'Scatter Detail Workspace')
+  assert.equal(planner?.primaryWidgetId, 'session_planned-workspace')
+  assert.equal(Array.isArray(planner?.widgets), true)
+  assert.equal(planner?.widgets?.length, 2)
+  assert.equal(planner?.widgets?.[0]?.widgetId, 'session_planned-workspace')
+  assert.equal(planner?.widgets?.[1]?.widgetId, 'session_planned-workspace_detail')
+  assert.equal(Array.isArray(planner?.links), true)
+  assert.equal(planner?.links?.length, 2)
+  assert.equal(planner?.links?.[0]?.sourceWidgetId, 'session_planned-workspace')
+  assert.equal(planner?.links?.[0]?.targetWidgetId, 'session_planned-workspace_detail')
+  assert.equal(workspace.description.runtimeTopology?.topology, 'T3')
+  assert.equal(Array.isArray(planner?.rationale), true)
+  assert.ok(planner?.rationale?.length > 0)
+  assert.equal(workspace.description.planning?.planningRequest?.runMode, 'goal_oriented')
+  assert.equal(workspace.description.planning?.planningRequest?.complexityBudget, 'standard')
+})
+
+test('materializeWorkspace derives globalFilters from initial linked filter selections', () => {
+  const sourceWidgetId = 'scatter_source'
+  const targetWidgetId = 'bar_target'
+  const targetWidgetRef = makeWidgetRef({ widgetId: targetWidgetId })
+
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'linked-filters',
+    spec: {
+      data: {
+        values: [
+          { Origin: 'USA', Horsepower: 130 },
+          { Origin: 'Japan', Horsepower: 95 },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Horsepower', type: 'quantitative' },
+        y: { field: 'Horsepower', type: 'quantitative' },
+        color: { field: 'Origin', type: 'nominal' },
+      },
+    },
+    workspaceSpec: {
+      topology: 'T2',
+      widgets: [
+        {
+          widgetId: sourceWidgetId,
+          role: 'primary',
+          source: { kind: 'baseSpec' },
+        },
+        {
+          widgetId: targetWidgetId,
+          role: 'secondary',
+          source: { kind: 'baseSpec' },
+        },
+      ],
+      links: [
+        {
+          linkId: 'link_filter',
+          sourceWidgetId,
+          targetWidgetId,
+          kind: 'filter',
+        },
+      ],
+    },
+    selection: {
+      source_widget_id: sourceWidgetId,
+      selection_id: 'brush',
+      selection_type: 'point',
+      predicates: [{ field: 'Origin', op: 'equals', value: 'USA' }],
+      summary: 'Origin: USA',
+    },
+  })
+
+  assert.deepEqual(
+    workspace.state.shared?.globalFilters?.[targetWidgetRef],
+    [{ field: 'Origin', op: 'equals', value: 'USA' }],
+  )
+  const targetState = workspace.state.widgets?.[targetWidgetRef]
+  assert.equal(targetState?.transforms?.[0]?.kind, 'filter')
+  assert.equal(targetState?.transforms?.[0]?.sourceWidgetId, sourceWidgetId)
+  assert.equal(targetState?.transforms?.[0]?.linkId, 'link_filter')
+  assert.equal(workspace.description.runtimeTopology?.topology, 'T2')
+  assert.equal(workspace.description.benchmarkSupport, undefined)
+  assert.deepEqual(workspace.description.planning?.requestedWorkspaceSpec, {
+    topology: 'T2',
+    widgetCount: 2,
+    linkCount: 1,
+  })
+})
+
+test('materializeWorkspace preserves explicit manual link semantics from automatic false', () => {
+  const sourceWidgetId = 'scatter_source'
+  const targetWidgetId = 'bar_target'
+
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'manual-link',
+    spec: {
+      data: {
+        values: [
+          { Origin: 'USA', Horsepower: 130 },
+          { Origin: 'Japan', Horsepower: 95 },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Horsepower', type: 'quantitative' },
+        y: { field: 'Horsepower', type: 'quantitative' },
+      },
+    },
+    workspaceSpec: {
+      topology: 'T2',
+      widgets: [
+        { widgetId: sourceWidgetId, role: 'primary', source: { kind: 'baseSpec' } },
+        { widgetId: targetWidgetId, role: 'secondary', source: { kind: 'baseSpec' } },
+      ],
+      links: [
+        {
+          linkId: 'link_filter_manual',
+          sourceWidgetId,
+          targetWidgetId,
+          kind: 'filter',
+          activationPolicy: 'manual',
+        },
+      ],
+    },
+  })
+
+  const link = workspace.description.links.find((entry) => entry?.ref?.endsWith('/link/link_filter_manual'))
+  assert.equal(link?.activationPolicy, 'manual')
+  assert.equal(link?.effectConstraint ?? null, null)
+  assert.equal(Object.hasOwn(link || {}, 'automatic'), false)
+  assert.equal(Object.hasOwn(link || {}, 'propagationPolicy'), false)
+})
+
+test('materializeWorkspace does not infer sharedSelection capability from highlight-only coordination', () => {
+  const sourceWidgetId = 'scatter_source'
+  const targetWidgetId = 'table_target'
+
+  const workspace = materializeWorkspace({
+    appId: 'widgetva-app',
+    workspaceId: 'main',
+    sessionId: 'highlight-coordination',
+    spec: {
+      data: {
+        values: [
+          { Origin: 'USA', Horsepower: 130 },
+          { Origin: 'Japan', Horsepower: 95 },
+        ],
+      },
+      mark: 'point',
+      encoding: {
+        x: { field: 'Horsepower', type: 'quantitative' },
+        y: { field: 'Horsepower', type: 'quantitative' },
+        color: { field: 'Origin', type: 'nominal' },
+      },
+    },
+    workspaceSpec: {
+      topology: 'T2',
+      widgets: [
+        {
+          widgetId: sourceWidgetId,
+          role: 'primary',
+          source: { kind: 'baseSpec' },
+        },
+        {
+          widgetId: targetWidgetId,
+          role: 'secondary',
+          source: { kind: 'baseSpec' },
+        },
+      ],
+      links: [
+        {
+          linkId: 'link_highlight',
+          sourceWidgetId,
+          targetWidgetId,
+          kind: 'highlight',
+        },
+      ],
+    },
+  })
+
+  assert.equal(workspace.description.workspaceCapabilities?.includes('multiWidgetCoordination'), true)
+  assert.equal(workspace.description.workspaceCapabilities?.includes('sharedSelection'), false)
+  assert.equal(workspace.description.benchmarkSupport, undefined)
+})

@@ -9,6 +9,7 @@ import {
   runNaturalLanguageAgentSession,
   runNaturalLanguageAgentTurn,
 } from './naturalLanguagePlanner.js'
+import { buildAgentKnowledge } from '../context/index.js'
 
 function createMockPagePort() {
   const calls = []
@@ -138,7 +139,7 @@ test('createNaturalLanguagePlanner produces a valid structured operation from JS
     observe: {
       query: 'Focus on the middle horsepower region.',
       state: {
-        widgets: [{ ref: 'scatter-ref', kind: 'scatter', focused: true }],
+        widgets: [{ ref: 'scatter-ref', widgetId: 'scatter_1', kind: 'scatter', focused: true }],
         sharedAnalyticalState: {
           filters: {},
           viewport: null,
@@ -160,7 +161,60 @@ test('createNaturalLanguagePlanner produces a valid structured operation from JS
   assert.equal(result.model, 'test-model')
   assert.equal(result.operation.name, 'scatter.zoomDomain')
   assert.deepEqual(result.operation.target, { widgetRef: 'scatter-ref' })
-  assert.match(requests[0]?.messages?.[1]?.content || '', /"knowledge":\{/)
+  assert.deepEqual(requests[0]?.responseFormat, { type: 'json_object' })
+  const systemPrompt = requests[0]?.messages?.[0]?.content || ''
+  const userPrompt = requests[0]?.messages?.[1]?.content || ''
+  assert.match(systemPrompt, /Return exactly one JSON object matching this shape/)
+  assert.doesNotMatch(systemPrompt, /data_query/)
+  assert.doesNotMatch(userPrompt, /"widgetId"/)
+  assert.match(userPrompt, /"knowledge":\{/)
+  assert.match(userPrompt, /"requiredResponseShape":\{/)
+})
+
+test('planner prompt includes canonical agent guidance without provider internals', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'I will select the category.',
+          rationale: 'The category action can affect the linked views.',
+          operation: {
+            kind: 'action',
+            name: 'bar.selectCategory',
+            target: { widgetRef: 'bar-ref' },
+            params: { field: 'category', values: ['A'] },
+          },
+        }),
+      }
+    },
+    model: 'test-model',
+  })
+
+  const knowledge = buildAgentKnowledge({ widgetKinds: ['bar', 'scatter', 'line'] })
+  await planner({
+    objective: 'Select a category and inspect the linked views.',
+    knowledge,
+    observe: {
+      query: 'Select a category and inspect the linked views.',
+      state: {
+        widgets: [{ ref: 'bar-ref', kind: 'bar' }, { ref: 'scatter-ref', kind: 'scatter' }, { ref: 'line-ref', kind: 'line' }],
+      },
+      view: { summary: 'Three linked views.' },
+    },
+  })
+
+  const payload = JSON.parse(requests[0].messages[1].content)
+  assert.ok(payload.knowledge.agentGuidance.analysisToActionByFamily.bar)
+  assert.ok(payload.knowledge.agentGuidance.relations.bar['bar.selectCategory'])
+  assert.ok(payload.knowledge.agentGuidance.workflows.some((workflow) => workflow.name === 'category_to_trend'))
+  assert.equal(payload.knowledge.agentGuidance.workflows[0].examples.length > 0, true)
+  assert.equal('rawSpec' in payload.knowledge, false)
+  const knowledgeText = JSON.stringify(payload.knowledge)
+  assert.equal(knowledgeText.includes('sourceStateRef'), false)
+  assert.equal(knowledgeText.includes('"transform"'), false)
+  assert.equal(knowledgeText.includes('"provider"'), false)
 })
 
 test('createNaturalLanguagePlanner includes compact session history in planning prompts', async () => {
@@ -227,6 +281,78 @@ test('createNaturalLanguagePlanner includes compact session history in planning 
   assert.match(userPrompt, /bar\.filterCategories/)
   assert.match(userPrompt, /field=weather; values=\[snow\]/)
   assert.match(userPrompt, /Active filter: weather in \[snow\]/)
+})
+
+test('createNaturalLanguagePlanner carries prior conversational messages across planner calls', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      const index = requests.length
+      return {
+        content: JSON.stringify({
+          assistantMessage: `step ${index}`,
+          rationale: 'Continue from the previous conversational turn.',
+          operation: {
+            kind: 'perception',
+            name: 'perception.inspectVisibleRows',
+            target: { widgetRef: 'bar-ref' },
+            params: {},
+          },
+        }),
+      }
+    },
+    model: 'test-model',
+  })
+
+  const observe = {
+    query: 'Inspect the bar chart.',
+    state: {
+      widgets: [{ ref: 'bar-ref', widgetId: 'bar_1', kind: 'bar', focused: true }],
+      sharedAnalyticalState: {
+        filters: {},
+        viewport: null,
+        focus: { selectionSummary: null, highlightedWidgetRefs: [] },
+        activeContextKinds: [],
+        comparisonTargets: [],
+        structure: { linkCount: 0 },
+        sharedView: { activeWidgetRefs: [] },
+        transformation: { activeWidgetRefs: [], widgets: {} },
+      },
+    },
+    view: null,
+  }
+
+  await planner({
+    objective: 'Inspect the bar chart.',
+    knowledge: {
+      widgetFamilies: [{
+        kind: 'bar',
+        actions: [],
+        perceptions: [{ name: 'perception.inspectVisibleRows' }],
+      }],
+    },
+    observe,
+  })
+  await planner({
+    objective: 'Continue the inspection.',
+    knowledge: {
+      widgetFamilies: [{
+        kind: 'bar',
+        actions: [],
+        perceptions: [{ name: 'perception.inspectVisibleRows' }],
+      }],
+    },
+    observe,
+  })
+
+  assert.equal(requests.length, 2)
+  assert.equal(requests[0].messages.length, 2)
+  assert.equal(requests[1].messages[0].role, 'system')
+  assert.equal(requests[1].messages[1].role, 'user')
+  assert.equal(requests[1].messages[2].role, 'assistant')
+  assert.match(requests[1].messages[2].content, /step 1/)
+  assert.equal(requests[1].messages[3].role, 'user')
 })
 
 test('createNaturalLanguagePlanner prunes bulky official-page observation payloads from prompt', async () => {
@@ -351,20 +477,20 @@ test('createNaturalLanguagePlanner prunes bulky official-page observation payloa
   assert.equal(JSON.stringify(payload).includes('HISTORY_RAW_ROWS_SENTINEL'), false)
 })
 
-test('createNaturalLanguagePlanner adds Seattle weather demo workflow hint for high-level weather intent', async () => {
+test('createNaturalLanguagePlanner does not inject a task-specific linked-view workflow hint', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
     completeChat: async (request) => {
       requests.push(request)
       return {
         content: JSON.stringify({
-          assistantMessage: 'I will filter to rain first so I can inspect one weather condition at a time.',
-          rationale: 'The objective asks for weather-temperature patterns across the year.',
+          assistantMessage: 'I will brush the shorter flipper-length region first.',
+          rationale: 'The objective asks for a comparison across flipper-length bands.',
           operation: {
             kind: 'action',
-            name: 'bar.filterCategories',
-            target: { widgetRef: 'weather-ref' },
-            params: { field: 'weather', categories: ['rain'] },
+            name: 'scatter.brushRegion',
+            target: { widgetRef: 'flipper-scatter-ref' },
+            params: { xRange: [170, 195], yRange: [2500, 6500] },
           },
         }),
       }
@@ -372,98 +498,70 @@ test('createNaturalLanguagePlanner adds Seattle weather demo workflow hint for h
   })
 
   await planner({
-    objective: 'I want to understand how different weather conditions relate to temperature over the year in Seattle.',
+    objective: 'How does body mass vary across penguins with shorter, medium, and longer flipper lengths?',
     knowledge: {
       widgetFamilies: [
         {
-          kind: 'bar',
-          actions: [{ name: 'bar.filterCategories' }],
-          perceptions: [],
+          kind: 'scatter',
+          actions: [{ name: 'scatter.brushRegion' }],
+          perceptions: [{ name: 'perception.summarizeVisible' }],
         },
       ],
     },
     observe: {
       state: {
         widgets: [{
-          ref: 'weather-ref',
-          kind: 'bar',
-          title: 'Seattle Weather, 2012-2015',
+          ref: 'flipper-scatter-ref',
+          kind: 'scatter',
+          title: 'Flipper length and body mass',
           focused: true,
+          actionNames: ['scatter.brushRegion'],
           data: {
-            fieldValues: {
-              weather: ['sun', 'fog', 'drizzle', 'rain', 'snow'],
-            },
+            fields: [
+              { name: 'flipper_length_mm', type: 'quantitative' },
+              { name: 'body_mass_g', type: 'quantitative' },
+              { name: 'species', type: 'nominal' },
+            ],
           },
         }],
       },
       view: {
-        summary: 'Seattle Weather chart with temp_max over the year.',
+        summary: 'Penguin body mass linked view with scatter brush and species bar.',
       },
     },
   })
 
   const systemPrompt = requests[0]?.messages?.[0]?.content || ''
-  assert.match(systemPrompt, /Temporary Seattle Weather demo workflow/)
-  assert.match(systemPrompt, /every unfinished turn must execute exactly one action/)
-  assert.match(systemPrompt, /categories \["rain"\]/)
-  assert.match(systemPrompt, /categories \["fog"\]/)
-  assert.match(systemPrompt, /categories \["snow"\]/)
+  assert.doesNotMatch(systemPrompt, /Temporary Penguin linked-view demo workflow/)
 })
 
-test('createNaturalLanguagePlanner falls back to the next Seattle weather action when the model skips category views', async () => {
+test('createNaturalLanguagePlanner prioritizes linked actions before perceptions for subset objectives', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
     completeChat: async (request) => {
       requests.push(request)
       return {
         content: JSON.stringify({
-          assistantMessage: 'I will inspect the current view.',
-          rationale: 'The view can be summarized directly.',
+          assistantMessage: 'I will select the cohort first.',
+          rationale: 'The linked detail view should update before it is read.',
           operation: {
-            kind: 'perception',
-            name: 'perception.inspectViewConfig',
-            target: { widgetRef: 'weather-ref' },
-            params: {},
+            kind: 'action',
+            name: 'bar.selectCategory',
+            target: { widgetRef: 'bar-ref' },
+            params: { field: 'cohort', values: ['group C'] },
           },
         }),
       }
     },
   })
 
-  const result = await planner({
-    objective: 'I want to understand how different weather conditions relate to temperature over the year in Seattle.',
-    knowledge: {
-      widgetFamilies: [
-        {
-          kind: 'bar',
-          actions: [{ name: 'bar.filterCategories' }],
-          perceptions: [{ name: 'perception.inspectViewConfig' }],
-        },
-      ],
-    },
-    observe: {
-      state: {
-        widgets: [{
-          ref: 'weather-ref',
-          kind: 'bar',
-          title: 'Seattle Weather, 2012-2015',
-          focused: true,
-          actionNames: ['bar.filterCategories'],
-        }],
-      },
-      view: {
-        summary: 'Seattle Weather chart with temp_max over the year.',
-      },
-    },
+  await planner({
+    objective: 'Compare the profile of the largest and smallest cohorts.',
+    knowledge: { widgetFamilies: [{ kind: 'bar', actions: [{ name: 'bar.selectCategory' }], perceptions: [] }] },
+    observe: { state: { widgets: [{ ref: 'bar-ref', kind: 'bar', actionNames: ['bar.selectCategory'] }] } },
   })
 
-  assert.equal(requests.length, 2)
-  assert.equal(result.operation.kind, 'action')
-  assert.equal(result.operation.name, 'bar.filterCategories')
-  assert.deepEqual(result.operation.params, {
-    field: 'weather',
-    categories: ['rain'],
-  })
+  assert.match(requests[0].messages[0].content, /linked subset, cohort, category, or interval/i)
 })
 
 test('createNaturalLanguagePlanner does not force D3 matrix perception into a brush action', async () => {
@@ -738,59 +836,6 @@ test('createNaturalLanguageReasoner prunes bulky action result and verification 
   assert.match(userPrompt, /Matched rendered brush/)
 })
 
-test('createNaturalLanguageReasoner keeps Seattle weather demo running until all category views are inspected', async () => {
-  const requests = []
-  const reasoner = createNaturalLanguageReasoner({
-    completeChat: async (request) => {
-      requests.push(request)
-      return {
-        content: JSON.stringify({
-          answer: 'Rain has enough evidence, so I can answer now.',
-          completion: { status: 'answered' },
-        }),
-      }
-    },
-  })
-
-  const result = await reasoner({
-    objective: 'I want to understand how different weather conditions relate to temperature over the year in Seattle.',
-    history: {
-      turns: [],
-    },
-    observe: {
-      state: {
-        widgets: [{
-          ref: 'weather-ref',
-          kind: 'bar',
-          title: 'Seattle Weather, 2012-2015',
-          focused: true,
-        }],
-      },
-      view: {
-        summary: 'Seattle Weather chart with temp_max over the year.',
-      },
-    },
-    plan: {
-      operation: {
-        kind: 'action',
-        name: 'bar.filterCategories',
-        target: { widgetRef: 'weather-ref' },
-        params: { field: 'weather', categories: ['rain'] },
-      },
-    },
-    result: {
-      ok: true,
-      summary: 'The rendered view now shows rain.',
-    },
-    verification: {
-      ok: true,
-    },
-  })
-
-  assert.equal(result.completion.status, 'continue')
-  assert.match(requests[0]?.messages?.[0]?.content || '', /Temporary Seattle Weather demo workflow/)
-})
-
 test('createNaturalLanguagePlanner preserves runtime-built agentObservation in prompts', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
@@ -884,7 +929,7 @@ test('createNaturalLanguagePlanner preserves runtime-built agentObservation in p
   assert.doesNotMatch(userPrompt, /Miles_per_Gallon/)
 })
 
-test('createNaturalLanguagePlanner instructs linked bar interactions to use selection actions', async () => {
+test('createNaturalLanguagePlanner does not inject fixed linked-bar action guidance', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
     completeChat: async (request) => {
@@ -931,9 +976,8 @@ test('createNaturalLanguagePlanner instructs linked bar interactions to use sele
 
   const systemPrompt = requests[0]?.messages?.[0]?.content || ''
   assert.equal(result.operation.name, 'bar.selectCategory')
-  assert.match(systemPrompt, /update linked views/)
-  assert.match(systemPrompt, /choose bar\.selectCategory/)
-  assert.match(systemPrompt, /never for linked-view propagation/)
+  assert.doesNotMatch(systemPrompt, /choose bar\.selectCategory/)
+  assert.doesNotMatch(systemPrompt, /never for linked-view propagation/)
 })
 
 test('createNaturalLanguagePlanner repairs action plans that omit the target widgetRef', async () => {
@@ -1001,7 +1045,145 @@ test('createNaturalLanguagePlanner repairs action plans that omit the target wid
   assert.deepEqual(result.operation.target, { widgetRef: 'scatter-a-ref' })
 })
 
-test('createNaturalLanguagePlanner prompt distinguishes bar selection language from bar filtering language', async () => {
+test('createNaturalLanguagePlanner repairs action plans that use widgetId instead of full widgetRef', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      if (requests.length === 1) {
+        return {
+          content: JSON.stringify({
+            assistantMessage: 'I will sort the bar chart.',
+            rationale: 'The request asks for a descending bar order.',
+            operation: {
+              kind: 'action',
+              name: 'bar.sortBars',
+              target: { widgetRef: 'bar_1' },
+              params: {
+                channel: 'y',
+                order: 'descending',
+                field: 'visitors',
+                aggregate: 'sum',
+              },
+            },
+          }),
+        }
+      }
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'I will sort the specified bar chart.',
+          rationale: 'The repaired plan copies the full widget ref from observation.',
+          operation: {
+            kind: 'action',
+            name: 'bar.sortBars',
+            target: { widgetRef: 'bar-ref' },
+            params: {
+              channel: 'y',
+              order: 'descending',
+              field: 'visitors',
+              aggregate: 'sum',
+            },
+          },
+        }),
+      }
+    },
+  })
+
+  const result = await planner({
+    objective: 'Sort the region bar chart by total visitors descending.',
+    knowledge: {
+      widgetFamilies: [{
+        kind: 'bar',
+        actions: [{ name: 'bar.sortBars' }],
+        perceptions: [],
+      }],
+    },
+    observe: {
+      state: {
+        widgets: [{ ref: 'bar-ref', widgetId: 'bar_1', kind: 'bar', focused: true }],
+      },
+    },
+  })
+
+  assert.equal(requests.length, 2)
+  assert.deepEqual(result.operation.target, { widgetRef: 'bar-ref' })
+})
+
+test('createNaturalLanguagePlanner repairs perceptions that do not belong to the target widget family', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      if (requests.length === 1) {
+        return {
+          content: JSON.stringify({
+            assistantMessage: 'I will find the extreme value.',
+            rationale: 'The objective asks for the highest category.',
+            operation: {
+              kind: 'perception',
+              name: 'perception.findExtremes',
+              target: { widgetRef: 'bar-ref' },
+              params: {
+                field: 'visitors',
+                direction: 'max',
+                limit: 1,
+              },
+            },
+          }),
+        }
+      }
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'I will sort the bar chart to make the highest category visible.',
+          rationale: 'The repaired plan uses a bar action exposed by the target widget family.',
+          operation: {
+            kind: 'action',
+            name: 'bar.sortBars',
+            target: { widgetRef: 'bar-ref' },
+            params: {
+              channel: 'y',
+              order: 'descending',
+              field: 'visitors',
+              aggregate: 'sum',
+            },
+          },
+        }),
+      }
+    },
+  })
+
+  const result = await planner({
+    objective: 'Find the city with the highest total visitors in this bar chart.',
+    knowledge: {
+      widgetFamilies: [
+        {
+          kind: 'bar',
+          actions: [{ name: 'bar.sortBars' }],
+          perceptions: [{ name: 'perception.compareGroups' }],
+        },
+        {
+          kind: 'line',
+          actions: [],
+          perceptions: [{ name: 'perception.findExtremes' }],
+        },
+      ],
+    },
+    observe: {
+      state: {
+        widgets: [
+          { ref: 'bar-ref', kind: 'bar', focused: true },
+          { ref: 'line-ref', kind: 'line' },
+        ],
+      },
+    },
+  })
+
+  assert.equal(requests.length, 2)
+  assert.equal(result.operation.name, 'bar.sortBars')
+  assert.deepEqual(result.operation.target, { widgetRef: 'bar-ref' })
+})
+
+test('createNaturalLanguagePlanner does not inject fixed bar selection guidance', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
     completeChat: async (request) => {
@@ -1037,12 +1219,12 @@ test('createNaturalLanguagePlanner prompt distinguishes bar selection language f
   })
 
   const systemPrompt = requests[0]?.messages?.[0]?.content || ''
-  assert.match(systemPrompt, /bar\.clickCategory/i)
-  assert.match(systemPrompt, /bar\.selectCategory/i)
-  assert.match(systemPrompt, /bar\.filterCategories only when the user explicitly wants to keep only/i)
+  assert.doesNotMatch(systemPrompt, /bar\.clickCategory/i)
+  assert.doesNotMatch(systemPrompt, /bar\.selectCategory/i)
+  assert.doesNotMatch(systemPrompt, /bar\.filterCategories only when the user explicitly wants to keep only/i)
 })
 
-test('createNaturalLanguagePlanner prompt describes Vega-Lite param actions as semantic matches instead of fixed priority rules', async () => {
+test('createNaturalLanguagePlanner keeps provider-agnostic semantic operation rules', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
     completeChat: async (request) => {
@@ -1079,8 +1261,7 @@ test('createNaturalLanguagePlanner prompt describes Vega-Lite param actions as s
   })
 
   const systemPrompt = requests[0]?.messages?.[0]?.content || ''
-  assert.match(systemPrompt, /page-linked action surface for brush, overview-detail, and domain-sync semantics/i)
-  assert.match(systemPrompt, /page-linked action surface for click, select, hover, and bound-parameter semantics/i)
+  assert.doesNotMatch(systemPrompt, /page-linked action surface/i)
   assert.match(systemPrompt, /shared-state updates/i)
   assert.match(systemPrompt, /rematerialize the page/i)
   assert.match(systemPrompt, /Do not reason as if you need to touch private Vega runtime internals/i)
@@ -1281,6 +1462,9 @@ test('runNaturalLanguageAgentSession returns a final synthesis answer from the e
     objective: 'Brush the central scatterplot window and summarize it.',
     model: 'test-model',
     maxTurns: 2,
+    answerContract: {
+      values: [{ key: 'selected_count', type: 'numeric' }],
+    },
     completeChat: async (request) => {
       requests.push(request)
       const systemPrompt = request?.messages?.[0]?.content || ''
@@ -1288,6 +1472,7 @@ test('runNaturalLanguageAgentSession returns a final synthesis answer from the e
         return {
           content: JSON.stringify({
             answer: 'Final synthesized answer based on the completed brush turn.',
+            values: [{ key: 'selected_count', type: 'numeric', value: 12 }],
           }),
         }
       }
@@ -1325,10 +1510,12 @@ test('runNaturalLanguageAgentSession returns a final synthesis answer from the e
   assert.equal(result.turns.length, 1)
   assert.equal(result.answer, 'Final synthesized answer based on the completed brush turn.')
   assert.equal(result.finalAnswer, 'Final synthesized answer based on the completed brush turn.')
+  assert.deepEqual(result.answerValues, [{ key: 'selected_count', type: 'numeric', value: 12 }])
   const finalRequest = requests.find((request) => {
     const systemPrompt = request?.messages?.[0]?.content || ''
     return systemPrompt.includes('final synthesis stage')
   })
+  assert.match(finalRequest.messages[1].content, /selected_count/)
   const finalPrompt = finalRequest?.messages?.[1]?.content || ''
   assert.match(finalPrompt, /"history":\{/)
   assert.match(finalPrompt, /scatter\.brushRegion/)
@@ -1368,4 +1555,51 @@ test('runNaturalLanguageAgentTurn returns the compact formal turn contract', asy
   assert.equal(result.act.ok, true)
   assert.equal(result.verify.ok, true)
   assert.equal(typeof result.verify.guidance, 'string')
+})
+
+test('planner sends a captured observation image as a multimodal user message part', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'Inspect the current view.',
+          rationale: 'A visible summary is useful before acting.',
+          operation: {
+            kind: 'perception',
+            name: 'perception.summarizeVisible',
+            target: { widgetRef: 'bar-ref' },
+            params: {},
+          },
+        }),
+      }
+    },
+  })
+
+  await planner({
+    objective: 'Inspect the chart.',
+    observe: {
+      query: 'Inspect the chart.',
+      state: {
+        stateId: 's1',
+        widgets: [{ ref: 'bar-ref', kind: 'bar', focused: true, perceptionNames: ['perception.summarizeVisible'] }],
+      },
+      view: {
+        image: {
+          ref: 'view-image:s1',
+          mimeType: 'image/png',
+          data: 'ZmFrZQ==',
+        },
+      },
+    },
+    knowledge: { families: { bar: { perceptions: ['perception.summarizeVisible'] } } },
+  })
+
+  const content = requests[0]?.messages?.[1]?.content
+  assert.equal(Array.isArray(content), true)
+  assert.equal(content[0].type, 'text')
+  assert.equal(content[1].type, 'image_url')
+  assert.equal(content[1].image_url.url, 'data:image/png;base64,ZmFrZQ==')
+  assert.equal(content[0].text.includes('ZmFrZQ=='), false)
 })

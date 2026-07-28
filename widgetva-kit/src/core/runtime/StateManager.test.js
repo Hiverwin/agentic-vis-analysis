@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { makeWorkspaceState } from '../protocol/state.js'
+import { makeWorkspaceState } from '../../contracts/state-contracts.js'
 import {
   describeStateManagerFromStore,
   REPLAY_CONTEXT_REF,

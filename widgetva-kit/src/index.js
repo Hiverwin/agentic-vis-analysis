@@ -21,6 +21,13 @@ export {
   makeCoordinationRelation,
   makeCoordinationRelationMap,
 } from './contracts/coordination-contracts.js'
+export {
+  buildDerivedCoordinationRelations,
+} from './workspace/coordination/deriveCoordinationRelations.js'
+export {
+  buildProviderCoordinationFieldModel,
+  buildProviderCoordinationFieldModels,
+} from './adapters/coordinationFieldModels.js'
 
 export const DEFAULT_WIDGETVA_AGENT_MODEL = DEFAULT_OPENROUTER_AGENT_MODEL
 

@@ -1,14 +1,47 @@
 import {
-  DATA_QUERY_DESCRIPTOR_TEMPLATES,
   DATA_QUERY_SCHEMAS,
   makeDataQueryDescriptor,
-} from '../protocol/dataHandles.js'
-import {
-  makeDataQueryEngineCapabilities,
-  makeDataQueryEngineCounts,
-  makeDataQueryEngineEngineSummary,
-  makeDataQueryEngineSummary,
-} from '../protocol/dataQueryEngine.js'
+} from '../../contracts/data-contracts.js'
+import { DATA_QUERY_DESCRIPTOR_TEMPLATES } from './dataQueryDescriptorTemplates.js'
+
+function makeDataQueryEngineEngineSummary(summary = {}) {
+  return {
+    kind: summary?.kind ?? null,
+    className: summary?.className ?? null,
+  }
+}
+
+function makeDataQueryEngineCounts(counts = {}) {
+  return {
+    supportedQueryKindCount: 0,
+    supportedQueryDescriptorCount: 0,
+    ...counts,
+  }
+}
+
+function makeDataQueryEngineCapabilities(capabilities = {}) {
+  return {
+    localExecution: false,
+    remoteExecution: false,
+    sqlSupport: false,
+    fallbackEngine: false,
+    ...capabilities,
+  }
+}
+
+function makeDataQueryEngineSummary(summary = {}) {
+  return {
+    engine: makeDataQueryEngineEngineSummary(summary?.engine),
+    counts: makeDataQueryEngineCounts(summary?.counts),
+    supportedQueryKinds: Array.isArray(summary?.supportedQueryKinds)
+      ? [...summary.supportedQueryKinds]
+      : [],
+    supportedQueryDescriptors: Array.isArray(summary?.supportedQueryDescriptors)
+      ? [...summary.supportedQueryDescriptors]
+      : [],
+    capabilities: makeDataQueryEngineCapabilities(summary?.capabilities),
+  }
+}
 
 function buildSupportedQueryDescriptors(kinds = []) {
   return kinds.map((kind) =>

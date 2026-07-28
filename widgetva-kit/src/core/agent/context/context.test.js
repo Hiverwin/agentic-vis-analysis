@@ -12,6 +12,7 @@ import {
 test('buildAgentKnowledge returns stable widget-family descriptors without per-widget catalogs', () => {
   const knowledge = buildAgentKnowledge({
     widgetKinds: ['bar', 'scatter'],
+    task: { userQuery: 'This belongs in observation, not knowledge.' },
   })
 
   assert.deepEqual(
@@ -20,15 +21,20 @@ test('buildAgentKnowledge returns stable widget-family descriptors without per-w
   )
   assert.equal(knowledge.widgetFamilies.some((family) => family.actions.some((action) => action.name === 'bar.selectCategory')), true)
   assert.equal(knowledge.widgetFamilies.some((family) => family.actions.some((action) => action.name === 'scatter.brushRegion')), true)
-  assert.equal(knowledge.commonTools.perceptions.some((query) => query.name === 'perception.inspectViewConfig'), true)
-  assert.deepEqual(knowledge.commonTools.actions, [])
+  assert.equal(knowledge.widgetFamilies.every((family) => family.perceptions.some((query) => query.name === 'perception.inspectViewConfig')), true)
+  assert.equal(knowledge.agentGuidance.relations.scatter['scatter.brushRegion'].some((link) => link.targetState === 'bar.transform'), true)
+  assert.equal(knowledge.agentGuidance.workflows.some((workflow) => workflow.name === 'aggregate_to_detail'), true)
+  assert.equal(knowledge.agentGuidance.analysisToActionByFamily.bar.workflows.length > 0, true)
+  assert.equal('commonTools' in knowledge, false)
+  assert.deepEqual(Object.keys(knowledge), ['widgetFamilies', 'agentGuidance'])
   assert.equal('catalogs' in knowledge, false)
   assert.equal('widgets' in knowledge, false)
   assert.equal('history' in knowledge, false)
+  assert.equal('task' in knowledge, false)
   assert.deepEqual(listWidgetFamilyActionNames(knowledge, 'bar').includes('bar.selectCategory'), true)
 })
 
-test('buildAgentKnowledge can narrow family actions to the current executable widget contract', () => {
+test('buildAgentKnowledge exposes family actions from widget kind without observation-side filtering', () => {
   const knowledge = buildAgentKnowledge({
     widgetKinds: ['bar'],
     widgetActionNamesByKind: new Map([
@@ -36,7 +42,37 @@ test('buildAgentKnowledge can narrow family actions to the current executable wi
     ]),
   })
 
-  assert.deepEqual(listWidgetFamilyActionNames(knowledge, 'bar'), ['bar.selectCategory'])
+  assert.equal(listWidgetFamilyActionNames(knowledge, 'bar').includes('bar.selectCategory'), true)
+  assert.equal(listWidgetFamilyActionNames(knowledge, 'bar').includes('bar.sortBars'), true)
+})
+
+test('workspace observations expose widget identity without duplicating the capability catalog', () => {
+  const observation = buildAgentObservationFromWorkspaceState({
+    workspace: {
+      widgets: [
+        { ref: 'bar-ref', widgetId: 'bar-1', kind: 'bar', actionNames: ['widget.resetView'] },
+        { ref: 'scatter-ref', widgetId: 'scatter-1', kind: 'scatter' },
+      ],
+    },
+    state: {
+      stateId: 's1',
+      widgets: {},
+    },
+  })
+
+  const bar = observation.state.widgets.find((widget) => widget.ref === 'bar-ref')
+  const scatter = observation.state.widgets.find((widget) => widget.ref === 'scatter-ref')
+  assert.equal(bar.kind, 'bar')
+  assert.equal(scatter.kind, 'scatter')
+  assert.equal('actionNames' in bar, false)
+  assert.equal('perceptionNames' in bar, false)
+
+  const singleObservation = buildAgentObservationFromWorkspaceState({
+    workspace: { widgets: [{ ref: 'bar-ref', widgetId: 'bar-1', kind: 'bar' }] },
+    state: { stateId: 's1', widgets: {} },
+  })
+  assert.equal('actionNames' in singleObservation.state.widgets[0], false)
+  assert.equal('perceptionNames' in singleObservation.state.widgets[0], false)
 })
 
 test('buildAgentObservation keeps query state and view, including optional real image references', () => {

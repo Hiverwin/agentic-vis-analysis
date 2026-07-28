@@ -8,8 +8,8 @@ import {
   makeSelectionScopedDataRef,
   makeWidgetRef,
   makeWidgetSelectionDataRef,
-} from '../protocol/refs.js'
-import { makeWorkspaceState } from '../protocol/state.js'
+} from '../../contracts/refs-contracts.js'
+import { makeWorkspaceState } from '../../contracts/state-contracts.js'
 import { WidgetVARuntimeStore } from './RuntimeStore.js'
 
 test('WidgetVARuntimeStore.listStateSnapshots exposes changed replayContext refs', () => {
@@ -104,7 +104,8 @@ test('WidgetVARuntimeStore exposes mutable manual-assembly facades for descripti
   assert.equal(store.readDescription().dataHandles[0]?.ref, dataRef)
   assert.equal(store.readDescription().links[0]?.ref, linkRef)
   assert.equal(store.readState().widgets?.[widgetRef]?.ref, widgetRef)
-  assert.equal(store.stateId, 'main:empty')
+  assert.notEqual(store.stateId, 'main:empty')
+  assert.equal(store.listStateSnapshots(5).some((entry) => entry.changedRefs.includes(widgetRef)), true)
   assert.equal(store.listWidgetDescriptions()[0]?.title, 'Scatter A')
   assert.equal(store.listDataHandles()[0]?.title, 'Cars')
   assert.equal(store.listLinks()[0]?.kind, 'filter')
@@ -129,6 +130,78 @@ test('WidgetVARuntimeStore.upsertWidgetDescription normalizes raw widget descrip
   assert.equal(store.getWidgetDescription(widgetRef)?.role, 'primary')
 })
 
+test('WidgetVARuntimeStore.listLinks includes canonical coordination relations from state', () => {
+  const store = new WidgetVARuntimeStore({ appId: 'demo', workspaceId: 'main' })
+  const scatterRef = makeWidgetRef({ appId: 'demo', workspaceId: 'main', widgetId: 'scatter_a' })
+  const barRef = makeWidgetRef({ appId: 'demo', workspaceId: 'main', widgetId: 'bar_b' })
+  const relationRef = 'wl://demo/workspace/main/coordination/scatter_zoom_to_bar_filter'
+  const sourceStateRef = `${scatterRef}/view/zoom`
+  const targetStateRef = `${barRef}/transform/marketing-spend-filter`
+
+  store.commitState(makeWorkspaceState({
+    stateId: 'main:s1',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    widgets: {
+      [scatterRef]: { ref: scatterRef, widgetId: 'scatter_a', kind: 'scatter' },
+      [barRef]: { ref: barRef, widgetId: 'bar_b', kind: 'bar' },
+    },
+    shared: {},
+    coordination: {
+      relations: {
+        [relationRef]: {
+          ref: relationRef,
+          sourceStateRef,
+          targetStateRef,
+          relation: 'controls',
+          transform: {
+            kind: 'domainToFilter',
+            channelMapping: [
+              { sourceChannel: 'x', targetField: 'marketing_spend' },
+            ],
+          },
+          activation: 'automatic',
+        },
+      },
+    },
+  }))
+
+  const links = store.listLinks()
+
+  assert.equal(links.length, 1)
+  assert.equal(links[0]?.ref, relationRef)
+  assert.equal(links[0]?.sourceStateRef, sourceStateRef)
+  assert.equal(links[0]?.targetStateRef, targetStateRef)
+  assert.equal(links[0]?.transform?.kind, 'domainToFilter')
+})
+
+test('WidgetVARuntimeStore removes a canonical relation even without a legacy link registry entry', () => {
+  const store = new WidgetVARuntimeStore({ appId: 'demo', workspaceId: 'main' })
+  const relationRef = 'wl://demo/workspace/main/coordination/scatter_zoom_to_bar_filter'
+
+  store.commitState(makeWorkspaceState({
+    stateId: 'main:s1',
+    widgets: {},
+    shared: {},
+    coordination: {
+      relations: {
+        [relationRef]: {
+          ref: relationRef,
+          sourceStateRef: 'wl://demo/workspace/main/widget/scatter_a/view/zoom',
+          targetStateRef: 'wl://demo/workspace/main/widget/bar_b/transform/filter',
+          relation: 'controls',
+          transform: { kind: 'domainToFilter' },
+          activation: 'automatic',
+        },
+      },
+    },
+  }))
+
+  store.removeLinkDefinition(relationRef)
+
+  assert.deepEqual(store.readState().coordination.relations, {})
+  assert.deepEqual(store.listLinks(), [])
+})
+
 test('WidgetVARuntimeStore.upsertDataHandle normalizes raw data handles into protocol contract shape', () => {
   const store = new WidgetVARuntimeStore({ appId: 'demo', workspaceId: 'main' })
   const dataRef = 'wl://demo/workspace/main/data/cars'
@@ -146,6 +219,52 @@ test('WidgetVARuntimeStore.upsertDataHandle normalizes raw data handles into pro
   assert.deepEqual(store.getDataHandle(dataRef)?.supportedQueries, ['sampleRows', 'summary'])
   assert.deepEqual(store.getDataHandle(dataRef)?.supportedQueryDescriptors, [])
   assert.equal(store.readDescription().dataHandles[0]?.sourceKind, 'inline')
+})
+
+test('WidgetVARuntimeStore keeps same-name descriptors for different widget targets', () => {
+  const store = new WidgetVARuntimeStore({ appId: 'demo', workspaceId: 'main' })
+  const scatterARef = 'wl://demo/workspace/main/widget/scatter_a'
+  const scatterBRef = 'wl://demo/workspace/main/widget/scatter_b'
+
+  store.upsertActionDescriptor('scatter.brushRegion', {
+    name: 'scatter.brushRegion',
+    targetRef: scatterARef,
+    title: 'Brush scatter A',
+  })
+  store.upsertActionDescriptor('scatter.brushRegion', {
+    name: 'scatter.brushRegion',
+    targetRef: scatterBRef,
+    title: 'Brush scatter B',
+  })
+  store.upsertActionDescriptor('scatter.brushRegion', {
+    name: 'scatter.brushRegion',
+    targetRef: scatterBRef,
+    title: 'Brush scatter B updated',
+  })
+
+  assert.equal(store.listActions().length, 2)
+  assert.equal(store.getActionDescriptor('scatter.brushRegion', scatterARef)?.title, 'Brush scatter A')
+  assert.equal(store.getActionDescriptor('scatter.brushRegion', scatterBRef)?.title, 'Brush scatter B updated')
+
+  store.upsertPerceptionDescriptor('perception.summarizeVisible', {
+    name: 'perception.summarizeVisible',
+    targetRef: scatterARef,
+    title: 'Summarize scatter A',
+  })
+  store.upsertPerceptionDescriptor('perception.summarizeVisible', {
+    name: 'perception.summarizeVisible',
+    targetRef: scatterBRef,
+    title: 'Summarize scatter B',
+  })
+  store.upsertPerceptionDescriptor('perception.summarizeVisible', {
+    name: 'perception.summarizeVisible',
+    targetRef: scatterARef,
+    title: 'Summarize scatter A updated',
+  })
+
+  assert.equal(store.listPerceptionQueries().length, 2)
+  assert.equal(store.getPerceptionDescriptor('perception.summarizeVisible', scatterARef)?.title, 'Summarize scatter A updated')
+  assert.equal(store.getPerceptionDescriptor('perception.summarizeVisible', scatterBRef)?.title, 'Summarize scatter B')
 })
 
 test('WidgetVARuntimeStore exposes registerWidget and registerLink helpers for manual assembly', () => {
@@ -257,19 +376,19 @@ test('WidgetVARuntimeStore.registerWidget normalizes raw widget states into prot
   assert.equal(store.readState().widgets?.[widgetRef]?.feedback?.highlightedKeys?.length, 0)
 })
 
-test('WidgetVARuntimeStore.registerLink normalizes primitive-only links into WidgetLink contract shape', () => {
+test('WidgetVARuntimeStore.registerLink normalizes kind-only links into WidgetLink contract shape', () => {
   const store = new WidgetVARuntimeStore({ appId: 'demo', workspaceId: 'main' })
   const linkRef = 'wl://demo/workspace/main/link/scatter_to_bar'
 
   store.registerLink({
     ref: linkRef,
-    primitive: 'filter',
+    kind: 'filter',
     from: 'wl://demo/workspace/main/widget/scatter_a',
     to: 'wl://demo/workspace/main/widget/bar_b',
   })
 
   assert.equal(store.readDescription().links[0]?.kind, 'filter')
-  assert.equal(store.readDescription().links[0]?.primitive, 'filter')
+  assert.equal(Object.hasOwn(store.readDescription().links[0] || {}, 'primitive'), false)
   assert.equal(store.listLinks()[0]?.kind, 'filter')
   assert.equal(store.getLink(linkRef)?.kind, 'filter')
 })
@@ -369,7 +488,7 @@ test('WidgetVARuntimeStore normalizes action and perception descriptors through 
   assert.equal(store.readDescription().perceptionQueries[0]?.sideEffectFree, true)
 })
 
-test('WidgetVARuntimeStore enriches mapped action descriptors with stable analytical placement metadata', () => {
+test('WidgetVARuntimeStore keeps action descriptors free of workspace analytical placement metadata', () => {
   const store = new WidgetVARuntimeStore({ appId: 'demo', workspaceId: 'main' })
   const widgetRef = 'wl://demo/workspace/main/widget/scatter_a'
 
@@ -382,10 +501,10 @@ test('WidgetVARuntimeStore enriches mapped action descriptors with stable analyt
     targetRef: widgetRef,
   })
 
-  assert.equal(store.getActionDescriptor('scatter.brushRegion', widgetRef)?.analyticalPlacement, 'workspace-shared-state')
-  assert.equal(store.getActionDescriptor('scatter.brushRegion', widgetRef)?.sharedAnalyticalSurface, 'sharedSemanticFocus')
-  assert.equal(store.readDescription().actions[0]?.analyticalPlacement, 'workspace-shared-state')
-  assert.equal(store.readDescription().actions[0]?.sharedAnalyticalSurface, 'sharedSemanticFocus')
+  assert.equal('analyticalPlacement' in store.getActionDescriptor('scatter.brushRegion', widgetRef), false)
+  assert.equal('sharedAnalyticalSurface' in store.getActionDescriptor('scatter.brushRegion', widgetRef), false)
+  assert.equal('analyticalPlacement' in store.readDescription().actions[0], false)
+  assert.equal('sharedAnalyticalSurface' in store.readDescription().actions[0], false)
 })
 
 test('WidgetVARuntimeStore.readState preserves workspace delta metadata in deltaSince scoped reads', () => {
@@ -963,7 +1082,7 @@ test('WidgetVARuntimeStore keeps current_selection aligned with focused widget c
   assert.equal(store.readRuntimeData(currentSelectionDataRef)?.sourceSelectionRef, widgetBSelectionRef)
 })
 
-test('WidgetVARuntimeStore.replaceWorkspace normalizes primitive-only workspace links into WidgetLink contract shape', () => {
+test('WidgetVARuntimeStore.replaceWorkspace normalizes kind-only workspace links into WidgetLink contract shape', () => {
   const store = new WidgetVARuntimeStore({ appId: 'widgetva-app', workspaceId: 'main' })
   const sourceWidgetRef = makeWidgetRef({ widgetId: 'scatter_a' })
   const targetWidgetRef = makeWidgetRef({ widgetId: 'bar_b' })
@@ -981,7 +1100,7 @@ test('WidgetVARuntimeStore.replaceWorkspace normalizes primitive-only workspace 
       links: [
         {
           ref: linkRef,
-          primitive: 'filter',
+          kind: 'filter',
           from: sourceWidgetRef,
           to: targetWidgetRef,
         },
@@ -998,7 +1117,7 @@ test('WidgetVARuntimeStore.replaceWorkspace normalizes primitive-only workspace 
   })
 
   assert.equal(store.readDescription().links[0]?.kind, 'filter')
-  assert.equal(store.readDescription().links[0]?.primitive, 'filter')
+  assert.equal(Object.hasOwn(store.readDescription().links[0] || {}, 'primitive'), false)
   assert.equal(store.listLinks()[0]?.kind, 'filter')
   assert.equal(store.getLink(linkRef)?.kind, 'filter')
 })

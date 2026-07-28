@@ -39,6 +39,23 @@ test('DataQueryExecutor supports no-arg construction for manual runtime assembly
   assert.deepEqual(summary.supportedQueryDescriptors, [])
 })
 
+test('DataQueryExecutor validates the data query call envelope before resolving runtime data', () => {
+  const executor = new DataQueryExecutor()
+
+  const result = executor.run({
+    callId: 'invalid_data_query_envelope',
+    query: {
+      kind: 'summary',
+      spec: {},
+    },
+    unexpected: true,
+  })
+
+  assert.equal(result.ok, false)
+  assert.equal(result.error.code, 'INVALID_QUERY_SPEC')
+  assert.match(result.error.message, /dataQuery\.unexpected is not allowed/)
+})
+
 test('DataQueryExecutor supports documented DataQueryEngine.query(dataRef, query) contracts for manual runtime assembly', () => {
   let receivedCall = null
   const executor = new DataQueryExecutor({
@@ -255,20 +272,17 @@ test('DataQueryExecutor records failed data queries into the interaction trace',
   const result = executor.run({
     callId: 'dq_fail',
     actor: 'agent',
+    target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/missing' },
     query: {
       kind: 'summary',
-      spec: {
-        queryScope: {
-          widgetRef: 'wl://widgetva-app/workspace/main/widget/missing',
-        },
-      },
+      spec: {},
     },
   })
 
   assert.equal(result.ok, false)
   assert.equal(result.error.code, 'UNSUPPORTED_TARGET')
   assert.equal(recordedFailure?.code, 'UNSUPPORTED_TARGET')
-  assert.equal(recordedFailure?.call?.query?.spec?.queryScope?.widgetRef, 'wl://widgetva-app/workspace/main/widget/missing')
+  assert.equal(recordedFailure?.call?.target?.widgetRef, 'wl://widgetva-app/workspace/main/widget/missing')
 })
 
 test('DataQueryExecutor records structured trace notes for successful data queries', () => {
@@ -456,4 +470,155 @@ test('DataQueryExecutor validates resultSchema before recording a successful dat
   assert.match(result.error.message, /result/)
   assert.equal(recordedSuccess, null)
   assert.equal(recordedFailure?.code, 'RUNTIME_ERROR')
+})
+
+test('DataQueryExecutor inherits the active primary selection when a widget-scoped query omits selectionRef', () => {
+  let recordedSuccess = null
+  let receivedRows = null
+  const widgetRef = 'wl://widgetva-app/workspace/main/widget/scatter_a'
+  const dataRef = 'wl://widgetva-app/workspace/main/data/current_view'
+  const selectionRef = `${widgetRef}/selection/brush`
+
+  const executor = new DataQueryExecutor({
+    store: {
+      readDescription() {
+        return {
+          widgets: [
+            {
+              ref: widgetRef,
+              widgetId: 'scatter_a',
+              kind: 'scatter',
+              primaryDataRef: dataRef,
+            },
+          ],
+          dataHandles: [
+            {
+              ref: dataRef,
+              supportedQueries: ['summary'],
+            },
+          ],
+        }
+      },
+      readState() {
+        return {
+          stateId: 'main:s3',
+          shared: {
+            focusedWidget: widgetRef,
+            selections: {
+              registry: {
+                [selectionRef]: {
+                  predicates: [{ field: 'region', op: 'equals', value: 'west' }],
+                },
+              },
+              views: {
+                primary: {
+                  selectionRef,
+                  sourceWidgetRef: widgetRef,
+                },
+                byWidget: {
+                  scatter_a: {
+                    selectionRef,
+                    sourceWidgetRef: widgetRef,
+                  },
+                },
+              },
+            },
+          },
+          widgets: {
+            [widgetRef]: {
+              ref: widgetRef,
+              widgetId: 'scatter_a',
+              kind: 'scatter',
+              data: {
+                currentDataRef: dataRef,
+                sourceDataRef: dataRef,
+              },
+              selections: {
+                [selectionRef]: {
+                  predicates: [{ field: 'region', op: 'equals', value: 'west' }],
+                },
+              },
+            },
+          },
+        }
+      },
+      getResolvedWidgetForTarget(ref) {
+        if (ref !== widgetRef) return null
+        return {
+          ref: widgetRef,
+          widgetId: 'scatter_a',
+          kind: 'scatter',
+          data: {
+            currentDataRef: dataRef,
+            sourceDataRef: dataRef,
+          },
+          primaryDataRef: dataRef,
+          selections: {
+            [selectionRef]: {
+              predicates: [{ field: 'region', op: 'equals', value: 'west' }],
+            },
+          },
+        }
+      },
+      getResolvedWidget(ref) {
+        return this.getResolvedWidgetForTarget(ref)
+      },
+      getDataHandle(ref) {
+        if (ref !== dataRef) return null
+        return {
+          ref,
+          supportedQueries: ['summary'],
+        }
+      },
+      readRuntimeData(ref) {
+        if (ref !== dataRef) return null
+        return {
+          ref,
+          widgetRef,
+          rows: [
+            { region: 'west', value: 1 },
+            { region: 'east', value: 2 },
+            { region: 'west', value: 3 },
+          ],
+        }
+      },
+      resolveSelectionDataRef() {
+        return null
+      },
+    },
+    dataQueryEngine: {
+      kind: 'runtime-test',
+      summarize(rows) {
+        receivedRows = rows
+        return {
+          rows: [{ count: rows.length }],
+        }
+      },
+    },
+    traceRecorder: {
+      recordDataQuery(payload) {
+        recordedSuccess = payload
+      },
+    },
+  })
+
+  const result = executor.run({
+    callId: 'dq_inherit_primary_selection',
+    actor: 'agent',
+    query: {
+      kind: 'summary',
+      spec: {
+        queryScope: {
+          widgetRef,
+        },
+      },
+    },
+  })
+
+  assert.equal(result.ok, true)
+  assert.deepEqual(receivedRows, [
+    { region: 'west', value: 1 },
+    { region: 'west', value: 3 },
+  ])
+  assert.equal(recordedSuccess?.notes?.userVisibleSummary, `Data query: summary scoped to ${selectionRef} over 2 rows`)
 })

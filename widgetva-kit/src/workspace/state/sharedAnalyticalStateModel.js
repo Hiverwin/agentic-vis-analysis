@@ -52,7 +52,6 @@ function buildOperationModesByKind({
   drillDown = null,
   aggregate = null,
   reencode = null,
-  annotate = null,
   addRemove = null,
   navigate = null,
   focusKeys = null,
@@ -84,9 +83,6 @@ function buildOperationModesByKind({
   }
   if (reencode) {
     maybeSet('reencode', readOperationMode(reencode, 'reencode'))
-  }
-  if (annotate) {
-    maybeSet('annotate', readOperationMode(annotate, 'annotate'))
   }
   if (addRemove) {
     maybeSet('addRemove', readOperationMode(addRemove, 'addRemove'))
@@ -162,7 +158,6 @@ export function buildActiveAnalyticalContext({
   highlight = null,
   viewport = null,
   comparisonTargets = [],
-  annotations = [],
   links = null,
   viewStatesByWidget = {},
 } = {}) {
@@ -175,7 +170,6 @@ export function buildActiveAnalyticalContext({
   const normalizedComparisonTargets = Array.isArray(comparisonTargets) && comparisonTargets.length > 0
     ? clone(comparisonTargets)
     : null
-  const annotationCount = Array.isArray(annotations) ? annotations.length : 0
   const linkCount = Array.isArray(links?.definitions) ? links.definitions.length : 0
 
   const activeContextKinds = []
@@ -185,7 +179,7 @@ export function buildActiveAnalyticalContext({
   if (normalizedHighlight) activeContextKinds.push('highlight')
   if (normalizedViewport) activeContextKinds.push('viewport')
   if (normalizedViewStates) activeContextKinds.push('view')
-  if (normalizedComparisonTargets || annotationCount > 0 || linkCount > 0) {
+  if (normalizedComparisonTargets || linkCount > 0) {
     activeContextKinds.push('structure')
   }
 
@@ -199,7 +193,6 @@ export function buildActiveAnalyticalContext({
     comparisonTargets: normalizedComparisonTargets,
     structure: {
       linkCount,
-      annotationCount,
     },
     transformationContext,
     viewStatesByWidget: normalizedViewStates,
@@ -226,7 +219,6 @@ function buildWidgetViewStateEntry(widgetRef, widgetState = {}) {
   const drillDown = normalizeOptionalObject(view.drillDown)
   const aggregate = normalizeOptionalObject(view.aggregate)
   const reencode = normalizeOptionalObject(view.reencode)
-  const annotate = normalizeOptionalObject(view.annotate)
   const addRemove = normalizeOptionalObject(view.addRemove)
   const navigate = normalizeOptionalObject(view.navigate)
   const focusKeys = normalizeFocusKeys(view.focusKeys)
@@ -257,10 +249,6 @@ function buildWidgetViewStateEntry(widgetRef, widgetState = {}) {
     activeKinds.push('reencode')
     entry.reencode = reencode
   }
-  if (annotate) {
-    activeKinds.push('annotate')
-    entry.annotate = annotate
-  }
   if (addRemove) {
     activeKinds.push('addRemove')
     entry.addRemove = addRemove
@@ -283,7 +271,6 @@ function buildWidgetViewStateEntry(widgetRef, widgetState = {}) {
     drillDown,
     aggregate,
     reencode,
-    annotate,
     addRemove,
     navigate,
     focusKeys,
@@ -323,7 +310,6 @@ export function buildSharedTransformationContext({ viewStatesByWidget = {} } = {
     'drillDown',
     'aggregate',
     'reencode',
-    'annotate',
     'addRemove',
     'navigate',
   ])
@@ -347,7 +333,6 @@ export function buildSharedTransformationContext({ viewStatesByWidget = {} } = {
     if (entry.drillDown) nextEntry.drillDown = clone(entry.drillDown)
     if (entry.aggregate) nextEntry.aggregate = clone(entry.aggregate)
     if (entry.reencode) nextEntry.reencode = clone(entry.reencode)
-    if (entry.annotate) nextEntry.annotate = clone(entry.annotate)
     if (entry.addRemove) nextEntry.addRemove = clone(entry.addRemove)
     if (entry.navigate) nextEntry.navigate = clone(entry.navigate)
     if (isPlainObject(entry.operationModesByKind)) {
@@ -412,7 +397,6 @@ export function buildSharedSemanticFocus({
 export function buildSharedStructuralContext({
   links = null,
   comparisonTargets = [],
-  annotations = [],
 } = {}) {
   return {
     links: clone(links || {
@@ -420,7 +404,6 @@ export function buildSharedStructuralContext({
       topology: null,
     }),
     comparisonTargets: clone(Array.isArray(comparisonTargets) ? comparisonTargets : []),
-    annotations: clone(Array.isArray(annotations) ? annotations : []),
   }
 }
 
@@ -437,7 +420,6 @@ export function buildSharedAnalyticalStateModel(state = {}, { derivedTopology = 
   const highlight = deriveHighlightState(state)
   const viewport = readViewportState(shared)
   const comparisonTargets = clone(Array.isArray(shared?.comparisonTargets) ? shared.comparisonTargets : [])
-  const annotations = clone(state?.annotations || shared?.annotations || [])
   const viewStatesByWidget = buildSharedViewStateByWidget(state)
   const sharedTopology = readLinkTopologyState(shared)
   const links = {
@@ -454,7 +436,6 @@ export function buildSharedAnalyticalStateModel(state = {}, { derivedTopology = 
     viewStatesByWidget,
     viewport,
     comparisonTargets,
-    annotations,
     links,
     sharedFilterContext: buildSharedFilterContext({
       filters,
@@ -480,7 +461,6 @@ export function buildSharedAnalyticalStateModel(state = {}, { derivedTopology = 
     sharedStructuralContext: buildSharedStructuralContext({
       links,
       comparisonTargets,
-      annotations,
     }),
     activeAnalyticalContext: buildActiveAnalyticalContext({
       focusedWidgetRef,
@@ -489,9 +469,48 @@ export function buildSharedAnalyticalStateModel(state = {}, { derivedTopology = 
       highlight,
       viewport,
       comparisonTargets,
-      annotations,
       links,
       viewStatesByWidget,
     }),
   }
+}
+
+export function readSharedAnalyticalState(state = {}, options = {}) {
+  return buildSharedAnalyticalStateModel(state, options)
+}
+
+export function readSharedFilterContext(state = {}, options = {}) {
+  return clone(readSharedAnalyticalState(state, options).sharedFilterContext)
+}
+
+export function readSharedViewportContext(state = {}, options = {}) {
+  return clone(readSharedAnalyticalState(state, options).sharedViewportContext)
+}
+
+export function readSharedSemanticFocus(state = {}, options = {}) {
+  return clone(readSharedAnalyticalState(state, options).sharedSemanticFocus)
+}
+
+export function readSharedStructuralContext(state = {}, options = {}) {
+  return clone(readSharedAnalyticalState(state, options).sharedStructuralContext)
+}
+
+export function readActiveAnalyticalContext(state = {}, options = {}) {
+  return clone(readSharedAnalyticalState(state, options).activeAnalyticalContext)
+}
+
+export function readViewStatesByWidget(state = {}) {
+  return buildSharedViewStateByWidget(state)
+}
+
+export function readSharedViewContext(state = {}) {
+  return buildSharedViewContext({
+    viewStatesByWidget: readViewStatesByWidget(state),
+  })
+}
+
+export function readSharedTransformationContext(state = {}) {
+  return buildSharedTransformationContext({
+    viewStatesByWidget: readViewStatesByWidget(state),
+  })
 }

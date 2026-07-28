@@ -2,6 +2,7 @@ import {
   buildAgentKnowledge,
   buildAgentObservation,
   mergeSessionHistory,
+  projectPlannerKnowledge,
   shouldStopAgentSession,
 } from '../context/index.js'
 import {
@@ -111,32 +112,6 @@ function readWidgetKindsFromObservation(observation = {}) {
     const recognizedKinds = Array.isArray(widget?.recognizedKinds) ? widget.recognizedKinds : []
     return recognizedKinds.length > 0 ? recognizedKinds : [widget?.kind]
   }))
-}
-
-function addNamesForKind(target, kind = null, names = []) {
-  if (typeof kind !== 'string' || kind.length === 0) return
-  const filteredNames = uniqueStrings(names)
-  if (filteredNames.length === 0) return
-  const existing = target.get(kind) || new Set()
-  for (const name of filteredNames) {
-    existing.add(name)
-  }
-  target.set(kind, existing)
-}
-
-function readWidgetNameMapFromObservation(observation = {}, fieldName = '') {
-  const widgets = Array.isArray(observation?.state?.widgets) ? observation.state.widgets : []
-  const result = new Map()
-  for (const widget of widgets) {
-    const names = Array.isArray(widget?.[fieldName]) ? widget[fieldName] : []
-    if (names.length === 0) continue
-    const recognizedKinds = Array.isArray(widget?.recognizedKinds) ? widget.recognizedKinds : []
-    const kinds = uniqueStrings(recognizedKinds.length > 0 ? recognizedKinds : [widget?.kind])
-    for (const kind of kinds) {
-      addNamesForKind(result, kind, names)
-    }
-  }
-  return result.size > 0 ? result : null
 }
 
 function normalizeQueryScope(call = {}, fallbackWidgetRef = null) {
@@ -251,6 +226,7 @@ function buildVerificationCall(actionCall = {}, result = {}) {
     ...(queryScope ? { queryScope } : {}),
     params: {
       actionName: actionCall.name || null,
+      actionParams: actionCall.params || {},
       stateId,
       refs,
     },
@@ -338,6 +314,7 @@ async function resolvePlanningResult({
   objective = null,
   operation = null,
   actor = 'agent',
+  plannerContext = null,
 } = {}) {
   if (operation) {
     return {
@@ -360,6 +337,7 @@ async function resolvePlanningResult({
     history: clone(history),
     workspacePlan: clone(workspacePlan),
     actor,
+    plannerContext: clone(plannerContext),
   })
 
   if (!isPlainObject(planningResult)) {
@@ -485,6 +463,8 @@ export async function runAgentLoop(target, options = {}) {
     observationOptions = {},
     callId = 'agent_step_action',
     actor = 'agent',
+    plannerContext = null,
+    plannerLevel = null,
   } = options
 
   const observe = await readObserveStage(target, {
@@ -497,10 +477,11 @@ export async function runAgentLoop(target, options = {}) {
   const workspacePlan = await readWorkspacePlan(target, planningRequest)
   const baseKnowledge = buildAgentKnowledge({
     widgetKinds: readWidgetKindsFromObservation(observe),
-    widgetActionNamesByKind: readWidgetNameMapFromObservation(observe, 'actionNames'),
-    widgetPerceptionNamesByKind: readWidgetNameMapFromObservation(observe, 'perceptionNames'),
   })
-  const knowledge = options?.sessionKnowledge || baseKnowledge
+  const knowledge = options?.sessionKnowledge || projectPlannerKnowledge(baseKnowledge, {
+    level: plannerLevel,
+    observation: observe,
+  })
   const history = mergeSessionHistory(
     options?.sessionHistory || null,
     options?.sessionTurns || [],
@@ -514,6 +495,7 @@ export async function runAgentLoop(target, options = {}) {
     objective,
     operation,
     actor,
+    plannerContext,
   })
   const plan = buildPlanStage({
     objective,
@@ -587,6 +569,7 @@ export async function runAgentSession(target, options = {}) {
     maxTurns = 3,
     finalSynthesizer = null,
     onTurn = null,
+    plannerLevel = null,
   } = options
 
   const safeMaxTurns = Number.isFinite(maxTurns) && maxTurns > 0
@@ -606,16 +589,21 @@ export async function runAgentSession(target, options = {}) {
       sessionHistory: history,
       sessionTurns: turns,
       turnIndex: index,
+      plannerLevel,
       callId: `agent_step_${index + 1}`,
     })
     turns.push(turn)
     history = mergeSessionHistory(history, turns)
     if (!knowledge) {
-      knowledge = buildAgentKnowledge({
+      const fullKnowledge = buildAgentKnowledge({
         widgetKinds: readWidgetKindsFromObservation(turn.observe),
-        widgetActionNamesByKind: readWidgetNameMapFromObservation(turn.observe, 'actionNames'),
-        widgetPerceptionNamesByKind: readWidgetNameMapFromObservation(turn.observe, 'perceptionNames'),
       })
+      knowledge = plannerLevel == null
+        ? fullKnowledge
+        : projectPlannerKnowledge(fullKnowledge, {
+          level: plannerLevel,
+          observation: turn.observe,
+        })
     }
 
     if (typeof onTurn === 'function') {
@@ -640,6 +628,7 @@ export async function runAgentSession(target, options = {}) {
 
   const lastTurn = turns.at(-1) || null
   let finalAnswer = lastTurn?.reason?.answer || ''
+  let answerValues = []
 
   if (typeof finalSynthesizer === 'function') {
     const synthesis = await finalSynthesizer({
@@ -647,6 +636,7 @@ export async function runAgentSession(target, options = {}) {
       turns: clone(turns),
       history: clone(history),
       stopReason,
+      answerContract: clone(options.answerContract || null),
       knowledge: clone(knowledge || buildAgentKnowledge({})),
       lastTurn: clone(lastTurn),
     })
@@ -654,6 +644,7 @@ export async function runAgentSession(target, options = {}) {
       finalAnswer = synthesis
     } else if (synthesis && typeof synthesis === 'object') {
       finalAnswer = synthesis.finalAnswer || synthesis.answer || finalAnswer
+      answerValues = Array.isArray(synthesis.values) ? clone(synthesis.values) : []
     }
   }
 
@@ -672,6 +663,7 @@ export async function runAgentSession(target, options = {}) {
     ok: Boolean(lastTurn?.verify?.ok),
     answer: finalAnswer,
     finalAnswer,
+    answerValues,
     stopReason,
     knowledge: knowledge || buildAgentKnowledge({}),
     history,

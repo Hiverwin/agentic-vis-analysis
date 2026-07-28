@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { PAGE_PORT_ALIASES } from '../core/protocol/pagePort.js'
+import { PAGE_PORT_ALIASES } from './pagePortProtocol.js'
 import {
   TRANSPORT_PAGE_PORT_ALIASES,
   evaluatePagePortAlias,
@@ -10,7 +10,10 @@ import {
 
 test('TRANSPORT_PAGE_PORT_ALIASES is derived from PAGE_PORT_ALIASES', () => {
   assert.deepEqual(TRANSPORT_PAGE_PORT_ALIASES, Object.keys(PAGE_PORT_ALIASES))
-  assert.equal(TRANSPORT_PAGE_PORT_ALIASES.includes('workspace_plan'), true)
+  assert.equal(TRANSPORT_PAGE_PORT_ALIASES.includes('workspace_plan'), false)
+  assert.equal(TRANSPORT_PAGE_PORT_ALIASES.includes('runtime_core_describe'), false)
+  assert.equal(TRANSPORT_PAGE_PORT_ALIASES.includes('agent_loop_describe'), false)
+  assert.equal(TRANSPORT_PAGE_PORT_ALIASES.includes('workspace_describe'), true)
   assert.equal(TRANSPORT_PAGE_PORT_ALIASES.includes('verified_action_run'), true)
   assert.equal(TRANSPORT_PAGE_PORT_ALIASES.includes('agent_response_record'), true)
 })

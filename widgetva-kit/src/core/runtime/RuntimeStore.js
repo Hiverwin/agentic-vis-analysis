@@ -1,46 +1,37 @@
 import { StateManager } from './StateManager.js'
-import { WidgetRegistry } from './WidgetRegistry.js'
-import { makeWidgetDescription, makeWorkspaceDescription } from '../protocol/description.js'
+import { WidgetRegistry } from '../../workspace/widgetRegistry.js'
+import { makeWidgetDescription, makeWorkspaceDescription } from '../../workspace/store/workspaceStoreReaders.js'
 import {
   getInteractionTraceEventFamily,
   getInteractionTraceQueryName,
   getInteractionTraceQuerySurface,
   makeInteractionTraceRecord,
-} from '../protocol/interactionTrace.js'
-import { makeAgentResponseRecord } from '../protocol/responses.js'
+} from './shapes/interactionTraceShapes.js'
+import { makeAgentResponseRecord } from './shapes/responseRecorderShapes.js'
 import {
   makeBranchSummary,
   makeStateSnapshotMeta,
   makeTraceGraph,
   makeTraceGraphEdge,
   makeTraceGraphNode,
-} from '../protocol/results.js'
-import {
-  makeRuntimeStoreCapabilities,
-  makeRuntimeStoreHistory,
-  makeRuntimeStoreHistoryRetention,
-  makeRuntimeStoreIdentity,
-  makeRuntimeStoreIndexes,
-  makeRuntimeStoreStateSummary,
-  makeRuntimeStoreSummary,
-} from '../protocol/runtimeStore.js'
-import { makeWidgetState, makeWorkspaceState } from '../protocol/state.js'
-import { makeWidgetLink } from '../protocol/widgetLinks.js'
-import { makeActionDescriptor } from '../protocol/actions.js'
-import { makePerceptionDescriptor } from '../protocol/perception.js'
-import { makeDataHandle } from '../protocol/dataHandles.js'
-import { applyActionAnalyticalPlacementList } from '../../workspace/state/analyticalStatePlacement.js'
+} from './shapes/historyShapes.js'
+import { makeWidgetState, makeWorkspaceState } from '../../contracts/state-contracts.js'
+import { makeWidgetLink } from '../../contracts/widget-links-contracts.js'
+import { makeCoordinationRelation, makeCoordinationRelationMap } from '../../contracts/coordination-contracts.js'
+import { makeActionDescriptor } from '../../contracts/action-contracts.js'
+import { makePerceptionDescriptor } from '../../contracts/perception-contracts.js'
+import { makeDataHandle } from '../../contracts/data-contracts.js'
 import {
   makeCurrentSelectionDataRef,
   makeCurrentViewDataRef,
   makeSelectionScopedDataRef,
   makeWidgetSelectionDataRef,
   parseRef,
-} from '../protocol/refs.js'
-import { deriveGlobalFiltersFromState } from './sharedStateDerivation.js'
-import { buildDerivedDataHandle } from './materializers/workspaceDescriptorBuilders.js'
-import { rowMatchesAnySelection, rowMatchesSelection } from './materializers/selectionHelpers.js'
-import { summarizeWorkspaceState } from './summarizeWorkspaceState.js'
+} from '../../contracts/refs-contracts.js'
+import { deriveGlobalFiltersFromState } from '../../workspace/state/sharedStateDerivation.js'
+import { buildDerivedDataHandle } from './materializers/workspace/workspaceDescriptorBuilders.js'
+import { rowMatchesAnySelection, rowMatchesSelection } from './materializers/state/selectionHelpers.js'
+import { summarizeWorkspaceState } from './summaries/summarizeWorkspaceState.js'
 
 function makeDescriptorKey(name, targetRef) {
   return `${name || 'unknown'}::${targetRef || 'workspace'}`
@@ -178,6 +169,119 @@ function createMutableMapFacade({ keys, getEntry, setEntry, deleteEntry }) {
       }
     },
   })
+}
+
+function makeRuntimeStoreCurrentStateSummary(summary = {}) {
+  return {
+    stateId: null,
+    focusedWidgetRef: null,
+    focusedWidgetKind: null,
+    focusedWidgetTitle: null,
+    visibleCount: null,
+    selectedCount: null,
+    selectionCount: 0,
+    activeSelectionRefs: [],
+    primarySelectionRef: null,
+    primarySelectionSummary: '',
+    primarySelectionPredicates: [],
+    comparisonTargetCount: 0,
+    globalFilterCount: 0,
+    taskMode: null,
+    coordinationScope: null,
+    evidenceType: null,
+    interactionHorizon: null,
+    replayRunMode: null,
+    replayUserIntent: '',
+    changedRefs: [],
+    removedRefs: [],
+    sharedChanged: false,
+    taskContextChanged: false,
+    replayContextChanged: false,
+    ...summary,
+  }
+}
+
+function makeRuntimeStoreHistoryRetention(retention = {}) {
+  return {
+    snapshotMax: 0,
+    traceMax: 0,
+    responseMax: 0,
+    ...retention,
+  }
+}
+
+function makeRuntimeStoreIdentity(identity = {}) {
+  return {
+    appId: '',
+    workspaceId: '',
+    ...identity,
+  }
+}
+
+function makeRuntimeStoreStateSummary(summary = {}) {
+  return {
+    stateId: null,
+    currentBranchId: null,
+    previousStateId: null,
+    version: 0,
+    ...summary,
+  }
+}
+
+function makeRuntimeStoreIndexes(indexes = {}) {
+  return {
+    widgetCount: 0,
+    dataHandleCount: 0,
+    linkCount: 0,
+    widgetAdapterCount: 0,
+    actionDescriptorCount: 0,
+    perceptionDescriptorCount: 0,
+    widgetPatchCount: 0,
+    ...indexes,
+  }
+}
+
+function makeRuntimeStoreHistory(history = {}) {
+  return {
+    snapshotCount: 0,
+    traceCount: 0,
+    responseCount: 0,
+    branchCount: 0,
+    retention: makeRuntimeStoreHistoryRetention(),
+    maxSnapshotRetention: 0,
+    maxTraceRetention: 0,
+    maxResponseRetention: 0,
+    ...history,
+  }
+}
+
+function makeRuntimeStoreCapabilities(capabilities = {}) {
+  return {
+    deltaTracking: false,
+    snapshotHistory: false,
+    actorScopedHistory: false,
+    branchReplay: false,
+    traceGraph: false,
+    runtimeDataIndex: false,
+    widgetAdapterIndex: false,
+    widgetStatePatching: false,
+    ...capabilities,
+  }
+}
+
+function makeRuntimeStoreSummary(summary = {}) {
+  return {
+    currentStateSummary: null,
+    ...summary,
+    identity: makeRuntimeStoreIdentity(summary?.identity),
+    state: makeRuntimeStoreStateSummary(summary?.state),
+    currentStateSummary: summary?.currentStateSummary == null
+      ? null
+      : makeRuntimeStoreCurrentStateSummary(summary.currentStateSummary),
+    indexes: makeRuntimeStoreIndexes(summary?.indexes),
+    history: makeRuntimeStoreHistory(summary?.history),
+    capabilities: makeRuntimeStoreCapabilities(summary?.capabilities),
+  }
 }
 
 export class WidgetVARuntimeStore {
@@ -333,20 +437,44 @@ export class WidgetVARuntimeStore {
     this.emitChange()
   }
 
+  commitWidgetStateMap(nextWidgets, transition = {}) {
+    const stateMeta = this.stateManager.createStateMeta({
+      workspaceId: this.workspaceId,
+      previousState: this.state,
+      nextWidgets,
+      nextShared: this.state?.shared || {},
+      nextTaskContext: this.state?.taskContext,
+      nextReplayContext: this.replayContext,
+      branchId: this.currentBranchId,
+    })
+    const nextState = makeWorkspaceState({
+      ...clone(this.state),
+      stateId: stateMeta.stateId,
+      createdAt: stateMeta.createdAt,
+      widgets: nextWidgets,
+    })
+    nextState.shared = {
+      ...(nextState.shared || {}),
+      globalFilters: deriveGlobalFiltersFromState(nextState),
+    }
+    return this.commitState(nextState, {
+      transitionType: transition.transitionType || 'continue',
+      parentStateId: transition.parentStateId,
+      branchId: transition.branchId,
+      branchLabel: transition.branchLabel,
+    })
+  }
+
   upsertWidgetState(ref, widgetState) {
     if (!ref || !widgetState || typeof widgetState !== 'object') return null
-    this.state = normalizeWorkspaceState({
-      ...clone(this.state),
-      widgets: {
-        ...(this.state?.widgets || {}),
-        [ref]: {
-          ref,
-          ...clone(widgetState),
-        },
+    const nextWidgets = {
+      ...(this.state?.widgets || {}),
+      [ref]: {
+        ref,
+        ...clone(widgetState),
       },
-    })
-    this.syncRegistryWorkspace()
-    this.emitChange()
+    }
+    this.commitWidgetStateMap(nextWidgets)
     return this.state.widgets[ref]
   }
 
@@ -354,12 +482,7 @@ export class WidgetVARuntimeStore {
     if (!ref || !this.state?.widgets?.[ref]) return
     const nextWidgets = { ...(this.state?.widgets || {}) }
     delete nextWidgets[ref]
-    this.state = makeWorkspaceState({
-      ...clone(this.state),
-      widgets: nextWidgets,
-    })
-    this.syncRegistryWorkspace()
-    this.emitChange()
+    this.commitWidgetStateMap(nextWidgets)
   }
 
   upsertDataHandle(ref, handle) {
@@ -414,7 +537,8 @@ export class WidgetVARuntimeStore {
   }
 
   removeLinkDefinition(ref) {
-    if (!ref || !this.linkIndex?.[ref]) return
+    const currentRelations = makeCoordinationRelationMap(this.state?.coordination?.relations || {})
+    if (!ref || (!this.linkIndex?.[ref] && !Object.prototype.hasOwnProperty.call(currentRelations, ref))) return
     const nextIndex = { ...(this.linkIndex || {}) }
     delete nextIndex[ref]
     this.linkIndex = nextIndex
@@ -422,6 +546,17 @@ export class WidgetVARuntimeStore {
       ...this.description,
       links: Object.values(this.linkIndex),
     })
+    if (Object.prototype.hasOwnProperty.call(currentRelations, ref)) {
+      const nextRelations = { ...currentRelations }
+      delete nextRelations[ref]
+      this.commitState(makeWorkspaceState({
+        ...clone(this.state),
+        coordination: {
+          ...(this.state?.coordination || {}),
+          relations: nextRelations,
+        },
+      }), { transitionType: 'continue' })
+    }
     this.syncRegistryWorkspace()
     this.emitChange()
   }
@@ -455,9 +590,7 @@ export class WidgetVARuntimeStore {
   }
 
   rebuildActionIndexes(actionDescriptors = []) {
-    this.actionDescriptors = applyActionAnalyticalPlacementList(
-      actionDescriptors.map((item) => makeActionDescriptor(item)),
-    )
+    this.actionDescriptors = actionDescriptors.map((item) => makeActionDescriptor(item))
     this.actionIndex = Object.fromEntries(
       this.actionDescriptors.map((item) => [makeDescriptorKey(item.name, item.targetRef), item]),
     )
@@ -487,7 +620,8 @@ export class WidgetVARuntimeStore {
       name: descriptorName,
       ...clone(descriptor),
     }
-    const remainingDescriptors = this.actionDescriptors.filter((item) => item?.name !== descriptorName)
+    const nextKey = makeDescriptorKey(nextDescriptor.name, nextDescriptor.targetRef)
+    const remainingDescriptors = this.actionDescriptors.filter((item) => makeDescriptorKey(item?.name, item?.targetRef) !== nextKey)
     this.rebuildActionIndexes([...remainingDescriptors, nextDescriptor])
     this.description = makeWorkspaceDescription({
       ...this.description,
@@ -514,7 +648,8 @@ export class WidgetVARuntimeStore {
       name: descriptorName,
       ...clone(descriptor),
     }
-    const remainingDescriptors = this.perceptionDescriptors.filter((item) => item?.name !== descriptorName)
+    const nextKey = makeDescriptorKey(nextDescriptor.name, nextDescriptor.targetRef)
+    const remainingDescriptors = this.perceptionDescriptors.filter((item) => makeDescriptorKey(item?.name, item?.targetRef) !== nextKey)
     this.rebuildPerceptionIndexes([...remainingDescriptors, nextDescriptor])
     this.description = makeWorkspaceDescription({
       ...this.description,
@@ -602,6 +737,20 @@ export class WidgetVARuntimeStore {
       ...this.description,
       links: Object.values(this.linkIndex),
     })
+    const relation = makeCoordinationRelation(nextLink)
+    if (relation.ref && relation.sourceStateRef && relation.targetStateRef) {
+      const currentRelations = makeCoordinationRelationMap(this.state?.coordination?.relations || {})
+      this.commitState(makeWorkspaceState({
+        ...clone(this.state),
+        coordination: {
+          ...(this.state?.coordination || {}),
+          relations: {
+            ...currentRelations,
+            [relation.ref]: relation,
+          },
+        },
+      }), { transitionType: 'continue' })
+    }
     this.syncRegistryWorkspace()
     this.version += 1
     this.emitChange()
@@ -614,9 +763,7 @@ export class WidgetVARuntimeStore {
       ? nextWorkspace.description.widgets.map((item) => makeWidgetDescription(item))
       : []
     const normalizedActions = Array.isArray(nextWorkspace.description?.actions)
-      ? applyActionAnalyticalPlacementList(
-          nextWorkspace.description.actions.map((item) => makeActionDescriptor(item)),
-        )
+      ? nextWorkspace.description.actions.map((item) => makeActionDescriptor(item))
       : []
     const normalizedPerceptionQueries = Array.isArray(nextWorkspace.description?.perceptionQueries)
       ? nextWorkspace.description.perceptionQueries.map((item) => makePerceptionDescriptor(item))
@@ -658,7 +805,25 @@ export class WidgetVARuntimeStore {
     )
     this.runtimeData = nextWorkspace.runtimeData || {}
     this.replayContext = clone(nextWorkspace.replayContext || null)
-    const patchedState = applyWidgetStatePatches(nextWorkspace.state, this.widgetStatePatches)
+    const incomingState = makeWorkspaceState(nextWorkspace.state)
+    const explicitRelations = incomingState?.coordination?.relations
+    const hasExplicitRelations = explicitRelations
+      && typeof explicitRelations === 'object'
+      && !Array.isArray(explicitRelations)
+    const linkRelations = makeCoordinationRelationMap(
+      Object.values(this.linkIndex)
+        .map((link) => makeCoordinationRelation(link))
+        .filter((relation) => relation.ref && relation.sourceStateRef && relation.targetStateRef),
+    )
+    const patchedState = applyWidgetStatePatches({
+      ...incomingState,
+      coordination: {
+        ...(incomingState.coordination || {}),
+        relations: hasExplicitRelations
+          ? makeCoordinationRelationMap(explicitRelations)
+          : linkRelations,
+      },
+    }, this.widgetStatePatches)
     this.widgetRegistry.replaceWorkspace({
       description: this.description,
       state: patchedState,
@@ -724,7 +889,14 @@ export class WidgetVARuntimeStore {
   }
 
   listLinks() {
-    return Object.values(this.linkIndex)
+    const links = Object.values(this.linkIndex)
+    const relationLinks = Object.values(makeCoordinationRelationMap(this.state?.coordination?.relations || {}))
+    const deduped = new Map()
+    for (const link of [...links, ...relationLinks]) {
+      if (!link?.ref) continue
+      deduped.set(link.ref, link)
+    }
+    return Array.from(deduped.values())
   }
 
   getLink(ref) {
@@ -1213,7 +1385,7 @@ export class WidgetVARuntimeStore {
         branchReplay: true,
         traceGraph: true,
         runtimeDataIndex: true,
-        adapterRegistry: true,
+        widgetAdapterIndex: true,
         widgetStatePatching: true,
       }),
     })

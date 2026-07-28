@@ -1,7 +1,17 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { buildSharedAnalyticalStateModel } from './sharedAnalyticalStateModel.js'
+import {
+  buildSharedAnalyticalStateModel,
+  readActiveAnalyticalContext,
+  readSharedFilterContext,
+  readSharedSemanticFocus,
+  readSharedStructuralContext,
+  readSharedTransformationContext,
+  readSharedViewContext,
+  readSharedViewportContext,
+  readViewStatesByWidget,
+} from './sharedAnalyticalStateModel.js'
 
 test('buildSharedAnalyticalStateModel organizes workspace-shared context into filter, viewport, semantic, and structural categories', () => {
   const state = {
@@ -55,7 +65,6 @@ test('buildSharedAnalyticalStateModel organizes workspace-shared context into fi
         yDomain: [5, 15],
       },
       comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
-      annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
       selections: {
         registry: {
           'wl://widgetva-app/workspace/main/widget/bar_a/selection/current': {
@@ -273,7 +282,6 @@ test('buildSharedAnalyticalStateModel organizes workspace-shared context into fi
     comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
     structure: {
       linkCount: 1,
-      annotationCount: 1,
     },
     transformationContext: {
       activeWidgetRefs: [
@@ -361,7 +369,6 @@ test('buildSharedAnalyticalStateModel organizes workspace-shared context into fi
       topology: { topology: 'T2' },
     },
     comparisonTargets: ['wl://widgetva-app/workspace/main/widget/bar_b'],
-    annotations: [{ id: 'ann_1', label: 'Peak bucket' }],
   })
 })
 
@@ -410,4 +417,71 @@ test('buildSharedAnalyticalStateModel preserves concrete transformation operatio
       navigate: 'expandNode',
     },
   )
+})
+
+test('shared analytical read helpers expose canonical projection defaults from workspace state', () => {
+  const state = {
+    widgets: {},
+    shared: {
+      links: {
+        definitions: [],
+        topology: {},
+      },
+    },
+  }
+
+  assert.deepEqual(readSharedFilterContext(state), {
+    globalFilters: {},
+    selectionRef: null,
+    selectionPredicates: [],
+  })
+  assert.deepEqual(readSharedViewportContext(state), {
+    focusedWidgetRef: null,
+    viewport: null,
+    comparisonTargets: [],
+  })
+  assert.deepEqual(readSharedSemanticFocus(state), {
+    focusedWidgetRef: null,
+    focus: null,
+    primarySelection: null,
+    highlight: {
+      entries: [],
+      activeWidgetRefs: [],
+    },
+  })
+  assert.deepEqual(readSharedStructuralContext(state, {
+    derivedTopology: { topology: 'T1', edgeCount: 0 },
+  }), {
+    links: {
+      definitions: [],
+      topology: { topology: 'T1', edgeCount: 0 },
+    },
+    comparisonTargets: [],
+  })
+  assert.deepEqual(readActiveAnalyticalContext(state), {
+    activeContextKinds: [],
+    focusedWidgetRef: null,
+    globalFilters: null,
+    primarySelection: null,
+    highlight: null,
+    viewport: null,
+    comparisonTargets: null,
+    structure: {
+      linkCount: 0,
+    },
+    transformationContext: {
+      activeWidgetRefs: [],
+      widgets: {},
+    },
+    viewStatesByWidget: null,
+  })
+  assert.deepEqual(readViewStatesByWidget(state), {})
+  assert.deepEqual(readSharedViewContext(state), {
+    activeWidgetRefs: [],
+    widgets: {},
+  })
+  assert.deepEqual(readSharedTransformationContext(state), {
+    activeWidgetRefs: [],
+    widgets: {},
+  })
 })

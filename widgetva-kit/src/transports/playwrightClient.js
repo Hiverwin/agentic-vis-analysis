@@ -1,387 +1,195 @@
-import {
-  actionRun,
-  actionContextDescribe,
-  actionExecutorDescribe,
-  agentLoopDescribe,
-  branchFromState,
-  branchList,
-  dataQuery,
-  dataQueryContextDescribe,
-  dataQueryEngineDescribe,
-  dataQueryExecutorDescribe,
-  describePagePort,
-  listAvailableWidgetVAMcpTools,
-  listAgentResponses,
-  linkEngineDescribe,
-  linkPropagationEvaluate,
-  jumpToState,
-  parseWidgetVARef,
-  readLatestAgentResponse,
-  recordAgentResponse,
-  runtimeCoreDescribe,
-  responseRecorderDescribe,
-  stateManagerDescribe,
-  traceRecorderDescribe,
-  runtimeStoreDescribe,
-  widgetRegistryDescribe,
-  interactionTraceRead,
-  listWidgetAdapters,
-  perceptionQuery,
-  perceptionContextDescribe,
-  perceptionRegistryDescribe,
-  snapshotRead,
-  stateHistoryRead,
-  traceGraphRead,
-  verifiedActionRun,
-  viewRead,
-  workspaceDescribe,
-  workspacePlan,
-  workspaceSnapshotRead,
-} from './inPageTransport.js'
-import {
-  buildScatterBrushCall,
-  branchFromStateOnPage,
-  describeAgentLoopFromPage,
-  describeActionContextFromPage,
-  describeActionUsageFromPage,
-  describeActionExecutorFromPage,
-  describeDataQueryExecutorFromPage,
-  describeDataQueryContextFromPage,
-  describeDataQueryEngineFromPage,
-  describeLinkEngineFromPage,
-  describePagePortFromPage,
-  describeResponseRecorderFromPage,
-  parseRefFromPage,
-  describePerceptionRegistryFromPage,
-  describePerceptionContextFromPage,
-  describeRuntimeCoreFromPage,
-  describeStateManagerFromPage,
-  describeTraceRecorderFromPage,
-  describeWidgetRegistryFromPage,
-  describeRuntimeStoreFromPage,
-  describeWorkspaceFromPage,
-  evaluateLinkPropagationOnPage,
-  jumpToStateOnPage,
-  listAgentResponsesFromPage,
-  listBranchesFromPage,
-  listWidgetAdaptersFromPage,
-  planWorkspaceFromPage,
-  queryDataOnPage,
-  queryPerceptionOnPage,
-  readObservationFromPage,
-  readLatestCoordinationResultFromPage,
-  readSnapshotFromPage,
-  readStateHistoryFromPage,
-  readInteractionTraceFromPage,
-  readLatestAgentResponseFromPage,
-  readTraceGraphFromPage,
-  readViewFromPage,
-  readWorkspaceSnapshotFromPage,
-  runActionOnPage,
-  recordAgentResponseOnPage,
-  runVerifiedActionOnPage,
-} from './examples/playwrightWidgetVA.js'
-import { filterAvailableWidgetVAMcpTools } from './availableMcpTools.js'
-import { WIDGETVA_MCP_TOOLS } from './widgetvaMcpCatalog.js'
-import {
-  describeWidgetViaTransport,
-  executeWidgetActionViaTransport,
-  executeWorkspaceActionViaTransport,
-  queryWidgetPerceptionViaTransport,
-  queryWorkspacePerceptionViaTransport,
-  readWidgetStateViaTransport,
-  readWidgetTraceViaTransport,
-  readWorkspaceStateViaTransport,
-  readWorkspaceTraceViaTransport,
-  replayWidgetViaTransport,
-  replayWorkspaceViaTransport,
-} from './widgetWorkspaceTransportSurface.js'
+import { evaluatePagePortAlias } from './pagePortBridge.js'
+import { createPagePortClient } from './pagePortClient.js'
+
+function createPlaywrightInvoke(page) {
+  return (alias, args = []) => evaluatePagePortAlias(page, alias, args)
+}
 
 export class WidgetVAPlaywrightClient {
   constructor(page) {
     this.page = page
-  }
-
-  async describeWorkspace(options = {}) {
-    return describeWorkspaceFromPage(this.page, options)
-  }
-
-  async parseRef(ref) {
-    return parseRefFromPage(this.page, ref)
-  }
-
-  async describePagePort() {
-    return describePagePortFromPage(this.page)
-  }
-
-  async listAvailableWidgetVAMcpTools() {
-    let pagePortDescription = null
-    try {
-      pagePortDescription = await this.describePagePort()
-    } catch {
-      pagePortDescription = null
-    }
-
-    return filterAvailableWidgetVAMcpTools({
-      allTools: WIDGETVA_MCP_TOOLS,
-      pagePortDescription,
+    this.client = createPagePortClient({
+      invoke: createPlaywrightInvoke(page),
     })
   }
 
-  async describeRuntimeCore() {
-    return describeRuntimeCoreFromPage(this.page)
+  invoke(alias, args = []) {
+    return this.client.invoke(alias, args)
   }
 
-  async describeRuntimeStore() {
-    return describeRuntimeStoreFromPage(this.page)
+  describePagePort() {
+    return this.client.describePagePort()
   }
 
-  async describeWidgetRegistry() {
-    return describeWidgetRegistryFromPage(this.page)
+  describeWorkspace(options = {}) {
+    return this.client.describeWorkspace(options)
   }
 
-  async describeActionExecutor() {
-    return describeActionExecutorFromPage(this.page)
+  parseRef(ref) {
+    return this.client.parseRef(ref)
   }
 
-  async describeActionContext() {
-    return describeActionContextFromPage(this.page)
+  readView(options = {}) {
+    return this.client.readView(options)
   }
 
-  async describeActionUsage(options = {}) {
-    return describeActionUsageFromPage(this.page, options)
+  readState(options = {}) {
+    return this.client.readState(options)
   }
 
-  async describePerceptionRegistry() {
-    return describePerceptionRegistryFromPage(this.page)
+  readSnapshot(options = {}) {
+    return this.client.readSnapshot(options)
   }
 
-  async describePerceptionContext() {
-    return describePerceptionContextFromPage(this.page)
+  readStateHistory(options = {}) {
+    return this.client.readStateHistory(options)
   }
 
-  async describeDataQueryExecutor() {
-    return describeDataQueryExecutorFromPage(this.page)
+  listBranches() {
+    return this.client.listBranches()
   }
 
-  async describeDataQueryContext() {
-    return describeDataQueryContextFromPage(this.page)
+  jumpToState(options = {}) {
+    return this.client.jumpToState(options)
   }
 
-  async describeDataQueryEngine() {
-    return describeDataQueryEngineFromPage(this.page)
+  branchFromState(options = {}) {
+    return this.client.branchFromState(options)
   }
 
-  async describeStateManager() {
-    return describeStateManagerFromPage(this.page)
+  runAction(call = {}) {
+    return this.client.runAction(call)
   }
 
-  async describeTraceRecorder() {
-    return describeTraceRecorderFromPage(this.page)
+  executeAction(call = {}) {
+    return this.client.executeAction(call)
   }
 
-  async describeResponseRecorder() {
-    return describeResponseRecorderFromPage(this.page)
+  runVerifiedAction(call = {}, options = {}) {
+    return this.client.runVerifiedAction(call, options)
   }
 
-  async describeLinkEngine() {
-    return describeLinkEngineFromPage(this.page)
+  queryPerception(call = {}) {
+    return this.client.queryPerception(call)
   }
 
-  async planWorkspace(options = {}) {
-    return planWorkspaceFromPage(this.page, options)
+  queryData(call = {}) {
+    return this.client.queryData(call)
   }
 
-  async describeAgentLoop(options = {}) {
-    return describeAgentLoopFromPage(this.page, options)
+  runDataQuery(call = {}) {
+    return this.client.runDataQuery(call)
   }
 
-  async readObservation(options = {}) {
-    return readObservationFromPage(this.page, options)
+  readInteractionTrace(options = {}) {
+    return this.client.readInteractionTrace(options)
   }
 
-  async listWidgetAdapters() {
-    return listWidgetAdaptersFromPage(this.page)
+  readTrace(options = {}) {
+    return this.client.readTrace(options)
   }
 
-  async readLatestCoordinationResult() {
-    return readLatestCoordinationResultFromPage(this.page)
+  readTraceGraph(options = {}) {
+    return this.client.readTraceGraph(options)
   }
 
-  async readView(options = {}) {
-    return readViewFromPage(this.page, options)
+  readLatestAgentResponse(options = {}) {
+    return this.client.readLatestAgentResponse(options)
   }
 
-  async describeWidget(options = {}) {
-    return describeWidgetViaTransport(this, options)
+  listAgentResponses(options = {}) {
+    return this.client.listAgentResponses(options)
   }
 
-  async readWorkspaceState(options = {}) {
-    return readWorkspaceStateViaTransport(this, options)
+  evaluateLinkPropagation(options = {}) {
+    return this.client.evaluateLinkPropagation(options)
   }
 
-  async readState(options = {}) {
-    return readWorkspaceStateViaTransport(this, options)
+  recordAgentResponse(record = {}) {
+    return this.client.recordAgentResponse(record)
   }
 
-  async readWidgetState(options = {}) {
-    return readWidgetStateViaTransport(this, options)
-  }
-
-  async readSnapshot(options = {}) {
-    return readSnapshotFromPage(this.page, options)
-  }
-
-  async readStateHistory(options = {}) {
-    return readStateHistoryFromPage(this.page, options)
-  }
-
-  async listBranches() {
-    return listBranchesFromPage(this.page)
-  }
-
-  async jumpToState(options = {}) {
-    return jumpToStateOnPage(this.page, options)
-  }
-
-  async branchFromState(options = {}) {
-    return branchFromStateOnPage(this.page, options)
-  }
-
-  async runAction(call) {
-    return runActionOnPage(this.page, call)
-  }
-
-  async executeWorkspaceAction(call = {}) {
-    return executeWorkspaceActionViaTransport(this, call)
-  }
-
-  async executeAction(call = {}) {
-    return executeWorkspaceActionViaTransport(this, call)
-  }
-
-  async executeWidgetAction(call = {}) {
-    return executeWidgetActionViaTransport(this, call)
-  }
-
-  async runVerifiedAction(call, options = {}) {
-    return runVerifiedActionOnPage(this.page, call, options)
-  }
-
-  async queryPerception(call) {
-    return queryPerceptionOnPage(this.page, call)
-  }
-
-  async queryWorkspacePerception(call = {}) {
-    return queryWorkspacePerceptionViaTransport(this, call)
-  }
-
-  async queryWidgetPerception(call = {}) {
-    return queryWidgetPerceptionViaTransport(this, call)
-  }
-
-  async queryData(call) {
-    return queryDataOnPage(this.page, call)
-  }
-
-  async runDataQuery(call = {}) {
-    return this.queryData(call)
-  }
-
-  async readInteractionTrace(options = {}) {
-    return readInteractionTraceFromPage(this.page, options)
-  }
-
-  async readWorkspaceTrace(options = {}) {
-    return readWorkspaceTraceViaTransport(this, options)
-  }
-
-  async readTrace(options = {}) {
-    return readWorkspaceTraceViaTransport(this, options)
-  }
-
-  async readWidgetTrace(options = {}) {
-    return readWidgetTraceViaTransport(this, options)
-  }
-
-  async readTraceGraph(options = {}) {
-    return readTraceGraphFromPage(this.page, options)
-  }
-
-  async readLatestAgentResponse(options = {}) {
-    return readLatestAgentResponseFromPage(this.page, options)
-  }
-
-  async listAgentResponses(options = {}) {
-    return listAgentResponsesFromPage(this.page, options)
-  }
-
-  async evaluateLinkPropagation(options = {}) {
-    return evaluateLinkPropagationOnPage(this.page, options)
-  }
-
-  async readWorkspaceSnapshot(options = {}) {
-    return readWorkspaceSnapshotFromPage(this.page, options)
-  }
-
-  async recordAgentResponse(record = {}) {
-    return recordAgentResponseOnPage(this.page, record)
-  }
-
-  async replayWorkspace(stateIdOrOptions) {
-    return replayWorkspaceViaTransport(this, stateIdOrOptions)
-  }
-
-  async replay(stateIdOrOptions) {
-    return replayWorkspaceViaTransport(this, stateIdOrOptions)
-  }
-
-  async replayWidget(stateIdOrOptions) {
-    return replayWidgetViaTransport(this, stateIdOrOptions)
-  }
-
-  buildScatterBrushCall(args) {
-    return buildScatterBrushCall(args)
+  replay(stateIdOrOptions) {
+    return this.client.replay(stateIdOrOptions)
   }
 }
 
-export {
-  actionRun,
-  actionContextDescribe,
-  actionExecutorDescribe,
-  agentLoopDescribe,
-  branchFromState,
-  branchList,
-  dataQuery,
-  dataQueryContextDescribe,
-  dataQueryEngineDescribe,
-  dataQueryExecutorDescribe,
-  describePagePort,
-  listAvailableWidgetVAMcpTools,
-  listAgentResponses,
-  linkEngineDescribe,
-  linkPropagationEvaluate,
-  jumpToState,
-  parseWidgetVARef,
-  readLatestAgentResponse,
-  recordAgentResponse,
-  runtimeCoreDescribe,
-  responseRecorderDescribe,
-  stateManagerDescribe,
-  traceRecorderDescribe,
-  widgetRegistryDescribe,
-  runtimeStoreDescribe,
-  interactionTraceRead,
-  listWidgetAdapters,
-  perceptionQuery,
-  perceptionContextDescribe,
-  perceptionRegistryDescribe,
-  snapshotRead,
-  stateHistoryRead,
-  traceGraphRead,
-  verifiedActionRun,
-  viewRead,
-  workspaceDescribe,
-  workspacePlan,
-  workspaceSnapshotRead,
+export function createPlaywrightTransportClient(page) {
+  return new WidgetVAPlaywrightClient(page)
+}
+
+export async function describePagePort(page) {
+  return createPlaywrightInvoke(page)('page_port_describe')
+}
+
+export async function workspaceDescribe(page, options = {}) {
+  return createPlaywrightInvoke(page)('workspace_describe', [options])
+}
+
+export async function parseWidgetVARef(page, ref) {
+  return createPlaywrightInvoke(page)('ref_parse', [{ ref }])
+}
+
+export async function viewRead(page, options = {}) {
+  return createPlaywrightInvoke(page)('view_read', [options])
+}
+
+export async function snapshotRead(page, options = {}) {
+  return createPlaywrightInvoke(page)('read_snapshot', [options])
+}
+
+export async function stateHistoryRead(page, options = {}) {
+  return createPlaywrightInvoke(page)('state_history_read', [options])
+}
+
+export async function branchList(page) {
+  return createPlaywrightInvoke(page)('branch_list')
+}
+
+export async function jumpToState(page, options = {}) {
+  return createPlaywrightInvoke(page)('jump_to_state', [options])
+}
+
+export async function branchFromState(page, options = {}) {
+  return createPlaywrightInvoke(page)('branch_from_state', [options])
+}
+
+export async function actionRun(page, call = {}) {
+  return createPlaywrightInvoke(page)('action_run', [call])
+}
+
+export async function verifiedActionRun(page, call = {}, options = {}) {
+  return createPlaywrightInvoke(page)('verified_action_run', [call, options])
+}
+
+export async function perceptionQuery(page, call = {}) {
+  return createPlaywrightInvoke(page)('perception_query', [call])
+}
+
+export async function dataQuery(page, call = {}) {
+  return createPlaywrightInvoke(page)('data_query', [call])
+}
+
+export async function interactionTraceRead(page, options = {}) {
+  return createPlaywrightInvoke(page)('interaction_trace_read', [options])
+}
+
+export async function traceGraphRead(page, options = {}) {
+  return createPlaywrightInvoke(page)('trace_graph_read', [options])
+}
+
+export async function readLatestAgentResponse(page, options = {}) {
+  return createPlaywrightInvoke(page)('agent_response_read', [options])
+}
+
+export async function listAgentResponses(page, options = {}) {
+  return createPlaywrightInvoke(page)('agent_response_list', [options])
+}
+
+export async function linkPropagationEvaluate(page, options = {}) {
+  return createPlaywrightInvoke(page)('link_propagation_evaluate', [options])
+}
+
+export async function recordAgentResponse(page, record = {}) {
+  return createPlaywrightInvoke(page)('agent_response_record', [record])
 }
