@@ -5,7 +5,7 @@ from evaluators.answer_evaluator import AnswerEvaluator
 from evaluators.tool_evaluator import ToolEvaluator
 from evaluators.state_evaluator import StateEvaluator
 from evaluators.run_evaluation import format_summary, summarize_results, write_instance_evaluations
-from benchmark.runner import build_answer_contract, build_scoring_result, expand_task_paths
+from benchmark.runner import build_scoring_result, expand_task_paths
 
 
 def test_answer_parser_handles_tatqa_number_and_percent_scale():
@@ -91,15 +91,13 @@ def test_answer_matches_multiple_numeric_checks_to_distinct_numbers():
     assert [check["actual"] for check in evaluated.details["checks"]] == [319.0, 89.0, 64.46, 61.63, 69.1, 64.67]
 
 
-def test_answer_uses_structured_values_by_key_and_type_instead_of_free_text_numbers():
+def test_answer_evaluation_uses_answer_text_even_when_legacy_values_are_present():
     evaluator = AnswerEvaluator()
     result = evaluator.evaluate(
         {
             "answer": "Group A has 319 students and Group C has 89 students.",
             "values": [
-                {"key": "largest_count", "type": "numeric", "value": 319},
-                {"key": "smallest_count", "type": "numeric", "value": 89},
-                {"key": "largest_cohort", "type": "categorical", "value": "group C"},
+                {"key": "largest_count", "type": "numeric", "value": 999},
             ],
         },
         {
@@ -113,22 +111,16 @@ def test_answer_uses_structured_values_by_key_and_type_instead_of_free_text_numb
     )
 
     assert result.score == 1.0
-    assert [item["actual"] for item in result.details["checks"]] == [319, 89, "group C"]
+    assert [item["actual"] for item in result.details["checks"][:2]] == [319.0, 89.0]
+    assert "Group C" in result.details["checks"][2]["actual"]
 
 
-def test_answer_structured_values_support_all_four_declared_types():
+def test_answer_text_supports_numeric_and_categorical_checks():
     evaluator = AnswerEvaluator()
     result = evaluator.evaluate(
-        {"answer": "Summary.", "values": [
-            {"key": "count", "type": "numeric", "value": 12},
-            {"key": "has_increase", "type": "boolean", "value": True},
-            {"key": "period", "type": "interval", "start": "2014-07-01", "end": "2014-09-01"},
-            {"key": "museum", "type": "categorical", "value": "Firehouse Museum"},
-        ]},
+        {"answer": "The count is 12 at the Firehouse Museum."},
         {"type": "verifiable_target", "checks": [
             {"field": "count", "check": "numeric", "expected": 12, "tolerance": 0},
-            {"field": "has_increase", "check": "boolean", "expected": True},
-            {"field": "period", "check": "interval", "expected": {"start": "2014-07-01", "end": "2014-09-01"}},
             {"field": "museum", "check": "categorical", "expected": "Firehouse Museum"},
         ]},
     )
@@ -136,7 +128,7 @@ def test_answer_structured_values_support_all_four_declared_types():
     assert result.score == 1.0
 
 
-def test_structured_answer_does_not_fall_back_to_text_when_a_declared_value_is_missing():
+def test_answer_evaluation_falls_back_to_text_when_legacy_values_are_empty():
     result = AnswerEvaluator().evaluate(
         {"answer": "The largest count is 319.", "values": []},
         {"type": "verifiable_target", "checks": [
@@ -144,8 +136,117 @@ def test_structured_answer_does_not_fall_back_to_text_when_a_declared_value_is_m
         ]},
     )
 
+    assert result.score == 1.0
+    assert result.details["checks"][0]["actual"] == 319.0
+
+
+def test_answer_evaluation_uses_readable_answer_when_values_are_empty():
+    result = AnswerEvaluator().evaluate(
+        {
+            "answer": "Yes, there is a negative correlation.",
+            "values": [],
+        },
+        {
+            "type": "verifiable_target",
+            "checks": [{"field": "answer", "check": "categorical", "expected": "Yes"}],
+        },
+    )
+
+    assert result.score == 1.0
+    assert result.details["checks"][0]["actual"].startswith("Yes")
+
+
+def test_numeric_answer_checks_bind_values_to_their_field_anchor():
+    result = AnswerEvaluator().evaluate(
+        "North has the highest total at 642, while South has the lowest total at 810.",
+        {
+            "type": "verifiable_target",
+            "checks": [
+                {"field": "north_total", "check": "numeric", "expected": 810},
+                {"field": "south_total", "check": "numeric", "expected": 642},
+            ],
+        },
+    )
+
+    assert result.score == 0.5
+    assert result.details["checks"][0]["score"] == 0.0
+
+
+def test_numeric_answer_checks_do_not_reuse_local_field_candidate_indexes():
+    result = AnswerEvaluator().evaluate(
+        "North has 810, while South has 642.",
+        {
+            "type": "verifiable_target",
+            "checks": [
+                {"field": "north_total", "check": "numeric", "expected": 810},
+                {"field": "south_total", "check": "numeric", "expected": 642},
+            ],
+        },
+    )
+
+    assert result.score == 1.0
+
+
+def test_boolean_answer_checks_understand_natural_language_negation():
+    result = AnswerEvaluator().evaluate(
+        "The two periods differ, but this association does not establish causation.",
+        {
+            "type": "verifiable_target",
+            "checks": [{"field": "causal_claim", "check": "boolean", "expected": False}],
+        },
+    )
+
+    assert result.score == 1.0
+
+
+def test_boolean_answer_does_not_infer_truth_from_unrelated_is_or_are_words():
+    result = AnswerEvaluator().evaluate(
+        "The data is observational and does not establish causation.",
+        {
+            "type": "verifiable_target",
+            "checks": [{"field": "causal_claim", "check": "boolean", "expected": False}],
+        },
+    )
+
+    assert result.score == 1.0
+
+
+def test_categorical_answer_rejects_a_negated_expected_label():
+    result = AnswerEvaluator().evaluate(
+        "The maximum did not occur on September 1st.",
+        {
+            "type": "verifiable_target",
+            "checks": [{"field": "date", "check": "categorical", "expected": "On September 1st."}],
+        },
+    )
+
     assert result.score == 0.0
-    assert result.details["checks"][0]["actual"] is None
+
+
+def test_interval_answer_checks_compare_ordered_numeric_bounds():
+    evaluator = AnswerEvaluator()
+    config = {
+        "type": "verifiable_target",
+        "checks": [{"field": "range", "check": "interval", "expected": [10, 20], "tolerance": 0}],
+    }
+
+    assert evaluator.evaluate("The observed interval is 10 to 20.", config).score == 1.0
+    assert evaluator.evaluate("The observed interval is 20 to 10.", config).score == 0.0
+
+
+def test_interval_answer_normalizes_common_date_formats_and_order():
+    evaluator = AnswerEvaluator()
+    config = {
+        "type": "verifiable_target",
+        "checks": [{
+            "field": "period",
+            "check": "interval",
+            "expected": {"start": "2014-07-01", "end": "2014-09-01"},
+        }],
+    }
+
+    assert evaluator.evaluate("From July 1, 2014 through 2014/9/1.", config).score == 1.0
+    assert evaluator.evaluate("From 2014/9/1 back to July 1, 2014.", config).score == 0.0
 
 
 def test_tool_scores_required_steps_only_and_ignores_optional_dependency():
@@ -260,6 +361,51 @@ def test_tool_matches_required_cross_widget_milestones_in_dependency_order():
     assert evaluated.details["required"]["matched"] == 2
 
 
+def test_tool_partial_parameter_match_does_not_satisfy_a_required_dependency():
+    instance = {"evaluation": {"tool": {"steps": [
+        {
+            "step_id": "select_source",
+            "operation": "bar.selectCategory",
+            "target_widget_ref": "bar",
+            "params": {"field": "cohort", "values": ["C"]},
+            "requirement": "required",
+        },
+        {
+            "step_id": "observe_target",
+            "operation": "perception.summarizeVisible",
+            "target_widget_ref": "scatter",
+            "params": {},
+            "depends_on": ["select_source"],
+            "requirement": "required",
+        },
+    ]}}}
+    result = {"tool": {"executions": [
+        {
+            "step_id": "step_1",
+            "execution": {
+                "ok": True,
+                "name": "bar.selectCategory",
+                "target_widget_ref": "bar",
+                "params": {"field": "cohort", "values": ["A"]},
+            },
+        },
+        {
+            "step_id": "step_2",
+            "execution": {
+                "ok": True,
+                "name": "perception.summarizeVisible",
+                "target_widget_ref": "scatter",
+                "params": {},
+            },
+        },
+    ]}}
+
+    evaluated = ToolEvaluator().evaluate(instance, result)
+
+    assert evaluated.details["required"]["steps"][0]["matched"] is False
+    assert evaluated.details["required"]["steps"][1]["dependency_satisfied"] is False
+
+
 def test_tool_rejects_linked_observation_that_happens_before_required_source_action():
     instance = {"evaluation": {"tool": {"steps": [
         {
@@ -330,7 +476,7 @@ def test_state_reports_each_final_multi_widget_check_and_runner_resolves_host_ag
         },
     ]}}
     result = build_scoring_result(
-        session={"turns": [], "answer": "", "answerValues": [{"key": "count", "type": "numeric", "value": 2}]},
+        session={"turns": [], "answer": ""},
         final_state={"widgets": {
             "wl://visagentbench/workspace/students/widget/bar": {
                 "selections": {"field": "cohort", "values": ["A"]},
@@ -348,20 +494,7 @@ def test_state_reports_each_final_multi_widget_check_and_runner_resolves_host_ag
     assert evaluated.score == 1.0
     assert evaluated.details["checks"][0]["state_ref"].endswith("/widget/bar")
     assert evaluated.details["checks"][1]["property"] == "transforms"
-    assert result["answer"]["values"] == [{"key": "count", "type": "numeric", "value": 2}]
-
-
-def test_runner_derives_public_answer_contract_without_expected_values():
-    contract = build_answer_contract({"answer": {"checks": [
-        {"field": "count", "check": "numeric", "expected": 319, "tolerance": 0},
-        {"field": "peak", "check": "categorical", "expected": "Firehouse Museum"},
-    ]}})
-
-    assert contract == {"values": [
-        {"key": "count", "type": "numeric"},
-        {"key": "peak", "type": "categorical"},
-    ]}
-    assert "expected" not in json.dumps(contract)
+    assert "values" not in result["answer"]
 
 
 def test_aligned_multi_widget_contract_marks_required_milestones_for_every_asl():
@@ -376,6 +509,21 @@ def test_aligned_multi_widget_contract_marks_required_milestones_for_every_asl()
             "relation_ids": ["REL-2V-BAR-SELECTCATEGORY-01"],
             "workflow_id": "WF-2V-REPEATED-CATEGORY-PROFILE-COMPARISON-10",
         }
+
+
+def test_aligned_tool_steps_declare_requirement_for_every_instance():
+    root = Path(__file__).parents[2]
+    aligned_root = root / "visagentbench_kit/aligned"
+    missing = []
+    for task_dir in aligned_root.iterdir():
+        if not task_dir.is_dir() or task_dir.name == "10_workflow_instance_data":
+            continue
+        for instance_path in task_dir.glob("*_asl[0-3].json"):
+            instance = json.loads(instance_path.read_text())
+            for step in instance.get("evaluation", {}).get("tool", {}).get("steps", []):
+                if step.get("requirement") not in {"required", "optional"}:
+                    missing.append(f"{instance_path}:{step.get('step_id')}")
+    assert missing == []
 
 
 def test_current_multi_widget_result_reports_partial_tool_and_failed_final_state():

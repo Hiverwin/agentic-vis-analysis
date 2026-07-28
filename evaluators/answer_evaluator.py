@@ -2,10 +2,143 @@
 
 import json
 import os
+import re
+from datetime import date
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from .common import answer_text, categorical_match, extract_numbers, normalize_text, scalar_equal, value_match
+from .common import answer_text, categorical_match, extract_numbers, scalar_equal
+
+
+FIELD_SEMANTIC_TOKENS = {
+    "answer", "value", "values", "count", "total", "mean", "average", "avg",
+    "sum", "difference", "diff", "gap", "share", "shift", "change", "rate",
+    "correlation", "outcome", "metric", "score", "size", "distribution",
+}
+
+
+def _field_anchor_tokens(field: str) -> list[str]:
+    tokens = [token for token in re.split(r"[^a-z0-9]+", str(field or "").lower()) if token]
+    return [token for token in tokens if token not in FIELD_SEMANTIC_TOKENS]
+
+
+def _field_bound_numbers(text: str, field: str, checks: list[Dict[str, Any]]) -> list[float] | None:
+    anchors = _field_anchor_tokens(field)
+    if not anchors:
+        return None
+
+    all_anchors = {
+        token
+        for check in checks
+        for token in _field_anchor_tokens(check.get("field", ""))
+    }
+    lower_text = text.lower()
+    occurrences = [
+        (match.start(), match.group(0))
+        for anchor in anchors
+        for match in re.finditer(rf"\b{re.escape(anchor)}\b", lower_text)
+    ]
+    if not occurrences:
+        return None
+
+    start, _ = max(occurrences)
+    previous_boundaries = [
+        match.start()
+        for anchor in all_anchors - set(anchors)
+        for match in re.finditer(rf"\b{re.escape(anchor)}\b", lower_text[:start])
+    ]
+    boundary_positions = [
+        match.start()
+        for anchor in all_anchors - set(anchors)
+        for match in re.finditer(rf"\b{re.escape(anchor)}\b", lower_text[start + 1:])
+    ]
+    segment_start = max(previous_boundaries) + 1 if previous_boundaries else 0
+    boundary = start + 1 + min(boundary_positions) if boundary_positions else len(text)
+    return extract_numbers(text[segment_start:boundary])
+
+
+DATE_PATTERNS = (
+    re.compile(r"\b(?P<year>\d{4})[-/](?P<month>\d{1,2})[-/](?P<day>\d{1,2})\b", re.I),
+    re.compile(
+        r"\b(?P<month>january|february|march|april|may|june|july|august|september|"
+        r"october|november|december)\s+(?P<day>\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(?P<year>\d{4}))?\b",
+        re.I,
+    ),
+)
+MONTHS = {name.lower(): index for index, name in enumerate(
+    ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
+    start=1,
+)}
+
+
+def _parse_date(value: Any) -> date | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    for pattern in DATE_PATTERNS:
+        match = pattern.fullmatch(normalized)
+        if not match:
+            continue
+        parts = match.groupdict()
+        year = int(parts["year"]) if parts.get("year") else None
+        if year is None:
+            return None
+        month = parts["month"]
+        month_number = int(month) if month.isdigit() else MONTHS[month.lower()]
+        try:
+            return date(year, month_number, int(parts["day"]))
+        except ValueError:
+            return None
+    return None
+
+
+def _extract_dates(text: str) -> list[date]:
+    dates = []
+    for pattern in DATE_PATTERNS:
+        for match in pattern.finditer(text):
+            parsed = _parse_date(match.group(0))
+            if parsed is not None:
+                dates.append((match.start(), parsed))
+    return [parsed for _, parsed in sorted(dates, key=lambda item: item[0])]
+
+
+def _interval_bounds(value: Any) -> tuple[Any, Any] | None:
+    if isinstance(value, dict) and "start" in value and "end" in value:
+        return value["start"], value["end"]
+    if isinstance(value, (list, tuple)) and len(value) == 2:
+        return value[0], value[1]
+    numbers = extract_numbers(value)
+    return (numbers[0], numbers[1]) if len(numbers) == 2 else None
+
+
+def _match_interval(text: str, expected: Any, tolerance: float) -> tuple[bool, Any]:
+    bounds = _interval_bounds(expected)
+    if bounds is None:
+        return False, None
+    expected_start, expected_end = bounds
+    expected_dates = [_parse_date(expected_start), _parse_date(expected_end)]
+    if all(expected_dates):
+        actual_dates = _extract_dates(text)
+        for index in range(len(actual_dates) - 1):
+            start, end = actual_dates[index:index + 2]
+            if start == expected_dates[0] and end == expected_dates[1]:
+                return True, {"start": start.isoformat(), "end": end.isoformat()}
+        return False, None
+    expected_numbers = extract_numbers([expected_start, expected_end])
+    if len(expected_numbers) == 2:
+        actual_numbers = extract_numbers(text)
+        for index in range(len(actual_numbers) - 1):
+            start, end = actual_numbers[index:index + 2]
+            if abs(start - expected_numbers[0]) <= tolerance and abs(end - expected_numbers[1]) <= tolerance:
+                return True, {"start": start, "end": end}
+        return False, None
+
+    normalized = text.lower()
+    start_text = str(expected_start).lower()
+    end_text = str(expected_end).lower()
+    start_index = normalized.find(start_text)
+    end_index = normalized.find(end_text, start_index + len(start_text)) if start_index >= 0 else -1
+    return end_index >= 0, {"start": expected_start, "end": expected_end} if end_index >= 0 else None
 
 
 @dataclass
@@ -25,12 +158,11 @@ class AnswerEvaluator:
         if not checks:
             expected = config.get("answer", config.get("expected"))
             checks = [{"check": "categorical", "expected": expected}]
-        structured_values = self._structured_values(predicted)
-        has_structured_values = isinstance(predicted, dict) and isinstance(predicted.get("values"), list)
-        numeric_candidates = extract_numbers(answer_text(predicted))
+        text = answer_text(predicted)
+        numeric_candidates = extract_numbers(text)
         used_numeric_candidates = set()
         results = [
-            self._check(predicted, check, structured_values, has_structured_values, numeric_candidates, used_numeric_candidates, index)
+            self._check(check, text, numeric_candidates, used_numeric_candidates, index, checks)
             for index, check in enumerate(checks)
         ]
         return AnswerEvalResult(
@@ -40,50 +172,36 @@ class AnswerEvaluator:
 
     def _check(
         self,
-        predicted: Any,
         check: Dict[str, Any],
-        structured_values: Dict[str, Dict[str, Any]],
-        has_structured_values: bool,
+        text: str,
         numeric_candidates: list[float],
         used_numeric_candidates: set[int],
         index: int,
+        checks: list[Dict[str, Any]],
     ) -> Dict[str, Any]:
         expected = check.get("expected", check.get("value"))
         check_type = check.get("check", "categorical")
         field = check.get("field") or f"answer_{index + 1}"
-        text = answer_text(predicted)
         tolerance = float(check.get("tolerance", 0.0))
-        structured = structured_values.get(field)
-        if structured is not None:
-            actual_type = structured.get("type")
-            if actual_type != check_type:
-                return {"field": field, "check": check_type, "expected": expected, "actual": structured, "score": 0.0}
-            if check_type == "interval":
-                actual = {"start": structured.get("start"), "end": structured.get("end")}
-                ok = value_match(actual, expected, tolerance=tolerance)
-            else:
-                actual = structured.get("value")
-                ok = (
-                    isinstance(actual, (int, float)) and not isinstance(actual, bool)
-                    and abs(actual - float(expected)) <= tolerance
-                ) if check_type == "numeric" else scalar_equal(actual, expected)
-            return {"field": field, "check": check_type, "expected": expected, "actual": actual, "score": 1.0 if ok else 0.0}
-        if has_structured_values:
-            return {"field": field, "check": check_type, "expected": expected, "actual": None, "score": 0.0}
         if check_type == "numeric":
+            bound_candidates = _field_bound_numbers(text, field, checks)
+            candidates = bound_candidates if bound_candidates is not None else numeric_candidates
+            used_candidates = set() if bound_candidates is not None else used_numeric_candidates
             matching_indices = [
                 index
-                for index, value in enumerate(numeric_candidates)
-                if index not in used_numeric_candidates and abs(value - float(expected)) <= tolerance
+                for index, value in enumerate(candidates)
+                if index not in used_candidates and abs(value - float(expected)) <= tolerance
             ]
             if matching_indices:
-                index = min(matching_indices, key=lambda item: abs(numeric_candidates[item] - float(expected)))
-                used_numeric_candidates.add(index)
-                actual = numeric_candidates[index]
+                index = min(matching_indices, key=lambda item: abs(candidates[item] - float(expected)))
+                used_candidates.add(index)
+                actual = candidates[index]
                 ok = True
             else:
                 actual = None
                 ok = False
+        elif check_type == "interval":
+            ok, actual = _match_interval(text, expected, tolerance)
         elif check_type == "boolean":
             ok = scalar_equal(text, expected)
             actual = text
@@ -94,16 +212,6 @@ class AnswerEvaluator:
             actual = text
             ok = categorical_match(text, expected)
         return {"field": field, "check": check_type, "expected": expected, "actual": actual, "score": 1.0 if ok else 0.0}
-
-    @staticmethod
-    def _structured_values(predicted: Any) -> Dict[str, Dict[str, Any]]:
-        if not isinstance(predicted, dict) or not isinstance(predicted.get("values"), list):
-            return {}
-        return {
-            item["key"]: item
-            for item in predicted["values"]
-            if isinstance(item, dict) and isinstance(item.get("key"), str)
-        }
 
     def _evaluate_open(self, predicted: Any, config: Dict[str, Any]) -> AnswerEvalResult:
         reference = config.get("reference", config.get("expected"))

@@ -59,11 +59,22 @@ def categorical_match(actual: Any, expected: Any) -> bool:
     if not expected_text:
         return not actual_text
     if expected_text in actual_text:
-        return True
+        occurrence = actual_text.find(expected_text)
+        prefix = actual_text[max(0, occurrence - 48):occurrence]
+        if not re.search(r"\b(?:did not|does not|doesn't|not|no|never|without)\b[^.!?]{0,40}$", prefix):
+            return True
     expected_words = [word for word in WORD_RE.findall(expected_text) if word not in STOPWORDS]
     actual_words = set(WORD_RE.findall(actual_text))
     if not expected_words:
         return expected_text in actual_text
+    semantic_phrase = re.search(
+        r"\b" + r"\W+".join(re.escape(word) for word in expected_words) + r"\b",
+        actual_text,
+    )
+    if semantic_phrase:
+        prefix = actual_text[max(0, semantic_phrase.start() - 48):semantic_phrase.start()]
+        if re.search(r"\b(?:did not|does not|doesn't|not|no|never|without)\b[^.!?]{0,40}$", prefix):
+            return False
     return all(word in actual_words for word in expected_words)
 
 
@@ -84,6 +95,15 @@ def bool_value(value: Any) -> Optional[bool]:
         return True
     if normalized in {"false", "no", "0", "incorrect"}:
         return False
+    if re.search(
+        r"\b(?:does not establish causation|doesn't establish causation|do not establish causation|"
+        r"no evidence (?:of|for) causation|not causal|non[- ]?causal|cannot establish causation|"
+        r"cannot conclude causation)\b",
+        normalized,
+    ):
+        return False
+    if re.search(r"\b(?:establishes causation|established causation|causal relationship|is causal)\b", normalized):
+        return True
     return None
 
 

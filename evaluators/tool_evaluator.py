@@ -43,14 +43,15 @@ class ToolEvaluator:
                     score = self._match_score(step, call)
                     if score > best_score:
                         best_index, best_score = index, score
-            if best_index is not None:
+            matched = best_index is not None and best_score == 1.0
+            if matched:
                 used.add(best_index)
             match = {
                 "step_id": step.get("step_id"),
                 "score": best_score,
-                "matched": best_index is not None,
-                "dependency_satisfied": dependency_satisfied and (not dependencies or best_index is not None),
-                "actual_index": best_index,
+                "matched": matched,
+                "dependency_satisfied": dependency_satisfied and (not dependencies or matched),
+                "actual_index": best_index if matched else None,
             }
             matches_by_id[step.get("step_id")] = match
             matches.append(match)
