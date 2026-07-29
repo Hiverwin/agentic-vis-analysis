@@ -1,8 +1,5 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { buildTurnVerificationFeedback } from '../verification/turnVerification.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function deriveFormalActOk(result = {}) {
   if (typeof result?.actionResult?.ok === 'boolean') return result.actionResult.ok
@@ -48,15 +45,267 @@ function deriveFormalVerificationOk(verification = null) {
   return null
 }
 
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function formatNumber(value) {
+  if (!Number.isFinite(value)) return null
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(4)))
+}
+
+function readResultObject(payload = null) {
+  if (!payload || typeof payload !== 'object') return null
+  if (isPlainObject(payload.result)) return payload.result
+  if (isPlainObject(payload.actionResult?.result)) return payload.actionResult.result
+  return null
+}
+
+function summarizeCorrelationResult(result = null) {
+  if (!isPlainObject(result)) return null
+  const coefficient = Number.isFinite(result.correlation)
+    ? result.correlation
+    : Number.isFinite(result.coefficient)
+      ? result.coefficient
+      : null
+  if (!Number.isFinite(coefficient)) return null
+  const parts = [`correlation=${formatNumber(coefficient)}`]
+  const sampleSize = Number.isFinite(result.n)
+    ? result.n
+    : Number.isFinite(result.sampleSize)
+      ? result.sampleSize
+      : Number.isFinite(result.sample_size)
+        ? result.sample_size
+        : null
+  if (Number.isFinite(sampleSize)) parts.push(`n=${formatNumber(sampleSize)}`)
+  if (typeof result.xField === 'string' && result.xField.length > 0) parts.push(`xField=${result.xField}`)
+  if (typeof result.yField === 'string' && result.yField.length > 0) parts.push(`yField=${result.yField}`)
+  return parts.join('; ')
+}
+
+function readGroupLabel(group = {}) {
+  const candidates = [
+    group.group,
+    group.category,
+    group.key,
+    group.name,
+    group.value,
+    group.label,
+  ]
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.length > 0) return candidate
+    if (Number.isFinite(candidate)) return String(candidate)
+  }
+  return null
+}
+
+function summarizeGroupRow(group = {}) {
+  if (!isPlainObject(group)) return null
+  const label = readGroupLabel(group)
+  if (!label) return null
+  const parts = [label]
+  for (const key of ['count', 'mean', 'average', 'avg', 'sum', 'min', 'max', 'median', 'share', 'rate']) {
+    const value = group[key]
+    const formatted = formatNumber(value)
+    if (formatted != null) parts.push(`${key}=${formatted}`)
+  }
+  return parts.length > 1 ? parts.join(' ') : null
+}
+
+function summarizeGroupedResult(result = null) {
+  if (!isPlainObject(result)) return null
+  const groups = Array.isArray(result.groups)
+    ? result.groups
+    : Array.isArray(result.aggregates)
+      ? result.aggregates
+      : Array.isArray(result.rows)
+        ? result.rows
+        : []
+  if (groups.length === 0) return null
+  const groupSummaries = groups
+    .map((group) => summarizeGroupRow(group))
+    .filter(Boolean)
+  if (groupSummaries.length === 0) return null
+  const prefix = Number.isFinite(result.rowCount)
+    ? `${formatNumber(result.rowCount)} rows`
+    : Number.isFinite(result.count)
+      ? `${formatNumber(result.count)} rows`
+      : null
+  return [prefix, ...groupSummaries].filter(Boolean).join('; ')
+}
+
+function readRowLabel(row = {}, preferredKeys = []) {
+  for (const key of preferredKeys) {
+    const value = row?.[key]
+    if (typeof value === 'string' && value.length > 0) return value
+    if (Number.isFinite(value)) return String(value)
+  }
+  for (const key of ['date', 'Date', 'time', 'Time', 'month', 'Month', 'node', 'name', 'id', 'category', 'group']) {
+    const value = row?.[key]
+    if (typeof value === 'string' && value.length > 0) return value
+    if (Number.isFinite(value)) return String(value)
+  }
+  return null
+}
+
+function summarizeRowValues(row = {}, { skipKeys = [], preferredKeys = [] } = {}) {
+  if (!isPlainObject(row)) return null
+  const skip = new Set([
+    ...skipKeys,
+    'date',
+    'Date',
+    'time',
+    'Time',
+    'month',
+    'Month',
+    'node',
+    'name',
+    'id',
+    'category',
+    'group',
+  ])
+  const entries = []
+  const orderedKeys = [
+    ...preferredKeys,
+    ...Object.keys(row).filter((key) => !preferredKeys.includes(key)),
+  ]
+  for (const key of orderedKeys) {
+    if (skip.has(key)) continue
+    if (key.startsWith('__widgetva_')) continue
+    const value = row[key]
+    if (Number.isFinite(value)) entries.push(`${key}=${formatNumber(value)}`)
+    else if (typeof value === 'string' && value.length > 0 && entries.length < 2) entries.push(`${key}=${value}`)
+    if (entries.length >= 3) break
+  }
+  return entries.join(' ')
+}
+
+function summarizeRowsResult(result = null) {
+  if (!isPlainObject(result) || !Array.isArray(result.rows) || result.rows.length === 0) return null
+  const field = typeof result.field === 'string' && result.field.length > 0 ? result.field : null
+  const direction = typeof result.direction === 'string' && result.direction.length > 0 ? result.direction : null
+  const rowSummaries = result.rows
+    .map((row) => {
+      const label = readRowLabel(row)
+      const values = summarizeRowValues(row, { preferredKeys: field ? [field] : [] })
+      return [label, values].filter(Boolean).join(' ')
+    })
+    .filter(Boolean)
+  if (rowSummaries.length === 0) return null
+  const prefix = [direction, field].filter(Boolean).join(' ')
+  return `${prefix || `${rowSummaries.length} rows`}: ${rowSummaries.join('; ')}`
+}
+
+function summarizeAnomalyResult(result = null) {
+  if (!isPlainObject(result) || !Array.isArray(result.anomalies)) return null
+  const stats = isPlainObject(result.stats) ? result.stats : {}
+  const yField = typeof stats.yField === 'string' && stats.yField.length > 0 ? stats.yField : null
+  const xField = typeof stats.xField === 'string' && stats.xField.length > 0 ? stats.xField : null
+  const count = Number.isFinite(result.anomaly_count) ? result.anomaly_count : result.anomalies.length
+  const anomalySummaries = result.anomalies
+    .map((row) => {
+      const label = readRowLabel(row, xField ? [xField] : [])
+      const values = summarizeRowValues(row, { preferredKeys: yField ? [yField] : [] })
+      return [label, values].filter(Boolean).join(' ')
+    })
+    .filter(Boolean)
+  const parts = [`${formatNumber(count)} anomalies${yField ? ` for ${yField}` : ''}`]
+  if (anomalySummaries.length > 0) parts.push(anomalySummaries.join('; '))
+  if (Number.isFinite(stats.mean)) parts.push(`mean=${formatNumber(stats.mean)}`)
+  const sampleSize = Number.isFinite(stats.sample_size) ? stats.sample_size : stats.sampleSize
+  if (Number.isFinite(sampleSize)) parts.push(`sampleSize=${formatNumber(sampleSize)}`)
+  return parts.join('; ')
+}
+
+function summarizeConversionResult(result = null) {
+  if (!isPlainObject(result) || !isPlainObject(result.conversion)) return null
+  const conversion = result.conversion
+  const node = conversion.node || result.node || null
+  const parts = []
+  if (node) {
+    const rate = Number.isFinite(conversion.rate) ? ` rate=${formatNumber(conversion.rate)}` : ''
+    parts.push(`${node} conversion${rate}`)
+  } else if (Number.isFinite(conversion.rate)) {
+    parts.push(`conversion rate=${formatNumber(conversion.rate)}`)
+  }
+  for (const [key, label] of [
+    ['inflow', 'inflow'],
+    ['outflow', 'outflow'],
+    ['loss', 'loss'],
+    ['loss_rate', 'lossRate'],
+  ]) {
+    const formatted = formatNumber(conversion[key])
+    if (formatted != null) parts.push(`${label}=${formatted}`)
+  }
+  return parts.length > 0 ? parts.join('; ') : null
+}
+
+function summarizeBottleneckResult(result = null) {
+  if (!isPlainObject(result) || !Array.isArray(result.bottlenecks)) return null
+  const bottleneckSummaries = result.bottlenecks
+    .map((entry) => {
+      const node = entry?.node || null
+      if (!node) return null
+      const parts = [node]
+      for (const [key, label] of [
+        ['loss_rate', 'lossRate'],
+        ['loss', 'loss'],
+        ['inflow', 'inflow'],
+        ['outflow', 'outflow'],
+      ]) {
+        const formatted = formatNumber(entry?.[key])
+        if (formatted != null) parts.push(`${label}=${formatted}`)
+      }
+      return parts.join(' ')
+    })
+    .filter(Boolean)
+  if (bottleneckSummaries.length === 0) return typeof result.message === 'string' ? result.message : null
+  return `bottlenecks: ${bottleneckSummaries.join('; ')}`
+}
+
+function compactEvidenceValue(value, depth = 0) {
+  if (value == null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return value
+  }
+  if (depth >= 4) return '[nested evidence]'
+  if (Array.isArray(value)) {
+    const compacted = value.map((entry) => compactEvidenceValue(entry, depth + 1))
+    return compacted
+  }
+  if (typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, compactEvidenceValue(entry, depth + 1)]),
+    )
+  }
+  return String(value)
+}
+
+function summarizeNestedResult(payload = null) {
+  const result = readResultObject(payload)
+  if (!result) return null
+  return (
+    summarizeCorrelationResult(result)
+    || summarizeAnomalyResult(result)
+    || summarizeConversionResult(result)
+    || summarizeBottleneckResult(result)
+    || summarizeGroupedResult(result)
+    || summarizeRowsResult(result)
+    || (typeof result.message === 'string' && result.message.length > 0 ? result.message : null)
+    || (typeof result.summary === 'string' && result.summary.length > 0 ? result.summary : null)
+  )
+}
+
 export function summarizeFormalRuntimePayload(payload = null) {
   if (!payload || typeof payload !== 'object') return null
   if (typeof payload.summary === 'string' && payload.summary.length > 0) return payload.summary
   if (typeof payload.message === 'string' && payload.message.length > 0) return payload.message
+  const nestedSummary = summarizeNestedResult(payload)
+  if (nestedSummary) return nestedSummary
   if (typeof payload?.actionResult?.error?.message === 'string' && payload.actionResult.error.message.length > 0) return payload.actionResult.error.message
   if (typeof payload?.error?.message === 'string' && payload.error.message.length > 0) return payload.error.message
   if (typeof payload.result === 'string' && payload.result.length > 0) return payload.result
   if (payload?.result && typeof payload.result === 'object') {
-    return JSON.stringify(payload.result).slice(0, 220)
+    return JSON.stringify(compactEvidenceValue(payload.result))
   }
   return null
 }

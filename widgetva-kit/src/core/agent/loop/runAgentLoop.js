@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import {
   buildAgentKnowledge,
   buildAgentObservation,
@@ -12,10 +13,6 @@ import {
   buildFormalVerifyPayload,
   summarizeFormalRuntimePayload,
 } from '../contracts/turnPayloads.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const COMPACT_OBSERVATION_DROP_KEYS = new Set([
   'bodyText',
@@ -315,6 +312,7 @@ async function resolvePlanningResult({
   operation = null,
   actor = 'agent',
   plannerContext = null,
+  responseRequirements = null,
 } = {}) {
   if (operation) {
     return {
@@ -338,6 +336,7 @@ async function resolvePlanningResult({
     workspacePlan: clone(workspacePlan),
     actor,
     plannerContext: clone(plannerContext),
+    responseRequirements: clone(responseRequirements),
   })
 
   if (!isPlainObject(planningResult)) {
@@ -465,6 +464,7 @@ export async function runAgentLoop(target, options = {}) {
     actor = 'agent',
     plannerContext = null,
     plannerLevel = null,
+    responseRequirements = null,
   } = options
 
   const observe = await readObserveStage(target, {
@@ -496,6 +496,7 @@ export async function runAgentLoop(target, options = {}) {
     operation,
     actor,
     plannerContext,
+    responseRequirements,
   })
   const plan = buildPlanStage({
     objective,
@@ -521,6 +522,7 @@ export async function runAgentLoop(target, options = {}) {
     result: clone(execution.result),
     verification: clone(verification),
     latestCoordinationResult: clone(latestCoordinationResult),
+    responseRequirements: clone(responseRequirements),
   })
 
   return {
@@ -570,6 +572,7 @@ export async function runAgentSession(target, options = {}) {
     finalSynthesizer = null,
     onTurn = null,
     plannerLevel = null,
+    responseRequirements = null,
   } = options
 
   const safeMaxTurns = Number.isFinite(maxTurns) && maxTurns > 0
@@ -590,6 +593,7 @@ export async function runAgentSession(target, options = {}) {
       sessionTurns: turns,
       turnIndex: index,
       plannerLevel,
+      responseRequirements,
       callId: `agent_step_${index + 1}`,
     })
     turns.push(turn)
@@ -637,6 +641,7 @@ export async function runAgentSession(target, options = {}) {
       stopReason,
       knowledge: clone(knowledge || buildAgentKnowledge({})),
       lastTurn: clone(lastTurn),
+      responseRequirements: clone(responseRequirements),
     })
     if (typeof synthesis === 'string') {
       finalAnswer = synthesis

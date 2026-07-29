@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { runAgentLoop, runAgentSession, runAgentTurn } from '../loop/runAgentLoop.js'
 import { buildAgentObservation } from '../context/observation.js'
 import {
@@ -22,10 +23,6 @@ const PLANNER_RESPONSE_SHAPE = Object.freeze({
     params: {},
   },
 })
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function stripPromptExamples(value) {
   if (Array.isArray(value)) {
@@ -300,7 +297,7 @@ export function formatAgentPlannerError(error) {
   return 'Agent planning failed.'
 }
 
-function buildAgentMessages({ objective, observe, knowledge = null, history = null, plannerContext = null }) {
+function buildAgentMessages({ objective, observe, knowledge = null, history = null, plannerContext = null, responseRequirements = null }) {
   const systemPrompt = [
     'You are an analyst agent operating a widget-based visual analytics workspace.',
     'Your job is to convert the user objective into exactly one next structured operation.',
@@ -320,6 +317,7 @@ function buildAgentMessages({ objective, observe, knowledge = null, history = nu
     'If the objective explicitly requests a state-changing action, execute that action; a perception result that could answer the numeric question is not a substitute for the requested view change.',
     'For a linked subset, cohort, category, or interval objective, prioritize the source action that establishes the relevant linked state before using perceptions. Then use perceptions to verify the propagated target state and gather the requested evidence.',
     'Before choosing a perception, compare the requested fields and visual state with the current encodings. If the requested visual state is not present, plan the state-changing operation first.',
+    'When responseRequirements are present, treat them as output-format requirements only. They never contain the expected answer values.',
     'When an action requires category, series, or line identifiers, choose exact values from observe.state.widgets[].data.fieldValues when available.',
     'Use plannerContext only when it is present. It contains instance-selected analysis guidance, relation guidance, and at most one selected workflow; it is not a catalog of all possible workflows.',
     'When plannerContext.workflow is present, treat its steps as the required next-step sequence: use history to find the first unfinished step, and do not substitute another exposed operation merely because it is available.',
@@ -335,6 +333,7 @@ function buildAgentMessages({ objective, observe, knowledge = null, history = nu
     observe: normalizedObserve,
     history: normalizeHistoryForPrompt(history),
     plannerContext: sanitizePromptValue(plannerContext),
+    responseRequirements: sanitizePromptValue(responseRequirements),
     requiredResponseShape: PLANNER_RESPONSE_SHAPE,
   })
 
@@ -344,7 +343,7 @@ function buildAgentMessages({ objective, observe, knowledge = null, history = nu
   ]
 }
 
-function buildRepairMessages({ objective, observe, knowledge = null, history = null, plannerContext = null, previousContent = '' }) {
+function buildRepairMessages({ objective, observe, knowledge = null, history = null, plannerContext = null, responseRequirements = null, previousContent = '' }) {
   const systemPrompt = [
     'You previously returned an invalid plan for a widget-based visual analytics agent.',
     'Remember: use only currently exposed actions and perceptions from the provided knowledge and observation.',
@@ -358,6 +357,7 @@ function buildRepairMessages({ objective, observe, knowledge = null, history = n
     'When required params need category, series, or line identifiers, choose exact values from observe.state.widgets[].data.fieldValues when available.',
     'Use only the instance-selected plannerContext when present; do not assume an unseen workflow or relation.',
     'When plannerContext.workflow is present, repair toward the first unfinished workflow step instead of choosing a different available operation.',
+    'When responseRequirements are present, preserve those output-format requirements without guessing or inventing expected values.',
     'Do not include markdown fences or explanatory prose.',
     `Return exactly one JSON object matching this shape: ${JSON.stringify(PLANNER_RESPONSE_SHAPE)}.`,
   ].join(' ')
@@ -368,6 +368,7 @@ function buildRepairMessages({ objective, observe, knowledge = null, history = n
     observe: normalizeObserveForPrompt(observe, { objective }),
     history: normalizeHistoryForPrompt(history),
     plannerContext: sanitizePromptValue(plannerContext),
+    responseRequirements: sanitizePromptValue(responseRequirements),
     previousContent,
     requiredResponseShape: PLANNER_RESPONSE_SHAPE,
   })
@@ -386,6 +387,7 @@ function buildReasonMessages({
   result,
   verification,
   latestCoordinationResult,
+  responseRequirements = null,
 } = {}) {
   const systemPrompt = [
     'You are the answer stage of a widget-based visual analytics agent.',
@@ -408,6 +410,7 @@ function buildReasonMessages({
     result: normalizeResultForPrompt(plan, result),
     verification: normalizeVerificationForPrompt(plan, result, verification, observe),
     latestCoordinationResult: normalizeCoordinationResultForPrompt(latestCoordinationResult),
+    responseRequirements: sanitizePromptValue(responseRequirements),
   })
 
   return [
@@ -421,6 +424,7 @@ function buildFinalSynthesisMessages({
   history,
   turns,
   stopReason,
+  responseRequirements = null,
 } = {}) {
   const systemPrompt = [
     'You are the final synthesis stage of a widget-based visual analytics agent.',
@@ -428,6 +432,8 @@ function buildFinalSynthesisMessages({
     'Do not propose new actions.',
     'Do not mention raw provider internals unless necessary.',
     'Ground the answer in WidgetVA observations and action/perception results.',
+    'When responseRequirements are present, answer every listed field in the answer text using its requested form: numeric with a parseable number, boolean with an explicit yes/no or true/false, interval with ordered start/end bounds, and categorical with an explicit label.',
+    'Keep the answer readable, but do not omit required fields or replace a typed value with vague prose.',
     'Return JSON only.',
     'The JSON must contain answer.',
   ].join(' ')
@@ -454,6 +460,7 @@ function buildFinalSynthesisMessages({
     history: normalizeHistoryForPrompt(history),
     turns: compactTurns,
     stopReason,
+    responseRequirements: sanitizePromptValue(responseRequirements),
   })
 
   return [
@@ -783,6 +790,7 @@ export function createNaturalLanguagePlanner({
     knowledge = null,
     history = null,
     plannerContext = null,
+    responseRequirements = null,
   } = {}) {
     const safeObjective = typeof objective === 'string' && objective.trim().length > 0
       ? objective.trim()
@@ -794,6 +802,7 @@ export function createNaturalLanguagePlanner({
       observe,
       history,
       plannerContext,
+      responseRequirements,
     }), conversation)
     const primaryResponse = await completeChat({
       model,
@@ -805,11 +814,8 @@ export function createNaturalLanguagePlanner({
     const primaryContent = primaryResponse?.content || ''
     appendConversationExchange(conversation, primaryMessages.at(-1), primaryContent)
     const primaryPlan = extractJsonObject(primaryContent)
-    if (!primaryPlan) {
-      throw new Error('Agent response did not contain valid JSON.')
-    }
 
-    let normalizedOperation = normalizeOperation(primaryPlan, observe)
+    let normalizedOperation = primaryPlan ? normalizeOperation(primaryPlan, observe) : null
     let resolvedResponse = primaryResponse
     let resolvedPlan = primaryPlan
 
@@ -820,6 +826,7 @@ export function createNaturalLanguagePlanner({
         observe,
         history,
         plannerContext,
+        responseRequirements,
         previousContent: primaryContent,
       }), conversation)
       const repairedResponse = await completeChat({
@@ -884,6 +891,7 @@ export function createNaturalLanguageReasoner({
     result = null,
     verification = null,
     latestCoordinationResult = null,
+    responseRequirements = null,
   } = {}) {
     const response = await completeChat({
       model,
@@ -897,6 +905,7 @@ export function createNaturalLanguageReasoner({
         result,
         verification,
         latestCoordinationResult,
+        responseRequirements,
       }),
     })
 
@@ -943,6 +952,7 @@ export function createNaturalLanguageFinalSynthesizer({
     history = null,
     turns = [],
     stopReason = null,
+    responseRequirements = null,
   } = {}) {
     const response = await completeChat({
       model,
@@ -953,6 +963,7 @@ export function createNaturalLanguageFinalSynthesizer({
         history,
         turns,
         stopReason,
+        responseRequirements,
       }),
     })
 

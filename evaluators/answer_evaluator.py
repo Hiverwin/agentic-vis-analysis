@@ -10,53 +10,6 @@ from typing import Any, Dict, Optional
 from .common import answer_text, categorical_match, extract_numbers, scalar_equal
 
 
-FIELD_SEMANTIC_TOKENS = {
-    "answer", "value", "values", "count", "total", "mean", "average", "avg",
-    "sum", "difference", "diff", "gap", "share", "shift", "change", "rate",
-    "correlation", "outcome", "metric", "score", "size", "distribution",
-}
-
-
-def _field_anchor_tokens(field: str) -> list[str]:
-    tokens = [token for token in re.split(r"[^a-z0-9]+", str(field or "").lower()) if token]
-    return [token for token in tokens if token not in FIELD_SEMANTIC_TOKENS]
-
-
-def _field_bound_numbers(text: str, field: str, checks: list[Dict[str, Any]]) -> list[float] | None:
-    anchors = _field_anchor_tokens(field)
-    if not anchors:
-        return None
-
-    all_anchors = {
-        token
-        for check in checks
-        for token in _field_anchor_tokens(check.get("field", ""))
-    }
-    lower_text = text.lower()
-    occurrences = [
-        (match.start(), match.group(0))
-        for anchor in anchors
-        for match in re.finditer(rf"\b{re.escape(anchor)}\b", lower_text)
-    ]
-    if not occurrences:
-        return None
-
-    start, _ = max(occurrences)
-    previous_boundaries = [
-        match.start()
-        for anchor in all_anchors - set(anchors)
-        for match in re.finditer(rf"\b{re.escape(anchor)}\b", lower_text[:start])
-    ]
-    boundary_positions = [
-        match.start()
-        for anchor in all_anchors - set(anchors)
-        for match in re.finditer(rf"\b{re.escape(anchor)}\b", lower_text[start + 1:])
-    ]
-    segment_start = max(previous_boundaries) + 1 if previous_boundaries else 0
-    boundary = start + 1 + min(boundary_positions) if boundary_positions else len(text)
-    return extract_numbers(text[segment_start:boundary])
-
-
 DATE_PATTERNS = (
     re.compile(r"\b(?P<year>\d{4})[-/](?P<month>\d{1,2})[-/](?P<day>\d{1,2})\b", re.I),
     re.compile(
@@ -184,9 +137,8 @@ class AnswerEvaluator:
         field = check.get("field") or f"answer_{index + 1}"
         tolerance = float(check.get("tolerance", 0.0))
         if check_type == "numeric":
-            bound_candidates = _field_bound_numbers(text, field, checks)
-            candidates = bound_candidates if bound_candidates is not None else numeric_candidates
-            used_candidates = set() if bound_candidates is not None else used_numeric_candidates
+            candidates = numeric_candidates
+            used_candidates = used_numeric_candidates
             matching_indices = [
                 index
                 for index, value in enumerate(candidates)
@@ -207,11 +159,52 @@ class AnswerEvaluator:
             actual = text
         elif isinstance(expected, list):
             actual = text
-            ok = any(categorical_match(text, item) for item in expected)
+            ok, match_mode, judge_details = self._categorical_match_with_fallback(text, expected)
         else:
             actual = text
-            ok = categorical_match(text, expected)
-        return {"field": field, "check": check_type, "expected": expected, "actual": actual, "score": 1.0 if ok else 0.0}
+            ok, match_mode, judge_details = self._categorical_match_with_fallback(text, [expected])
+        details = {
+            "field": field,
+            "check": check_type,
+            "expected": expected,
+            "actual": actual,
+            "score": 1.0 if ok else 0.0,
+        }
+        if check_type == "categorical":
+            details["match_mode"] = match_mode
+            if judge_details:
+                details["judge"] = judge_details
+        return details
+
+    def _categorical_match_with_fallback(self, actual: str, expected_values: list[Any]):
+        if any(categorical_match(actual, expected) for expected in expected_values):
+            return True, "rules", None
+
+        judge = self.judge or self._openrouter_judge
+        best_judged = None
+        best_score = 0.0
+        for expected in expected_values:
+            try:
+                judged = judge(actual, [expected])
+            except Exception as error:
+                judged = {"score": 0.0, "error": str(error)}
+            score = self._judge_score(judged)
+            if score > best_score:
+                best_score = score
+                best_judged = judged
+        return best_score >= 0.5, "llm", best_judged
+
+    @staticmethod
+    def _judge_score(judged: Any) -> float:
+        if not isinstance(judged, dict):
+            return 0.0
+        if isinstance(judged.get("score"), (int, float)):
+            return max(0.0, min(1.0, float(judged["score"])))
+        precision = float(judged.get("precision", 0.0))
+        recall = float(judged.get("recall", 0.0))
+        groundedness = float(judged.get("groundedness", 0.0))
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+        return max(0.0, min(1.0, f1 * groundedness))
 
     def _evaluate_open(self, predicted: Any, config: Dict[str, Any]) -> AnswerEvalResult:
         reference = config.get("reference", config.get("expected"))

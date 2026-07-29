@@ -201,6 +201,7 @@ input.on('line', async (line) => {
         sessionKnowledge: request.sessionKnowledge || undefined,
         plannerContext,
         plannerLevel,
+        responseRequirements: request.responseRequirements || undefined,
         onTurn: async ({ index, turn }) => {
           // The observation image is captured before the action. Capture a
           // second image after the action so one-turn tasks expose the actual

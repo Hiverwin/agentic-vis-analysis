@@ -45,6 +45,29 @@ def clone(value: Any) -> Any:
     return json.loads(json.dumps(value, ensure_ascii=False)) if value is not None else value
 
 
+def build_response_requirements(instance: dict[str, Any]) -> dict[str, Any]:
+    """Expose answer shape to the model without exposing expected values."""
+    answer_config = ((instance.get("evaluation") or {}).get("answer") or {})
+    checks = answer_config.get("checks") or []
+    fields = []
+    seen = set()
+    for check in checks:
+        if not isinstance(check, dict):
+            continue
+        check_type = check.get("check")
+        field = check.get("field")
+        if check_type not in {"numeric", "boolean", "interval", "categorical"}:
+            continue
+        key = (field, check_type)
+        if key in seen:
+            continue
+        seen.add(key)
+        fields.append({"field": field or f"answer_{len(fields) + 1}", "type": check_type})
+    if fields:
+        return {"mode": "verifiable", "fields": fields}
+    return {"mode": "open_ended"}
+
+
 EVALUATION_STATE_DROP_KEYS = {
     "rawSpec",
     "replayContext",
@@ -613,6 +636,7 @@ def run_benchmark(
             maxTurns=CONFIG["max_iterations"],
             plannerContext=instance.get("planner_context") or instance.get("plannerContext"),
             plannerLevel=planner_level,
+            responseRequirements=build_response_requirements(instance),
         )
         final_state = bridge.call("state")
         output_dir = result_directory(
