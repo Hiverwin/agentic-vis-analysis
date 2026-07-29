@@ -98,8 +98,52 @@ class ToolEvaluator:
         actual_params = actual.get("params", {})
         if not expected_params:
             return 1.0
-        matched = sum(value_match(actual_params.get(key), value) for key, value in expected_params.items())
+        matched = 0
+        for key, value in expected_params.items():
+            if key == "measures":
+                expected_measures = self._canonical_measures(expected_params)
+                actual_measures = self._canonical_measures(actual_params)
+                matched += int(bool(expected_measures) and expected_measures == actual_measures)
+            else:
+                matched += int(value_match(actual_params.get(key), value))
         return matched / len(expected_params)
+
+    @staticmethod
+    def _canonical_measures(params: Dict[str, Any]) -> List[tuple[str, Any]]:
+        """Normalize benchmark ``measures`` and runtime ``metrics/fields``.
+
+        The Kit runtime exposes compact query parameters such as
+        ``metrics=["count", "mean"]`` plus ``fields=[...]`` while older
+        benchmark fixtures describe the same request as measure objects.
+        Aliases (and measure output names) are intentionally ignored because
+        they do not change the requested computation.
+        """
+        explicit = params.get("measures")
+        if isinstance(explicit, list):
+            measures = []
+            for measure in explicit:
+                if not isinstance(measure, dict):
+                    continue
+                operation = measure.get("op") or measure.get("metric")
+                if not isinstance(operation, str):
+                    continue
+                measures.append((operation, measure.get("field")))
+            return sorted(measures)
+
+        metrics = params.get("metrics")
+        if not isinstance(metrics, list):
+            return []
+        fields = params.get("fields")
+        fields = fields if isinstance(fields, list) else []
+        measures = []
+        for metric in metrics:
+            if not isinstance(metric, str):
+                continue
+            if metric == "count" or not fields:
+                measures.append((metric, None))
+            else:
+                measures.extend((metric, field) for field in fields)
+        return sorted(measures)
 
     @staticmethod
     def _widget_identity(widget_ref: Any) -> Any:

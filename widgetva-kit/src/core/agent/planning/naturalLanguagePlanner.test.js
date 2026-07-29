@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import {
   createNaturalLanguageReasoner,
   createNaturalLanguagePlanner,
+  createNaturalLanguageFinalSynthesizer,
   formatAgentPlannerError,
   runNaturalLanguageAgentLoop,
   runNaturalLanguageAgentSession,
@@ -181,8 +182,8 @@ test('planner receives answer requirements derived from check types without expe
           assistantMessage: 'I will inspect the chart.',
           rationale: 'The current view is the next source of evidence.',
           operation: {
-            kind: 'perception',
-            name: 'perception.summarizeVisible',
+            kind: 'action',
+            name: 'scatter.brushRegion',
             target: { widgetRef: 'scatter-ref' },
             params: {},
           },
@@ -1605,6 +1606,25 @@ test('runNaturalLanguageAgentSession returns a final synthesis answer from the e
   const finalPrompt = finalRequest?.messages?.[1]?.content || ''
   assert.match(finalPrompt, /"history":\{/)
   assert.match(finalPrompt, /scatter\.brushRegion/)
+  const finalSystemPrompt = finalRequest?.messages?.[0]?.content || ''
+  assert.match(finalSystemPrompt, /every completed turn/i)
+  assert.match(finalSystemPrompt, /do not return only the last turn/i)
+})
+
+test('final synthesizer preserves all progress evidence when its response is invalid', async () => {
+  const finalSynthesizer = createNaturalLanguageFinalSynthesizer({
+    completeChat: async () => ({ content: 'not-json' }),
+  })
+  const result = await finalSynthesizer({
+    objective: 'Inspect two linked views and summarize both results.',
+    turns: [
+      { index: 0, reason: { answer: 'First view result: alpha is 10.' } },
+      { index: 1, reason: { answer: 'Second view result: beta is 6.' } },
+    ],
+  })
+
+  assert.match(result.answer, /First view result: alpha is 10\./)
+  assert.match(result.answer, /Second view result: beta is 6\./)
 })
 
 test('runNaturalLanguageAgentTurn returns the compact formal turn contract', async () => {

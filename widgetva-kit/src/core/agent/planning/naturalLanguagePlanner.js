@@ -428,7 +428,9 @@ function buildFinalSynthesisMessages({
 } = {}) {
   const systemPrompt = [
     'You are the final synthesis stage of a widget-based visual analytics agent.',
-    'Synthesize the final answer from the user objective and all completed turns.',
+    'Synthesize the final answer from the user objective and every completed turn.',
+    'Do not return only the last turn or a progress note: combine all relevant facts gathered across the session.',
+    'Before writing the answer, check each requested comparison, entity, metric, and conclusion against the completed turns and cover every one that has evidence.',
     'Do not propose new actions.',
     'Do not mention raw provider internals unless necessary.',
     'Ground the answer in WidgetVA observations and action/perception results.',
@@ -969,10 +971,14 @@ export function createNaturalLanguageFinalSynthesizer({
 
     const content = response?.content || ''
     const parsed = extractJsonObject(content)
-    const fallbackAnswer =
-      Array.isArray(turns) && turns.length > 0
-        ? turns.at(-1)?.reason?.answer || 'Completed the requested WidgetVA analysis.'
-        : 'Completed the requested WidgetVA analysis.'
+    const fallbackAnswers = Array.isArray(turns)
+      ? turns
+        .map((turn) => typeof turn?.reason?.answer === 'string' ? turn.reason.answer.trim() : '')
+        .filter(Boolean)
+      : []
+    const fallbackAnswer = fallbackAnswers.length > 0
+      ? fallbackAnswers.join('\n')
+      : 'Completed the requested WidgetVA analysis.'
 
     return {
       answer: typeof parsed?.answer === 'string' && parsed.answer.trim().length > 0
