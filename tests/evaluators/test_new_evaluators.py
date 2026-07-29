@@ -65,8 +65,13 @@ def test_categorical_answer_allows_date_evidence_and_different_wording():
         "The conversion rate is 100%.",
         {"type": "verifiable_target", "checks": [{"check": "numeric", "expected": 1, "tolerance": 0.001}]},
     ).score == 1.0
-
-
+    assert evaluator.evaluate(
+        "The unique anomaly occurred on 9 March 2026.",
+        {
+            "type": "verifiable_target",
+            "checks": [{"field": "anomaly_date", "check": "categorical", "expected": "2026-03-09"}],
+        },
+    ).score == 1.0
 def test_answer_matches_multiple_numeric_checks_to_distinct_numbers():
     evaluator = AnswerEvaluator()
     answer = (
@@ -180,6 +185,90 @@ def test_numeric_answer_checks_do_not_reuse_local_field_candidate_indexes():
             "checks": [
                 {"field": "north_total", "check": "numeric", "expected": 810},
                 {"field": "south_total", "check": "numeric", "expected": 642},
+            ],
+        },
+    )
+
+    assert result.score == 1.0
+
+
+def test_answer_evaluator_binds_explicit_entity_metric_claims_without_expected_value_search():
+    result = AnswerEvaluator().evaluate(
+        (
+            "Cohort A count is 6. Cohort B count is 5. "
+            "Cohort A mean satisfaction is 8.17. Cohort B mean satisfaction is 5.20."
+        ),
+        {
+            "type": "verifiable_target",
+            "checks": [
+                {"field": "cohort_a_count", "check": "numeric", "expected": 6},
+                {"field": "cohort_b_count", "check": "numeric", "expected": 5},
+                {"field": "cohort_a_satisfaction_mean", "check": "numeric", "expected": 8.17},
+                {"field": "cohort_b_satisfaction_mean", "check": "numeric", "expected": 5.20},
+            ],
+        },
+    )
+
+    assert result.score == 1.0
+
+
+def test_answer_evaluator_rejects_correct_numbers_bound_to_wrong_entities():
+    result = AnswerEvaluator().evaluate(
+        "North total is 642. South total is 810.",
+        {
+            "type": "verifiable_target",
+            "checks": [
+                {"field": "north_total", "check": "numeric", "expected": 810},
+                {"field": "south_total", "check": "numeric", "expected": 642},
+            ],
+        },
+    )
+
+    assert result.score == 0.0
+    assert [check["actual"] for check in result.details["checks"]] == [642.0, 810.0]
+
+
+def test_categorical_distribution_preserves_label_count_associations_and_period_scope():
+    config = {
+        "type": "verifiable_target",
+        "checks": [
+            {
+                "field": "january_distribution",
+                "check": "categorical",
+                "expected": "Direct 6, Partner 2, Online 2",
+            },
+            {
+                "field": "february_distribution",
+                "check": "categorical",
+                "expected": "Direct 2, Partner 3, Online 5",
+            },
+        ],
+    }
+
+    assert AnswerEvaluator().evaluate(
+        (
+            "January distribution is Direct 6, Partner 2, Online 2. "
+            "February distribution is Direct 2, Partner 3, Online 5."
+        ),
+        config,
+    ).score == 1.0
+    assert AnswerEvaluator().evaluate(
+        (
+            "January distribution is Direct 2, Partner 6, Online 2. "
+            "February distribution is Direct 2, Partner 3, Online 5."
+        ),
+        config,
+    ).score == 0.5
+
+
+def test_share_checks_require_percentage_evidence_bound_to_period_and_channel():
+    result = AnswerEvaluator().evaluate(
+        "Direct January share is 60%. Direct February share is 20%.",
+        {
+            "type": "verifiable_target",
+            "checks": [
+                {"field": "direct_january_share", "check": "numeric", "expected": 0.6},
+                {"field": "direct_february_share", "check": "numeric", "expected": 0.2},
             ],
         },
     )
@@ -441,6 +530,122 @@ def test_tool_rejects_linked_observation_that_happens_before_required_source_act
     assert evaluated.details["required"]["steps"][1]["dependency_satisfied"] is False
 
 
+def test_tool_matches_canonical_summary_metrics_and_parallel_dimension_rules():
+    instance = {"evaluation": {"tool": {"steps": [
+        {
+            "step_id": "select_cohort",
+            "operation": "parallelCoordinates.selectCohort",
+            "target_widget_ref": "parallel",
+            "params": {"rules": [
+                {"field": "age", "range": [20, 35]},
+                {"field": "engagement", "range": [70, 100]},
+            ]},
+            "requirement": "required",
+        },
+        {
+            "step_id": "summarize_cohort",
+            "operation": "perception.summarizeVisible",
+            "target_widget_ref": "scatter",
+            "params": {
+                "groupBy": ["tier"],
+                "measures": [
+                    {"op": "average", "field": "retention", "as": "meanRetention"},
+                    {"op": "count", "as": "count"},
+                ],
+            },
+            "depends_on": ["select_cohort"],
+            "requirement": "required",
+        },
+    ]}}}
+    result = {"tool": {
+        "steps": [
+            {
+                "step_id": "step_1",
+                "operation": "parallelCoordinates.selectCohort",
+                "target_widget_ref": "parallel",
+                "params": {"rules": [
+                    {"dimension": "engagement", "range": [70, 100]},
+                    {"dimension": "age", "range": [20, 35]},
+                ]},
+            },
+            {
+                "step_id": "step_2",
+                "operation": "perception.summarizeVisible",
+                "target_widget_ref": "scatter",
+                "params": {
+                    "groupBy": ["tier"],
+                    "metrics": ["mean"],
+                    "fields": ["retention"],
+                },
+            },
+        ],
+        "executions": [
+            {"step_id": "step_1", "execution": {"ok": True, "name": "parallelCoordinates.selectCohort"}},
+            {"step_id": "step_2", "execution": {"ok": True, "name": "perception.summarizeVisible"}},
+        ],
+    }}
+
+    evaluated = ToolEvaluator().evaluate(instance, result)
+
+    assert evaluated.score == 1.0
+    assert evaluated.details["required"]["matched"] == 2
+
+
+def test_tool_does_not_allow_a_combined_selection_to_replace_a_required_single_selection():
+    instance = {"evaluation": {"tool": {"steps": [{
+        "step_id": "select_south",
+        "operation": "bar.selectCategory",
+        "target_widget_ref": "bar",
+        "params": {"field": "category", "values": ["South"]},
+        "requirement": "required",
+    }]}}}
+    result = {"tool": {
+        "steps": [{
+            "step_id": "step_1",
+            "operation": "bar.selectCategory",
+            "target_widget_ref": "bar",
+            "params": {"field": "category", "values": ["North", "South"]},
+        }],
+        "executions": [
+            {"step_id": "step_1", "execution": {"ok": True, "name": "bar.selectCategory"}},
+        ],
+    }}
+
+    evaluated = ToolEvaluator().evaluate(instance, result)
+
+    assert evaluated.score == 0.0
+    assert evaluated.details["required"]["steps"][0]["parameter_score"] == 0.5
+    assert evaluated.details["required"]["steps"][0]["matched"] is False
+
+
+def test_tool_rejects_a_broad_summary_that_reads_extra_fields():
+    instance = {"evaluation": {"tool": {"steps": [{
+        "step_id": "summary",
+        "operation": "perception.summarizeVisible",
+        "target_widget_ref": "scatter",
+        "params": {
+            "measures": [{"op": "mean", "field": "retention", "as": "meanRetention"}],
+        },
+        "requirement": "required",
+    }]}}}
+    result = {"tool": {
+        "steps": [{
+            "step_id": "step_1",
+            "operation": "perception.summarizeVisible",
+            "target_widget_ref": "scatter",
+            "params": {
+                "metrics": ["mean"],
+                "fields": ["retention", "satisfaction"],
+            },
+        }],
+        "executions": [
+            {"step_id": "step_1", "execution": {"ok": True, "name": "perception.summarizeVisible"}},
+        ],
+    }}
+
+    assert ToolEvaluator().evaluate(instance, result).score == 0.0
+
+
 def test_state_uses_canonical_checks_and_returns_null_when_inapplicable():
     instance = {"evaluation": {"state": {"applicable": True, "checks": [{
         "check_id": "state_1",
@@ -495,6 +700,200 @@ def test_state_reports_each_final_multi_widget_check_and_runner_resolves_host_ag
     assert evaluated.details["checks"][0]["state_ref"].endswith("/widget/bar")
     assert evaluated.details["checks"][1]["property"] == "transforms"
     assert "values" not in result["answer"]
+
+
+def test_state_matches_canonical_selection_filter_and_view_domain_shapes():
+    instance = {"evaluation": {"state": {"applicable": True, "checks": [
+        {
+            "check_id": "selection",
+            "property": "selections",
+            "expected": {"field": "category", "values": ["South"]},
+        },
+        {
+            "check_id": "filter",
+            "property": "transforms",
+            "expected": {
+                "kind": "filter",
+                "linkId": "category_to_detail",
+                "sourceWidgetId": "bar",
+                "field": "category",
+                "values": ["South"],
+                "mode": "include",
+            },
+        },
+        {
+            "check_id": "domain",
+            "property": "view",
+            "expected": {"field": "date", "domain": ["2026-03-01", "2026-03-31"]},
+        },
+    ]}}}
+    predicate = {"field": "category", "op": "in", "value": ["South"]}
+    result = {"state": {"checks": [
+        {
+            "check_id": "selection",
+            "actual": {
+                "wl://widgetva-app/workspace/demo/widget/bar/selection/category": {
+                    "predicates": [predicate],
+                },
+            },
+        },
+        {
+            "check_id": "filter",
+            "actual": [{
+                "kind": "filter",
+                "sourceWidgetId": "bar",
+                "linkId": "wl://widgetva-app/workspace/demo/link/category_to_detail",
+                "predicate": predicate,
+            }],
+        },
+        {
+            "check_id": "domain",
+            "actual": {"xDomain": ["2026-03-01", "2026-03-31"]},
+        },
+    ]}}
+
+    assert StateEvaluator().evaluate(instance, result).score == 1.0
+
+
+def test_state_matches_canonical_multi_predicate_cohort_but_rejects_extra_values():
+    instance = {"evaluation": {"state": {"applicable": True, "checks": [
+        {
+            "check_id": "cohort",
+            "property": "selections",
+            "expected": {
+                "conjunction": "AND",
+                "boundaries": "inclusive",
+                "rules": [
+                    {"field": "age", "range": [45, 60]},
+                    {"field": "engagement", "range": [0, 40]},
+                ],
+            },
+        },
+        {
+            "check_id": "single",
+            "property": "selections",
+            "expected": {"field": "category", "values": ["South"]},
+        },
+    ]}}}
+    result = {"state": {"checks": [
+        {
+            "check_id": "cohort",
+            "actual": {
+                "cohort-ref": {
+                    "predicates": [
+                        {"field": "age", "op": "between", "value": [45, 60]},
+                        {"field": "engagement", "op": "between", "value": [0, 40]},
+                    ],
+                },
+            },
+        },
+        {
+            "check_id": "single",
+            "actual": {
+                "category-ref": {
+                    "predicates": [{
+                        "field": "category",
+                        "op": "in",
+                        "value": ["North", "South"],
+                    }],
+                },
+            },
+        },
+    ]}}
+
+    evaluated = StateEvaluator().evaluate(instance, result)
+
+    assert evaluated.score == 0.5
+    assert evaluated.details["checks"][0]["score"] == 1.0
+    assert evaluated.details["checks"][1]["score"] == 0.0
+
+
+def test_state_matches_nested_canonical_highlight_metadata():
+    instance = {"evaluation": {"state": {"applicable": True, "checks": [{
+        "check_id": "highlight",
+        "property": "view",
+        "expected": {
+            "kind": "highlight",
+            "linkId": "scatter_to_heatmap",
+            "sourceWidgetId": "scatter",
+            "selectedCount": 3,
+        },
+    }]}}}
+    result = {"state": {"checks": [{
+        "check_id": "highlight",
+        "actual": {
+            "highlight": {
+                "relationRef": "wl://widgetva-app/workspace/demo/link/scatter_to_heatmap",
+                "sourceStateRef": "wl://widgetva-app/workspace/demo/widget/scatter/selection/brush",
+                "values": ["a", "b", "c"],
+            },
+        },
+    }]}}
+
+    assert StateEvaluator().evaluate(instance, result).score == 1.0
+
+
+def test_runner_projects_source_selected_count_into_target_highlight_check():
+    evaluation = {"state": {"applicable": True, "checks": [{
+        "check_id": "highlight",
+        "state_ref": "wl://widgetva-app/workspace/demo/widget/heatmap",
+        "property": "view",
+        "expected": {
+            "kind": "highlight",
+            "linkId": "scatter_to_heatmap",
+            "sourceWidgetId": "scatter",
+            "selectedCount": 144,
+        },
+    }]}}
+    result = build_scoring_result(
+        session={"turns": [], "answer": ""},
+        final_state={"widgets": {
+            "wl://visagentbench/workspace/demo/widget/scatter": {
+                "data": {"selectedCount": 144},
+            },
+            "wl://visagentbench/workspace/demo/widget/heatmap": {
+                "view": {
+                    "highlight": {
+                        "relationRef": "wl://visagentbench/workspace/demo/link/scatter_to_heatmap",
+                        "sourceStateRef": "wl://visagentbench/workspace/demo/widget/scatter/selection/brush",
+                    },
+                },
+            },
+        }},
+        observation_images=[],
+        evaluation=evaluation,
+    )
+
+    assert StateEvaluator().evaluate({"evaluation": evaluation}, result).score == 1.0
+
+
+def test_state_matches_canonical_action_filter_transform():
+    instance = {"evaluation": {"state": {"applicable": True, "checks": [{
+        "check_id": "filter",
+        "property": "transforms",
+        "expected": {
+            "kind": "filter",
+            "action": "widget.filterByValues",
+            "field": "diet_quality",
+            "values": ["average"],
+            "mode": "include",
+        },
+    }]}}}
+    result = {"state": {"checks": [{
+        "check_id": "filter",
+        "actual": [{
+            "kind": "filter",
+            "source": "action",
+            "predicate": {"field": "diet_quality", "op": "in", "value": ["average"]},
+            "spec": {
+                "actionName": "widget.filterByValues",
+                "field": "diet_quality",
+                "values": ["average"],
+            },
+        }],
+    }]}}
+
+    assert StateEvaluator().evaluate(instance, result).score == 1.0
 
 
 def test_aligned_multi_widget_contract_marks_required_milestones_for_every_asl():

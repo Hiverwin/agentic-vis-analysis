@@ -98,7 +98,8 @@ def bool_value(value: Any) -> Optional[bool]:
     if re.search(
         r"\b(?:does not establish causation|doesn't establish causation|do not establish causation|"
         r"no evidence (?:of|for) causation|not causal|non[- ]?causal|cannot establish causation|"
-        r"cannot conclude causation)\b",
+        r"cannot conclude causation|not (?:proof|evidence) of causation|"
+        r"association (?:is|does) not causation)\b",
         normalized,
     ):
         return False

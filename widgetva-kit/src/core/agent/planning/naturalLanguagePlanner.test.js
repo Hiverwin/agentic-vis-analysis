@@ -1323,6 +1323,91 @@ test('createNaturalLanguagePlanner repairs an invalid first response and falls b
   assert.equal(result.operation.name, 'perception.inspectViewConfig')
 })
 
+test('createNaturalLanguagePlanner repairs a first response that is not valid JSON', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      if (requests.length === 1) {
+        return {
+          content: 'I will select group C before inspecting the linked profile.',
+        }
+      }
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'I will select group C.',
+          rationale: 'The repaired response follows the required JSON protocol.',
+          operation: {
+            kind: 'action',
+            name: 'bar.selectCategory',
+            target: { widgetRef: 'bar-ref' },
+            params: { field: 'race/ethnicity', values: ['group C'] },
+          },
+        }),
+      }
+    },
+  })
+
+  const result = await planner({
+    objective: 'Select group C and inspect its linked profile.',
+    knowledge: {
+      widgetFamilies: [{
+        kind: 'bar',
+        actions: [{ name: 'bar.selectCategory' }],
+        perceptions: [],
+      }],
+    },
+    observe: {
+      state: {
+        widgets: [{ ref: 'bar-ref', kind: 'bar', focused: true }],
+      },
+    },
+  })
+
+  assert.equal(requests.length, 2)
+  assert.equal(result.operation.name, 'bar.selectCategory')
+  assert.deepEqual(result.operation.params, {
+    field: 'race/ethnicity',
+    values: ['group C'],
+  })
+  assert.deepEqual(requests[1]?.responseFormat, { type: 'json_object' })
+  const repairPrompt = requests[1]?.messages?.at(-1)?.content || ''
+  assert.match(repairPrompt, /previousContent/)
+  assert.match(repairPrompt, /I will select group C before inspecting the linked profile/)
+})
+
+test('createNaturalLanguagePlanner fails after one malformed-JSON repair attempt', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      return {
+        content: requests.length === 1 ? 'not json' : 'still not json',
+      }
+    },
+  })
+
+  await assert.rejects(
+    planner({
+      objective: 'Inspect the chart.',
+      knowledge: {
+        widgetFamilies: [{
+          kind: 'bar',
+          actions: [{ name: 'bar.selectCategory' }],
+          perceptions: [],
+        }],
+      },
+      observe: {
+        state: {
+          widgets: [{ ref: 'bar-ref', kind: 'bar', focused: true }],
+        },
+      },
+    }),
+    /did not contain valid JSON after one repair attempt \(primary chars=8, repaired chars=14\)/,
+  )
+  assert.equal(requests.length, 2)
+})
+
 test('createNaturalLanguagePlanner fallback reads widget kind from observation state and descriptors from knowledge', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({

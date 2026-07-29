@@ -805,15 +805,12 @@ export function createNaturalLanguagePlanner({
     const primaryContent = primaryResponse?.content || ''
     appendConversationExchange(conversation, primaryMessages.at(-1), primaryContent)
     const primaryPlan = extractJsonObject(primaryContent)
-    if (!primaryPlan) {
-      throw new Error('Agent response did not contain valid JSON.')
-    }
-
-    let normalizedOperation = normalizeOperation(primaryPlan, observe)
+    const primaryParseFailed = !primaryPlan
+    let normalizedOperation = primaryPlan ? normalizeOperation(primaryPlan, observe) : null
     let resolvedResponse = primaryResponse
     let resolvedPlan = primaryPlan
 
-    if (!isExecutableOperation(normalizedOperation, observe, knowledge)) {
+    if (primaryParseFailed || !isExecutableOperation(normalizedOperation, observe, knowledge)) {
       const repairMessages = buildConversationalMessages(buildRepairMessages({
         objective: safeObjective,
         knowledge,
@@ -840,6 +837,11 @@ export function createNaturalLanguagePlanner({
         resolvedResponse = repairedResponse
         resolvedPlan = repairedPlan
         normalizedOperation = repairedOperation
+      } else if (primaryParseFailed) {
+        throw new Error(
+          `Agent response did not contain valid JSON after one repair attempt `
+          + `(primary chars=${primaryContent.length}, repaired chars=${repairedContent.length}).`,
+        )
       } else {
         normalizedOperation = buildSafeFallbackOperation(observe, knowledge)
       }

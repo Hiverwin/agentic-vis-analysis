@@ -48,7 +48,8 @@ class ToolEvaluator:
                 used.add(best_index)
             match = {
                 "step_id": step.get("step_id"),
-                "score": best_score,
+                "score": 1.0 if matched else 0.0,
+                "parameter_score": best_score,
                 "matched": matched,
                 "dependency_satisfied": dependency_satisfied and (not dependencies or matched),
                 "actual_index": best_index if matched else None,
@@ -59,7 +60,7 @@ class ToolEvaluator:
         return ToolEvalResult(
             score=score,
             details={
-                "required": {"matched": sum(item["score"] == 1.0 for item in matches), "total": len(required), "steps": matches},
+                "required": {"matched": sum(item["matched"] for item in matches), "total": len(required), "steps": matches},
                 "optional": {"available": len(optional), "used": sum(self._has_operation(step, actual) for step in optional)},
                 "successful_calls": actual,
                 "unscored_successful_calls": [
@@ -98,8 +99,94 @@ class ToolEvaluator:
         actual_params = actual.get("params", {})
         if not expected_params:
             return 1.0
-        matched = sum(value_match(actual_params.get(key), value) for key, value in expected_params.items())
+        matched = sum(
+            self._parameter_match(
+                operation=expected.get("operation"),
+                key=key,
+                expected=value,
+                actual_params=actual_params,
+            )
+            for key, value in expected_params.items()
+        )
         return matched / len(expected_params)
+
+    def _parameter_match(
+        self,
+        *,
+        operation: str | None,
+        key: str,
+        expected: Any,
+        actual_params: Dict[str, Any],
+    ) -> bool:
+        if operation == "perception.summarizeVisible" and key == "measures":
+            return self._measure_match(expected, actual_params)
+        if operation == "parallelCoordinates.selectCohort" and key == "rules":
+            return self._rules_match(expected, actual_params.get("rules"))
+        method = "set_equal" if key in {"values", "groupBy"} else ""
+        return value_match(actual_params.get(key), expected, method=method)
+
+    @staticmethod
+    def _normalize_metric(value: Any) -> str:
+        normalized = str(value or "").strip().lower()
+        return {"avg": "mean", "average": "mean"}.get(normalized, normalized)
+
+    def _measure_match(self, expected: Any, actual_params: Dict[str, Any]) -> bool:
+        if not isinstance(expected, list):
+            return value_match(actual_params.get("measures"), expected)
+        expected_items = [item for item in expected if isinstance(item, dict)]
+        expected_non_count = {
+            (self._normalize_metric(item.get("op")), item.get("field"))
+            for item in expected_items
+            if self._normalize_metric(item.get("op")) != "count"
+        }
+        if isinstance(actual_params.get("measures"), list):
+            actual_non_count = {
+                (self._normalize_metric(item.get("op")), item.get("field"))
+                for item in actual_params["measures"]
+                if (
+                    isinstance(item, dict)
+                    and self._normalize_metric(item.get("op")) != "count"
+                )
+            }
+            return actual_non_count == expected_non_count
+
+        metrics = {
+            self._normalize_metric(metric)
+            for metric in actual_params.get("metrics", [])
+            if self._normalize_metric(metric) != "count"
+        }
+        fields = set(actual_params.get("fields", []))
+        expected_metrics = {op for op, _ in expected_non_count}
+        expected_fields = {field for _, field in expected_non_count if field is not None}
+        # summarizeVisible always returns rowCount, so an expected count need
+        # not be repeated in metrics. All other requested fields/metrics must
+        # match exactly to avoid rewarding broad, answer-leaking reads.
+        return metrics == expected_metrics and fields == expected_fields
+
+    @staticmethod
+    def _rules_match(expected: Any, actual: Any) -> bool:
+        if not isinstance(expected, list) or not isinstance(actual, list):
+            return False
+        normalized_actual = [
+            {
+                "field": item.get("field", item.get("dimension")),
+                "range": item.get("range"),
+            }
+            for item in actual
+            if isinstance(item, dict)
+        ]
+        normalized_expected = [
+            {
+                "field": item.get("field", item.get("dimension")),
+                "range": item.get("range"),
+            }
+            for item in expected
+            if isinstance(item, dict)
+        ]
+        return len(normalized_actual) == len(normalized_expected) and all(
+            any(value_match(candidate, item) for candidate in normalized_actual)
+            for item in normalized_expected
+        )
 
     @staticmethod
     def _widget_identity(widget_ref: Any) -> Any:

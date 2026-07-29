@@ -185,14 +185,29 @@ export const multiWidgetWorkflows = Object.freeze({
     ],
     "steps": [
       {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Identify the comparison series from an aggregate over the source view."
+      },
+      {
         "kind": "action",
         "operation": "line.selectSeries",
-        "purpose": "Choose the series to compare."
+        "purpose": "Select exactly one discovered series so its linked composition is isolated."
       },
       {
         "kind": "perception",
         "operation": "perception.summarizeVisible",
         "purpose": "Read category counts, shares, and denominator after the selected series propagates."
+      },
+      {
+        "kind": "action",
+        "operation": "line.selectSeries",
+        "purpose": "Replace the first selection with the second discovered series; do not combine both series in one selection."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Read the second linked composition before comparing the two independently captured snapshots."
       }
     ],
     "id": "WF-2V-SERIES-COMPOSITION-COMPARISON-05",
@@ -496,9 +511,13 @@ export const multiWidgetWorkflows = Object.freeze({
     "viewCount": 3,
     "scenarioExamples": ["Compare category trends, derive the strongest divergence interval, and inspect linked detail records."],
     "steps": [
-      { "kind": "action", "operation": "bar.selectCategory", "purpose": "Select a category and update its linked trend." },
-      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Compare category trend evidence before deriving a drilldown interval." },
-      { "kind": "action", "operation": "line.zoomXRegion", "purpose": "Select the evidence-derived interval and expose linked details." }
+      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Identify the comparison categories from the aggregate overview." },
+      { "kind": "action", "operation": "bar.selectCategory", "purpose": "Select exactly one discovered category and propagate it to the linked trend." },
+      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Capture the first category's trend as an independent snapshot." },
+      { "kind": "action", "operation": "bar.selectCategory", "purpose": "Replace the first selection with the second category; do not combine both categories in one selection." },
+      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Capture the second category's trend before deriving the divergence interval." },
+      { "kind": "action", "operation": "line.zoomXRegion", "purpose": "Select the evidence-derived interval and expose linked details." },
+      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Read the linked detail evidence under the final category and interval filters." }
     ],
     "id": "WF-3V-CATEGORY-TREND-DRILLDOWN-12",
     "scope": "multi_widget",
@@ -513,7 +532,8 @@ export const multiWidgetWorkflows = Object.freeze({
     "steps": [
       { "kind": "action", "operation": "scatter.brushRegion", "purpose": "Define the initial cohort." },
       { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Derive the category from fresh linked composition evidence." },
-      { "kind": "action", "operation": "widget.filterByValues", "purpose": "Condition the outcome view on the observed category while preserving cohort context." }
+      { "kind": "action", "operation": "widget.filterByValues", "purpose": "Condition the outcome view on the observed category while preserving cohort context. This category filter is required; a heatmap cell filter addresses encoded cells and is not an equivalent substitute." },
+      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Compare highlighted and remaining outcomes only after the category filter is active." }
     ],
     "id": "WF-3V-DERIVED-COHORT-TRIANGULATION-13",
     "scope": "multi_widget",
@@ -526,8 +546,11 @@ export const multiWidgetWorkflows = Object.freeze({
     "viewCount": 3,
     "scenarioExamples": ["Compare two flows and explain their contributor composition and contextual difference."],
     "steps": [
-      { "kind": "action", "operation": "sankey.focusFlow", "purpose": "Select one flow or path and expose its contributor membership." },
-      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Read linked contributor composition and context, then repeat for a comparison flow." },
+      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Aggregate by complete path to identify comparison flows; a row-level extreme is not a path-volume aggregate." },
+      { "kind": "action", "operation": "sankey.focusFlow", "purpose": "Select exactly one discovered flow and expose its contributor membership." },
+      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Capture composition and context evidence for the first flow." },
+      { "kind": "action", "operation": "sankey.focusFlow", "purpose": "Replace the first flow with the second discovered flow; do not combine both flows in one selection." },
+      { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Capture composition and context evidence for the second flow." },
       { "kind": "perception", "operation": "perception.compareGroups", "purpose": "Compare the two independently captured flow snapshots." }
     ],
     "id": "WF-3V-FLOW-COHORT-EXPLANATION-14",

@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url'
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const instancesRoot = path.join(repoRoot, 'visagentbench_kit', 'instances')
 const writeChanges = process.argv.includes('--write')
+const highdimWorkflowId = 'WF-3V-HIGHDIM-COHORT-PROFILE-15'
+const highdimRelationId = 'REL-2V-PARALLELCOORDINATES-SELECTCOHORT-01'
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))
@@ -150,16 +152,31 @@ function updateHighdimContract(value) {
   return output
 }
 
+function canonicalizeHighdimPlannerContext(instance) {
+  const plannerContext = instance.planner_context || {}
+  instance.planner_context = {
+    ...plannerContext,
+    relation_ids: [highdimRelationId],
+    workflow_id: highdimWorkflowId,
+  }
+  delete instance.planner_context.relation_guidance
+  return instance
+}
+
 function convertInstance(instance) {
-  const isHighdimLegacy = jsonText(instance).includes('parallelCoordinates.brushAxes')
-  let output = isHighdimLegacy
+  const sourceText = jsonText(instance)
+  const isHighdim = instance.planner_context?.workflow_id === highdimWorkflowId
+    || sourceText.includes('parallelCoordinates.brushAxes')
+    || sourceText.includes('REL-COMPAT-PARALLELCOORDINATES-BRUSHAXES-01')
+  let output = isHighdim
     ? updateHighdimContract(instance)
     : JSON.parse(JSON.stringify(instance))
-  if (isHighdimLegacy) {
+  if (isHighdim) {
     output.query = output.query
       ?.replaceAll('parallelCoordinates.brushAxes', 'parallelCoordinates.selectCohort')
       ?.replaceAll('brush the parallel-coordinates axes', 'select the parallel-coordinates cohort')
       ?.replaceAll('axis brush', 'cohort selection')
+    output = canonicalizeHighdimPlannerContext(output)
   }
 
   output.workspace.links = (output.workspace?.links || []).map((link) => convertLink(link, output))
@@ -375,8 +392,24 @@ function failOnInvalidInstance(instance, filePath) {
       throw new Error(`${filePath}: link ${index} is not a canonical Kit relation`)
     }
   }
-  if (jsonText(instance).includes('parallelCoordinates.brushAxes')) {
+  const serialized = jsonText(instance)
+  if (serialized.includes('parallelCoordinates.brushAxes')) {
     throw new Error(`${filePath}: deleted parallelCoordinates.brushAxes action remains`)
+  }
+  if (
+    serialized.includes('REL-COMPAT-PARALLELCOORDINATES-BRUSHAXES-01')
+    || serialized.includes('parallelCoordinates.selection.brush')
+  ) {
+    throw new Error(`${filePath}: legacy parallel-coordinates relation metadata remains`)
+  }
+  if ('relation_guidance' in (instance.planner_context || {})) {
+    throw new Error(`${filePath}: inline relation_guidance is not part of the canonical planner contract`)
+  }
+  if (instance.planner_context?.workflow_id === highdimWorkflowId) {
+    const relationIds = instance.planner_context?.relation_ids || []
+    if (relationIds.length !== 1 || relationIds[0] !== highdimRelationId) {
+      throw new Error(`${filePath}: high-dimensional workflow must reference ${highdimRelationId}`)
+    }
   }
 }
 

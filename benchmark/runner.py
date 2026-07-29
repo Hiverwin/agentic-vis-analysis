@@ -114,13 +114,21 @@ def read_state_check_actual(state_widgets: Any, state_ref: str | None, property_
         return None
     widget_state = state_widgets.get(state_ref)
     if isinstance(widget_state, dict):
-        return widget_state.get(property_name)
+        return enrich_state_check_actual(
+            state_widgets,
+            widget_state.get(property_name),
+            property_name,
+        )
     state_identity = _widget_ref_identity(state_ref)
     for widget_ref, candidate in state_widgets.items():
         if not isinstance(widget_ref, str) or not isinstance(candidate, dict):
             continue
         if state_identity and _widget_ref_identity(widget_ref) == state_identity:
-            return candidate.get(property_name)
+            return enrich_state_check_actual(
+                state_widgets,
+                candidate.get(property_name),
+                property_name,
+            )
         prefix = f"{widget_ref}/"
         if not state_ref.startswith(prefix):
             continue
@@ -130,8 +138,49 @@ def read_state_check_actual(state_widgets: Any, state_ref: str | None, property_
             if not isinstance(node, dict):
                 return None
             node = node.get(segment)
-        return node
+        return enrich_state_check_actual(state_widgets, node, property_name)
     return None
+
+
+def enrich_state_check_actual(
+    state_widgets: dict[str, Any],
+    actual: Any,
+    property_name: str | None,
+) -> Any:
+    """Attach cross-widget evidence needed by compact canonical state checks."""
+    if (
+        property_name != "view"
+        or not isinstance(actual, dict)
+        or not isinstance(actual.get("highlight"), dict)
+    ):
+        return actual
+    highlight = actual["highlight"]
+    if isinstance(highlight.get("selectedCount"), (int, float)):
+        return actual
+    source_state_ref = highlight.get("sourceStateRef")
+    if not isinstance(source_state_ref, str):
+        return actual
+    source_widget_match = re.search(r"(.*/widget/[^/]+)", source_state_ref)
+    if not source_widget_match:
+        return actual
+    source_identity = _widget_ref_identity(source_widget_match.group(1))
+    for widget_ref, candidate in state_widgets.items():
+        if (
+            isinstance(widget_ref, str)
+            and isinstance(candidate, dict)
+            and source_identity
+            and _widget_ref_identity(widget_ref) == source_identity
+        ):
+            selected_count = candidate.get("data", {}).get("selectedCount")
+            if isinstance(selected_count, (int, float)):
+                return {
+                    **actual,
+                    "highlight": {
+                        **highlight,
+                        "selectedCount": selected_count,
+                    },
+                }
+    return actual
 
 
 def _widget_ref_identity(widget_ref: str) -> tuple[str, str] | None:
