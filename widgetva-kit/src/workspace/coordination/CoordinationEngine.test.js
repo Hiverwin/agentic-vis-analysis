@@ -142,6 +142,49 @@ test('CoordinationEngine.describeEngine derives T2 topology for two-widget coord
   assert.equal(summary.topology.edgeCount, 1)
 })
 
+test('CoordinationEngine.describeEngine counts canonical state-to-state relations', () => {
+  const barRef = makeWidgetRef({ widgetId: 'bar' })
+  const scatterRef = makeWidgetRef({ widgetId: 'scatter' })
+  const selectionRef = makeSelectionRef({ widgetId: 'bar', selectionId: 'region' })
+
+  const coordinationEngine = new CoordinationEngine({
+    store: {
+      listLinks() {
+        return [
+          {
+            ref: 'wl://widgetva-app/workspace/main/link/bar_filters_scatter',
+            sourceStateRef: selectionRef,
+            targetStateRef: `${scatterRef}/transform/region-filter`,
+            relation: 'controls',
+            transform: {
+              kind: 'selectionToFilter',
+              fieldMapping: [{ sourceField: 'region', targetField: 'region' }],
+            },
+            activation: 'automatic',
+          },
+        ]
+      },
+      readDescription() {
+        return {
+          widgets: [
+            { ref: barRef, widgetId: 'bar', role: 'primary' },
+            { ref: scatterRef, widgetId: 'scatter', role: 'detail' },
+          ],
+        }
+      },
+    },
+  })
+
+  const summary = coordinationEngine.describeEngine()
+
+  assert.equal(summary.coordinationLinkCount, 1)
+  assert.equal(summary.structuralLinkCount, 0)
+  assert.equal(summary.topology.topology, 'T3')
+  assert.equal(summary.topology.edgeCount, 1)
+  assert.equal(summary.topology.sourceWidgetCount, 1)
+  assert.equal(summary.topology.targetWidgetCount, 1)
+})
+
 test('CoordinationEngine.describeEngine excludes structural links from topology counts', () => {
   const scatterRef = makeWidgetRef({ widgetId: 'scatter' })
   const visibleDataRef = 'wl://widgetva-app/workspace/main/data/scatter_visible'
