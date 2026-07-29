@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 function normalizeRoot(root) {
   if (!root || typeof root !== 'object') {
     throw new Error('A browser-like root object is required.')
@@ -13,10 +14,6 @@ function readDocument(root) {
 
 function asArray(value) {
   return Array.isArray(value) ? value : []
-}
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
 function readNumber(value) {

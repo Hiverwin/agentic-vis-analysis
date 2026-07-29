@@ -64,6 +64,9 @@ test('widgetva index exports the stable kit surface', () => {
   assert.deepEqual(Object.keys(widgetva).sort(), [
     'DEFAULT_WIDGETVA_AGENT_MODEL',
     'attachWidgetVAIntegration',
+    'buildDerivedCoordinationRelations',
+    'buildProviderCoordinationFieldModel',
+    'buildProviderCoordinationFieldModels',
     'buildWidgetVAAgentKnowledge',
     'buildWidgetVAEmptyCoordinationResult',
     'buildWidgetVAEmptyPropagationSummary',
@@ -71,17 +74,24 @@ test('widgetva index exports the stable kit surface', () => {
     'createWidgetVARendererRegistry',
     'createWidgetVAWidget',
     'createWidgetVAWorkspace',
+    'makeCoordinationRelation',
+    'makeCoordinationRelationMap',
     'runWidgetVAAgentSession',
     'runWidgetVAAgentTurn',
   ])
   assert.equal(typeof widgetva.DEFAULT_WIDGETVA_AGENT_MODEL, 'string')
   assert.equal(typeof widgetva.buildWidgetVAAgentKnowledge, 'function')
+  assert.equal(typeof widgetva.buildDerivedCoordinationRelations, 'function')
+  assert.equal(typeof widgetva.buildProviderCoordinationFieldModel, 'function')
+  assert.equal(typeof widgetva.buildProviderCoordinationFieldModels, 'function')
   assert.equal(typeof widgetva.buildWidgetVAEmptyCoordinationResult, 'function')
   assert.equal(typeof widgetva.buildWidgetVAEmptyPropagationSummary, 'function')
   assert.equal(typeof widgetva.createWidgetVARendererRegistry, 'function')
   assert.equal(typeof widgetva.createWidgetVAHost, 'function')
   assert.equal(typeof widgetva.createWidgetVAWidget, 'function')
   assert.equal(typeof widgetva.createWidgetVAWorkspace, 'function')
+  assert.equal(typeof widgetva.makeCoordinationRelation, 'function')
+  assert.equal(typeof widgetva.makeCoordinationRelationMap, 'function')
   assert.equal(typeof widgetva.runWidgetVAAgentSession, 'function')
   assert.equal(typeof widgetva.runWidgetVAAgentTurn, 'function')
   assert.equal(typeof widgetva.attachWidgetVAIntegration, 'function')
@@ -93,6 +103,7 @@ test('widgetva package exports only the intended public entrypoints', () => {
     Object.keys(pkg.exports),
     [
       '.',
+      './page-integrations',
       './internal/core',
       './internal/transport',
     ],

@@ -1,8 +1,5 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { applyD3HostState, bindD3FamilyInteractions } from './d3FamilyBehavior.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readCachedState(view) {
   return view?.__widgetvaLastAppliedState && typeof view.__widgetvaLastAppliedState === 'object'

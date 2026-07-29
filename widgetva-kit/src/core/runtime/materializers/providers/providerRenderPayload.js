@@ -1,13 +1,10 @@
+import { cloneJsonValue as clone } from '../../../../shared/clone.js'
 import { buildVegaLiteRenderSpecFromRuntimeState } from './vegaLite/vegaLiteOfficialPageMaterializer.js'
 import {
   applyVegaLiteAddRemoveState,
   applyVegaLiteEmphasisState,
   applyVegaLiteReencodeState,
 } from './vegaLite/vegaLiteStateProjection.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readProvider(widgetDescription = null, widgetState = null) {
   const spec = widgetState?.currentSpec

@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 const DESCRIPTORS = [
   {
     "name": "heatmap.filterCells",
@@ -771,10 +772,6 @@ const DESCRIPTORS = [
     ]
   }
 ]
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function rootEncoding(spec) {
   return spec?.layer?.[0]?.encoding || spec?.encoding || {}

@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { createDataQueryEngine } from '../data/index.js'
 import { materializeWorkspace } from './materializers/workspace/WorkspaceMaterializer.js'
 import { ActionExecutor } from './ActionExecutor.js'
@@ -25,7 +26,7 @@ import {
   registerDefaultWidgetFamiliesRuntime,
   registerRuntimeWidgetFamily,
 } from '../../widgets/families/index.js'
-import { registerSharedWidgetRuntimeActions } from '../../widgets/families/shared/sharedWidgetRuntimeActions.js'
+import { registerGenericWidgetRuntimeActions } from '../../widgets/families/generic/runtimeActions.js'
 import { buildWidgetRenderPayload } from './materializers/providers/providerRenderPayload.js'
 
 export function createRuntimeStore(options = {}) {
@@ -34,10 +35,6 @@ export function createRuntimeStore(options = {}) {
 
 export function createWidgetVARuntime(options = {}) {
   return createRuntimeOrchestrator(options)
-}
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
 async function defaultReadRecoverableState(controller = null) {
@@ -369,7 +366,7 @@ export function createRuntimeOrchestrator(options = {}) {
     coordinationEngine,
     traceRecorder,
   })
-  registerSharedWidgetRuntimeActions(actionExecutor)
+  registerGenericWidgetRuntimeActions(actionExecutor)
   const executeActionRaw = actionExecutor.run.bind(actionExecutor)
   const runDataQuery = dataQueryExecutor.run.bind(dataQueryExecutor)
 

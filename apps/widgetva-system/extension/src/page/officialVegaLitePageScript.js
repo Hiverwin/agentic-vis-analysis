@@ -4,8 +4,8 @@ import {
   attachWidgetVAToCapturedVegaLiteView,
   attachWidgetVAToVegaLiteView,
   bootstrapCurrentCapturedVegaLitePage,
-} from '../../../../../widgetva-kit/src/integrations/officialPages/officialVegaLitePageIntegrations.js'
-import { readLatestVegaEmbedCapture, installVegaEmbedCapture } from '../../../../../widgetva-kit/src/integrations/officialPages/vegaEmbedCapture.js'
+} from 'widgetva-kit/page-integrations'
+import { readLatestVegaEmbedCapture, installVegaEmbedCapture } from 'widgetva-kit/page-integrations'
 
 import { ensureOfficialVegaLitePageBootstrap } from './officialVegaLitePageBootstrap.js'
 import { installOfficialPageDockBridge } from './officialPageDockBridge.js'

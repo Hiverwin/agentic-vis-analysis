@@ -1,8 +1,5 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { readVgplotState } from './vgplotState.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function stableStringify(value) {
   if (value == null) return 'null'

@@ -1,10 +1,7 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { getAnalysisToAction } from '../workflows/analysisToAction.js'
 import { getWorkflow } from '../workflows/index.js'
 import { resolveRelationGuidance } from './relationCatalog.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 /** Resolve only instance-selected prompt guidance; never expose a catalog. */
 export function buildPlannerContext({

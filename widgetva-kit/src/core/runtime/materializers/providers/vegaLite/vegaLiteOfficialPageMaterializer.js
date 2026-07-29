@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../../../shared/clone.js'
 import { applySelectionToSpec } from '../../state/widgetStateBuilders.js'
 import {
   buildRuntimeDataProjectionSpec,
@@ -23,10 +24,6 @@ import {
   applyVegaLiteReencodeState,
   applyVegaLiteViewState,
 } from './vegaLiteStateProjection.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function deepEqual(left, right) {
   return JSON.stringify(left) === JSON.stringify(right)

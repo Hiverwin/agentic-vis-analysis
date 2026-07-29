@@ -1,4 +1,4 @@
-import { DEFAULT_WIDGETVA_AGENT_MODEL } from '../../../../../widgetva-kit/src/index.js'
+import { DEFAULT_WIDGETVA_AGENT_MODEL } from 'widgetva-kit'
 
 export const WIDGETVA_AGENT_CONFIG_KEY = 'widgetvaOfficialPageAgentConfig'
 export const MAX_OPENROUTER_MESSAGE_CHARS = 250000

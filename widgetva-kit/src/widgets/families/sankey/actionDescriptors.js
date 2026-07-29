@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 const DESCRIPTORS = [
   {
     "name": "sankey.focusFlow",
@@ -468,10 +469,6 @@ const DESCRIPTORS = [
     ]
   }
 ]
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function findNamedDataSource(spec, name) {
   const data = Array.isArray(spec?.data) ? spec.data : []

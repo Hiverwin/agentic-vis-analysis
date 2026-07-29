@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import {
   buildActionVerificationPayload,
   resolveActionDescriptorForVerification,
@@ -10,10 +11,6 @@ import {
   readWorkspaceStateFromStore,
 } from '../../../workspace/store/workspaceStoreReaders.js'
 import { readSelectionRegistry } from '../../../workspace/state/selectionStateModel.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function uniqueStrings(values = []) {
   return [...new Set((Array.isArray(values) ? values : []).filter((value) => typeof value === 'string' && value.length > 0))]

@@ -1,3 +1,4 @@
+import { cloneJsonValue as cloneValue } from '../../../../shared/clone.js'
 import {
   makeInteractionFeedbackState,
   makeSelectionState,
@@ -11,10 +12,6 @@ import {
 import { buildSelectionStateInput } from './selectionStateShape.js'
 import { buildViewAddRemoveState, buildViewAggregateState, buildViewDrillDownState, buildViewFocusState, buildViewHighlightState, buildViewNavigateState, buildViewReencodeState, buildViewSortState, buildViewZoomState } from './viewStateMetadata.js'
 import { normalizeSpecTransforms } from './transformHelpers.js'
-
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function makeFieldEncoding(encoding) {
   return {

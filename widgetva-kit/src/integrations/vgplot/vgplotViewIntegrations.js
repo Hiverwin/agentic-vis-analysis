@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { createVgplotWidgetAdapter } from '../../adapters/vgplot/VgplotWidgetAdapter.js'
 import { normalizeVgplotBinding } from '../../adapters/vgplot/vgplotBinding.js'
 import { captureVgplotRuntime, normalizeVgplotRuntime } from '../../adapters/vgplot/vgplotRuntimeCapture.js'
@@ -10,10 +11,6 @@ import { runAgentLoopOnTarget } from '../../core/agent/adapters/agentTargetPort.
 import { createWidgetInstance } from '../../core/rendering/widgetRuntimeSurface.js'
 import { createWidgetWorkspace } from '../../workspace/widgetWorkspace.js'
 import { getWidgetFamily } from '../../widgets/families/index.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readBindingKind(binding = null) {
   return typeof binding?.widgetKind === 'string' && binding.widgetKind.length > 0

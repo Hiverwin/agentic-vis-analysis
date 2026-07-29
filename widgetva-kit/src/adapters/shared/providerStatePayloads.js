@@ -1,6 +1,4 @@
-export function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 
 export function normalizeSelections(state) {
   return Object.values(state?.selections || {}).filter(Boolean)

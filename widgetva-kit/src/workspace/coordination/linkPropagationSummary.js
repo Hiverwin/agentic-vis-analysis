@@ -1,12 +1,9 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import {
   readSelectionPrimaryView,
   readSelectionRegistry,
 } from '../state/selectionStateModel.js'
 import { normalizeCanonicalPropagationSkipReason } from './propagationReasons.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function stripCompatibilityFields(value) {
   if (Array.isArray(value)) {

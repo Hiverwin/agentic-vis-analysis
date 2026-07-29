@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import {
   PAGE_PORT_ALIASES,
   PAGE_PORT_ERROR_CODES,
@@ -5,10 +6,6 @@ import {
   PAGE_PORT_METHODS,
 } from '../../../transports/pagePortProtocol.js'
 import { parseRef as parseWidgetVARef } from '../../../contracts/refs-contracts.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function firstFunction(...candidates) {
   return candidates.find((candidate) => typeof candidate === 'function') || null

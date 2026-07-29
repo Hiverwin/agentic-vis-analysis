@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { getBarHumanInteractionConfig } from './interactionProfile.js'
 import { buildBarActionDescriptors } from './actionDescriptors.js'
 import { buildBarPerceptionDescriptors, registerBarPerceptionQueries } from './perception.js'
@@ -5,10 +6,6 @@ import { buildBarPerceptionDescriptors, registerBarPerceptionQueries } from './p
 export { buildBarActionDescriptors } from './actionDescriptors.js'
 export { buildBarPerceptionDescriptors, registerBarPerceptionQueries } from './perception.js'
 export { getBarHumanInteractionConfig } from './interactionProfile.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const BAR_LOCAL_SELECTION_CONTRACT = Object.freeze({
   localSelectionFamily: 'category',

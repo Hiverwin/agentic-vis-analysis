@@ -1,13 +1,10 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { readWorkspaceStateFromStore } from '../store/workspaceStoreReaders.js'
 import {
   withSelectionSubmodel,
 } from './selectionStateModel.js'
 import { withFocusSubmodel } from './focusStateModel.js'
 import { withHighlightSubmodel } from './highlightStateModel.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function ensureSelectionTimeline(store) {
   if (!store.__selectionTimeline || typeof store.__selectionTimeline !== 'object') {

@@ -1,9 +1,6 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { makeVerifiedActionResult } from '../../core/agent/loop/agentLoopShapes.js'
 import { makeActionResult } from '../../contracts/result-contracts.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function formatSelectionSummaryValue(value) {
   if (Array.isArray(value)) {

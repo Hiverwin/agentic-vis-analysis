@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { makeSelectionScopedDataRef, parseRef } from '../../contracts/refs-contracts.js'
 import {
   makeWorkspacePlanningRequest,
@@ -131,10 +132,6 @@ export function makeWorkspaceDescription(description = {}) {
       ? { planning: makeWorkspaceDescriptionPlanning(description.planning) }
       : {}),
   }
-}
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
 export function readWidgetRefFromStateRef(stateRef) {

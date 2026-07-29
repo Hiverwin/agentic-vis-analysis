@@ -1,12 +1,10 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
+import { normalizeSelections, resolvePrimaryIntervalSelection } from '../shared/providerStatePayloads.js'
 function setSignalSafely(view, name, value) {
   if (!view || typeof view.signal !== 'function') return
   try {
     view.signal(name, value)
   } catch {}
-}
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
 function uniqueStrings(values = []) {
@@ -16,18 +14,10 @@ function uniqueStrings(values = []) {
   )]
 }
 
-function normalizeSelections(state) {
-  return Object.values(state?.selections || {}).filter(Boolean)
-}
-
 function resolveRepresentativeSelection(selections) {
   const normalizedSelections = Array.isArray(selections) ? selections.filter(Boolean) : []
   if (normalizedSelections.length !== 1) return null
   return normalizedSelections[0] || null
-}
-
-function resolvePrimaryIntervalSelection(selections) {
-  return (Array.isArray(selections) ? selections : []).find((selection) => selection?.kind === 'interval') || null
 }
 
 function selectionValuesFromPredicates(predicates) {

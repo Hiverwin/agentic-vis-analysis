@@ -1,7 +1,4 @@
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
-
+import { cloneJsonValue as cloneValue } from '../../../../shared/clone.js'
 function normalizeScalarArray(values) {
   if (!Array.isArray(values)) return undefined
   const normalized = values.filter((value) => typeof value === 'string' || typeof value === 'number')

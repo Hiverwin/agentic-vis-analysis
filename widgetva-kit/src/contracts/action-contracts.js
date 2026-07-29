@@ -1,8 +1,5 @@
+import { cloneJsonValue as cloneValue } from '../shared/clone.js'
 import { QUERY_SCOPE_SCHEMA } from '../schemas/query-scope.schema.js'
-
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function withActionQueryScope(paramsSchema) {
   if (!paramsSchema || typeof paramsSchema !== 'object' || Array.isArray(paramsSchema)) {

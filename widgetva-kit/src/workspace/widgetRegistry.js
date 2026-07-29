@@ -1,11 +1,8 @@
+import { cloneJsonValue as clone } from '../shared/clone.js'
 import { parseRef } from '../contracts/refs-contracts.js'
 import { makeWidgetDescription } from './store/workspaceStoreReaders.js'
 import { makeWidgetState } from '../contracts/state-contracts.js'
 import { makeWidgetLink } from '../contracts/widget-links-contracts.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function makeWidgetRegistryCounts(counts = {}) {
   return {

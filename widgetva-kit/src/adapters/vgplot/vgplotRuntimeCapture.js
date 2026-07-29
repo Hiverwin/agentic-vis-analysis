@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import {
   wrapVgplotAPIContext,
   wrapVgplotPlot,
@@ -23,10 +24,6 @@ function looksLikePlot(value) {
       || typeof value.setAttribute === 'function'
       || typeof value.addAttributeListener === 'function'
     )
-}
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
 function readMetadataBag(target) {

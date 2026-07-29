@@ -1,9 +1,6 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { captureVgplotRuntime } from './vgplotRuntimeCapture.js'
 import { readVgplotBinding } from './vgplotBinding.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readSelectionType(selection) {
   if (selection == null) return null

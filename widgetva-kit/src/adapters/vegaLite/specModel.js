@@ -1,6 +1,6 @@
-export function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
+import { cloneJsonValue as cloneValue } from '../../shared/clone.js'
+
+export { cloneValue }
 
 export function ensureObjectSpec(spec, message) {
   if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {

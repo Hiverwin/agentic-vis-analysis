@@ -1,12 +1,9 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { makeWidgetRef } from '../../contracts/refs-contracts.js'
 import { readObservation as readObservationFromContext } from '../../core/agent/context/observation.js'
 import { runAgentLoopOnTarget } from '../../core/agent/adapters/agentTargetPort.js'
 
 const REGISTRY_KEY = '__widgetVARegisteredWorkspaceContract'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null

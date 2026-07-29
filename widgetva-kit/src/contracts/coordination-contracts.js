@@ -1,7 +1,4 @@
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
-
+import { cloneJsonValue as cloneValue } from '../shared/clone.js'
 export function makeCoordinationRelation(relation = {}) {
   const ref = relation?.ref || relation?.id || null
   return {

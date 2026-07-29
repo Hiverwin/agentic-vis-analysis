@@ -1,7 +1,4 @@
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
-
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }

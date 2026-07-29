@@ -1,13 +1,10 @@
+import { cloneJsonValue as clone } from '../../../../../shared/clone.js'
 import { executeVegaLiteSpecAction } from '../../../../../adapters/vegaLite/vegaLiteSpecActionExecutor.js'
 import {
   buildComparableExpression,
   buildDatumFieldExpression,
   buildPredicateExpression,
 } from './vegaLiteSelectionProjection.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function isPlainObject(value) {
   return !!value && typeof value === 'object' && !Array.isArray(value)

@@ -1,8 +1,5 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { makeWidgetLink } from '../../contracts/widget-links-contracts.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 export function resolveLinkEndpoints(link) {
   const normalizedLink = makeWidgetLink(link)

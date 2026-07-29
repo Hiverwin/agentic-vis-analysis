@@ -5,6 +5,7 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./page-integrations": "./src/page-integrations.js",
     "./internal/core": "./src/core/index.js",
     "./internal/transport": "./src/transports/index.js"
   }

@@ -2,7 +2,7 @@ import {
   DEFAULT_WIDGETVA_AGENT_MODEL,
   runWidgetVAAgentSession,
   runWidgetVAAgentTurn,
-} from '../../../../../widgetva-kit/src/index.js'
+} from 'widgetva-kit'
 
 import {
   completeOfficialPageAgentChat,

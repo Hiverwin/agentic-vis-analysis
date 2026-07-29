@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../shared/clone.js'
 import { describeFamilyVerificationContract } from '../widgets/families/familyContractResolvers.js'
 import { readSelectionPrimaryView } from './state/selectionStateModel.js'
 import {
@@ -5,10 +6,6 @@ import {
   normalizeCanonicalPropagationSkipReason,
 } from './coordination/propagationReasons.js'
 import { buildPropagationSummary } from './coordination/linkPropagationSummary.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function uniqueStrings(values = []) {
   return [...new Set((Array.isArray(values) ? values : []).filter((value) => typeof value === 'string' && value.length > 0))]

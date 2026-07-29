@@ -1,7 +1,4 @@
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
-
+import { cloneJsonValue as cloneValue } from '../../../shared/clone.js'
 function uniqueStrings(values) {
   return [...new Set(values.filter((value) => typeof value === 'string' && value.trim().length > 0))]
 }

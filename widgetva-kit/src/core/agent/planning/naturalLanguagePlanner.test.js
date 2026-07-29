@@ -171,6 +171,53 @@ test('createNaturalLanguagePlanner produces a valid structured operation from JS
   assert.match(userPrompt, /"requiredResponseShape":\{/)
 })
 
+test('planner receives answer requirements derived from check types without expected values', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'I will inspect the chart.',
+          rationale: 'The current view is the next source of evidence.',
+          operation: {
+            kind: 'perception',
+            name: 'perception.summarizeVisible',
+            target: { widgetRef: 'scatter-ref' },
+            params: {},
+          },
+        }),
+      }
+    },
+  })
+
+  await planner({
+    objective: 'Answer the question.',
+    responseRequirements: {
+      mode: 'verifiable',
+      fields: [
+        { field: 'answer', type: 'categorical' },
+        { field: 'score', type: 'numeric' },
+        { field: 'period', type: 'interval' },
+        { field: 'causal_claim', type: 'boolean' },
+      ],
+    },
+    knowledge: { widgetFamilies: [{ kind: 'scatter', actions: [], perceptions: ['perception.summarizeVisible'] }] },
+    observe: {
+      state: { widgets: [{ ref: 'scatter-ref', kind: 'scatter', focused: true }] },
+      view: null,
+    },
+  })
+
+  const userPrompt = requests[0]?.messages?.[1]?.content || ''
+  assert.match(userPrompt, /responseRequirements/)
+  assert.match(userPrompt, /categorical/)
+  assert.match(userPrompt, /numeric/)
+  assert.match(userPrompt, /interval/)
+  assert.match(userPrompt, /boolean/)
+  assert.doesNotMatch(userPrompt, /expectedValue|"expected"/)
+})
+
 test('planner prompt includes canonical agent guidance without provider internals', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
@@ -1320,6 +1367,51 @@ test('createNaturalLanguagePlanner repairs an invalid first response and falls b
 
   assert.equal(requests.length, 2)
   assert.equal(result.operation.kind, 'perception')
+  assert.equal(result.operation.name, 'perception.inspectViewConfig')
+})
+
+test('createNaturalLanguagePlanner retries a non-JSON first response', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      if (requests.length === 1) {
+        return { content: 'I need to inspect the chart before choosing an operation.' }
+      }
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'I will inspect the current view configuration.',
+          rationale: 'The repaired response is strict JSON with a valid target.',
+          operation: {
+            kind: 'perception',
+            name: 'perception.inspectViewConfig',
+            target: { widgetRef: 'scatter-ref' },
+            params: {},
+          },
+        }),
+      }
+    },
+  })
+
+  const result = await planner({
+    objective: 'Understand the current chart state.',
+    knowledge: {
+      widgetFamilies: [{
+        kind: 'scatter',
+        actions: [],
+        perceptions: [{ name: 'perception.inspectViewConfig' }],
+      }],
+    },
+    observe: {
+      state: {
+        widgets: [{ ref: 'scatter-ref', kind: 'scatter', focused: true }],
+      },
+      view: null,
+    },
+  })
+
+  assert.equal(requests.length, 2)
+  assert.match(requests[1]?.messages?.[0]?.content || '', /Return JSON only/)
   assert.equal(result.operation.name, 'perception.inspectViewConfig')
 })
 

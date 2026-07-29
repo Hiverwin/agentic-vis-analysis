@@ -42,6 +42,16 @@ test('shared semantic patch helpers stay under widget-family shared modules', ()
   assert.deepEqual(rootPatchHelpers, [])
 })
 
+test('generic widget runtime implementation stays outside the shared helper folder', () => {
+  const sharedDir = new URL('families/shared/', WIDGETS_DIR)
+  const genericDir = new URL('families/generic/', WIDGETS_DIR)
+
+  assert.equal(readdirSync(genericDir).includes('runtimeActions.js'), true)
+  assert.equal(readdirSync(genericDir).includes('semanticPatches.js'), true)
+  assert.equal(readdirSync(sharedDir).includes('sharedWidgetRuntimeActions.js'), false)
+  assert.equal(readdirSync(sharedDir).includes('widgetSemanticPatches.js'), false)
+})
+
 test('primitive terminology stays out of widget-family implementation filenames', () => {
   const primitiveFiles = listFiles(new URL('families/', WIDGETS_DIR))
     .map((fileUrl) => relative(WIDGETS_DIR.pathname, fileUrl.pathname))

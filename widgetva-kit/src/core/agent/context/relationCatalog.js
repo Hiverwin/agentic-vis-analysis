@@ -1,8 +1,5 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { actionLinks } from '../relations/actionLinks/index.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function slugify(value) {
   return String(value || '')

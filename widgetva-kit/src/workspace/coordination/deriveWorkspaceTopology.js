@@ -21,12 +21,42 @@ const TOPOLOGY_LINK_KINDS = new Set([
   'comparesWith',
 ])
 
+const COORDINATION_TRANSFORM_TO_LINK_KIND = Object.freeze({
+  selectionToFilter: 'filter',
+  intervalToFilter: 'filter',
+  domainToFilter: 'filter',
+  selectionToHighlight: 'highlight',
+  intervalToDomain: 'syncDomain',
+  domainToDomain: 'syncDomain',
+  selectionToSelection: 'sharesSelection',
+  identity: 'sharesSelection',
+})
+
 function unique(values) {
   return [...new Set((Array.isArray(values) ? values : []).filter(Boolean))]
 }
 
 function resolveWidgetId(ref) {
   return parseRef(ref)?.widgetId || null
+}
+
+function normalizeTopologyLink(link) {
+  const transformKind = link?.transform?.kind
+  const canonicalKind = COORDINATION_TRANSFORM_TO_LINK_KIND[transformKind] || null
+  return makeWidgetLink({
+    ...link,
+    kind: COORDINATION_TRANSFORM_TO_LINK_KIND[link?.kind] || link?.kind || canonicalKind,
+    from: link?.from || link?.sourceStateRef || null,
+    to: link?.to || link?.targetStateRef || null,
+    sourceWidgetId:
+      link?.sourceWidgetId
+      || resolveWidgetId(link?.from)
+      || resolveWidgetId(link?.sourceStateRef),
+    targetWidgetId:
+      link?.targetWidgetId
+      || resolveWidgetId(link?.to)
+      || resolveWidgetId(link?.targetStateRef),
+  })
 }
 
 function buildDegreeMaps(widgetIds, links) {
@@ -84,7 +114,7 @@ function makeWorkspaceTopologySummary(summary = {}) {
 }
 
 export function isTopologyLink(link) {
-  const normalizedLink = makeWidgetLink(link)
+  const normalizedLink = normalizeTopologyLink(link)
   return TOPOLOGY_LINK_KINDS.has(normalizedLink?.kind)
 }
 
@@ -94,7 +124,9 @@ export function deriveWorkspaceTopology({ widgets = [], links = [] } = {}) {
       .map((widget) => widget?.widgetId || resolveWidgetId(widget?.ref))
       .filter(Boolean),
   )
-  const linkEntries = (Array.isArray(links) ? links : []).map((link) => makeWidgetLink(link)).filter(isTopologyLink)
+  const linkEntries = (Array.isArray(links) ? links : [])
+    .map((link) => normalizeTopologyLink(link))
+    .filter(isTopologyLink)
   const { outDegree, inDegree } = buildDegreeMaps(widgetIds, linkEntries)
   const edgeCount = Array.from(outDegree.values()).reduce((sum, value) => sum + value, 0)
   const maxOutDegree = Math.max(0, ...Array.from(outDegree.values()))

@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { getLineHumanInteractionConfig } from './interactionProfile.js'
 import { buildLineActionDescriptors } from './actionDescriptors.js'
 import { buildLinePerceptionDescriptors, registerLinePerceptionQueries } from './perception.js'
@@ -5,10 +6,6 @@ import { buildLinePerceptionDescriptors, registerLinePerceptionQueries } from '.
 export { buildLineActionDescriptors } from './actionDescriptors.js'
 export { buildLinePerceptionDescriptors, registerLinePerceptionQueries } from './perception.js'
 export { getLineHumanInteractionConfig } from './interactionProfile.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const LINE_LOCAL_SELECTION_CONTRACT = Object.freeze({
   localSelectionFamily: 'category',

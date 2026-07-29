@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../shared/clone.js'
 import {
   buildTraceGraphFromStore,
   listBranchesFromStore,
@@ -147,10 +148,6 @@ export const WIDGET_WORKSPACE_PUBLIC_METHODS = [
 
 function makeCallId(prefix = 'workspace_call') {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
-}
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
 function uniqueRefs(values = []) {

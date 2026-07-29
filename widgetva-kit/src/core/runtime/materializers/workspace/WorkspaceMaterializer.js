@@ -1,3 +1,4 @@
+import { cloneJsonValue as cloneValue } from '../../../../shared/clone.js'
 import {
   makeCurrentSelectionDataRef,
   makeCurrentViewDataRef,
@@ -53,10 +54,6 @@ import {
 import { getWidgetFamilyHumanInteractionConfig } from '../../../../widgets/families/index.js'
 
 const dataQueryEngine = createDataQueryEngine({ kind: 'js_array' })
-
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function getInlineRows(spec) {
   if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
@@ -281,21 +278,21 @@ function withInlineRows(spec, rows) {
 
 function buildSpecFromSource({ source, baseSpec, rows }) {
   if (source?.kind === 'baseSpec') {
-    const nextSpec = JSON.parse(JSON.stringify(baseSpec))
+    const nextSpec = cloneValue(baseSpec)
     if (shouldInlineRowsIntoSpec({ source, spec: nextSpec, rows })) {
       nextSpec.data = withInlineRows(nextSpec, rows)
     }
     return nextSpec
   }
   if (source?.kind === 'nativeArtifact' && source?.providerSpec?.spec) {
-    const nextSpec = JSON.parse(JSON.stringify(source.providerSpec.spec))
+    const nextSpec = cloneValue(source.providerSpec.spec)
     if (shouldInlineRowsIntoSpec({ source, spec: nextSpec, rows })) {
       nextSpec.data = withInlineRows(nextSpec, rows)
     }
     return nextSpec
   }
   if (source?.kind === 'templateSpec' && source.spec) {
-    const nextSpec = JSON.parse(JSON.stringify(source.spec))
+    const nextSpec = cloneValue(source.spec)
     // Preserve the author-provided data binding for imported specs that rely on
     // external URLs or named datasets. Overwriting them with an empty inline
     // array causes bound workspaces to render blank immediately after bind.

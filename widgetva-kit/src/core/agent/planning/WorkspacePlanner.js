@@ -1,8 +1,5 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { makeWorkspacePlanningResult } from './workspacePlanningShapes.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function getMarkType(spec) {
   return typeof spec?.mark === 'string' ? spec.mark : spec?.mark?.type

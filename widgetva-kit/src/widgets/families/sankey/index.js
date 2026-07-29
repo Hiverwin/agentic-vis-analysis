@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { getSankeyHumanInteractionConfig } from './interactionProfile.js'
 import { buildSankeyActionDescriptors } from './actionDescriptors.js'
 import { buildSankeyPerceptionDescriptors, registerSankeyPerceptionQueries } from './perception.js'
@@ -5,10 +6,6 @@ import { buildSankeyPerceptionDescriptors, registerSankeyPerceptionQueries } fro
 export { buildSankeyActionDescriptors } from './actionDescriptors.js'
 export { buildSankeyPerceptionDescriptors, registerSankeyPerceptionQueries } from './perception.js'
 export { getSankeyHumanInteractionConfig } from './interactionProfile.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const SANKEY_LOCAL_SELECTION_CONTRACT = Object.freeze({
   localSelectionFamily: 'category',

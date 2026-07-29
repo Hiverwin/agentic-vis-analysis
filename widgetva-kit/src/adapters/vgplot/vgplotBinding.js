@@ -1,7 +1,4 @@
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
-
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 function normalizeStringArray(values) {
   return Array.isArray(values)
     ? values.filter((value) => typeof value === 'string' && value.length > 0)

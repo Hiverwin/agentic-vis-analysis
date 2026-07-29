@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { getParallelCoordinatesHumanInteractionConfig } from './interactionProfile.js'
 import { buildParallelCoordinatesActionDescriptors } from './actionDescriptors.js'
 import { buildParallelCoordinatesPerceptionDescriptors, registerParallelCoordinatesPerceptionQueries } from './perception.js'
@@ -5,10 +6,6 @@ import { buildParallelCoordinatesPerceptionDescriptors, registerParallelCoordina
 export { buildParallelCoordinatesActionDescriptors } from './actionDescriptors.js'
 export { buildParallelCoordinatesPerceptionDescriptors, registerParallelCoordinatesPerceptionQueries } from './perception.js'
 export { getParallelCoordinatesHumanInteractionConfig } from './interactionProfile.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const PARALLEL_COORDINATES_LOCAL_SELECTION_CONTRACT = Object.freeze({
   localSelectionFamily: 'record',

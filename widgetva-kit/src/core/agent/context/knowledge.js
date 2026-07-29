@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import {
   barFamily,
   heatmapFamily,
@@ -8,10 +9,6 @@ import {
 } from '../../../widgets/families/index.js'
 import { actionLinks } from '../relations/actionLinks/index.js'
 import { analysisToAction, listSingleWidgetWorkflows, listWorkflows } from '../workflows/index.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const FIRST_CLASS_WIDGET_FAMILIES = Object.freeze([
   barFamily,

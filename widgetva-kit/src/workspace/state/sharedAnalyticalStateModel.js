@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import {
   readSelectionByWidgetView,
   readSelectionPrimaryView,
@@ -10,10 +11,6 @@ import {
   readLinkDefinitions,
   readLinkTopologyState,
 } from './linkStateModel.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)

@@ -1,8 +1,5 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { readSelectionRegistry, resolvePrimarySelectionEntry } from '../../../workspace/state/selectionStateModel.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function makeRuntimeStoreCurrentStateSummary(summary = {}) {
   return {

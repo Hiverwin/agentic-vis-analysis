@@ -1,9 +1,6 @@
+import { cloneJsonValue as clone } from '../../../../../shared/clone.js'
 import { extractPredicatesFromFilterTransform } from '../../state/transformHelpers.js'
 import { rowMatchesAnySelection } from '../../state/selectionHelpers.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 export function normalizeWidgetSelections(state) {
   return Object.values(state?.selections || {}).filter(Boolean)

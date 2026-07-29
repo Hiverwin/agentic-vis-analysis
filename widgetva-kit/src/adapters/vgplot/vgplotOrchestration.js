@@ -1,11 +1,8 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { normalizeVgplotBinding, attachVgplotBinding } from './vgplotBinding.js'
 import { resolveVgplotCapabilities } from './vgplotCapabilityResolver.js'
 import { createVgplotController } from './vgplotController.js'
 import { captureVgplotRuntime, normalizeVgplotRuntime } from './vgplotRuntimeCapture.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function attachVgplotRuntimeCapture({ view = null, runtime = null, runtimeCapture = null } = {}) {
   const normalizedRuntime = runtimeCapture

@@ -1,3 +1,4 @@
+import { cloneJsonValue as cloneValue } from '../shared/clone.js'
 function noop() {}
 
 function emptyArray() {
@@ -6,10 +7,6 @@ function emptyArray() {
 
 function emptyObject() {
   return {}
-}
-
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
 }
 
 function selectValue(selectors, name, readState, fallbackSelector) {

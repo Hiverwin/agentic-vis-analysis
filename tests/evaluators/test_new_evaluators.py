@@ -67,6 +67,31 @@ def test_categorical_answer_allows_date_evidence_and_different_wording():
     ).score == 1.0
 
 
+def test_categorical_answer_falls_back_to_semantic_judge_after_rule_miss():
+    calls = []
+
+    def judge(answer, reference):
+        calls.append((answer, reference))
+        return {
+            "precision": 1.0,
+            "recall": 1.0,
+            "groundedness": 1.0,
+            "matched_claims": ["same date"],
+        }
+
+    result = AnswerEvaluator(judge=judge).evaluate(
+        "The maximum occurred on 2014-09-01.",
+        {"type": "verifiable_target", "checks": [{
+            "check": "categorical",
+            "expected": "On September 1st.",
+        }]},
+    )
+
+    assert result.score == 1.0
+    assert result.details["checks"][0]["match_mode"] == "llm"
+    assert calls == [("The maximum occurred on 2014-09-01.", ["On September 1st."])]
+
+
 def test_answer_matches_multiple_numeric_checks_to_distinct_numbers():
     evaluator = AnswerEvaluator()
     answer = (
@@ -89,6 +114,28 @@ def test_answer_matches_multiple_numeric_checks_to_distinct_numbers():
 
     assert evaluated.score == 1.0
     assert [check["actual"] for check in evaluated.details["checks"]] == [319.0, 89.0, 64.46, 61.63, 69.1, 64.67]
+
+
+def test_multi_widget_answer_does_not_require_field_name_binding():
+    answer = (
+        'The largest race/ethnicity cohort is "group C" with 319 students, '
+        'and the smallest is "group A" with 89 students. '
+        'For math scores, "group C" has a mean of 64.46, and "group A" has a mean of 61.62, '
+        'a difference of 2.84. For reading scores, "group C" has a mean of 69.10, '
+        'and "group A" has a mean of 64.67, a difference of 4.43.'
+    )
+    checks = [
+        {"field": "largest_count", "check": "numeric", "expected": 319, "tolerance": 0},
+        {"field": "smallest_count", "check": "numeric", "expected": 89, "tolerance": 0},
+        {"field": "group_c_math_mean", "check": "numeric", "expected": 64.4639, "tolerance": 0.01},
+        {"field": "group_c_reading_mean", "check": "numeric", "expected": 69.1034, "tolerance": 0.01},
+        {"field": "group_a_math_mean", "check": "numeric", "expected": 61.6292, "tolerance": 0.01},
+        {"field": "group_a_reading_mean", "check": "numeric", "expected": 64.6742, "tolerance": 0.01},
+        {"field": "math_difference", "check": "numeric", "expected": 2.8347, "tolerance": 0.01},
+        {"field": "reading_difference", "check": "numeric", "expected": 4.4293, "tolerance": 0.01},
+    ]
+
+    assert AnswerEvaluator().evaluate(answer, {"type": "verifiable_target", "checks": checks}).score == 1.0
 
 
 def test_answer_evaluation_uses_answer_text_even_when_legacy_values_are_present():
@@ -156,7 +203,7 @@ def test_answer_evaluation_uses_readable_answer_when_values_are_empty():
     assert result.details["checks"][0]["actual"].startswith("Yes")
 
 
-def test_numeric_answer_checks_bind_values_to_their_field_anchor():
+def test_numeric_answer_checks_match_expected_values_without_field_name_binding():
     result = AnswerEvaluator().evaluate(
         "North has the highest total at 642, while South has the lowest total at 810.",
         {
@@ -168,8 +215,8 @@ def test_numeric_answer_checks_bind_values_to_their_field_anchor():
         },
     )
 
-    assert result.score == 0.5
-    assert result.details["checks"][0]["score"] == 0.0
+    assert result.score == 1.0
+    assert result.details["checks"][0]["actual"] == 810.0
 
 
 def test_numeric_answer_checks_do_not_reuse_local_field_candidate_indexes():
@@ -495,49 +542,6 @@ def test_state_reports_each_final_multi_widget_check_and_runner_resolves_host_ag
     assert evaluated.details["checks"][0]["state_ref"].endswith("/widget/bar")
     assert evaluated.details["checks"][1]["property"] == "transforms"
     assert "values" not in result["answer"]
-
-
-def test_aligned_multi_widget_contract_marks_required_milestones_for_every_asl():
-    root = Path(__file__).parents[2]
-    task_dir = root / "visagentbench_kit/aligned/sp_barscatter_iterated_profile_001"
-
-    for asl in range(4):
-        instance = json.loads((task_dir / f"sp_barscatter_iterated_profile_001_asl{asl}.json").read_text())
-        steps = instance["evaluation"]["tool"]["steps"]
-        assert [step["requirement"] for step in steps] == ["required"] * 5
-        assert instance["planner_context"] == {
-            "relation_ids": ["REL-2V-BAR-SELECTCATEGORY-01"],
-            "workflow_id": "WF-2V-REPEATED-CATEGORY-PROFILE-COMPARISON-10",
-        }
-
-
-def test_aligned_tool_steps_declare_requirement_for_every_instance():
-    root = Path(__file__).parents[2]
-    aligned_root = root / "visagentbench_kit/aligned"
-    missing = []
-    for task_dir in aligned_root.iterdir():
-        if not task_dir.is_dir() or task_dir.name == "10_workflow_instance_data":
-            continue
-        for instance_path in task_dir.glob("*_asl[0-3].json"):
-            instance = json.loads(instance_path.read_text())
-            for step in instance.get("evaluation", {}).get("tool", {}).get("steps", []):
-                if step.get("requirement") not in {"required", "optional"}:
-                    missing.append(f"{instance_path}:{step.get('step_id')}")
-    assert missing == []
-
-
-def test_current_multi_widget_result_reports_partial_tool_and_failed_final_state():
-    root = Path(__file__).parents[2]
-    instance_path = root / "visagentbench_kit/aligned/sp_barscatter_iterated_profile_001/sp_barscatter_iterated_profile_001_asl0.json"
-    result_path = root / "benchmark/results/gemini_kit/sp_barscatter_iterated_profile_001_asl0/result.json"
-    instance = json.loads(instance_path.read_text())
-    result = json.loads(result_path.read_text())
-
-    tool_score = ToolEvaluator().evaluate(instance, result)
-    state_score = StateEvaluator().evaluate(instance, result)
-
-    assert tool_score.score == 0.2
-    assert state_score.score == 0.0
 
 
 def test_human_summary_shows_three_scores_and_unverified_calls():

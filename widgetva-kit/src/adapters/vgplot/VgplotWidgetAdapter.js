@@ -1,11 +1,8 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { resolveVgplotCapabilities } from './vgplotCapabilityResolver.js'
 import { createVgplotController } from './vgplotController.js'
 import { readSelectionStateFromRuntime, readViewportStateFromRuntime } from './vgplotState.js'
 import { isVgplotSupportedWidgetKind } from './vgplotSupportedKinds.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readCachedState(view) {
   return view?.__widgetvaLastAppliedState && typeof view.__widgetvaLastAppliedState === 'object'

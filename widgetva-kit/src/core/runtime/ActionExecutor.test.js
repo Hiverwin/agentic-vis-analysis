@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { ActionExecutor } from './ActionExecutor.js'
-import { registerSharedWidgetRuntimeActions } from '../../widgets/families/shared/sharedWidgetRuntimeActions.js'
+import { registerGenericWidgetRuntimeActions } from '../../widgets/families/generic/runtimeActions.js'
 import { registerScatterActions } from '../../widgets/families/scatter/runtimeActions.js'
 import { registerLineActions } from '../../widgets/families/line/runtimeActions.js'
 import { registerBarActions } from '../../widgets/families/bar/runtimeActions.js'
@@ -493,7 +493,7 @@ test('ActionExecutor generic widget actions update semantic state without requir
     version: 1,
   }
   const executor = new ActionExecutor({ store })
-  registerSharedWidgetRuntimeActions(executor)
+  registerGenericWidgetRuntimeActions(executor)
 
   const result = await executor.run({
     callId: 'call_filter_without_spec',
@@ -743,7 +743,7 @@ test('ActionExecutor widget.resetView clears target widget view state', async ()
     version: 1,
   }
   const executor = new ActionExecutor({ store })
-  registerSharedWidgetRuntimeActions(executor)
+  registerGenericWidgetRuntimeActions(executor)
 
   const result = await executor.run({
     callId: 'call_reset_view',
@@ -811,7 +811,7 @@ test('ActionExecutor widget.undoView restores the previous runtime state snapsho
     ],
   }
   const executor = new ActionExecutor({ store })
-  registerSharedWidgetRuntimeActions(executor)
+  registerGenericWidgetRuntimeActions(executor)
 
   const result = await executor.run({
     callId: 'call_undo_view',

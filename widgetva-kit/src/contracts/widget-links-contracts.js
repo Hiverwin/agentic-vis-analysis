@@ -1,11 +1,8 @@
+import { cloneJsonValue as cloneValue } from '../shared/clone.js'
 import {
   WIDGET_LINK_ACTIVATION_POLICIES,
   WIDGET_LINK_EFFECT_CONSTRAINTS,
 } from '../schemas/widget-links.schema.js'
-
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const WIDGET_LINK_KIND_ALIASES = {
   filters: 'filter',

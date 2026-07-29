@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { createD3WidgetAdapter } from '../../adapters/d3/D3WidgetAdapter.js'
 import { installBrowserExtensionBridge } from '../../transports/browserExtensionBridge.js'
 import {
@@ -53,10 +54,6 @@ export {
   createObservableScatterMatrixSurfaceWrapper,
   createObservableScatterSurfaceWrapper,
 } from './observableD3Materializers.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function createD3FamilyAdapter(kind) {
   return createD3WidgetAdapter({ kind: getWidgetFamily(kind).kind })

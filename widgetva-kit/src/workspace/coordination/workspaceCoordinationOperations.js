@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import {
   normalizePrimarySelectionView,
   readSelectionRegistry,
@@ -8,10 +9,6 @@ import {
   deriveGlobalFiltersFromSelection,
   deriveHighlightStateFromSelection,
 } from '../state/sharedStateDerivation.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function cloneObject(value) {
   return value && typeof value === 'object' && !Array.isArray(value)

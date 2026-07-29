@@ -1,3 +1,4 @@
+import { cloneJsonValue as cloneValue } from '../../shared/clone.js'
 import { makeActionResult } from '../../contracts/result-contracts.js'
 import {
   readSelectionByWidgetView,
@@ -11,10 +12,6 @@ import { readWorkspaceStateFromStore, resolveWidgetRecordFromStore } from '../..
 import { deriveGlobalFiltersFromState } from '../../workspace/state/sharedStateDerivation.js'
 
 const MERGE_SHARED_PATCH_MODE = 'widgetva.mergeSharedPatch'
-
-function cloneValue(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function mergeRuntimePatch(base, patch) {
   if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return cloneValue(base) || {}

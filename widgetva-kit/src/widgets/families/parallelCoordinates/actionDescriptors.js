@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 const DESCRIPTORS = [
   {
     "name": "parallelCoordinates.selectRecord",
@@ -405,10 +406,6 @@ const DESCRIPTORS = [
     ]
   }
 ]
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function parallelCoordinatesCapabilities(spec) {
   const transforms = Array.isArray(spec?.transform) ? spec.transform : []

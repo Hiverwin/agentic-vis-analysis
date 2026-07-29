@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { getHeatmapHumanInteractionConfig } from './interactionProfile.js'
 import { buildHeatmapActionDescriptors } from './actionDescriptors.js'
 import { buildHeatmapPerceptionDescriptors, registerHeatmapPerceptionQueries } from './perception.js'
@@ -5,10 +6,6 @@ import { buildHeatmapPerceptionDescriptors, registerHeatmapPerceptionQueries } f
 export { buildHeatmapActionDescriptors } from './actionDescriptors.js'
 export { buildHeatmapPerceptionDescriptors, registerHeatmapPerceptionQueries } from './perception.js'
 export { getHeatmapHumanInteractionConfig } from './interactionProfile.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const HEATMAP_LOCAL_SELECTION_CONTRACT = Object.freeze({
   localSelectionFamily: 'cell',

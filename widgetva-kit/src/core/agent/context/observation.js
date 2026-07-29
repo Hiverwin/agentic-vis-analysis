@@ -1,7 +1,4 @@
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
-
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 function collectInlineRowsFromSpec(spec = null, rows = []) {
   if (!spec || typeof spec !== 'object' || Array.isArray(spec)) return rows
   if (Array.isArray(spec?.data?.values)) {

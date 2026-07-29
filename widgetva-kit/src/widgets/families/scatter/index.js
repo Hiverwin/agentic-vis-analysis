@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../../shared/clone.js'
 import { getScatterHumanInteractionConfig } from './interactionProfile.js'
 import { buildScatterActionDescriptors } from './actionDescriptors.js'
 import { buildScatterPerceptionDescriptors, registerScatterPerceptionQueries } from './perception.js'
@@ -5,10 +6,6 @@ import { buildScatterPerceptionDescriptors, registerScatterPerceptionQueries } f
 export { buildScatterActionDescriptors } from './actionDescriptors.js'
 export { buildScatterPerceptionDescriptors, registerScatterPerceptionQueries } from './perception.js'
 export { getScatterHumanInteractionConfig } from './interactionProfile.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const SCATTER_LOCAL_SELECTION_CONTRACT = Object.freeze({
   localSelectionFamily: 'interval',

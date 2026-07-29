@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { deriveHighlightState } from './highlightStateModel.js'
 import { readFocusState } from './focusStateModel.js'
 import {
@@ -11,10 +12,6 @@ import {
 } from './selectionStateModel.js'
 import { readViewportState } from './viewportStateModel.js'
 import { makeCoordinationRelationMap } from '../../contracts/coordination-contracts.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readCoordinationRelations(state = {}, shared = {}) {
   const explicitRelations = state?.coordination?.relations

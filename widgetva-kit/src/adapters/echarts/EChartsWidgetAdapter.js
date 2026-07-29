@@ -1,4 +1,8 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import {
+  normalizeSelections,
+  resolvePrimaryIntervalSelection,
+  resolveRepresentativeSelection,
   resolveAggregateStatePayload,
   resolveAddRemoveStatePayload,
   resolveDrillDownStatePayload,
@@ -9,10 +13,6 @@ import {
   resolveSortPayload,
 } from '../shared/providerStatePayloads.js'
 import { bindEChartsFamilyInteractions } from './echartsFamilyBehavior.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readCachedState(view) {
   return view?.__widgetvaLastAppliedState && typeof view.__widgetvaLastAppliedState === 'object'
@@ -27,22 +27,6 @@ function readCurrentOption(view) {
   } catch {
     return null
   }
-}
-
-function resolveRepresentativeSelection(selections = []) {
-  const normalizedSelections = Array.isArray(selections) ? selections.filter(Boolean) : []
-  if (normalizedSelections.length === 1) return normalizedSelections[0] || null
-  const pointSelections = normalizedSelections.filter((selection) => selection?.kind === 'point')
-  if (pointSelections.length === 1) return pointSelections[0] || null
-  return normalizedSelections[0] || null
-}
-
-function normalizeSelections(state) {
-  return Object.values(state?.selections || {}).filter(Boolean)
-}
-
-function resolvePrimaryIntervalSelection(selections = []) {
-  return (Array.isArray(selections) ? selections : []).find((selection) => selection?.kind === 'interval') || null
 }
 
 function resolveViewportFromState(state, intervalSelection) {

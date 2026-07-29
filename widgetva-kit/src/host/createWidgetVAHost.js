@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../shared/clone.js'
 import {
   createWidgetVAViewAdapter,
   installWidgetVAOnView,
@@ -6,10 +7,6 @@ import { makeWidgetRef } from '../contracts/refs-contracts.js'
 import { createWidgetInstance } from '../core/rendering/widgetRuntimeSurface.js'
 import { createWidgetVARuntime } from '../core/runtime/RuntimeOrchestrator.js'
 import { createWidgetWorkspace } from '../workspace/widgetWorkspace.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readWidgetId(widget = {}) {
   return widget?.id || widget?.widgetId || null

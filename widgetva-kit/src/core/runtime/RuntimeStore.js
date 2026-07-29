@@ -1,3 +1,4 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { StateManager } from './StateManager.js'
 import { WidgetRegistry } from '../../workspace/widgetRegistry.js'
 import { makeWidgetDescription, makeWorkspaceDescription } from '../../workspace/store/workspaceStoreReaders.js'
@@ -15,274 +16,41 @@ import {
   makeTraceGraphEdge,
   makeTraceGraphNode,
 } from './shapes/historyShapes.js'
-import { makeWidgetState, makeWorkspaceState } from '../../contracts/state-contracts.js'
+import { makeWorkspaceState } from '../../contracts/state-contracts.js'
 import { makeWidgetLink } from '../../contracts/widget-links-contracts.js'
 import { makeCoordinationRelation, makeCoordinationRelationMap } from '../../contracts/coordination-contracts.js'
 import { makeActionDescriptor } from '../../contracts/action-contracts.js'
 import { makePerceptionDescriptor } from '../../contracts/perception-contracts.js'
 import { makeDataHandle } from '../../contracts/data-contracts.js'
-import {
-  makeCurrentSelectionDataRef,
-  makeCurrentViewDataRef,
-  makeSelectionScopedDataRef,
-  makeWidgetSelectionDataRef,
-  parseRef,
-} from '../../contracts/refs-contracts.js'
 import { deriveGlobalFiltersFromState } from '../../workspace/state/sharedStateDerivation.js'
-import { buildDerivedDataHandle } from './materializers/workspace/workspaceDescriptorBuilders.js'
-import { rowMatchesAnySelection, rowMatchesSelection } from './materializers/state/selectionHelpers.js'
 import { summarizeWorkspaceState } from './summaries/summarizeWorkspaceState.js'
-
-function makeDescriptorKey(name, targetRef) {
-  return `${name || 'unknown'}::${targetRef || 'workspace'}`
-}
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
-
-function isPlainObject(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value)
-}
-
-function mergeRuntimePatch(base, patch) {
-  if (!isPlainObject(base) || !isPlainObject(patch)) {
-    return clone(patch)
-  }
-  const nextValue = { ...clone(base) }
-  for (const [key, value] of Object.entries(patch)) {
-    if (isPlainObject(value) && isPlainObject(nextValue[key])) {
-      nextValue[key] = mergeRuntimePatch(nextValue[key], value)
-    } else {
-      nextValue[key] = clone(value)
-    }
-  }
-  return nextValue
-}
-
-function applyWidgetStatePatches(state, patches = {}) {
-  if (!state?.widgets || !isPlainObject(patches) || Object.keys(patches).length === 0) {
-    return state
-  }
-
-  const nextWidgets = { ...(state.widgets || {}) }
-  let changed = false
-  for (const [ref, patch] of Object.entries(patches)) {
-    if (!nextWidgets[ref] || !isPlainObject(patch)) continue
-    nextWidgets[ref] = mergeRuntimePatch(nextWidgets[ref], patch)
-    changed = true
-  }
-
-  return changed
-    ? {
-        ...state,
-        widgets: nextWidgets,
-      }
-    : state
-}
-
-function normalizeWidgetStateMap(widgets = {}) {
-  return Object.fromEntries(
-    Object.entries(widgets || {}).map(([ref, widgetState]) => [
-      ref,
-      makeWidgetState({
-        ref,
-        ...clone(widgetState),
-      }),
-    ]),
-  )
-}
-
-function normalizeWorkspaceState(state) {
-  return makeWorkspaceState({
-    ...clone(state),
-    widgets: normalizeWidgetStateMap(state?.widgets || {}),
-  })
-}
-
-function getTraceRecordPriority(record) {
-  const eventKind = record?.eventKind || null
-  if (eventKind === 'action') return 3
-  if (eventKind === 'perceptionQuery' || eventKind === 'dataQuery') return 2
-  if (eventKind === 'systemTransition') return 1
-  return 0
-}
-
-function pickRepresentativeTraceRecord(currentRecord, nextRecord) {
-  if (!currentRecord) return nextRecord || null
-  if (!nextRecord) return currentRecord
-  return getTraceRecordPriority(nextRecord) >= getTraceRecordPriority(currentRecord)
-    ? nextRecord
-    : currentRecord
-}
-
-function buildResponsePreview(content, maxLength = 160) {
-  const text = String(content || '').trim()
-  if (!text) return null
-  if (!Number.isFinite(maxLength) || maxLength <= 0 || text.length <= maxLength) {
-    return text
-  }
-  return `${text.slice(0, maxLength - 3)}...`
-}
-
-function normalizeActorFilter(actors) {
-  if (!Array.isArray(actors) || actors.length === 0) return []
-  return Array.from(
-    new Set(
-      actors.filter((actor) => typeof actor === 'string' && actor.length > 0),
-    ),
-  )
-}
-
-function createMutableMapFacade({ keys, getEntry, setEntry, deleteEntry }) {
-  return new Proxy({}, {
-    get(_target, prop) {
-      if (typeof prop === 'symbol') return undefined
-      return getEntry(prop)
-    },
-    set(_target, prop, value) {
-      if (typeof prop === 'symbol') return true
-      setEntry(prop, value)
-      return true
-    },
-    deleteProperty(_target, prop) {
-      if (typeof prop === 'symbol') return true
-      deleteEntry(prop)
-      return true
-    },
-    ownKeys() {
-      return keys()
-    },
-    has(_target, prop) {
-      if (typeof prop === 'symbol') return false
-      return keys().includes(prop)
-    },
-    getOwnPropertyDescriptor(_target, prop) {
-      if (typeof prop === 'symbol') return undefined
-      const value = getEntry(prop)
-      if (value == null) return undefined
-      return {
-        configurable: true,
-        enumerable: true,
-        writable: true,
-        value,
-      }
-    },
-  })
-}
-
-function makeRuntimeStoreCurrentStateSummary(summary = {}) {
-  return {
-    stateId: null,
-    focusedWidgetRef: null,
-    focusedWidgetKind: null,
-    focusedWidgetTitle: null,
-    visibleCount: null,
-    selectedCount: null,
-    selectionCount: 0,
-    activeSelectionRefs: [],
-    primarySelectionRef: null,
-    primarySelectionSummary: '',
-    primarySelectionPredicates: [],
-    comparisonTargetCount: 0,
-    globalFilterCount: 0,
-    taskMode: null,
-    coordinationScope: null,
-    evidenceType: null,
-    interactionHorizon: null,
-    replayRunMode: null,
-    replayUserIntent: '',
-    changedRefs: [],
-    removedRefs: [],
-    sharedChanged: false,
-    taskContextChanged: false,
-    replayContextChanged: false,
-    ...summary,
-  }
-}
-
-function makeRuntimeStoreHistoryRetention(retention = {}) {
-  return {
-    snapshotMax: 0,
-    traceMax: 0,
-    responseMax: 0,
-    ...retention,
-  }
-}
-
-function makeRuntimeStoreIdentity(identity = {}) {
-  return {
-    appId: '',
-    workspaceId: '',
-    ...identity,
-  }
-}
-
-function makeRuntimeStoreStateSummary(summary = {}) {
-  return {
-    stateId: null,
-    currentBranchId: null,
-    previousStateId: null,
-    version: 0,
-    ...summary,
-  }
-}
-
-function makeRuntimeStoreIndexes(indexes = {}) {
-  return {
-    widgetCount: 0,
-    dataHandleCount: 0,
-    linkCount: 0,
-    widgetAdapterCount: 0,
-    actionDescriptorCount: 0,
-    perceptionDescriptorCount: 0,
-    widgetPatchCount: 0,
-    ...indexes,
-  }
-}
-
-function makeRuntimeStoreHistory(history = {}) {
-  return {
-    snapshotCount: 0,
-    traceCount: 0,
-    responseCount: 0,
-    branchCount: 0,
-    retention: makeRuntimeStoreHistoryRetention(),
-    maxSnapshotRetention: 0,
-    maxTraceRetention: 0,
-    maxResponseRetention: 0,
-    ...history,
-  }
-}
-
-function makeRuntimeStoreCapabilities(capabilities = {}) {
-  return {
-    deltaTracking: false,
-    snapshotHistory: false,
-    actorScopedHistory: false,
-    branchReplay: false,
-    traceGraph: false,
-    runtimeDataIndex: false,
-    widgetAdapterIndex: false,
-    widgetStatePatching: false,
-    ...capabilities,
-  }
-}
-
-function makeRuntimeStoreSummary(summary = {}) {
-  return {
-    currentStateSummary: null,
-    ...summary,
-    identity: makeRuntimeStoreIdentity(summary?.identity),
-    state: makeRuntimeStoreStateSummary(summary?.state),
-    currentStateSummary: summary?.currentStateSummary == null
-      ? null
-      : makeRuntimeStoreCurrentStateSummary(summary.currentStateSummary),
-    indexes: makeRuntimeStoreIndexes(summary?.indexes),
-    history: makeRuntimeStoreHistory(summary?.history),
-    capabilities: makeRuntimeStoreCapabilities(summary?.capabilities),
-  }
-}
+import {
+  applyWidgetStatePatches,
+  buildResponsePreview,
+  createMutableMapFacade,
+  makeDescriptorKey,
+  makeRuntimeStoreCapabilities,
+  makeRuntimeStoreHistory,
+  makeRuntimeStoreHistoryRetention,
+  makeRuntimeStoreIdentity,
+  makeRuntimeStoreIndexes,
+  makeRuntimeStoreStateSummary,
+  makeRuntimeStoreSummary,
+  mergeRuntimePatch,
+  normalizeActorFilter,
+  normalizeWorkspaceState,
+  pickRepresentativeTraceRecord,
+} from './store-support/RuntimeStoreModels.js'
+import {
+  readRuntimeData,
+  removeRuntimeData,
+  resolveSelectionDataRef,
+  syncCurrentSelectionRuntimeData,
+  syncCurrentViewRuntimeData,
+  syncSelectionRuntimeData,
+  updateRuntimeData,
+  upsertRuntimeData,
+} from './store-support/RuntimeStoreRuntimeData.js'
 
 export class WidgetVARuntimeStore {
   constructor({ appId = 'widgetva-app', workspaceId = 'main' } = {}) {
@@ -1052,279 +820,35 @@ export class WidgetVARuntimeStore {
   }
 
   readRuntimeData(ref) {
-    return ref ? this.runtimeData?.[ref] || null : this.runtimeData
+    return readRuntimeData(this, ref)
   }
 
   resolveSelectionDataRef(selectionRef) {
-    const parts = parseRef(selectionRef)
-    if (!parts?.widgetId || !parts?.selectionId) return null
-    return makeSelectionScopedDataRef({
-      appId: parts.appId || this.appId,
-      workspaceId: parts.workspaceId || this.workspaceId,
-      widgetId: parts.widgetId,
-      selectionId: parts.selectionId,
-    })
+    return resolveSelectionDataRef(this, selectionRef)
   }
 
   updateRuntimeData(ref, updater) {
-    if (!ref || typeof updater !== 'function') return null
-    const currentEntry = this.runtimeData?.[ref]
-    if (!currentEntry) return null
-    const nextEntry = updater(clone(currentEntry))
-    if (!nextEntry || typeof nextEntry !== 'object') return currentEntry
-    this.upsertRuntimeData(ref, nextEntry)
-    this.emitChange()
-    return nextEntry
+    return updateRuntimeData(this, ref, updater)
   }
 
   upsertRuntimeData(ref, entry) {
-    if (!ref || !entry || typeof entry !== 'object') return null
-    this.runtimeData = {
-      ...(this.runtimeData || {}),
-      [ref]: entry,
-    }
-    const nextHandle = entry.handle || this.dataHandleIndex?.[ref] || null
-    if (nextHandle) {
-      this.dataHandleIndex = {
-        ...(this.dataHandleIndex || {}),
-        [ref]: nextHandle,
-      }
-      this.widgetRegistry.updateDataHandle?.(ref, nextHandle)
-    }
-    if (Array.isArray(this.description?.dataHandles)) {
-      const hasExistingHandle = this.description.dataHandles.some((handle) => handle?.ref === ref)
-      this.description = {
-        ...this.description,
-        dataHandles: hasExistingHandle
-          ? this.description.dataHandles.map((handle) => (handle?.ref === ref ? (nextHandle || handle) : handle))
-          : nextHandle
-            ? [...this.description.dataHandles, nextHandle]
-            : this.description.dataHandles,
-      }
-    }
-    return entry
+    return upsertRuntimeData(this, ref, entry)
   }
 
   removeRuntimeData(ref) {
-    if (!ref || !this.runtimeData?.[ref]) return
-    const nextRuntimeData = { ...(this.runtimeData || {}) }
-    delete nextRuntimeData[ref]
-    this.runtimeData = nextRuntimeData
-
-    if (this.dataHandleIndex?.[ref]) {
-      const nextDataHandleIndex = { ...(this.dataHandleIndex || {}) }
-      delete nextDataHandleIndex[ref]
-      this.dataHandleIndex = nextDataHandleIndex
-      this.widgetRegistry.removeDataHandle?.(ref)
-    }
-
-    if (Array.isArray(this.description?.dataHandles)) {
-      this.description = {
-        ...this.description,
-        dataHandles: this.description.dataHandles.filter((handle) => handle?.ref !== ref),
-      }
-    }
+    return removeRuntimeData(this, ref)
   }
 
   syncCurrentSelectionRuntimeData() {
-    const currentSelectionDataRef = makeCurrentSelectionDataRef({
-      appId: this.appId,
-      workspaceId: this.workspaceId,
-    })
-    const focusedWidgetRef =
-      this.state?.shared?.focusedWidget
-      || Object.keys(this.state?.widgets || {})[0]
-      || this.listWidgetDescriptions()[0]?.ref
-      || null
-    const focusedWidget = focusedWidgetRef ? this.getWidgetState(focusedWidgetRef) : null
-    const focusedWidgetId = focusedWidget?.widgetId || null
-    const focusedSelectionDataRef = focusedWidgetId
-      ? makeWidgetSelectionDataRef({
-          appId: this.appId,
-          workspaceId: this.workspaceId,
-          widgetId: focusedWidgetId,
-        })
-      : null
-    const focusedSelectionEntry = focusedSelectionDataRef ? this.readRuntimeData(focusedSelectionDataRef) : null
-    const focusedSelectionRef =
-      focusedWidgetRef
-        ? Object.keys(this.state?.widgets?.[focusedWidgetRef]?.selections || {})[0] || null
-        : null
-
-    if (!focusedSelectionEntry?.widgetRef || !Array.isArray(focusedSelectionEntry?.rows)) {
-      this.removeRuntimeData(currentSelectionDataRef)
-      return null
-    }
-
-    const currentSelectionHandle = buildDerivedDataHandle({
-      ref: currentSelectionDataRef,
-      title: 'Current Selection Data',
-      description: 'Current rows for the focused widget selection.',
-      rows: focusedSelectionEntry.rows,
-      selectedCount: focusedSelectionEntry.rows.length,
-      kind: 'selectionData',
-      scope: 'workspaceCurrent',
-      widgetRef: focusedSelectionEntry.widgetRef,
-      sourceSelectionRef: focusedSelectionRef,
-    })
-    const nextEntry = {
-      ref: currentSelectionDataRef,
-      rows: focusedSelectionEntry.rows,
-      baseRows: focusedSelectionEntry.baseRows,
-      handle: currentSelectionHandle,
-      widgetRef: focusedSelectionEntry.widgetRef,
-      sourceSelectionRef: focusedSelectionRef,
-      kind: 'selectionData',
-      scope: 'workspaceCurrent',
-    }
-    this.upsertRuntimeData(currentSelectionDataRef, nextEntry)
-    return nextEntry
+    return syncCurrentSelectionRuntimeData(this)
   }
 
   syncCurrentViewRuntimeData() {
-    const currentViewDataRef = makeCurrentViewDataRef({
-      appId: this.appId,
-      workspaceId: this.workspaceId,
-    })
-    const focusedWidgetRef =
-      this.state?.shared?.focusedWidget
-      || Object.keys(this.state?.widgets || {})[0]
-      || this.listWidgetDescriptions()[0]?.ref
-      || null
-    const focusedWidget = focusedWidgetRef ? this.getWidgetState(focusedWidgetRef) : null
-    const focusedDataRef = focusedWidget?.data?.currentDataRef || focusedWidget?.data?.sourceDataRef || null
-    const focusedDataEntry = focusedDataRef ? this.readRuntimeData(focusedDataRef) : null
-
-    if (!focusedDataEntry?.widgetRef || !Array.isArray(focusedDataEntry?.rows)) {
-      this.removeRuntimeData(currentViewDataRef)
-      return null
-    }
-
-    const currentViewHandle = buildDerivedDataHandle({
-      ref: currentViewDataRef,
-      title: 'Current View Data',
-      description: 'Current visible rows for the focused widget.',
-      rows: focusedDataEntry.rows,
-      selectedCount: focusedDataEntry.handle?.stats?.selectedCount || 0,
-      kind: 'dataView',
-      scope: 'workspaceCurrentView',
-      widgetRef: focusedDataEntry.widgetRef,
-    })
-    const nextEntry = {
-      ref: currentViewDataRef,
-      rows: focusedDataEntry.rows,
-      baseRows: focusedDataEntry.baseRows,
-      handle: currentViewHandle,
-      widgetRef: focusedDataEntry.widgetRef,
-      kind: 'dataView',
-      scope: 'workspaceCurrentView',
-    }
-    this.upsertRuntimeData(currentViewDataRef, nextEntry)
-    return nextEntry
+    return syncCurrentViewRuntimeData(this)
   }
 
   syncSelectionRuntimeData(widgetRef) {
-    if (!widgetRef) return null
-    const widgetState = this.getWidgetState(widgetRef)
-    const widgetDescription = this.getWidgetDescription(widgetRef)
-    const widgetId = widgetState?.widgetId || widgetDescription?.widgetId || null
-    const managedSelectionDataRefs = Object.values(this.runtimeData || {})
-      .filter((entry) => entry?.widgetRef === widgetRef && entry?.kind === 'selectionData')
-      .map((entry) => entry?.ref)
-      .filter((ref) => typeof ref === 'string')
-    const currentDataRef = widgetState?.data?.currentDataRef || null
-    const currentDataEntry = currentDataRef ? this.readRuntimeData(currentDataRef) : null
-    if (!widgetId || !currentDataEntry) {
-      for (const managedRef of managedSelectionDataRefs) {
-        this.removeRuntimeData(managedRef)
-      }
-      this.syncCurrentViewRuntimeData()
-      this.syncCurrentSelectionRuntimeData()
-      this.emitChange()
-      return null
-    }
-
-    const activeSelectionEntries = Object.entries(widgetState?.selections || {})
-      .filter(([selectionRef, selectionState]) => Boolean(selectionRef) && Boolean(selectionState))
-    const selectionDataRef = makeWidgetSelectionDataRef({
-      appId: this.appId,
-      workspaceId: this.workspaceId,
-      widgetId,
-    })
-    if (activeSelectionEntries.length === 0) {
-      for (const managedRef of managedSelectionDataRefs) {
-        this.removeRuntimeData(managedRef)
-      }
-      this.syncCurrentViewRuntimeData()
-      this.syncCurrentSelectionRuntimeData()
-      this.emitChange()
-      return null
-    }
-
-    const visibleRows = Array.isArray(currentDataEntry?.rows) ? currentDataEntry.rows : []
-    const selections = activeSelectionEntries.map(([, selectionState]) => selectionState)
-    const selectedRows = visibleRows.filter((row) => rowMatchesAnySelection(row, selections))
-    const nextManagedRefs = new Set([selectionDataRef])
-    const handle = buildDerivedDataHandle({
-      ref: selectionDataRef,
-      title: `${widgetDescription?.title || widgetId} Selection Data`,
-      description: `Current rows selected on widget ${widgetId}.`,
-      rows: selectedRows,
-      selectedCount: selectedRows.length,
-      kind: 'selectionData',
-      scope: 'combined',
-      widgetRef,
-    })
-
-    const nextEntry = {
-      ref: selectionDataRef,
-      rows: selectedRows,
-      baseRows: visibleRows,
-      handle,
-      widgetRef,
-      kind: 'selectionData',
-      scope: 'combined',
-    }
-    this.upsertRuntimeData(selectionDataRef, nextEntry)
-
-    for (const [selectionRef, selectionState] of activeSelectionEntries) {
-      const selectionScopedDataRef = this.resolveSelectionDataRef(selectionRef)
-      if (!selectionScopedDataRef) continue
-      nextManagedRefs.add(selectionScopedDataRef)
-      const selectionId = selectionRef.split('/').pop() || 'selection'
-      const selectionRows = visibleRows.filter((row) => rowMatchesSelection(row, selectionState))
-      const selectionScopedHandle = buildDerivedDataHandle({
-        ref: selectionScopedDataRef,
-        title: `${widgetDescription?.title || widgetId} Selection ${selectionId} Data`,
-        description: `Current rows for selection ${selectionId} on widget ${widgetId}.`,
-        rows: selectionRows,
-        selectedCount: selectionRows.length,
-        kind: 'selectionData',
-        scope: 'selection',
-        widgetRef,
-        sourceSelectionRef: selectionRef,
-      })
-      this.upsertRuntimeData(selectionScopedDataRef, {
-        ref: selectionScopedDataRef,
-        rows: selectionRows,
-        baseRows: visibleRows,
-        handle: selectionScopedHandle,
-        widgetRef,
-        sourceSelectionRef: selectionRef,
-        kind: 'selectionData',
-        scope: 'selection',
-      })
-    }
-
-    for (const managedRef of managedSelectionDataRefs) {
-      if (!nextManagedRefs.has(managedRef)) {
-        this.removeRuntimeData(managedRef)
-      }
-    }
-    this.syncCurrentViewRuntimeData()
-    this.syncCurrentSelectionRuntimeData()
-    this.emitChange()
-    return nextEntry
+    return syncSelectionRuntimeData(this, widgetRef)
   }
 
   readSnapshot(stateId) {

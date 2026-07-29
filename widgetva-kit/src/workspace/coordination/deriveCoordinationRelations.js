@@ -1,8 +1,5 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { makeCoordinationRelation } from '../../contracts/coordination-contracts.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function slug(value) {
   return String(value || '')

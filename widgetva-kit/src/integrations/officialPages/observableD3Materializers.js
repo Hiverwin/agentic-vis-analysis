@@ -1,12 +1,9 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { findObservableWorkerFrame } from './observableD3Pages.js'
 import {
   findPrimaryObservableD3Surface,
   inferObservableD3LineBindings,
 } from './observableD3Surface.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 const OBSERVABLE_D3_WORKER_REQUEST = 'widgetva:observable-d3-worker-request'
 const OBSERVABLE_D3_WORKER_RESPONSE = 'widgetva:observable-d3-worker-response'

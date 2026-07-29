@@ -1,9 +1,6 @@
+import { cloneJsonValue as clone } from '../../shared/clone.js'
 import { makeWorkspaceState } from '../../contracts/state-contracts.js'
 import { readWidgetRefFromStateRef, readWorkspaceStateFromStore } from './workspaceStoreReaders.js'
-
-function clone(value) {
-  return value == null ? value : JSON.parse(JSON.stringify(value))
-}
 
 function readStateRefSuffix(stateRef, widgetRef) {
   if (!stateRef || !widgetRef || !stateRef.startsWith(widgetRef)) return { kind: null, key: null }
