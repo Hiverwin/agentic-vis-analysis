@@ -794,6 +794,13 @@ test('createNaturalLanguageReasoner includes compact session history in progress
     result: {
       ok: true,
       summary: 'Visible rows show snow records.',
+      result: {
+        rowCount: 2,
+        groups: [
+          { weather: 'snow', meanTemperature: -3.5 },
+          { weather: 'rain', meanTemperature: 4.25 },
+        ],
+      },
     },
     verification: null,
   })
@@ -802,6 +809,7 @@ test('createNaturalLanguageReasoner includes compact session history in progress
   const userPrompt = requests[0]?.messages?.[1]?.content || ''
   assert.match(userPrompt, /"history":\{/)
   assert.match(userPrompt, /bar\.filterCategories/)
+  assert.equal(userPrompt.includes('meanTemperature'), false)
 })
 
 test('createNaturalLanguageReasoner prunes bulky action result and verification payloads', async () => {

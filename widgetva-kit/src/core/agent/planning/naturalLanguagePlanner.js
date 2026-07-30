@@ -387,6 +387,7 @@ function buildReasonMessages({
   result,
   verification,
   latestCoordinationResult,
+  plannerContext = null,
   responseRequirements = null,
 } = {}) {
   const systemPrompt = [
@@ -398,8 +399,9 @@ function buildReasonMessages({
     'Do not invent computed values that are not present in the runtime result.',
     'Return JSON only.',
     'The JSON must contain answer.',
-    'If the overall user objective has been sufficiently answered, include completion.status as "answered".',
-    'If another turn is still needed, omit completion or set completion.status to "continue".',
+    'Set completion.status to "answered" only when every explicit part of the user objective is satisfied by verified evidence in the current runtime result or history results, and no required selected-workflow step remains unfinished.',
+    'A successful operation by itself does not mean the objective is answered.',
+    'If any requested comparison, subset, action, or answer value still lacks verified evidence, set completion.status to "continue".',
   ].join(' ')
 
   const userPrompt = JSON.stringify({
@@ -410,6 +412,7 @@ function buildReasonMessages({
     result: normalizeResultForPrompt(plan, result),
     verification: normalizeVerificationForPrompt(plan, result, verification, observe),
     latestCoordinationResult: normalizeCoordinationResultForPrompt(latestCoordinationResult),
+    plannerContext: sanitizePromptValue(plannerContext),
     responseRequirements: sanitizePromptValue(responseRequirements),
   })
 
@@ -460,6 +463,7 @@ function buildFinalSynthesisMessages({
         ? {
           kind: turn.act.kind || null,
           name: turn.act.name || null,
+          target: clone(turn.act.target || null),
           params: clone(turn.act.params || {}),
         }
         : null,
@@ -915,6 +919,7 @@ export function createNaturalLanguageReasoner({
     result = null,
     verification = null,
     latestCoordinationResult = null,
+    plannerContext = null,
     responseRequirements = null,
   } = {}) {
     const response = await completeChat({
@@ -929,6 +934,7 @@ export function createNaturalLanguageReasoner({
         result,
         verification,
         latestCoordinationResult,
+        plannerContext,
         responseRequirements,
       }),
     })

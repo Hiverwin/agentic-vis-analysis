@@ -384,6 +384,7 @@ test('runAgentSession carries session knowledge forward and continues after a su
   assert.deepEqual(result.history.turns[0].operation, {
     kind: 'action',
     name: 'scatter.brushRegion',
+    target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
     paramsSummary: 'xField=Horsepower; yField=Miles_per_Gallon; xRange=[80, 140]; yRange=[18, 30]',
   })
   assert.equal(result.history.turns[0].status.outcome, 'verified')
@@ -573,7 +574,7 @@ test('runAgentTurn keeps bulky observation internals out of the session turn con
   assert.equal(serializedTurn.includes('TURN_SNAPSHOT_SENTINEL'), false)
 })
 
-test('runAgentSession does not stop merely because a perception turn verified successfully', async () => {
+test('runAgentSession does not stop merely because distinct perception turns verified successfully', async () => {
   const { port } = createObservedPort()
 
   const result = await runAgentSession(port, {
@@ -605,7 +606,7 @@ test('runAgentSession does not stop merely because a perception turn verified su
           name: 'perception.computeCorrelation',
           target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
           params: {
-            xField: 'Horsepower',
+            xField: `Horsepower_${priorTurns.length}`,
             yField: 'Miles_per_Gallon',
           },
         },
@@ -618,6 +619,48 @@ test('runAgentSession does not stop merely because a perception turn verified su
   assert.equal(result.status, 'stopped')
   assert.equal(result.turns.length, 3)
   assert.equal(result.turns.every((turn) => turn?.act?.kind === 'perception'), true)
+})
+
+test('runAgentSession stops as no_progress after an identical verified operation returns identical evidence', async () => {
+  const { port } = createObservedPort({
+    async queryPerception(call) {
+      return {
+        ok: true,
+        queryName: call.name,
+        result: {
+          rowCount: 1000,
+          groups: [{ 'race/ethnicity': 'group C', mathMean: 64.46 }],
+        },
+      }
+    },
+  })
+
+  const result = await runAgentSession(port, {
+    objective: 'Find the mean math score for group C.',
+    maxTurns: 6,
+    planner: async () => ({
+      assistantMessage: 'Read the grouped summary.',
+      rationale: 'The grouped mean is required.',
+      operation: {
+        kind: 'perception',
+        name: 'perception.summarizeVisible',
+        target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+        params: {
+          groupBy: ['race/ethnicity'],
+          fields: ['math score'],
+          metrics: ['mean'],
+        },
+      },
+    }),
+    reasoner: async () => ({
+      answer: 'The mean math score for group C is 64.46.',
+      completion: { status: 'continue' },
+    }),
+  })
+
+  assert.equal(result.stopReason, 'no_progress')
+  assert.equal(result.status, 'stopped')
+  assert.equal(result.turns.length, 2)
 })
 
 test('runAgentSession stops when the reason stage explicitly marks the objective as answered', async () => {

@@ -25,6 +25,29 @@ function deriveFormalRecoverableState(result = {}) {
     || null
 }
 
+function deriveFormalResultFingerprint(result = {}, operationKind = null) {
+  if (operationKind !== 'perception' && operationKind !== 'data_query') return null
+  const runtimeResult = Object.prototype.hasOwnProperty.call(result, 'result')
+    ? result.result
+    : Object.prototype.hasOwnProperty.call(result?.actionResult || {}, 'result')
+      ? result.actionResult.result
+      : undefined
+  if (runtimeResult === undefined) return null
+
+  let serialized
+  try {
+    serialized = JSON.stringify(runtimeResult)
+  } catch {
+    return null
+  }
+  let hash = 0x811c9dc5
+  for (let index = 0; index < serialized.length; index += 1) {
+    hash ^= serialized.charCodeAt(index)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`
+}
+
 function deriveFormalError(result = {}) {
   const error = result?.actionResult?.error || result?.error || null
   return error && typeof error === 'object' && !Array.isArray(error) ? clone(error) : null
@@ -331,6 +354,7 @@ export function buildFormalActPayload(plan = {}, result = {}) {
   const error = deriveFormalError(result)
   const recoveryHints = deriveFormalRecoveryHints(result)
   const recoverableState = deriveFormalRecoverableState(result)
+  const resultFingerprint = deriveFormalResultFingerprint(result, operation.kind)
   return {
     kind: operation.kind,
     name: operation.name || operation.query?.kind || 'data_query',
@@ -338,6 +362,7 @@ export function buildFormalActPayload(plan = {}, result = {}) {
     ...(operation.target ? { target: clone(operation.target) } : {}),
     ok: deriveFormalActOk(result),
     outputSummary: summarizeFormalRuntimePayload(result),
+    ...(resultFingerprint ? { resultFingerprint } : {}),
     stateId: deriveFormalStateId(result),
     updatedRefs: deriveFormalUpdatedRefs(result),
     ...(recoverableState ? { recoverableState: clone(recoverableState) } : {}),

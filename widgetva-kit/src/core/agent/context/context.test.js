@@ -208,6 +208,9 @@ test('buildAgentHistory is independent from knowledge', () => {
         act: {
           kind: 'action',
           name: 'bar.selectCategory',
+          target: {
+            widgetRef: 'wl://widgetva-app/workspace/weather/widget/w_weather_bar',
+          },
           params: {
             field: 'weather',
             values: ['snow'],
@@ -231,6 +234,9 @@ test('buildAgentHistory is independent from knowledge', () => {
       operation: {
         kind: 'action',
         name: 'bar.selectCategory',
+        target: {
+          widgetRef: 'wl://widgetva-app/workspace/weather/widget/w_weather_bar',
+        },
         paramsSummary: 'field=weather; values=[snow]',
       },
       status: {

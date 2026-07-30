@@ -157,6 +157,45 @@ test('runtime payload summary exposes nested perception evidence values', () => 
   )
 })
 
+test('formal perception act fingerprints but does not retain the full runtime result', () => {
+  const result = {
+    dataRef: 'wl://demo/workspace/main/data/students_visible',
+    rowCount: 1000,
+    groups: [
+      { 'race/ethnicity': 'group A', count: 89, mathMean: 61.63 },
+      { 'race/ethnicity': 'group C', count: 319, mathMean: 64.46 },
+    ],
+  }
+
+  const act = buildFormalActPayload({
+    operation: {
+      kind: 'perception',
+      name: 'perception.summarizeVisible',
+      target: { widgetRef: 'wl://widgetva-app/workspace/students/widget/w_students_bar' },
+      params: {
+        groupBy: ['race/ethnicity'],
+        fields: ['math score'],
+        metrics: ['count', 'mean'],
+      },
+    },
+  }, {
+    ok: true,
+    queryName: 'perception.summarizeVisible',
+    result,
+  })
+
+  assert.equal('result' in act, false)
+  assert.match(act.resultFingerprint, /^fnv1a32:/)
+
+  const repeatedAct = buildFormalActPayload({
+    operation: {
+      kind: 'perception',
+      name: 'perception.summarizeVisible',
+    },
+  }, { ok: true, result })
+  assert.equal(repeatedAct.resultFingerprint, act.resultFingerprint)
+})
+
 test('runtime payload summary exposes ranked rows, anomaly, and sankey evidence', () => {
   assert.equal(
     summarizeFormalRuntimePayload({

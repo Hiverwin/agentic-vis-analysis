@@ -522,6 +522,7 @@ export async function runAgentLoop(target, options = {}) {
     result: clone(execution.result),
     verification: clone(verification),
     latestCoordinationResult: clone(latestCoordinationResult),
+    plannerContext: clone(plannerContext),
     responseRequirements: clone(responseRequirements),
   })
 
@@ -620,7 +621,7 @@ export async function runAgentSession(target, options = {}) {
       })
     }
 
-    const resolvedStopReason = shouldStopAgentSession(turn)
+    const resolvedStopReason = shouldStopAgentSession(turn, { turns })
     if (resolvedStopReason) {
       stopReason = resolvedStopReason
       break
@@ -659,7 +660,7 @@ export async function runAgentSession(target, options = {}) {
       ? 'failed'
       : stopReason === 'answered'
       ? 'completed'
-      : stopReason === 'stopped' || stopReason === 'turn_budget_reached'
+      : stopReason === 'stopped' || stopReason === 'no_progress' || stopReason === 'turn_budget_reached'
         ? 'stopped'
         : 'completed'
 

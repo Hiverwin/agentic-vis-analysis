@@ -42,6 +42,7 @@ export function summarizeTurnForSession(turn = {}, index = 0) {
   const actKind = turn?.act?.kind || null
   const actName = turn?.act?.name || null
   const paramsSummary = summarizeParams(turn?.act?.params)
+  const target = isPlainObject(turn?.act?.target) ? clone(turn.act.target) : null
   const resultSummary = readNonEmptyString(turn?.act?.outputSummary)
     || readNonEmptyString(turn?.result?.summary)
     || null
@@ -57,6 +58,7 @@ export function summarizeTurnForSession(turn = {}, index = 0) {
     operation: {
       kind: actKind,
       name: actName,
+      ...(target ? { target } : {}),
       ...(paramsSummary ? { paramsSummary } : {}),
     },
     status: {
@@ -105,11 +107,49 @@ export function readTurnCompletionStatus(turn = null) {
   return null
 }
 
-export function shouldStopAgentSession(turn = null) {
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map((entry) => stableJson(entry)).join(',')}]`
+  if (isPlainObject(value)) {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`
+  }
+  return JSON.stringify(value)
+}
+
+function repeatedPerceptionMadeNoProgress(turns = []) {
+  if (!Array.isArray(turns) || turns.length < 2) return false
+  const previous = turns.at(-2)
+  const current = turns.at(-1)
+  const currentKind = current?.act?.kind
+  if (currentKind !== 'perception' && currentKind !== 'data_query') return false
+  if (previous?.act?.kind !== currentKind) return false
+  if (previous?.act?.ok !== true || current?.act?.ok !== true) return false
+  if (previous?.verify?.ok !== true || current?.verify?.ok !== true) return false
+  if (typeof previous?.act?.resultFingerprint !== 'string') return false
+  if (typeof current?.act?.resultFingerprint !== 'string') return false
+
+  const previousOperation = {
+    name: previous.act.name || null,
+    target: previous.act.target || null,
+    params: previous.act.params || null,
+  }
+  const currentOperation = {
+    name: current.act.name || null,
+    target: current.act.target || null,
+    params: current.act.params || null,
+  }
+  return stableJson(previousOperation) === stableJson(currentOperation)
+    && previous.act.resultFingerprint === current.act.resultFingerprint
+}
+
+export function shouldStopAgentSession(turn = null, { turns = [] } = {}) {
   if (!turn || typeof turn !== 'object') return null
 
   const completionStatus = readTurnCompletionStatus(turn)
-  if (completionStatus === 'answered' || completionStatus === 'completed') {
+  if (
+    (completionStatus === 'answered' || completionStatus === 'completed')
+    && turn?.act?.ok !== false
+    && turn?.verify?.ok === true
+  ) {
     return 'answered'
   }
   if (completionStatus === 'stopped' || completionStatus === 'failed') {
@@ -123,6 +163,8 @@ export function shouldStopAgentSession(turn = null) {
   if ((turn?.act?.kind === 'perception' || turn?.act?.kind === 'data_query') && turn?.verify?.ok === false) {
     return 'stopped'
   }
+
+  if (repeatedPerceptionMadeNoProgress(turns)) return 'no_progress'
 
   return null
 }
