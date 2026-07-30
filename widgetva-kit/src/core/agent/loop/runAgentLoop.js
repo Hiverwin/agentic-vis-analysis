@@ -646,7 +646,11 @@ export async function runAgentSession(target, options = {}) {
     if (typeof synthesis === 'string') {
       finalAnswer = synthesis
     } else if (synthesis && typeof synthesis === 'object') {
-      finalAnswer = synthesis.finalAnswer || synthesis.answer || finalAnswer
+      if (Object.prototype.hasOwnProperty.call(synthesis, 'finalAnswer')) {
+        finalAnswer = synthesis.finalAnswer
+      } else if (Object.prototype.hasOwnProperty.call(synthesis, 'answer')) {
+        finalAnswer = synthesis.answer
+      }
     }
   }
 

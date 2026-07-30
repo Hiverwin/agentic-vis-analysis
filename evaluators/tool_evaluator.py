@@ -1,7 +1,6 @@
 """Tool Score over executed structured calls and required benchmark steps."""
 
 from dataclasses import dataclass
-import re
 from typing import Any, Dict, List
 
 from .common import value_match
@@ -27,22 +26,19 @@ class ToolEvaluator:
             dependencies = [step_id for step_id in step.get("depends_on", []) if step_id in required_ids]
             dependency_matches = [matches_by_id.get(step_id) for step_id in dependencies]
             dependency_satisfied = all(match and match.get("matched") for match in dependency_matches)
-            first_index = (
-                max(match["actual_index"] for match in dependency_matches) + 1
-                if dependency_satisfied and dependency_matches
-                else 0
-            )
+            # Dependencies constrain ordering only. They must not prevent an
+            # independently executed child step from earning its own score.
+            first_index = 0
             best_index = None
             best_score = 0.0
-            if dependency_satisfied:
-                for index, call in enumerate(actual):
-                    if index < first_index:
-                        continue
-                    if index in used:
-                        continue
-                    score = self._match_score(step, call)
-                    if score > best_score:
-                        best_index, best_score = index, score
+            for index, call in enumerate(actual):
+                if index < first_index:
+                    continue
+                if index in used:
+                    continue
+                score = self._match_score(step, call)
+                if score > best_score:
+                    best_index, best_score = index, score
             matched = best_index is not None and best_score == 1.0
             if matched:
                 used.add(best_index)
@@ -50,7 +46,19 @@ class ToolEvaluator:
                 "step_id": step.get("step_id"),
                 "score": best_score,
                 "matched": matched,
-                "dependency_satisfied": dependency_satisfied and (not dependencies or matched),
+                "dependency_satisfied": dependency_satisfied,
+                "order_ok": (
+                    True if not dependencies else None
+                    if not all(
+                        dependency_matches[index].get("actual_index") is not None
+                        for index in range(len(dependency_matches))
+                    ) else bool(
+                        matched and all(
+                            dependency_matches[index]["actual_index"] < best_index
+                            for index in range(len(dependency_matches))
+                        )
+                    )
+                ),
                 "actual_index": best_index if matched else None,
             }
             matches_by_id[step.get("step_id")] = match
@@ -98,60 +106,14 @@ class ToolEvaluator:
         actual_params = actual.get("params", {})
         if not expected_params:
             return 1.0
-        matched = 0
-        for key, value in expected_params.items():
-            if key == "measures":
-                expected_measures = self._canonical_measures(expected_params)
-                actual_measures = self._canonical_measures(actual_params)
-                matched += int(bool(expected_measures) and expected_measures == actual_measures)
-            else:
-                matched += int(value_match(actual_params.get(key), value))
+        matched = sum(
+            int(value_match(actual_params.get(key), value))
+            for key, value in expected_params.items()
+        )
         return matched / len(expected_params)
 
     @staticmethod
-    def _canonical_measures(params: Dict[str, Any]) -> List[tuple[str, Any]]:
-        """Normalize benchmark ``measures`` and runtime ``metrics/fields``.
-
-        The Kit runtime exposes compact query parameters such as
-        ``metrics=["count", "mean"]`` plus ``fields=[...]`` while older
-        benchmark fixtures describe the same request as measure objects.
-        Aliases (and measure output names) are intentionally ignored because
-        they do not change the requested computation.
-        """
-        explicit = params.get("measures")
-        if isinstance(explicit, list):
-            measures = []
-            for measure in explicit:
-                if not isinstance(measure, dict):
-                    continue
-                operation = measure.get("op") or measure.get("metric")
-                if not isinstance(operation, str):
-                    continue
-                measures.append((operation, measure.get("field")))
-            return sorted(measures)
-
-        metrics = params.get("metrics")
-        if not isinstance(metrics, list):
-            return []
-        fields = params.get("fields")
-        fields = fields if isinstance(fields, list) else []
-        measures = []
-        for metric in metrics:
-            if not isinstance(metric, str):
-                continue
-            if metric == "count" or not fields:
-                measures.append((metric, None))
-            else:
-                measures.extend((metric, field) for field in fields)
-        return sorted(measures)
-
-    @staticmethod
     def _widget_identity(widget_ref: Any) -> Any:
-        if not isinstance(widget_ref, str):
-            return widget_ref
-        match = re.search(r"/workspace/([^/]+)/widget/([^/]+)", widget_ref)
-        if match:
-            return match.group(1), match.group(2)
         return widget_ref
 
     @staticmethod

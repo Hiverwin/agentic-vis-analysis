@@ -196,12 +196,7 @@ test('planner receives answer requirements derived from check types without expe
     objective: 'Answer the question.',
     responseRequirements: {
       mode: 'verifiable',
-      fields: [
-        { field: 'answer', type: 'categorical' },
-        { field: 'score', type: 'numeric' },
-        { field: 'period', type: 'interval' },
-        { field: 'causal_claim', type: 'boolean' },
-      ],
+      answerTypes: ['categorical', 'numeric', 'interval', 'boolean'],
     },
     knowledge: { widgetFamilies: [{ kind: 'scatter', actions: [], perceptions: ['perception.summarizeVisible'] }] },
     observe: {
@@ -1609,6 +1604,42 @@ test('runNaturalLanguageAgentSession returns a final synthesis answer from the e
   const finalSystemPrompt = finalRequest?.messages?.[0]?.content || ''
   assert.match(finalSystemPrompt, /every completed turn/i)
   assert.match(finalSystemPrompt, /do not return only the last turn/i)
+})
+
+test('final synthesis uses typed machine answer mode when response requirements are verifiable', async () => {
+  const requests = []
+  const finalSynthesizer = createNaturalLanguageFinalSynthesizer({
+    completeChat: async (request) => {
+      requests.push(request)
+      return { content: JSON.stringify({ answer: 42 }) }
+    },
+  })
+
+  const result = await finalSynthesizer({
+    objective: 'Summarize the measured result.',
+    turns: [{ index: 0, reason: { answer: 'The score is 42 for group A.' } }],
+    responseRequirements: {
+      mode: 'verifiable',
+      answerType: 'numeric',
+    },
+  })
+
+  assert.equal(result.answer, 42)
+  const systemPrompt = requests[0]?.messages?.[0]?.content || ''
+  assert.match(systemPrompt, /machine answer mode/i)
+  assert.match(systemPrompt, /single answer type/i)
+  assert.match(systemPrompt, /return null rather than guessing/i)
+})
+
+test('final synthesis rejects prose when machine answer type is numeric', async () => {
+  const finalSynthesizer = createNaturalLanguageFinalSynthesizer({
+    completeChat: async () => ({ content: JSON.stringify({ answer: 'The score is 42.' }) }),
+  })
+  const result = await finalSynthesizer({
+    objective: 'Return the score.',
+    responseRequirements: { mode: 'verifiable', answerType: 'numeric' },
+  })
+  assert.equal(result.answer, null)
 })
 
 test('final synthesizer preserves all progress evidence when its response is invalid', async () => {

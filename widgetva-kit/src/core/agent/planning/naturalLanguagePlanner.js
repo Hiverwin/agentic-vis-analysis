@@ -426,6 +426,7 @@ function buildFinalSynthesisMessages({
   stopReason,
   responseRequirements = null,
 } = {}) {
+  const machineAnswerMode = responseRequirements?.mode === 'verifiable'
   const systemPrompt = [
     'You are the final synthesis stage of a widget-based visual analytics agent.',
     'Synthesize the final answer from the user objective and every completed turn.',
@@ -434,10 +435,22 @@ function buildFinalSynthesisMessages({
     'Do not propose new actions.',
     'Do not mention raw provider internals unless necessary.',
     'Ground the answer in WidgetVA observations and action/perception results.',
-    'When responseRequirements are present, answer every listed field in the answer text using its requested form: numeric with a parseable number, boolean with an explicit yes/no or true/false, interval with ordered start/end bounds, and categorical with an explicit label.',
-    'Keep the answer readable, but do not omit required fields or replace a typed value with vague prose.',
+    ...(machineAnswerMode
+      ? [
+        'This is machine answer mode because responseRequirements.mode is verifiable.',
+        'Use only the single answer type in responseRequirements.answerType; never emit any other type.',
+        'Do not put prose, explanations, evidence, or turn summaries inside answer.',
+        'For numeric return a JSON number, for categorical return a string label, for boolean return yes or no, and for interval return a two-element ordered array [start, end]. Return exactly one value, not a prose explanation or an array of different answer types.',
+        'If a field is not supported by completed turns, return null rather than guessing.',
+      ]
+      : [
+        'When responseRequirements are present in a human-readable mode, answer every listed field in readable text using its requested form.',
+        'Keep the answer readable, but do not omit required fields or replace a typed value with vague prose.',
+      ]),
     'Return JSON only.',
-    'The JSON must contain answer.',
+    machineAnswerMode
+      ? 'The JSON must have exactly one top-level key, answer, whose value is the typed answer value or ordered array of typed values.'
+      : 'The JSON must contain answer.',
   ].join(' ')
 
   const compactTurns = Array.isArray(turns)
@@ -469,6 +482,15 @@ function buildFinalSynthesisMessages({
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt },
   ]
+}
+
+function isTypedAnswer(value, answerType) {
+  if (value == null) return false
+  if (answerType === 'numeric') return typeof value === 'number' && Number.isFinite(value)
+  if (answerType === 'boolean') return typeof value === 'string' && /^(yes|no)$/i.test(value.trim())
+  if (answerType === 'interval') return Array.isArray(value) && value.length === 2
+  if (answerType === 'categorical') return typeof value === 'string' && value.trim().length > 0
+  return false
 }
 
 function looksLikeAgentObservation(observe = null) {
@@ -979,11 +1001,20 @@ export function createNaturalLanguageFinalSynthesizer({
     const fallbackAnswer = fallbackAnswers.length > 0
       ? fallbackAnswers.join('\n')
       : 'Completed the requested WidgetVA analysis.'
+    const machineAnswer = null
+    const parsedAnswer = parsed?.answer
+    const typedAnswer = responseRequirements?.mode === 'verifiable'
+      ? (isTypedAnswer(parsedAnswer, responseRequirements.answerType) ? parsedAnswer : null)
+      : parsedAnswer
 
     return {
-      answer: typeof parsed?.answer === 'string' && parsed.answer.trim().length > 0
-        ? parsed.answer.trim()
-        : fallbackAnswer,
+      answer: responseRequirements?.mode === 'verifiable'
+        ? (typedAnswer !== null
+          ? typedAnswer
+          : machineAnswer)
+        : (typeof parsedAnswer === 'string' && parsedAnswer.trim().length > 0
+          ? parsedAnswer.trim()
+          : fallbackAnswer),
       rawResponse: clone(response?.raw || null),
       rawContent: content,
     }

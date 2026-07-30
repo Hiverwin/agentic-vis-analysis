@@ -107,10 +107,14 @@ class AnswerEvaluator:
     def evaluate(self, predicted: Any, config: Dict[str, Any]) -> AnswerEvalResult:
         if config.get("type") == "open_ended_insight":
             return self._evaluate_open(predicted, config)
+        if config.get("type") in {"numeric", "boolean", "categorical", "interval"} and "value" in config:
+            return self._evaluate_typed(predicted, config)
         checks = config.get("checks", [])
         if not checks:
             expected = config.get("answer", config.get("expected"))
             checks = [{"check": "categorical", "expected": expected}]
+        if isinstance(predicted, dict) and "answer" in predicted:
+            return self._evaluate_structured(predicted["answer"], checks)
         text = answer_text(predicted)
         numeric_candidates = extract_numbers(text)
         used_numeric_candidates = set()
@@ -122,6 +126,122 @@ class AnswerEvaluator:
             score=sum(item["score"] for item in results) / len(results),
             details={"mode": "rules", "checks": results},
         )
+
+    def _evaluate_typed(self, predicted: Any, config: Dict[str, Any]) -> AnswerEvalResult:
+        """Score the single machine answer value declared by an instance."""
+        answer = predicted.get("answer") if isinstance(predicted, dict) and "answer" in predicted else predicted
+        answer_type = config["type"]
+        expected = config["value"]
+        tolerance = float(config.get("tolerance", 0.0))
+        actual = answer
+        if answer_type == "numeric":
+            ok = isinstance(answer, (int, float)) and not isinstance(answer, bool)
+            ok = ok and abs(float(answer) - float(expected)) <= tolerance
+        elif answer_type == "boolean":
+            actual_bool = self._typed_boolean(answer)
+            expected_bool = self._typed_boolean(expected)
+            ok = actual_bool is not None and actual_bool == expected_bool
+            actual = actual_bool
+        elif answer_type == "interval":
+            ok = self._match_structured_value(answer, expected, "interval", tolerance)
+            actual = self._structured_actual(answer, "interval")
+        else:
+            alternatives = [expected, *(config.get("alternatives") or [])]
+            ok, match_mode, judge_details = self._categorical_match_with_fallback(str(answer), alternatives)
+        details = {
+            "mode": "typed",
+            "type": answer_type,
+            "expected": expected,
+            "actual": actual,
+            "score": 1.0 if ok else 0.0,
+        }
+        if answer_type == "categorical":
+            details["match_mode"] = match_mode
+            if judge_details:
+                details["judge"] = judge_details
+        return AnswerEvalResult(score=1.0 if ok else 0.0, details=details)
+
+    @staticmethod
+    def _typed_boolean(value: Any) -> bool | None:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            normalized = value.strip().lower().rstrip(".! ")
+            if normalized in {"yes", "true"}:
+                return True
+            if normalized in {"no", "false"}:
+                return False
+        return None
+
+    def _evaluate_structured(self, answer: Any, checks: list[Dict[str, Any]]) -> AnswerEvalResult:
+        results = []
+        for index, check in enumerate(checks):
+            field = check.get("field") or f"answer_{index + 1}"
+            check_type = check.get("check", "categorical")
+            expected = check.get("expected", check.get("value"))
+            if len(checks) == 1:
+                actual = answer
+            elif isinstance(answer, (list, tuple)):
+                actual = answer[index] if index < len(answer) else None
+            else:
+                actual = None
+            tolerance = float(check.get("tolerance", 0.0))
+            ok = self._match_structured_value(actual, expected, check_type, tolerance)
+            results.append({
+                "field": field,
+                "check": check_type,
+                "expected": expected,
+                "actual": self._structured_actual(actual, check_type),
+                "score": 1.0 if ok else 0.0,
+            })
+        return AnswerEvalResult(
+            score=sum(item["score"] for item in results) / len(results),
+            details={"mode": "structured", "checks": results},
+        )
+
+    @staticmethod
+    def _structured_actual(actual: Any, check_type: str) -> Any:
+        if check_type == "interval":
+            bounds = _interval_bounds(actual)
+            if bounds is not None:
+                return {"start": bounds[0], "end": bounds[1]}
+        return actual
+
+    @staticmethod
+    def _match_structured_value(actual: Any, expected: Any, check_type: str, tolerance: float) -> bool:
+        if actual is None:
+            return False
+        if check_type == "numeric":
+            return isinstance(actual, (int, float)) and not isinstance(actual, bool) and abs(float(actual) - float(expected)) <= tolerance
+        if check_type == "boolean":
+            def normalize(value: Any) -> str | None:
+                if isinstance(value, bool):
+                    return "yes" if value else "no"
+                if isinstance(value, str) and value.strip().lower() in {"yes", "true", "no", "false"}:
+                    return "yes" if value.strip().lower() in {"yes", "true"} else "no"
+                return None
+            return normalize(actual) is not None and normalize(actual) == normalize(expected)
+        if check_type == "interval":
+            actual_bounds = _interval_bounds(actual)
+            expected_bounds = _interval_bounds(expected)
+            if actual_bounds is None or expected_bounds is None:
+                return False
+            actual_dates = [_parse_date(value) for value in actual_bounds]
+            expected_dates = [_parse_date(value) for value in expected_bounds]
+            if all(actual_dates) and all(expected_dates):
+                return actual_dates == expected_dates
+            actual_numbers = extract_numbers(list(actual_bounds))
+            expected_numbers = extract_numbers(list(expected_bounds))
+            return len(actual_numbers) == len(expected_numbers) == 2 and all(
+                abs(left - right) <= tolerance for left, right in zip(actual_numbers, expected_numbers)
+            )
+        if isinstance(expected, list):
+            if isinstance(actual, list):
+                return len(actual) == len(expected) and all(
+                    any(categorical_match(str(item), target) for target in expected) for item in actual
+                )
+            return any(categorical_match(str(actual), item) for item in expected)
+        return categorical_match(str(actual), expected)
 
     def _check(
         self,

@@ -17,6 +17,73 @@ def test_answer_parser_handles_tatqa_number_and_percent_scale():
     ).score == 1.0
 
 
+def test_answer_type_value_contract_scores_one_machine_answer():
+    evaluator = AnswerEvaluator()
+    assert evaluator.evaluate(
+        {"answer": 30},
+        {"type": "numeric", "value": 30, "tolerance": 0},
+    ).score == 1.0
+    assert evaluator.evaluate(
+        {"answer": "Yes"},
+        {"type": "boolean", "value": "Yes"},
+    ).score == 1.0
+    assert evaluator.evaluate(
+        {"answer": ["2026-03-01", "2026-03-31"]},
+        {"type": "interval", "value": ["2026-03-01", "2026-03-31"]},
+    ).score == 1.0
+
+
+def test_answer_type_value_contract_does_not_extract_multiple_facts_from_prose():
+    result = AnswerEvaluator().evaluate(
+        {"answer": "The anomaly was on March 9 with signal 30."},
+        {"type": "numeric", "value": 30, "tolerance": 0},
+    )
+    assert result.score == 0.0
+    assert result.details["mode"] == "typed"
+
+
+def test_machine_answer_uses_typed_fields_without_text_parsing():
+    result = AnswerEvaluator().evaluate(
+        {"answer": [319, 89]},
+        {"type": "verifiable_target", "checks": [
+            {"check": "numeric", "expected": 319, "tolerance": 0},
+            {"check": "numeric", "expected": 89, "tolerance": 0},
+        ]},
+    )
+
+    assert result.score == 1.0
+    assert result.details["mode"] == "structured"
+    assert [item["actual"] for item in result.details["checks"]] == [319, 89]
+
+
+def test_machine_answer_does_not_fall_back_to_prose_for_missing_typed_field():
+    result = AnswerEvaluator().evaluate(
+        {"answer": [319]},
+        {
+            "type": "verifiable_target",
+            "checks": [
+                {"field": "largest_count", "check": "numeric", "expected": 319},
+                {"field": "smallest_count", "check": "numeric", "expected": 89},
+            ],
+        },
+    )
+
+    assert result.score == 0.5
+    assert result.details["checks"][1]["actual"] is None
+
+
+def test_machine_answer_accepts_agent_session_scalar_and_interval_values():
+    evaluator = AnswerEvaluator()
+    assert evaluator.evaluate(
+        42,
+        {"type": "verifiable_target", "checks": [{"check": "numeric", "expected": 42}]},
+    ).score == 1.0
+    assert evaluator.evaluate(
+        ["2020-01-01", "2020-01-07"],
+        {"type": "verifiable_target", "checks": [{"check": "interval", "expected": ["2020-01-01", "2020-01-07"]}]},
+    ).score == 1.0
+
+
 def test_open_answer_uses_reference_insight_claims_and_structured_judge():
     evaluator = AnswerEvaluator(
         judge=lambda answer, reference: {
@@ -157,9 +224,8 @@ def test_answer_evaluation_uses_answer_text_even_when_legacy_values_are_present(
         },
     )
 
-    assert result.score == 1.0
-    assert [item["actual"] for item in result.details["checks"][:2]] == [319.0, 89.0]
-    assert "Group C" in result.details["checks"][2]["actual"]
+    assert result.score == 0.0
+    assert result.details["mode"] == "structured"
 
 
 def test_answer_text_supports_numeric_and_categorical_checks():
@@ -172,7 +238,7 @@ def test_answer_text_supports_numeric_and_categorical_checks():
         ]},
     )
 
-    assert result.score == 1.0
+    assert result.score == 0.0
 
 
 def test_answer_evaluation_falls_back_to_text_when_legacy_values_are_empty():
@@ -183,8 +249,8 @@ def test_answer_evaluation_falls_back_to_text_when_legacy_values_are_empty():
         ]},
     )
 
-    assert result.score == 1.0
-    assert result.details["checks"][0]["actual"] == 319.0
+    assert result.score == 0.0
+    assert result.details["mode"] == "structured"
 
 
 def test_answer_evaluation_uses_readable_answer_when_values_are_empty():
@@ -368,15 +434,15 @@ def test_tool_matches_required_cross_widget_milestones_in_dependency_order():
         {
             "step_id": "select_group_c",
             "operation": "bar.selectCategory",
-            "target_widget_ref": "wl://widgetva-app/workspace/students/widget/bar",
+                "target_widget_ref": "wl://visagentbench/workspace/students/widget/bar",
             "params": {"field": "cohort", "values": ["C"]},
             "requirement": "required",
         },
         {
             "step_id": "observe_group_c",
             "operation": "perception.summarizeVisible",
-            "target_widget_ref": "wl://widgetva-app/workspace/students/widget/scatter",
-            "params": {"measures": [{"op": "count", "as": "count"}]},
+                "target_widget_ref": "wl://visagentbench/workspace/students/widget/scatter",
+            "params": {"metrics": ["count"]},
             "depends_on": ["select_group_c"],
             "requirement": "required",
         },
@@ -393,7 +459,7 @@ def test_tool_matches_required_cross_widget_milestones_in_dependency_order():
                 "step_id": "step_2",
                 "operation": "perception.summarizeVisible",
                 "target_widget_ref": "wl://visagentbench/workspace/students/widget/scatter",
-                "params": {"measures": [{"op": "count", "as": "count"}]},
+                "params": {"metrics": ["count"]},
             },
         ],
         "executions": [
@@ -406,6 +472,49 @@ def test_tool_matches_required_cross_widget_milestones_in_dependency_order():
 
     assert evaluated.score == 1.0
     assert evaluated.details["required"]["matched"] == 2
+
+
+def test_tool_matches_canonical_runtime_metrics_and_fields():
+    instance = {"evaluation": {"tool": {"steps": [{
+        "step_id": "summarize_profile",
+        "operation": "perception.summarizeVisible",
+        "target_widget_ref": "widget-1",
+        "params": {
+            "groupBy": ["segment"],
+            "metrics": ["count", "mean"],
+            "fields": ["math score", "reading score"],
+        },
+        "requirement": "required",
+    }]}}}
+    result = {"tool": {
+        "steps": [{
+            "step_id": "step_1",
+            "operation": "perception.summarizeVisible",
+            "target_widget_ref": "widget-1",
+            "params": {
+                "groupBy": ["segment"],
+                "metrics": ["count", "mean"],
+                "fields": ["math score", "reading score"],
+            },
+        }],
+        "executions": [{
+            "step_id": "step_1",
+            "execution": {
+                "ok": True,
+                "name": "perception.summarizeVisible",
+                "params": {
+                    "groupBy": ["segment"],
+                    "metrics": ["count", "mean"],
+                    "fields": ["math score", "reading score"],
+                },
+            },
+        }],
+    }}
+
+    evaluated = ToolEvaluator().evaluate(instance, result)
+
+    assert evaluated.score == 1.0
+    assert evaluated.details["required"]["matched"] == 1
 
 
 def test_tool_partial_parameter_match_does_not_satisfy_a_required_dependency():
@@ -451,6 +560,8 @@ def test_tool_partial_parameter_match_does_not_satisfy_a_required_dependency():
 
     assert evaluated.details["required"]["steps"][0]["matched"] is False
     assert evaluated.details["required"]["steps"][1]["dependency_satisfied"] is False
+    assert evaluated.details["required"]["steps"][1]["matched"] is True
+    assert evaluated.details["required"]["steps"][1]["order_ok"] is None
 
 
 def test_tool_rejects_linked_observation_that_happens_before_required_source_action():
@@ -484,8 +595,9 @@ def test_tool_rejects_linked_observation_that_happens_before_required_source_act
 
     evaluated = ToolEvaluator().evaluate(instance, result)
 
-    assert evaluated.score == 0.5
-    assert evaluated.details["required"]["steps"][1]["dependency_satisfied"] is False
+    assert evaluated.score == 1.0
+    assert evaluated.details["required"]["steps"][1]["dependency_satisfied"] is True
+    assert evaluated.details["required"]["steps"][1]["order_ok"] is False
 
 
 def test_state_uses_canonical_checks_and_returns_null_when_inapplicable():
@@ -542,6 +654,145 @@ def test_state_reports_each_final_multi_widget_check_and_runner_resolves_host_ag
     assert evaluated.details["checks"][0]["state_ref"].endswith("/widget/bar")
     assert evaluated.details["checks"][1]["property"] == "transforms"
     assert "values" not in result["answer"]
+
+
+def test_state_matches_runtime_selection_and_filter_semantics_without_representation_fields():
+    evaluation = {"state": {"applicable": True, "checks": [
+        {
+            "check_id": "source_final",
+            "state_ref": "wl://widgetva-app/workspace/students/widget/bar",
+            "property": "selections",
+            "expected": {
+                "kind": "predicate",
+                "predicates": [{"field": "cohort", "op": "in", "value": ["A"]}],
+            },
+        },
+        {
+            "check_id": "target_final",
+            "state_ref": "wl://widgetva-app/workspace/students/widget/scatter",
+            "property": "transforms",
+            "expected": {
+                "kind": "filter",
+                "linkId": "wl://widgetva-app/workspace/students/link/bar-filter",
+                "sourceWidgetId": "bar",
+                "predicate": {"field": "cohort", "op": "in", "value": ["A"]},
+            },
+        },
+    ]}}
+    result = {"state": {"checks": [
+        {
+            "check_id": "source_final",
+            "actual": {
+                "wl://widgetva-app/workspace/students/widget/bar/selection/cohort": {
+                    "kind": "predicate",
+                    "predicates": [{"field": "cohort", "op": "in", "value": ["A"]}],
+                },
+            },
+        },
+        {
+            "check_id": "target_final",
+            "actual": [{
+                "kind": "filter",
+                "linkId": "wl://widgetva-app/workspace/students/link/bar-filter",
+                "sourceWidgetId": "bar",
+                "predicate": {"field": "cohort", "op": "in", "value": ["A"]},
+            }],
+        },
+    ]}}
+
+    evaluated = StateEvaluator().evaluate({"evaluation": evaluation}, result)
+
+    assert evaluated.score == 1.0
+
+
+def test_state_preserves_between_and_all_filter_semantics():
+    evaluation = {"state": {"applicable": True, "checks": [{
+        "check_id": "compound_filter",
+        "state_ref": "wl://widgetva-app/workspace/demo/widget/target",
+        "property": "transforms",
+        "expected": {
+            "kind": "filter",
+            "linkId": "wl://widgetva-app/workspace/demo/link/source-target",
+            "sourceWidgetId": "source",
+            "predicate": [
+                {"field": "age", "op": "between", "value": [45, 60]},
+                {"field": "engagement", "op": "between", "value": [0, 40]},
+            ],
+        },
+    }]}}
+    result = {"state": {"checks": [{
+        "check_id": "compound_filter",
+        "actual": [{
+            "kind": "filter",
+            "linkId": "wl://widgetva-app/workspace/demo/link/source-target",
+            "sourceWidgetId": "source",
+            "predicate": [
+                {"field": "age", "op": "between", "value": [45, 60]},
+                {"field": "engagement", "op": "between", "value": [0, 40]},
+            ],
+        }],
+    }]}}
+
+    assert StateEvaluator().evaluate({"evaluation": evaluation}, result).score == 1.0
+
+
+def test_state_matches_canonical_runtime_brush_and_highlight_view():
+    evaluation = {"state": {"applicable": True, "checks": [
+        {
+            "check_id": "brush",
+            "property": "selections",
+            "expected": {
+                "kind": "predicate",
+                "predicates": [
+                    {"field": "age", "op": "between", "value": [45, 60]},
+                    {"field": "engagement", "op": "between", "value": [0, 40]},
+                ],
+            },
+        },
+        {
+            "check_id": "highlight",
+            "property": "view",
+            "expected": {
+                "highlight": {
+                    "relationRef": "wl://widgetva-app/workspace/demo/link/source-highlight",
+                    "sourceStateRef": "wl://widgetva-app/workspace/demo/widget/source/selection/brush",
+                    "predicates": [
+                        {"field": "age", "op": "between", "value": [45, 60]},
+                    ],
+                },
+            },
+        },
+    ]}}
+    result = {"state": {"checks": [
+        {
+            "check_id": "brush",
+            "actual": {
+                "wl://widgetva-app/workspace/demo/widget/source/selection/brush": {
+                    "kind": "predicate",
+                    "predicates": [
+                        {"field": "age", "op": "between", "value": [45, 60]},
+                        {"field": "engagement", "op": "between", "value": [0, 40]},
+                    ],
+                },
+            },
+        },
+        {
+            "check_id": "highlight",
+            "actual": {
+                "xDomain": None,
+                "highlight": {
+                    "relationRef": "wl://widgetva-app/workspace/demo/link/source-highlight",
+                    "sourceStateRef": "wl://widgetva-app/workspace/demo/widget/source/selection/brush",
+                    "predicates": [
+                        {"field": "age", "op": "between", "value": [45, 60]},
+                    ],
+                    "values": [],
+                },
+            },
+        },
+    ]}}
+
+    assert StateEvaluator().evaluate({"evaluation": evaluation}, result).score == 1.0
 
 
 def test_human_summary_shows_three_scores_and_unverified_calls():

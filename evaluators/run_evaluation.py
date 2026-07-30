@@ -23,6 +23,10 @@ def evaluate_one(instance: Dict[str, Any], result: Dict[str, Any]) -> Dict[str, 
         "benchmark_id": instance.get("benchmark_id", result.get("benchmark_id")),
         "task_id": instance.get("task_id", result.get("task_id")),
         "asl": instance.get("asl", result.get("asl")),
+        "answer_determinacy": (
+            instance.get("taxonomy", {}).get("answer_determinacy")
+            or result.get("answer", {}).get("answer_determinacy")
+        ),
         "scores": {"answer": answer.score, "tool": tool.score, "state": state.score},
         "details": {"answer": answer.details, "tool": tool.details, "state": state.details},
     }

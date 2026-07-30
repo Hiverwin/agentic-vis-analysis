@@ -46,11 +46,13 @@ def clone(value: Any) -> Any:
 
 
 def build_response_requirements(instance: dict[str, Any]) -> dict[str, Any]:
-    """Expose answer shape to the model without exposing expected values."""
+    """Expose only answer type labels to the model, never evaluator checks/values."""
     answer_config = ((instance.get("evaluation") or {}).get("answer") or {})
+    declared_type = answer_config.get("type")
+    if declared_type in {"numeric", "boolean", "categorical", "interval"}:
+        return {"mode": "verifiable", "answerType": declared_type}
     checks = answer_config.get("checks") or []
-    fields = []
-    seen = set()
+    answer_types = []
     for check in checks:
         if not isinstance(check, dict):
             continue
@@ -58,13 +60,10 @@ def build_response_requirements(instance: dict[str, Any]) -> dict[str, Any]:
         field = check.get("field")
         if check_type not in {"numeric", "boolean", "interval", "categorical"}:
             continue
-        key = (field, check_type)
-        if key in seen:
-            continue
-        seen.add(key)
-        fields.append({"field": field or f"answer_{len(fields) + 1}", "type": check_type})
-    if fields:
-        return {"mode": "verifiable", "fields": fields}
+        answer_types.append(check_type)
+    if answer_types:
+        # Verifiable instances are intentionally single-answer-type tasks.
+        return {"mode": "verifiable", "answerType": answer_types[0]}
     return {"mode": "open_ended"}
 
 
@@ -266,6 +265,7 @@ def build_scoring_result(
     final_state: dict[str, Any],
     observation_images: list[dict[str, Any]],
     evaluation: dict[str, Any] | None = None,
+    answer_determinacy: str | None = None,
 ) -> dict[str, Any]:
     """Build the compact actual-result surface consumed by evaluators."""
     trace = build_evaluation_trace(session)
@@ -310,6 +310,10 @@ def build_scoring_result(
         })
 
     actual_state_checks = []
+    answer_determinacy = answer_determinacy or (
+        (evaluation or {}).get("taxonomy", {}).get("answer_determinacy")
+        if isinstance(evaluation, dict) else None
+    )
     state_widgets = final_state.get("widgets", {}) if isinstance(final_state, dict) else {}
     expected_state = (evaluation or {}).get("state", {}) if isinstance(evaluation, dict) else {}
     for check in expected_state.get("checks", []) if isinstance(expected_state, dict) else []:
@@ -325,7 +329,9 @@ def build_scoring_result(
         })
 
     return {
+        "answer_determinacy": answer_determinacy,
         "answer": {
+            "answer_determinacy": answer_determinacy,
             "answer": session.get("answer") if isinstance(session, dict) else None,
             "turns": answer_turns,
         },
@@ -655,6 +661,7 @@ def run_benchmark(
             final_state,
             all_images,
             evaluation=instance.get("evaluation"),
+            answer_determinacy=(instance.get("taxonomy") or {}).get("answer_determinacy"),
         )
         result = {
             "task_id": instance["task_id"],
@@ -670,6 +677,7 @@ def run_benchmark(
             "runtime": "widgetva-kit",
             # Actual model-produced evidence only. The benchmark instance's
             # ground-truth evaluation block is intentionally not copied here.
+            "answer_determinacy": scoring.get("answer_determinacy"),
             "answer": scoring["answer"],
             "state": scoring["state"],
             "tool": scoring["tool"],
