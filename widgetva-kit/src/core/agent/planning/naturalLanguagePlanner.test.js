@@ -1639,6 +1639,17 @@ test('final synthesis uses typed machine answer mode when response requirements 
   assert.match(systemPrompt, /return null rather than guessing/i)
 })
 
+test('final synthesis accepts boolean values from the canonical answer contract', async () => {
+  const finalSynthesizer = createNaturalLanguageFinalSynthesizer({
+    completeChat: async () => ({ content: JSON.stringify({ answer: true }) }),
+  })
+  const result = await finalSynthesizer({
+    objective: 'Did the metric improve?',
+    responseRequirements: { mode: 'verifiable', answerType: 'boolean' },
+  })
+  assert.equal(result.answer, true)
+})
+
 test('final synthesis rejects prose when machine answer type is numeric', async () => {
   const finalSynthesizer = createNaturalLanguageFinalSynthesizer({
     completeChat: async () => ({ content: JSON.stringify({ answer: 'The score is 42.' }) }),

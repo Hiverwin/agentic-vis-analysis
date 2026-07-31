@@ -491,10 +491,34 @@ function buildFinalSynthesisMessages({
 function isTypedAnswer(value, answerType) {
   if (value == null) return false
   if (answerType === 'numeric') return typeof value === 'number' && Number.isFinite(value)
-  if (answerType === 'boolean') return typeof value === 'string' && /^(yes|no)$/i.test(value.trim())
+  if (answerType === 'boolean') {
+    return typeof value === 'boolean' || (typeof value === 'string' && /^(yes|no|true|false)$/i.test(value.trim()))
+  }
   if (answerType === 'interval') return Array.isArray(value) && value.length === 2
   if (answerType === 'categorical') return typeof value === 'string' && value.trim().length > 0
   return false
+}
+
+function normalizeTypedAnswer(value, answerType) {
+  if (answerType === 'numeric' && typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value.trim())
+    return Number.isFinite(parsed) ? parsed : value
+  }
+  if (answerType === 'boolean' && typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    if (normalized === 'true' || normalized === 'yes') return true
+    if (normalized === 'false' || normalized === 'no') return false
+  }
+  if (answerType === 'interval' && value && typeof value === 'object' && !Array.isArray(value)) {
+    if (Object.prototype.hasOwnProperty.call(value, 'start') && Object.prototype.hasOwnProperty.call(value, 'end')) {
+      return [value.start, value.end]
+    }
+  }
+  if (answerType === 'categorical' && value && typeof value === 'object' && !Array.isArray(value)) {
+    if (typeof value.value === 'string') return value.value
+    if (typeof value.label === 'string') return value.label
+  }
+  return value
 }
 
 function looksLikeAgentObservation(observe = null) {
@@ -1009,8 +1033,11 @@ export function createNaturalLanguageFinalSynthesizer({
       : 'Completed the requested WidgetVA analysis.'
     const machineAnswer = null
     const parsedAnswer = parsed?.answer
+    const normalizedParsedAnswer = responseRequirements?.mode === 'verifiable'
+      ? normalizeTypedAnswer(parsedAnswer, responseRequirements.answerType)
+      : parsedAnswer
     const typedAnswer = responseRequirements?.mode === 'verifiable'
-      ? (isTypedAnswer(parsedAnswer, responseRequirements.answerType) ? parsedAnswer : null)
+      ? (isTypedAnswer(normalizedParsedAnswer, responseRequirements.answerType) ? normalizedParsedAnswer : null)
       : parsedAnswer
 
     return {

@@ -5,9 +5,19 @@ import os
 import re
 from datetime import date
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from .common import answer_text, categorical_match, extract_numbers, scalar_equal
+
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - optional dependency
+    load_dotenv = None
+
+
+if load_dotenv is not None:
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 
 DATE_PATTERNS = (
@@ -96,7 +106,7 @@ def _match_interval(text: str, expected: Any, tolerance: float) -> tuple[bool, A
 
 @dataclass
 class AnswerEvalResult:
-    score: float
+    score: Optional[float]
     details: Dict[str, Any]
 
 
@@ -332,29 +342,31 @@ class AnswerEvaluator:
             reference = [item.get("claim", "") for item in config["reference_insights"]]
         if reference is None:
             reference = config.get("answer", "")
-        if self.judge is None:
-            self.judge = self._openrouter_judge
-            return AnswerEvalResult(
-                score=self._evaluate_open_with_judge(predicted, reference)[0],
-                details={"mode": "open", "reference": reference, "status": "llm_judge"},
-            )
-        judged = self.judge(answer_text(predicted), reference)
-        precision = float(judged.get("precision", 0.0))
-        recall = float(judged.get("recall", 0.0))
-        groundedness = float(judged.get("groundedness", 0.0))
-        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-        return AnswerEvalResult(score=f1 * groundedness, details={"mode": "open", "reference": reference, **judged})
-
-    def _evaluate_open_with_judge(self, predicted: Any, reference: Any):
+        judge = self.judge or self._openrouter_judge
         try:
-            judged = self.judge(answer_text(predicted), reference)
+            judged = judge(answer_text(predicted), reference)
         except Exception as error:
-            judged = {"precision": 0.0, "recall": 0.0, "groundedness": 0.0, "error": str(error)}
+            judged = {"error": str(error)}
+        if not isinstance(judged, dict):
+            judged = {"error": "LLM judge returned a non-object result"}
+        if judged.get("error"):
+            return AnswerEvalResult(
+                score=None,
+                details={
+                    "mode": "open",
+                    "reference": reference,
+                    "status": "judge_unavailable",
+                    **judged,
+                },
+            )
         precision = float(judged.get("precision", 0.0))
         recall = float(judged.get("recall", 0.0))
         groundedness = float(judged.get("groundedness", 0.0))
         f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-        return f1 * groundedness, judged
+        return AnswerEvalResult(
+            score=f1 * groundedness,
+            details={"mode": "open", "reference": reference, "status": "judged", **judged},
+        )
 
     @staticmethod
     def _openrouter_judge(answer: str, reference: Any) -> Dict[str, Any]:
@@ -371,7 +383,13 @@ class AnswerEvaluator:
         }
         response = client.chat.completions.create(
             model=os.getenv("OPENROUTER_EVAL_MODEL", "openai/gpt-5.2"),
-            messages=[{"role": "user", "content": json.dumps(prompt, ensure_ascii=False)}],
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Return a JSON object only. The response must be valid JSON.",
+                },
+                {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)},
+            ],
             temperature=0,
             response_format={"type": "json_object"},
         )
