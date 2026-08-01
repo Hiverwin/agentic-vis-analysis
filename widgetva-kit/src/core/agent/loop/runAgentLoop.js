@@ -302,6 +302,31 @@ function buildPlanStage({
   }
 }
 
+function addWorkflowProgress(plannerContext = null, history = null) {
+  if (!plannerContext?.workflow || !Array.isArray(plannerContext.workflow.steps)) {
+    return plannerContext
+  }
+  const steps = plannerContext.workflow.steps
+  const turns = Array.isArray(history?.turns) ? history.turns : []
+  let completedCount = 0
+  for (const turn of turns) {
+    const operationName = turn?.operation?.name || null
+    if (operationName && operationName === steps[completedCount]?.operation) {
+      completedCount += 1
+    }
+    if (completedCount >= steps.length) break
+  }
+  return {
+    ...clone(plannerContext),
+    workflowProgress: {
+      completedStepIds: steps.slice(0, completedCount).map((step, index) => step?.stepId || `${plannerContext.workflow.id || 'workflow'}:step_${index + 1}`),
+      nextStepId: steps[completedCount]?.stepId || null,
+      nextOperation: steps[completedCount]?.operation || null,
+      remainingStepIds: steps.slice(completedCount).map((step, index) => step?.stepId || `${plannerContext.workflow.id || 'workflow'}:step_${completedCount + index + 1}`),
+    },
+  }
+}
+
 async function resolvePlanningResult({
   planner,
   observe,
@@ -486,6 +511,7 @@ export async function runAgentLoop(target, options = {}) {
     options?.sessionHistory || null,
     options?.sessionTurns || [],
   )
+  const turnPlannerContext = addWorkflowProgress(plannerContext, history)
   const planningResult = await resolvePlanningResult({
     planner,
     observe,
@@ -495,7 +521,7 @@ export async function runAgentLoop(target, options = {}) {
     objective,
     operation,
     actor,
-    plannerContext,
+    plannerContext: turnPlannerContext,
     responseRequirements,
   })
   const plan = buildPlanStage({
@@ -522,7 +548,7 @@ export async function runAgentLoop(target, options = {}) {
     result: clone(execution.result),
     verification: clone(verification),
     latestCoordinationResult: clone(latestCoordinationResult),
-    plannerContext: clone(plannerContext),
+    plannerContext: clone(turnPlannerContext),
     responseRequirements: clone(responseRequirements),
   })
 

@@ -436,6 +436,47 @@ test('runAgentSession carries bounded perception evidence into canonical history
   ])
 })
 
+test('runAgentSession exposes selected workflow progress to the planner', async () => {
+  const { port } = createObservedPort()
+  const contexts = []
+  const result = await runAgentSession(port, {
+    objective: 'Complete the selected workflow.',
+    maxTurns: 2,
+    plannerContext: {
+      workflow: {
+        id: 'WF-TEST',
+        steps: [
+          { stepId: 'WF-TEST:step_1', operation: 'scatter.brushRegion', purpose: 'Create a subset.' },
+          { stepId: 'WF-TEST:step_2', operation: 'scatter.brushRegion', purpose: 'Refine the subset.' },
+        ],
+      },
+    },
+    planner: async ({ history, plannerContext }) => {
+      contexts.push(plannerContext)
+      const operation = history?.turns?.length === 0
+        ? { name: 'scatter.brushRegion', params: { xRange: [80, 140], yRange: [18, 30] } }
+        : { name: 'scatter.brushRegion', params: { xRange: [90, 130], yRange: [20, 28] } }
+      return {
+        assistantMessage: 'Continue the selected workflow.',
+        rationale: 'Follow the next workflow step.',
+        operation: {
+          kind: 'action',
+          target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+          ...operation,
+        },
+      }
+    },
+    reasoner: async ({ history }) => ({
+      answer: 'Continue.',
+      completion: history?.turns?.length > 0 ? { status: 'answered' } : { status: 'continue' },
+    }),
+  })
+
+  assert.equal(result.turns.length, 2)
+  assert.deepEqual(contexts[1].workflowProgress.completedStepIds, ['WF-TEST:step_1'])
+  assert.equal(contexts[1].workflowProgress.nextStepId, 'WF-TEST:step_2')
+})
+
 test('runAgentSession can synthesize a final answer from the compact multi-turn history', async () => {
   const { port } = createObservedPort()
 
