@@ -370,6 +370,11 @@ function buildReasonMessages({
     'Set completion.status to "answered" only when every explicit part of the user objective is satisfied by verified evidence in the current runtime result or history results, and no required selected-workflow step remains unfinished.',
     'A successful operation by itself does not mean the objective is answered.',
     'If any requested comparison, subset, action, or answer value still lacks verified evidence, set completion.status to "continue".',
+    ...(responseRequirements?.mode === 'verifiable'
+      ? [
+        `In verifiable mode, answer must be one ${responseRequirements.answerType || 'typed'} value or null; never replace a boolean, numeric, categorical, or interval value with progress prose.`,
+      ]
+      : []),
   ].join(' ')
 
   const userPrompt = JSON.stringify({
@@ -968,13 +973,26 @@ export function createNaturalLanguageReasoner({
 
     const content = response?.content || ''
     const parsed = extractJsonObject(content)
-    if (parsed && typeof parsed.answer === 'string' && parsed.answer.trim().length > 0) {
+    if (parsed && Object.prototype.hasOwnProperty.call(parsed, 'answer')) {
       const completionStatus =
         typeof parsed?.completion?.status === 'string' && parsed.completion.status.trim().length > 0
           ? parsed.completion.status.trim()
           : null
+      const parsedAnswer = responseRequirements?.mode === 'verifiable'
+        ? normalizeTypedAnswer(parsed.answer, responseRequirements.answerType)
+        : parsed.answer
+      const answerIsValid = responseRequirements?.mode === 'verifiable'
+        ? (parsedAnswer == null || isTypedAnswer(parsedAnswer, responseRequirements.answerType))
+        : (typeof parsedAnswer === 'string' && parsedAnswer.trim().length > 0)
+      if (!answerIsValid) {
+        return {
+          answer: 'The reason stage returned an answer in an invalid format.',
+          rawResponse: clone(response?.raw || null),
+          rawContent: content,
+        }
+      }
       return {
-        answer: parsed.answer.trim(),
+        answer: typeof parsedAnswer === 'string' ? parsedAnswer.trim() : parsedAnswer,
         ...(completionStatus ? { completion: { status: completionStatus } } : {}),
         rawResponse: clone(response?.raw || null),
         rawContent: content,

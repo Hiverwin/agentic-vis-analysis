@@ -632,9 +632,14 @@ export async function runAgentSession(target, options = {}) {
   }
 
   const lastTurn = turns.at(-1) || null
-  let finalAnswer = lastTurn?.reason?.answer || ''
+  let finalAnswer = lastTurn?.reason?.answer ?? ''
+  const hasVerifiedTypedReasonAnswer = stopReason === 'answered'
+    && responseRequirements?.mode === 'verifiable'
+    && lastTurn?.reason
+    && lastTurn.reason.answer !== null
+    && lastTurn.reason.answer !== undefined
 
-  if (typeof finalSynthesizer === 'function') {
+  if (typeof finalSynthesizer === 'function' && !hasVerifiedTypedReasonAnswer) {
     const synthesis = await finalSynthesizer({
       objective: objective || null,
       turns: clone(turns),

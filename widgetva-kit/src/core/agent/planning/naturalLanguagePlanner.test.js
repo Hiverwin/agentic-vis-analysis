@@ -975,6 +975,22 @@ test('createNaturalLanguageReasoner keeps bounded structured perception evidence
   assert.match(userPrompt, /12\.1/)
 })
 
+test('createNaturalLanguageReasoner preserves falsy typed answers in verifiable mode', async () => {
+  const reasoner = createNaturalLanguageReasoner({
+    completeChat: async () => ({
+      content: JSON.stringify({ answer: false, completion: { status: 'answered' } }),
+    }),
+  })
+
+  const result = await reasoner({
+    objective: 'Return whether the linked evidence establishes causation.',
+    responseRequirements: { mode: 'verifiable', answerType: 'boolean' },
+  })
+
+  assert.equal(result.answer, false)
+  assert.equal(result.completion.status, 'answered')
+})
+
 test('createNaturalLanguagePlanner preserves runtime-built agentObservation in prompts', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
@@ -1700,6 +1716,39 @@ test('runNaturalLanguageAgentSession returns a final synthesis answer from the e
   const finalSystemPrompt = finalRequest?.messages?.[0]?.content || ''
   assert.match(finalSystemPrompt, /every completed turn/i)
   assert.match(finalSystemPrompt, /do not return only the last turn/i)
+})
+
+test('runNaturalLanguageAgentSession uses a verified typed reason answer without final synthesis', async () => {
+  const port = createMockPagePort()
+  const requests = []
+  const result = await runNaturalLanguageAgentSession(port, {
+    objective: 'Did the linked evidence establish causation?',
+    maxTurns: 2,
+    responseRequirements: { mode: 'verifiable', answerType: 'boolean' },
+    completeChat: async (request) => {
+      requests.push(request)
+      const systemPrompt = request?.messages?.[0]?.content || ''
+      if (systemPrompt.includes('answer stage')) {
+        return { content: JSON.stringify({ answer: false, completion: { status: 'answered' } }) }
+      }
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'I will inspect the linked evidence.',
+          rationale: 'The available perception provides the requested evidence.',
+          operation: {
+            kind: 'action',
+            name: 'scatter.brushRegion',
+            target: { widgetRef: 'w://widgetva-app/workspace/official-vega-lite-point_2d/widget/session_official-vega-lite-point_2d' },
+            params: { xField: 'Horsepower', yField: 'Miles_per_Gallon', xRange: [80, 140], yRange: [18, 30] },
+          },
+        }),
+      }
+    },
+  })
+
+  assert.equal(result.answer, false)
+  assert.equal(result.turns.length, 1)
+  assert.equal(requests.some((request) => String(request?.messages?.[0]?.content || '').includes('final synthesis stage')), false)
 })
 
 test('final synthesis uses typed machine answer mode when response requirements are verifiable', async () => {

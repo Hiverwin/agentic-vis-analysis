@@ -445,8 +445,17 @@ export function buildFormalReasonPayload(baseReason = {}, { act = null, verify =
         : null
 
   if (verify?.ok) {
-    const assistantText = baseReason?.answer || plan?.assistantMessage || null
+    const assistantText = baseReason && Object.prototype.hasOwnProperty.call(baseReason, 'answer')
+      && baseReason.answer !== null && baseReason.answer !== undefined
+      ? baseReason.answer
+      : plan?.assistantMessage || null
     const runtimeText = act?.outputSummary || null
+    if (typeof assistantText !== 'string') {
+      return {
+        answer: assistantText,
+        ...(completionStatus ? { completion: { status: completionStatus } } : {}),
+      }
+    }
     return {
       answer: prefersRuntimeSummary
         ? [assistantText, runtimeText].filter((part, index, array) => typeof part === 'string' && part.length > 0 && array.indexOf(part) === index).join(' ')
@@ -455,8 +464,12 @@ export function buildFormalReasonPayload(baseReason = {}, { act = null, verify =
       ...(completionStatus ? { completion: { status: completionStatus } } : {}),
     }
   }
+  const fallbackAnswer = baseReason && Object.prototype.hasOwnProperty.call(baseReason, 'answer')
+    && baseReason.answer !== null && baseReason.answer !== undefined
+    ? baseReason.answer
+    : plan?.assistantMessage
   return {
-    answer: verify?.summary || baseReason?.answer || plan?.assistantMessage || 'The last step did not verify cleanly.',
+    answer: verify?.summary ?? fallbackAnswer ?? 'The last step did not verify cleanly.',
     ...(completionStatus ? { completion: { status: completionStatus } } : {}),
   }
 }
