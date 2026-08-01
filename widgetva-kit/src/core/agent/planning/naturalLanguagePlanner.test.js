@@ -439,6 +439,32 @@ test('createNaturalLanguagePlanner preserves continuity through canonical histor
   assert.doesNotMatch(requests[1].messages[1].content, /Continue from history/)
 })
 
+test('createNaturalLanguagePlanner validates flat Level 1 tools', async () => {
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async () => ({
+      content: JSON.stringify({
+        assistantMessage: 'I will use an unavailable operation.',
+        rationale: 'This operation is not exposed at Level 1.',
+        operation: {
+          kind: 'action',
+          name: 'bar.notExposed',
+          target: { widgetRef: 'bar-ref' },
+          params: {},
+        },
+      }),
+    }),
+  })
+
+  await assert.rejects(
+    planner({
+      objective: 'Inspect the bar chart.',
+      knowledge: { tools: [{ kind: 'action', name: 'bar.sortBars' }] },
+      observe: { state: { widgets: [{ ref: 'bar-ref', kind: 'bar' }] }, view: null },
+    }),
+    /does not yield an executable operation|fallback perception/i,
+  )
+})
+
 test('createNaturalLanguagePlanner prunes bulky official-page observation payloads from prompt', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
