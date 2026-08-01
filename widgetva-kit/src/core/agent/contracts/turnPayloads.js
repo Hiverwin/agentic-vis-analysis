@@ -48,6 +48,45 @@ function deriveFormalResultFingerprint(result = {}, operationKind = null) {
   return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`
 }
 
+function deriveFormalEvidence(result = {}, operationKind = null) {
+  if (operationKind !== 'perception' && operationKind !== 'data_query') return null
+  const runtimeResult = isPlainObject(result?.result)
+    ? result.result
+    : isPlainObject(result?.actionResult?.result)
+      ? result.actionResult.result
+      : null
+  if (!runtimeResult) return null
+
+  const recordKey = ['groups', 'aggregates', 'rows', 'anomalies', 'bottlenecks']
+    .find((key) => Array.isArray(runtimeResult[key]))
+  const records = recordKey
+    ? runtimeResult[recordKey].slice(0, 16).map((record) => {
+      if (!isPlainObject(record)) return record
+      return Object.fromEntries(Object.entries(record)
+        .slice(0, 12)
+        .filter(([, value]) => (
+          value == null
+          || typeof value === 'string'
+          || typeof value === 'number'
+          || typeof value === 'boolean'
+        )))
+    })
+    : []
+  const scalars = Object.fromEntries(Object.entries(runtimeResult)
+    .filter(([key, value]) => key !== recordKey && (
+      value == null
+      || typeof value === 'string'
+      || typeof value === 'number'
+      || typeof value === 'boolean'
+    )))
+  if (records.length === 0 && Object.keys(scalars).length === 0) return null
+  return {
+    source: recordKey || 'result',
+    scalars,
+    records,
+  }
+}
+
 function deriveFormalError(result = {}) {
   const error = result?.actionResult?.error || result?.error || null
   return error && typeof error === 'object' && !Array.isArray(error) ? clone(error) : null
@@ -355,6 +394,7 @@ export function buildFormalActPayload(plan = {}, result = {}) {
   const recoveryHints = deriveFormalRecoveryHints(result)
   const recoverableState = deriveFormalRecoverableState(result)
   const resultFingerprint = deriveFormalResultFingerprint(result, operation.kind)
+  const evidence = deriveFormalEvidence(result, operation.kind)
   return {
     kind: operation.kind,
     name: operation.name || operation.query?.kind || 'data_query',
@@ -362,6 +402,7 @@ export function buildFormalActPayload(plan = {}, result = {}) {
     ...(operation.target ? { target: clone(operation.target) } : {}),
     ok: deriveFormalActOk(result),
     outputSummary: summarizeFormalRuntimePayload(result),
+    ...(evidence ? { evidence } : {}),
     ...(resultFingerprint ? { resultFingerprint } : {}),
     stateId: deriveFormalStateId(result),
     updatedRefs: deriveFormalUpdatedRefs(result),

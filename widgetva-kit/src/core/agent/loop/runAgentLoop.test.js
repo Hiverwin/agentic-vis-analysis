@@ -393,6 +393,49 @@ test('runAgentSession carries session knowledge forward and continues after a su
   assert.equal(typeof result.answer, 'string')
 })
 
+test('runAgentSession carries bounded perception evidence into canonical history', async () => {
+  const { port } = createObservedPort({
+    async queryPerception(call) {
+      return {
+        ok: true,
+        queryName: call.name,
+        summary: '2 grouped summaries over 2 rows',
+        result: {
+          rowCount: 2,
+          groups: [
+            { dimension: 'feature_a', mean: 12.1 },
+            { dimension: 'feature_b', mean: 8.4 },
+          ],
+        },
+      }
+    },
+  })
+
+  const result = await runAgentSession(port, {
+    objective: 'Summarize the visible features.',
+    maxTurns: 1,
+    planner: async () => ({
+      assistantMessage: 'I will summarize the visible features.',
+      rationale: 'The grouped result provides the requested evidence.',
+      operation: {
+        kind: 'perception',
+        name: 'perception.summarizeVisible',
+        target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+        params: { groupBy: ['dimension'], metrics: ['mean'] },
+      },
+    }),
+    reasoner: async () => ({
+      answer: 'The visible feature means are 12.1 and 8.4.',
+      completion: { status: 'answered' },
+    }),
+  })
+
+  assert.deepEqual(result.history.turns[0].status.evidence.records, [
+    { dimension: 'feature_a', mean: 12.1 },
+    { dimension: 'feature_b', mean: 8.4 },
+  ])
+})
+
 test('runAgentSession can synthesize a final answer from the compact multi-turn history', async () => {
   const { port } = createObservedPort()
 

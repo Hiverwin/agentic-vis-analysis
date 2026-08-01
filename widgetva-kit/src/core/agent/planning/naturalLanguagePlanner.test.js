@@ -850,7 +850,7 @@ test('createNaturalLanguageReasoner includes compact session history in progress
   const userPrompt = requests[0]?.messages?.[1]?.content || ''
   assert.match(userPrompt, /"history":\{/)
   assert.match(userPrompt, /bar\.filterCategories/)
-  assert.equal(userPrompt.includes('meanTemperature'), false)
+  assert.equal(userPrompt.includes('meanTemperature'), true)
 })
 
 test('createNaturalLanguageReasoner prunes bulky action result and verification payloads', async () => {
@@ -926,6 +926,53 @@ test('createNaturalLanguageReasoner prunes bulky action result and verification 
   assert.equal(userPrompt.includes('VERIFY_ROWS_SENTINEL'), false)
   assert.match(userPrompt, /Brush applied/)
   assert.match(userPrompt, /Matched rendered brush/)
+})
+
+test('createNaturalLanguageReasoner keeps bounded structured perception evidence', async () => {
+  const requests = []
+  const reasoner = createNaturalLanguageReasoner({
+    completeChat: async (request) => {
+      requests.push(request)
+      return {
+        content: JSON.stringify({
+          answer: 'The visible profiles differ by dimension.',
+          completion: { status: 'answered' },
+        }),
+      }
+    },
+  })
+
+  await reasoner({
+    objective: 'Compare the visible feature profiles.',
+    history: { turns: [] },
+    observe: { state: { widgets: [{ ref: 'feature-ref', kind: 'parallelCoordinates' }] }, view: null },
+    plan: {
+      operation: {
+        kind: 'perception',
+        name: 'perception.summarizeVisible',
+        target: { widgetRef: 'feature-ref' },
+        params: { groupBy: ['dimension'], metrics: ['mean'] },
+      },
+    },
+    result: {
+      ok: true,
+      queryName: 'perception.summarizeVisible',
+      summary: '4 grouped summaries over 4 rows',
+      result: {
+        rowCount: 4,
+        groups: [
+          { dimension: 'feature_a', mean: 12.1 },
+          { dimension: 'feature_b', mean: 8.4 },
+        ],
+      },
+    },
+    verification: { ok: true, summary: 'The grouped visible result was returned.' },
+  })
+
+  const userPrompt = requests[0]?.messages?.[1]?.content || ''
+  assert.match(userPrompt, /feature_a/)
+  assert.match(userPrompt, /feature_b/)
+  assert.match(userPrompt, /12\.1/)
 })
 
 test('createNaturalLanguagePlanner preserves runtime-built agentObservation in prompts', async () => {

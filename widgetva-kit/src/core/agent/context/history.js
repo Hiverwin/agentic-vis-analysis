@@ -52,6 +52,9 @@ export function summarizeTurnForSession(turn = {}, index = 0) {
   const reasonSummary = readNonEmptyString(turn?.reason?.answer)
     || readNonEmptyString(turn?.plan?.assistantMessage)
     || null
+  const evidence = turn?.act?.evidence && typeof turn.act.evidence === 'object'
+    ? clone(turn.act.evidence)
+    : null
 
   return {
     turnId: `turn_${index + 1}`,
@@ -66,6 +69,7 @@ export function summarizeTurnForSession(turn = {}, index = 0) {
       ...(resultSummary ? { resultSummary } : {}),
       ...(stateSummary ? { stateSummary } : {}),
       ...(reasonSummary ? { reasonSummary } : {}),
+      ...(evidence ? { evidence } : {}),
     },
   }
 }

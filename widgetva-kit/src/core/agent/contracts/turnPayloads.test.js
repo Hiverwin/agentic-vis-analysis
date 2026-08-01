@@ -196,6 +196,32 @@ test('formal perception act fingerprints but does not retain the full runtime re
   assert.equal(repeatedAct.resultFingerprint, act.resultFingerprint)
 })
 
+test('formal perception act retains bounded structured evidence without the raw result', () => {
+  const act = buildFormalActPayload({
+    operation: {
+      kind: 'perception',
+      name: 'perception.summarizeVisible',
+    },
+  }, {
+    ok: true,
+    summary: '4 grouped summaries over 4 rows',
+    result: {
+      rowCount: 4,
+      groups: [
+        { dimension: 'feature_a', mean: 12.1 },
+        { dimension: 'feature_b', mean: 8.4 },
+      ],
+    },
+  })
+
+  assert.equal('result' in act, false)
+  assert.deepEqual(act.evidence.records, [
+    { dimension: 'feature_a', mean: 12.1 },
+    { dimension: 'feature_b', mean: 8.4 },
+  ])
+  assert.equal(act.evidence.scalars.rowCount, 4)
+})
+
 test('runtime payload summary exposes ranked rows, anomaly, and sankey evidence', () => {
   assert.equal(
     summarizeFormalRuntimePayload({

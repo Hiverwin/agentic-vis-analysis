@@ -223,6 +223,7 @@ function normalizeHistoryTurnForPrompt(turn = null, index = 0) {
         || turn.reason?.answer
         || turn.reasonSummary
         || null,
+      evidence: status.evidence ? sanitizePromptValue(status.evidence) : null,
     },
   }
 }
@@ -435,6 +436,7 @@ function buildFinalSynthesisMessages({
         }
         : null,
       resultSummary: turn?.act?.outputSummary || null,
+      evidence: turn?.act?.evidence ? sanitizePromptValue(turn.act.evidence) : null,
       verificationSummary: turn?.verify?.summary || null,
       reasonSummary: turn?.reason?.answer || null,
       completion: clone(turn?.reason?.completion || null),
@@ -533,6 +535,42 @@ function summarizePromptPayload(payload = null) {
   return null
 }
 
+function compactStructuredEvidence(plan = null, result = null) {
+  const operationKind = plan?.operation?.kind || null
+  if (operationKind !== 'perception' && operationKind !== 'data_query') return null
+  const runtimeResult = result?.result && typeof result.result === 'object'
+    ? result.result
+    : result?.actionResult?.result && typeof result.actionResult.result === 'object'
+      ? result.actionResult.result
+      : null
+  if (!runtimeResult || Array.isArray(runtimeResult)) return null
+
+  const recordKey = ['groups', 'aggregates', 'rows', 'anomalies', 'bottlenecks']
+    .find((key) => Array.isArray(runtimeResult[key]))
+  const records = recordKey
+    ? runtimeResult[recordKey].slice(0, 16).map((record) => {
+      if (!record || typeof record !== 'object' || Array.isArray(record)) return record
+      return Object.fromEntries(Object.entries(record)
+        .slice(0, 12)
+        .filter(([, value]) => (
+          value == null
+          || typeof value === 'string'
+          || typeof value === 'number'
+          || typeof value === 'boolean'
+        )))
+    })
+    : []
+  const scalars = Object.fromEntries(Object.entries(runtimeResult)
+    .filter(([key, value]) => key !== recordKey && (
+      value == null
+      || typeof value === 'string'
+      || typeof value === 'number'
+      || typeof value === 'boolean'
+    )))
+  if (records.length === 0 && Object.keys(scalars).length === 0) return null
+  return sanitizePromptValue({ source: recordKey || 'result', scalars, records })
+}
+
 function normalizeResultForPrompt(plan = null, result = null) {
   if (!result || typeof result !== 'object') return result
   if (Object.prototype.hasOwnProperty.call(result, 'outputSummary')) {
@@ -544,6 +582,7 @@ function normalizeResultForPrompt(plan = null, result = null) {
       stateId: result.stateId || null,
       updatedRefs: Array.isArray(result.updatedRefs) ? result.updatedRefs : [],
       error: result.error ? sanitizePromptValue(result.error) : null,
+      evidence: result.evidence || compactStructuredEvidence(plan, result),
     })
   }
   const formal = buildFormalActPayload(plan || {}, result || {})
@@ -558,6 +597,7 @@ function normalizeResultForPrompt(plan = null, result = null) {
     error: formal.error || null,
     recoveryHints: Array.isArray(formal.recoveryHints) ? formal.recoveryHints : [],
     outputSummary: formal.outputSummary || summarizePromptPayload(result),
+    evidence: formal.evidence || compactStructuredEvidence(plan, result),
   })
 }
 
