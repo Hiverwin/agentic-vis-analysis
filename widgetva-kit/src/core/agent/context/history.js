@@ -111,40 +111,6 @@ export function readTurnCompletionStatus(turn = null) {
   return null
 }
 
-function stableJson(value) {
-  if (Array.isArray(value)) return `[${value.map((entry) => stableJson(entry)).join(',')}]`
-  if (isPlainObject(value)) {
-    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`
-  }
-  return JSON.stringify(value)
-}
-
-function repeatedPerceptionMadeNoProgress(turns = []) {
-  if (!Array.isArray(turns) || turns.length < 2) return false
-  const previous = turns.at(-2)
-  const current = turns.at(-1)
-  const currentKind = current?.act?.kind
-  if (currentKind !== 'perception' && currentKind !== 'data_query') return false
-  if (previous?.act?.kind !== currentKind) return false
-  if (previous?.act?.ok !== true || current?.act?.ok !== true) return false
-  if (previous?.verify?.ok !== true || current?.verify?.ok !== true) return false
-  if (typeof previous?.act?.resultFingerprint !== 'string') return false
-  if (typeof current?.act?.resultFingerprint !== 'string') return false
-
-  const previousOperation = {
-    name: previous.act.name || null,
-    target: previous.act.target || null,
-    params: previous.act.params || null,
-  }
-  const currentOperation = {
-    name: current.act.name || null,
-    target: current.act.target || null,
-    params: current.act.params || null,
-  }
-  return stableJson(previousOperation) === stableJson(currentOperation)
-    && previous.act.resultFingerprint === current.act.resultFingerprint
-}
-
 export function shouldStopAgentSession(turn = null, { turns = [] } = {}) {
   if (!turn || typeof turn !== 'object') return null
 
@@ -168,6 +134,5 @@ export function shouldStopAgentSession(turn = null, { turns = [] } = {}) {
     return 'stopped'
   }
 
-  if (repeatedPerceptionMadeNoProgress(turns)) return 'no_progress'
   return null
 }

@@ -705,48 +705,6 @@ test('runAgentSession does not stop merely because distinct perception turns ver
   assert.equal(result.turns.every((turn) => turn?.act?.kind === 'perception'), true)
 })
 
-test('runAgentSession stops as no_progress after an identical verified operation returns identical evidence', async () => {
-  const { port } = createObservedPort({
-    async queryPerception(call) {
-      return {
-        ok: true,
-        queryName: call.name,
-        result: {
-          rowCount: 1000,
-          groups: [{ 'race/ethnicity': 'group C', mathMean: 64.46 }],
-        },
-      }
-    },
-  })
-
-  const result = await runAgentSession(port, {
-    objective: 'Find the mean math score for group C.',
-    maxTurns: 6,
-    planner: async () => ({
-      assistantMessage: 'Read the grouped summary.',
-      rationale: 'The grouped mean is required.',
-      operation: {
-        kind: 'perception',
-        name: 'perception.summarizeVisible',
-        target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
-        params: {
-          groupBy: ['race/ethnicity'],
-          fields: ['math score'],
-          metrics: ['mean'],
-        },
-      },
-    }),
-    reasoner: async () => ({
-      answer: 'The mean math score for group C is 64.46.',
-      completion: { status: 'continue' },
-    }),
-  })
-
-  assert.equal(result.stopReason, 'no_progress')
-  assert.equal(result.status, 'stopped')
-  assert.equal(result.turns.length, 2)
-})
-
 test('runAgentSession stops when the reason stage explicitly marks the objective as answered', async () => {
   const { port } = createObservedPort()
 
