@@ -13,6 +13,7 @@ import base64
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime
@@ -652,6 +653,9 @@ def run_benchmark(
             benchmark_id=instance["benchmark_id"],
         )
         output_dir.mkdir(parents=True, exist_ok=True)
+        instance_snapshot = output_dir / "instance.json"
+        if not instance_snapshot.exists():
+            shutil.copy2(instance_path, instance_snapshot)
         image_dir = output_dir / "images"
         observation_images = save_observation_images(session, image_dir)
         post_images = save_post_turn_images(bridge.post_turn_images, image_dir)

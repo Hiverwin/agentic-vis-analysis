@@ -321,6 +321,7 @@ function buildAgentMessages({ objective, observe, knowledge = null, history = nu
     'When an action requires category, series, or line identifiers, choose exact values from observe.state.widgets[].data.fieldValues when available.',
     'Use plannerContext only when it is present. It contains instance-selected analysis guidance, relation guidance, and at most one selected workflow; it is not a catalog of all possible workflows.',
     'When plannerContext.workflow is present, treat its steps as the required next-step sequence: use history to find the first unfinished step, and do not substitute another exposed operation merely because it is available.',
+    'If a workflow is provided, prefer following that workflow for the analysis before choosing an alternative path.',
     'Do not return markdown fences.',
     `Return exactly one JSON object matching this shape: ${JSON.stringify(PLANNER_RESPONSE_SHAPE)}.`,
   ].join(' ')

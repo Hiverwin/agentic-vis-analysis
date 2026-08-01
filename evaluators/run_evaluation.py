@@ -45,7 +45,8 @@ def evaluate_batch(instances_dir: Path, results_dir: Path) -> Iterable[Dict[str,
     for result_path in sorted(results_dir.rglob("result.json")):
         result = load_json(result_path)
         benchmark_id = result.get("benchmark_id")
-        instance_path = instances.get(benchmark_id)
+        frozen_instance_path = result_path.parent / "instance.json"
+        instance_path = frozen_instance_path if frozen_instance_path.exists() else instances.get(benchmark_id)
         if instance_path is None:
             continue
         evaluated = evaluate_one(load_json(instance_path), result)

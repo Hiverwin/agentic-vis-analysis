@@ -1695,6 +1695,81 @@ test('CoordinationEngine.propagate maps canonical coordination relations from so
   assert.deepEqual(runtimeData[visibleDataRef]?.rows?.map((row) => row.region), ['Downtown'])
 })
 
+test('CoordinationEngine.propagate does not report a domain filter as applied when its mapping cannot produce predicates', () => {
+  const sourceRef = makeWidgetRef({ widgetId: 'line' })
+  const targetRef = makeWidgetRef({ widgetId: 'scatter' })
+  const sourceStateRef = `${sourceRef}/view/zoom`
+  const targetStateRef = `${targetRef}/transform/period-filter`
+  const visibleDataRef = `${targetRef}/data/visible`
+  const relationRef = 'wl://widgetva-app/workspace/main/link/line-domain-filter'
+  const rows = [{ opened_date: '2026-01-01' }]
+  const { store, readState, runtimeData } = makeMutableTestStore({
+    state: {
+      stateId: 'main:s1',
+      widgets: {
+        [sourceRef]: {
+          ref: sourceRef,
+          widgetId: 'line',
+          kind: 'line',
+          view: { xDomain: ['2026-01-01', '2026-03-01'] },
+          transforms: [],
+          selections: {},
+          feedback: {},
+        },
+        [targetRef]: {
+          ref: targetRef,
+          widgetId: 'scatter',
+          kind: 'scatter',
+          data: { currentDataRef: visibleDataRef, visibleCount: rows.length },
+          view: {},
+          transforms: [],
+          selections: {},
+          feedback: {},
+        },
+      },
+      coordination: {
+        relations: {
+          [relationRef]: {
+            ref: relationRef,
+            sourceStateRef,
+            targetStateRef,
+            relation: 'controls',
+            transform: {
+              kind: 'domainToFilter',
+              fieldMapping: [{ sourceField: 'opened_date', targetField: 'opened_date' }],
+            },
+            activation: 'automatic',
+          },
+        },
+      },
+    },
+    links: [{
+      ref: relationRef,
+      sourceStateRef,
+      targetStateRef,
+      relation: 'controls',
+      transform: {
+        kind: 'domainToFilter',
+        fieldMapping: [{ sourceField: 'opened_date', targetField: 'opened_date' }],
+      },
+      activation: 'automatic',
+    }],
+    runtimeData: {
+      [visibleDataRef]: { rows, baseRows: rows, handle: { stats: {} } },
+    },
+  })
+
+  const propagation = new CoordinationEngine({ store }).propagate({
+    sourceRef: sourceStateRef,
+    state: readState(),
+  })
+
+  assert.equal(propagation.appliedLinkCount, 0)
+  assert.equal(propagation.skippedLinkCount, 1)
+  assert.equal(readState().widgets[targetRef].transforms.length, 0)
+  assert.deepEqual(runtimeData[visibleDataRef].rows, rows)
+})
+
 test('CoordinationEngine.propagate maps source view domains to target view reencode state', () => {
   const scatterRef = makeWidgetRef({ widgetId: 'scatter' })
   const barRef = makeWidgetRef({ widgetId: 'bar' })

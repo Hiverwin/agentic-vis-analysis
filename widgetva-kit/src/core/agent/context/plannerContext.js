@@ -3,6 +3,13 @@ import { getAnalysisToAction } from '../workflows/analysisToAction.js'
 import { getWorkflow } from '../workflows/index.js'
 import { resolveRelationGuidance } from './relationCatalog.js'
 
+function projectWorkflowForPlanner(workflow) {
+  const projected = clone(workflow)
+  projected.steps = (Array.isArray(projected.steps) ? projected.steps : [])
+    .map(({ operation: _operation, ...step }) => step)
+  return projected
+}
+
 /** Resolve only instance-selected prompt guidance; never expose a catalog. */
 export function buildPlannerContext({
   analysisToActionIds = [],
@@ -16,7 +23,9 @@ export function buildPlannerContext({
       .filter(Boolean)
       .map(clone),
     relations: level >= 2 ? resolveRelationGuidance(relationIds) : [],
-    workflow: level >= 3 && workflowId ? clone(getWorkflow(workflowId)) : null,
+    workflow: level >= 3 && workflowId
+      ? projectWorkflowForPlanner(getWorkflow(workflowId))
+      : null,
   }
 }
 

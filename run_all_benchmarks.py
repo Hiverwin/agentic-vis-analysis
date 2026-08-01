@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import shutil
 import subprocess
 import sys
 from datetime import datetime
@@ -79,12 +80,16 @@ async def run_job(
     max_iterations: int | None,
 ) -> dict[str, Any]:
     result_path = result_path_for(spec, results_root)
+    instance_snapshot = result_path.parent / "instance.json"
+    instance_snapshot.parent.mkdir(parents=True, exist_ok=True)
+    if not instance_snapshot.exists():
+        shutil.copy2(spec.instance_path, instance_snapshot)
     evaluator_cmd = [
         sys.executable,
         "-m",
         "evaluators.run_evaluation",
         "--instance",
-        str(spec.instance_path),
+        str(instance_snapshot),
         "--result",
         str(result_path),
     ]
@@ -225,6 +230,13 @@ async def main() -> None:
 
     print(f"Running {len(jobs)} jobs with runtime=widgetva-kit")
     outcomes: list[dict[str, Any]] = []
+
+    def write_manifest() -> None:
+        (results_root / "manifest.json").write_text(
+            json.dumps({**manifest, "outcomes": outcomes}, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
     for index, (spec, result_path, task) in enumerate(jobs, start=1):
         outcome = {"model": spec.model_key, "planner_level": spec.planner_level, "instance": spec.instance_path.name}
         if task is None:
@@ -234,12 +246,9 @@ async def main() -> None:
             outcome.update(await task)
         outcome["scores"] = read_scores(result_path)
         outcomes.append(outcome)
+        write_manifest()
         print(f"[{index}/{len(jobs)}] {spec.model_key}/L{spec.planner_level}/{spec.instance_path.stem}: {outcome}")
 
-    (results_root / "manifest.json").write_text(
-        json.dumps({**manifest, "outcomes": outcomes}, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
     failed = sum(not outcome.get("ok") for outcome in outcomes)
     print(f"Finished: {len(outcomes) - failed} succeeded, {failed} failed")
 

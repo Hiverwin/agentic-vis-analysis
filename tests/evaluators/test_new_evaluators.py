@@ -8,6 +8,26 @@ from evaluators.run_evaluation import format_summary, summarize_results, write_i
 from benchmark.runner import build_scoring_result, expand_task_paths
 
 
+def test_openrouter_judge_request_explicitly_mentions_json(monkeypatch):
+    captured = {}
+
+    class FakeCompletions:
+        def create(self, **kwargs):
+            captured.update(kwargs)
+            return type("Response", (), {"choices": [type("Choice", (), {"message": type("Message", (), {"content": '{"precision": 1, "recall": 1, "groundedness": 1}'})()})()]})()
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            self.chat = type("Chat", (), {"completions": FakeCompletions()})()
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.setattr("openai.OpenAI", FakeClient)
+    AnswerEvaluator._openrouter_judge("answer", ["claim"])
+
+    messages = captured["messages"]
+    assert any("json" in str(message.get("content", "")).lower() for message in messages)
+
+
 def test_answer_parser_handles_tatqa_number_and_percent_scale():
     evaluator = AnswerEvaluator()
 
@@ -104,6 +124,21 @@ def test_open_answer_uses_reference_insight_claims_and_structured_judge():
 
     assert result.score == 2 / 3
     assert result.details["reference"] == ["The chart hides a risk signal."]
+
+
+def test_open_answer_does_not_turn_unavailable_judge_into_a_zero_score(monkeypatch):
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    result = AnswerEvaluator().evaluate(
+        "The chart shows a higher value after the intervention.",
+        {
+            "type": "open_ended_insight",
+            "reference_insights": [{"claim": "The value is higher after the intervention."}],
+        },
+    )
+
+    assert result.score is None
+    assert result.details["status"] == "judge_unavailable"
+    assert result.details["error"] == "OPENROUTER_API_KEY not set"
 
 
 def test_categorical_answer_allows_explanation_and_quotes():
@@ -320,6 +355,7 @@ def test_boolean_answer_does_not_infer_truth_from_unrelated_is_or_are_words():
             "checks": [{"field": "causal_claim", "check": "boolean", "expected": False}],
         },
     )
+
 
     assert result.score == 1.0
 

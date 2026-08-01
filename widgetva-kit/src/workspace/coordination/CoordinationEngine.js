@@ -363,6 +363,12 @@ export class CoordinationEngine {
       }
     }
     if (entry.appliedEffect === 'applyFilter') {
+      if (
+        entry.transform?.kind === 'domainToFilter'
+        && (!Array.isArray(entry.mappedSelection?.predicates) || entry.mappedSelection.predicates.length === 0)
+      ) {
+        return { canApply: false, reason: normalizePropagationSkipReason('mapping_unresolved') }
+      }
       return { canApply: true, reason: null }
     }
     if (entry.appliedEffect === 'reencodeView') {
@@ -597,6 +603,13 @@ export class CoordinationEngine {
         state,
         includeManual: allowManual,
       })
+      const invalidDomainFilter = filterEntries.find((filterEntry) => (
+        filterEntry.transform?.kind === 'domainToFilter'
+        && (!Array.isArray(filterEntry.mappedSelection?.predicates) || filterEntry.mappedSelection.predicates.length === 0)
+      ))
+      if (invalidDomainFilter) {
+        return { applied: false, nextState: state, reason: normalizePropagationSkipReason('mapping_unresolved') }
+      }
       const filterLinkRefs = new Set(filterEntries.map((item) => item.linkRef))
       let nextTransformState = {
         ...state,
