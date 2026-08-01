@@ -789,13 +789,6 @@ function readWidgetKindForRef(observe = {}, widgetRef = null) {
 }
 
 function readFamilyNamesForWidget(knowledge = null, widgetKind = null, fieldName = '') {
-  if (Array.isArray(knowledge?.tools)) {
-    const operationKind = fieldName === 'perceptions' ? 'perception' : 'action'
-    return knowledge.tools
-      .filter((tool) => !tool?.kind || tool.kind === operationKind)
-      .map((tool) => tool?.name)
-      .filter((name, index, names) => typeof name === 'string' && name.length > 0 && names.indexOf(name) === index)
-  }
   if (!widgetKind || !fieldName) return []
   const families = Array.isArray(knowledge?.widgetFamilies) ? knowledge.widgetFamilies : []
   const family = families.find((entry) => entry?.kind === widgetKind) || null

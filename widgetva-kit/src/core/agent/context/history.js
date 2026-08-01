@@ -145,34 +145,6 @@ function repeatedPerceptionMadeNoProgress(turns = []) {
     && previous.act.resultFingerprint === current.act.resultFingerprint
 }
 
-function repeatedVerifiedOperationMadeNoProgress(turns = []) {
-  if (!Array.isArray(turns) || turns.length < 2) return false
-  const previous = turns.at(-2)
-  const current = turns.at(-1)
-  if (previous?.act?.ok !== true || current?.act?.ok !== true) return false
-  if (previous?.verify?.ok !== true || current?.verify?.ok !== true) return false
-
-  const previousOperation = {
-    kind: previous.act.kind || null,
-    name: previous.act.name || null,
-    target: previous.act.target || null,
-    params: previous.act.params || null,
-  }
-  const currentOperation = {
-    kind: current.act.kind || null,
-    name: current.act.name || null,
-    target: current.act.target || null,
-    params: current.act.params || null,
-  }
-  if (stableJson(previousOperation) !== stableJson(currentOperation)) return false
-
-  const previousEvidence = previous.act.resultFingerprint || previous.act.outputSummary || null
-  const currentEvidence = current.act.resultFingerprint || current.act.outputSummary || null
-  return typeof previousEvidence === 'string'
-    && previousEvidence.length > 0
-    && previousEvidence === currentEvidence
-}
-
 export function shouldStopAgentSession(turn = null, { turns = [] } = {}) {
   if (!turn || typeof turn !== 'object') return null
 
@@ -197,7 +169,5 @@ export function shouldStopAgentSession(turn = null, { turns = [] } = {}) {
   }
 
   if (repeatedPerceptionMadeNoProgress(turns)) return 'no_progress'
-  if (repeatedVerifiedOperationMadeNoProgress(turns)) return 'no_progress'
-
   return null
 }
