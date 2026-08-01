@@ -168,40 +168,6 @@ function buildPromptUserContent(userPrompt, observe = null) {
   ]
 }
 
-function textOnlyConversationContent(content) {
-  if (typeof content === 'string') return content
-  if (!Array.isArray(content)) return null
-  const text = content
-    .filter((part) => part && part.type === 'text' && typeof part.text === 'string')
-    .map((part) => part.text)
-    .join('\n')
-  return text || null
-}
-
-function buildConversationalMessages(currentMessages, conversation = []) {
-  const [systemMessage, currentUserMessage] = currentMessages || []
-  const priorMessages = (Array.isArray(conversation) ? conversation : [])
-    .slice(-12)
-    .map((message) => {
-      const content = textOnlyConversationContent(message?.content)
-      if (!content || !['user', 'assistant'].includes(message?.role)) return null
-      return { role: message.role, content }
-    })
-    .filter(Boolean)
-
-  return [systemMessage, ...priorMessages, currentUserMessage].filter(Boolean)
-}
-
-function appendConversationExchange(conversation, userMessage, assistantContent) {
-  if (!Array.isArray(conversation)) return
-  const userContent = textOnlyConversationContent(userMessage?.content)
-  if (userContent) conversation.push({ role: 'user', content: userContent })
-  if (typeof assistantContent === 'string' && assistantContent.length > 0) {
-    conversation.push({ role: 'assistant', content: assistantContent })
-  }
-  if (conversation.length > 12) conversation.splice(0, conversation.length - 12)
-}
-
 function summarizePromptParams(params = null) {
   if (!params || typeof params !== 'object' || Array.isArray(params)) return null
   const parts = []
@@ -835,8 +801,6 @@ export function createNaturalLanguagePlanner({
     throw new Error('createNaturalLanguagePlanner requires completeChat().')
   }
 
-  const conversation = []
-
   return async function planner({
     objective = null,
     observe = null,
@@ -849,14 +813,14 @@ export function createNaturalLanguagePlanner({
       ? objective.trim()
       : 'Inspect the current visualization workspace and take the next useful step.'
 
-    const primaryMessages = buildConversationalMessages(buildAgentMessages({
+    const primaryMessages = buildAgentMessages({
       objective: safeObjective,
       knowledge,
       observe,
       history,
       plannerContext,
       responseRequirements,
-    }), conversation)
+    })
     const primaryResponse = await completeChat({
       model,
       temperature,
@@ -865,7 +829,6 @@ export function createNaturalLanguagePlanner({
     })
 
     const primaryContent = primaryResponse?.content || ''
-    appendConversationExchange(conversation, primaryMessages.at(-1), primaryContent)
     const primaryPlan = extractJsonObject(primaryContent)
 
     let normalizedOperation = primaryPlan ? normalizeOperation(primaryPlan, observe) : null
@@ -873,7 +836,7 @@ export function createNaturalLanguagePlanner({
     let resolvedPlan = primaryPlan
 
     if (!isExecutableOperation(normalizedOperation, observe, knowledge)) {
-      const repairMessages = buildConversationalMessages(buildRepairMessages({
+      const repairMessages = buildRepairMessages({
         objective: safeObjective,
         knowledge,
         observe,
@@ -881,7 +844,7 @@ export function createNaturalLanguagePlanner({
         plannerContext,
         responseRequirements,
         previousContent: primaryContent,
-      }), conversation)
+      })
       const repairedResponse = await completeChat({
         model,
         temperature,
@@ -889,7 +852,6 @@ export function createNaturalLanguagePlanner({
         messages: repairMessages,
       })
       const repairedContent = repairedResponse?.content || ''
-      appendConversationExchange(conversation, repairMessages.at(-1), repairedContent)
       const repairedPlan = extractJsonObject(repairedContent)
       const repairedOperation = repairedPlan ? normalizeOperation(repairedPlan, observe) : null
 

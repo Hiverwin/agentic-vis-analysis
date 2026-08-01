@@ -326,7 +326,7 @@ test('createNaturalLanguagePlanner includes compact session history in planning 
   assert.match(userPrompt, /Active filter: weather in \[snow\]/)
 })
 
-test('createNaturalLanguagePlanner carries prior conversational messages across planner calls', async () => {
+test('createNaturalLanguagePlanner does not replay prior prompt messages across planner calls', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({
     completeChat: async (request) => {
@@ -393,9 +393,50 @@ test('createNaturalLanguagePlanner carries prior conversational messages across 
   assert.equal(requests[0].messages.length, 2)
   assert.equal(requests[1].messages[0].role, 'system')
   assert.equal(requests[1].messages[1].role, 'user')
-  assert.equal(requests[1].messages[2].role, 'assistant')
-  assert.match(requests[1].messages[2].content, /step 1/)
-  assert.equal(requests[1].messages[3].role, 'user')
+  assert.equal(requests[1].messages.length, 2)
+})
+
+test('createNaturalLanguagePlanner preserves continuity through canonical history', async () => {
+  const requests = []
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      return {
+        content: JSON.stringify({
+          assistantMessage: 'Continue from history.',
+          rationale: 'The canonical history identifies the completed first step.',
+          operation: {
+            kind: 'perception',
+            name: 'perception.inspectVisibleRows',
+            target: { widgetRef: 'bar-ref' },
+            params: {},
+          },
+        }),
+      }
+    },
+    model: 'test-model',
+  })
+
+  await planner({
+    objective: 'Inspect the bar chart.',
+    knowledge: { widgetFamilies: [{ kind: 'bar', actions: [], perceptions: [{ name: 'perception.inspectVisibleRows' }] }] },
+    observe: { state: { widgets: [{ ref: 'bar-ref', kind: 'bar' }] }, view: null },
+  })
+  await planner({
+    objective: 'Continue the inspection.',
+    knowledge: { widgetFamilies: [{ kind: 'bar', actions: [], perceptions: [{ name: 'perception.inspectVisibleRows' }] }] },
+    history: {
+      turns: [{
+        turnId: 'turn_1',
+        operation: { kind: 'perception', name: 'perception.inspectVisibleRows' },
+        status: { outcome: 'verified', resultSummary: '3 visible rows' },
+      }],
+    },
+    observe: { state: { widgets: [{ ref: 'bar-ref', kind: 'bar' }] }, view: null },
+  })
+
+  assert.match(requests[1].messages[1].content, /3 visible rows/)
+  assert.doesNotMatch(requests[1].messages[1].content, /Continue from history/)
 })
 
 test('createNaturalLanguagePlanner prunes bulky official-page observation payloads from prompt', async () => {
