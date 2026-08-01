@@ -48,6 +48,16 @@ test('planner context accepts benchmark instance snake_case fields', () => {
   assert.equal(context.workflow.id, 'WF-2V-REPEATED-CATEGORY-PROFILE-COMPARISON-10')
 })
 
+test('planner workflow projection preserves executable operations for progress tracking', () => {
+  const context = buildPlannerContext({
+    workflowId: 'WF-2V-REPEATED-CATEGORY-PROFILE-COMPARISON-10',
+    level: 3,
+  })
+
+  assert.ok(context.workflow.steps.length > 0)
+  assert.ok(context.workflow.steps.every((step) => typeof step.operation === 'string'))
+})
+
 test('relation guidance has stable multi-widget ids and is not a workflow catalog', () => {
   const relations = listRelationGuidance()
   assert.ok(relations.length > 0)

@@ -6,7 +6,10 @@ import { resolveRelationGuidance } from './relationCatalog.js'
 function projectWorkflowForPlanner(workflow) {
   const projected = clone(workflow)
   projected.steps = (Array.isArray(projected.steps) ? projected.steps : [])
-    .map(({ operation: _operation, ...step }) => step)
+    .map((step, index) => ({
+      stepId: step?.stepId || `${projected.id || 'workflow'}:step_${index + 1}`,
+      ...step,
+    }))
   return projected
 }
 
