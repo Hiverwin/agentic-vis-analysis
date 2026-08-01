@@ -359,6 +359,8 @@ function summarizeNestedResult(payload = null) {
 
 export function summarizeFormalRuntimePayload(payload = null) {
   if (!payload || typeof payload !== 'object') return null
+  if (typeof payload.outputSummary === 'string' && payload.outputSummary.length > 0) return payload.outputSummary
+  if (typeof payload.actionResult?.outputSummary === 'string' && payload.actionResult.outputSummary.length > 0) return payload.actionResult.outputSummary
   if (typeof payload.summary === 'string' && payload.summary.length > 0) return payload.summary
   if (typeof payload.message === 'string' && payload.message.length > 0) return payload.message
   const nestedSummary = summarizeNestedResult(payload)

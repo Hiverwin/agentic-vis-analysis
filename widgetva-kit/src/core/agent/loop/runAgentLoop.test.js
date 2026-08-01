@@ -706,6 +706,46 @@ test('runAgentSession stops as no_progress after an identical verified operation
   assert.equal(result.turns.length, 2)
 })
 
+test('runAgentSession stops repeated verified actions with identical evidence', async () => {
+  const { port } = createObservedPort({
+    async executeVerifiedAction(call) {
+      return {
+        ok: true,
+        callId: call.callId,
+        actionName: call.name,
+        stateId: `main:${call.callId}`,
+        outputSummary: 'The same selection remains active.',
+        actionResult: {
+          ok: true,
+          stateId: `main:${call.callId}`,
+          outputSummary: 'The same selection remains active.',
+          updatedRefs: [call.target?.widgetRef].filter(Boolean),
+        },
+        verification: { ok: true, result: { passed: true } },
+      }
+    },
+  })
+
+  const result = await runAgentSession(port, {
+    objective: 'Keep the selected category active.',
+    maxTurns: 4,
+    planner: async () => ({
+      assistantMessage: 'I will keep the category selected.',
+      rationale: 'The requested state is already represented by this action.',
+      operation: {
+        kind: 'action',
+        name: 'scatter.brushRegion',
+        target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+        params: { xField: 'Horsepower', yField: 'Miles_per_Gallon', xRange: [80, 140], yRange: [18, 30] },
+      },
+    }),
+    reasoner: async () => ({ answer: 'Continue.', completion: { status: 'continue' } }),
+  })
+
+  assert.equal(result.stopReason, 'no_progress')
+  assert.equal(result.turns.length, 2)
+})
+
 test('runAgentSession stops when the reason stage explicitly marks the objective as answered', async () => {
   const { port } = createObservedPort()
 
