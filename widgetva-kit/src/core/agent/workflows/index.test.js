@@ -51,11 +51,14 @@ test('keeps multi-widget workflows in the same lookup catalog with semantic scop
   const all = listWorkflows({ scope: 'multi_widget' })
   assert.equal(all.length, listMultiWidgetWorkflows().length)
   assert.ok(all.every((entry) => entry.families.length >= 2))
-  assert.ok(all.every((entry) => /^WF-[23]V-[A-Z0-9-]+-\d{2}$/.test(entry.id)))
+  assert.ok(all.every((entry) => /^WF-[2-6]V-[A-Z0-9-]+-\d{2}$/.test(entry.id)))
   assert.ok(all.every((entry) => entry.steps.every((step) => ['action', 'perception'].includes(step.kind))))
   assert.equal(new Set(listWorkflows().map((entry) => entry.id)).size, listWorkflows().length)
   assert.ok(Array.isArray(multiWidgetWorkflows['2V']))
   assert.ok(Array.isArray(multiWidgetWorkflows['3V']))
+  assert.ok(Array.isArray(multiWidgetWorkflows['4V']))
+  assert.ok(Array.isArray(multiWidgetWorkflows['5V']))
+  assert.ok(Array.isArray(multiWidgetWorkflows['6V']))
 })
 
 test('registers repeated category-to-profile comparison separately from generic investigation', () => {

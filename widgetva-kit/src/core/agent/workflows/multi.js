@@ -438,6 +438,36 @@ export const multiWidgetWorkflows = Object.freeze({
     "id": "WF-2V-REPEATED-TEMPORAL-COMPOSITION-COMPARISON-14",
     "scope": "multi_widget",
     "semanticName": "Repeated temporal composition comparison"
+  },
+  {
+    "name": "trend_break_contextualization",
+    "slug": "multi.trend_break_contextualization",
+    "families": ["line", "bar"],
+    "viewCount": 2,
+    "scenarioExamples": [
+      "Find a structural break in a trend and inspect whether category composition changed around it.",
+      "Identify an unusual trend transition, then compare the linked aggregate context before explaining the shift."
+    ],
+    "steps": [
+      {
+        "kind": "perception",
+        "operation": "perception.detectAnomalies",
+        "purpose": "Locate candidate breakpoints or unusual trend regions from the time-series evidence."
+      },
+      {
+        "kind": "action",
+        "operation": "line.zoomXRegion",
+        "purpose": "Focus the evidence-derived interval so linked aggregate views update to that local context."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Read the linked aggregate summary after propagation and compare it with retained baseline evidence."
+      }
+    ],
+    "id": "WF-2V-TREND-BREAK-CONTEXTUALIZATION-15",
+    "scope": "multi_widget",
+    "semanticName": "Trend break contextualization"
   }
 ]),
   '3V': Object.freeze([
@@ -617,6 +647,317 @@ export const multiWidgetWorkflows = Object.freeze({
     "id": "WF-3V-ANOMALY-CONTEXT-TRIANGULATION-18",
     "scope": "multi_widget",
     "semanticName": "Anomaly feature-context triangulation"
+  },
+  {
+    "name": "progressive_cohort_narrowing",
+    "slug": "multi.progressive_cohort_narrowing",
+    "families": ["bar", "parallelCoordinates", "scatter"],
+    "viewCount": 3,
+    "scenarioExamples": [
+      "Start from a business segment, refine it with multidimensional constraints, and inspect the resulting record-level pattern.",
+      "Narrow a visible cohort step by step before checking whether the focused records form an unusual group."
+    ],
+    "steps": [
+      {
+        "kind": "action",
+        "operation": "bar.selectCategory",
+        "purpose": "Select the initial segment or category that defines the first cohort boundary."
+      },
+      {
+        "kind": "action",
+        "operation": "parallelCoordinates.selectCohort",
+        "purpose": "Refine the active cohort with one or more multidimensional range constraints."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.findOutliers",
+        "purpose": "Inspect the linked record-level view for unusual members inside the narrowed cohort."
+      }
+    ],
+    "id": "WF-3V-PROGRESSIVE-COHORT-NARROWING-19",
+    "scope": "multi_widget",
+    "semanticName": "Progressive cohort narrowing"
+  },
+  {
+    "name": "baseline_exception_comparison",
+    "slug": "multi.baseline_exception_comparison",
+    "families": ["line", "bar", "heatmap"],
+    "viewCount": 3,
+    "scenarioExamples": [
+      "Compare an exceptional period with a baseline period to decide whether the change is broad or localized.",
+      "Select an anomaly and a normal reference point, then compare linked composition and matrix context."
+    ],
+    "steps": [
+      {
+        "kind": "perception",
+        "operation": "perception.detectAnomalies",
+        "purpose": "Find the evidence-derived exceptional time point or interval."
+      },
+      {
+        "kind": "action",
+        "operation": "line.selectXValue",
+        "purpose": "Select the exceptional point so linked context views update to that case."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Retain the linked composition and matrix context for the exceptional case."
+      },
+      {
+        "kind": "action",
+        "operation": "line.selectXValue",
+        "purpose": "Replace the exception with a baseline point for an independent comparison snapshot."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.compareGroups",
+        "purpose": "Compare the retained exception evidence with the baseline-linked context."
+      }
+    ],
+    "id": "WF-3V-BASELINE-EXCEPTION-COMPARISON-20",
+    "scope": "multi_widget",
+    "semanticName": "Baseline exception comparison"
+  }
+]),
+  '4V': Object.freeze([
+  {
+    "name": "segment_performance_diagnosis",
+    "slug": "multi.segment_performance_diagnosis",
+    "families": ["bar", "line", "scatter", "parallelCoordinates"],
+    "viewCount": 4,
+    "scenarioExamples": [
+      "Diagnose why one segment performs differently by checking aggregate, temporal, record-level, and feature-profile evidence.",
+      "Select a category, inspect its trend and records, then refine the explanation with multidimensional context."
+    ],
+    "steps": [
+      {
+        "kind": "action",
+        "operation": "bar.selectCategory",
+        "purpose": "Select the segment that needs explanation and let linked views update from that cohort."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Summarize the linked temporal and record-level evidence for the selected segment."
+      },
+      {
+        "kind": "action",
+        "operation": "parallelCoordinates.selectCohort",
+        "purpose": "Refine the segment with feature ranges when the current evidence suggests a narrower subgroup."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.findOutliers",
+        "purpose": "Check whether the refined segment contains influential or exceptional records."
+      }
+    ],
+    "id": "WF-4V-SEGMENT-PERFORMANCE-DIAGNOSIS-01",
+    "scope": "multi_widget",
+    "semanticName": "Segment performance diagnosis"
+  },
+  {
+    "name": "temporal_anomaly_cross_check",
+    "slug": "multi.temporal_anomaly_cross_check",
+    "families": ["line", "heatmap", "scatter", "bar"],
+    "viewCount": 4,
+    "scenarioExamples": [
+      "Find a temporal anomaly and cross-check whether relationship, record-level, and composition views support the same interpretation.",
+      "Investigate whether an unusual period is driven by a local relationship pattern or a broader category shift."
+    ],
+    "steps": [
+      {
+        "kind": "perception",
+        "operation": "perception.detectAnomalies",
+        "purpose": "Identify the anomalous period from the time-series view."
+      },
+      {
+        "kind": "action",
+        "operation": "line.zoomXRegion",
+        "purpose": "Focus the anomaly window and let linked relationship, detail, and composition views update together."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.findOutliers",
+        "purpose": "Inspect the updated detail view for records that may explain the anomaly."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Summarize the linked aggregate and matrix context before forming the explanation."
+      }
+    ],
+    "id": "WF-4V-TEMPORAL-ANOMALY-CROSS-CHECK-02",
+    "scope": "multi_widget",
+    "semanticName": "Temporal anomaly cross-check"
+  },
+  {
+    "name": "cross_view_contradiction_resolution",
+    "slug": "multi.cross_view_contradiction_resolution",
+    "families": ["bar", "line", "scatter", "heatmap"],
+    "viewCount": 4,
+    "scenarioExamples": [
+      "Resolve a disagreement between aggregate ranking, recent trend, record-level relationship, and matrix context.",
+      "Check whether the top category remains important after temporal and relationship evidence are considered."
+    ],
+    "steps": [
+      {
+        "kind": "perception",
+        "operation": "perception.compareGroups",
+        "purpose": "Identify the aggregate contrast or disagreement that needs resolution."
+      },
+      {
+        "kind": "action",
+        "operation": "bar.selectCategory",
+        "purpose": "Select the disputed category so linked views expose its temporal and record-level context."
+      },
+      {
+        "kind": "action",
+        "operation": "line.zoomXRegion",
+        "purpose": "Focus the relevant period if the contradiction depends on time-local behavior."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.computeCorrelation",
+        "purpose": "Use the updated relationship evidence to qualify the aggregate claim."
+      }
+    ],
+    "id": "WF-4V-CROSS-VIEW-CONTRADICTION-RESOLUTION-03",
+    "scope": "multi_widget",
+    "semanticName": "Cross-view contradiction resolution"
+  }
+]),
+  '5V': Object.freeze([
+  {
+    "name": "multi_angle_cohort_review",
+    "slug": "multi.multi_angle_cohort_review",
+    "families": ["bar", "line", "scatter", "heatmap", "parallelCoordinates"],
+    "viewCount": 5,
+    "scenarioExamples": [
+      "Review a cohort from aggregate, temporal, bivariate, matrix, and multidimensional perspectives before answering.",
+      "Select a segment and decide whether its behavior is consistent across all available non-flow views."
+    ],
+    "steps": [
+      {
+        "kind": "action",
+        "operation": "bar.selectCategory",
+        "purpose": "Select the cohort or segment that anchors the multi-view review."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Read the linked aggregate and temporal context after the cohort selection propagates."
+      },
+      {
+        "kind": "action",
+        "operation": "parallelCoordinates.selectCohort",
+        "purpose": "Optionally refine the cohort using feature ranges suggested by the updated views."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.computeCorrelation",
+        "purpose": "Inspect the linked scatter or relationship evidence for the active cohort."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.compareGroups",
+        "purpose": "Compare the selected cohort with relevant alternatives before answering."
+      }
+    ],
+    "id": "WF-5V-MULTI-ANGLE-COHORT-REVIEW-01",
+    "scope": "multi_widget",
+    "semanticName": "Multi-angle cohort review"
+  },
+  {
+    "name": "flow_bottleneck_impact_diagnosis",
+    "slug": "multi.flow_bottleneck_impact_diagnosis",
+    "families": ["sankey", "bar", "line", "scatter", "heatmap"],
+    "viewCount": 5,
+    "scenarioExamples": [
+      "Locate a process bottleneck and inspect which groups, periods, and records are affected.",
+      "Explain whether a flow drop-off is associated with a segment, a time interval, or a local relationship pattern."
+    ],
+    "steps": [
+      {
+        "kind": "action",
+        "operation": "sankey.focusFlow",
+        "purpose": "Focus the path or transition that represents the suspected process bottleneck."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.findBottleneck",
+        "purpose": "Identify the main loss point or constrained step in the focused flow."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Read linked segment and temporal context for the affected flow membership."
+      },
+      {
+        "kind": "action",
+        "operation": "scatter.brushRegion",
+        "purpose": "Inspect a record-level region if the linked context suggests a concentrated subgroup."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.compareGroups",
+        "purpose": "Compare the affected flow cohort with the non-affected context."
+      }
+    ],
+    "id": "WF-5V-FLOW-BOTTLENECK-IMPACT-DIAGNOSIS-02",
+    "scope": "multi_widget",
+    "semanticName": "Flow bottleneck impact diagnosis"
+  }
+]),
+  '6V': Object.freeze([
+  {
+    "name": "end_to_end_exception_investigation",
+    "slug": "multi.end_to_end_exception_investigation",
+    "families": ["line", "bar", "scatter", "heatmap", "parallelCoordinates", "sankey"],
+    "viewCount": 6,
+    "scenarioExamples": [
+      "Investigate a KPI exception across detection, segment, record, feature, relationship, and process views.",
+      "Build an end-to-end explanation for an unusual event using all coordinated views without treating every update as a separate action."
+    ],
+    "steps": [
+      {
+        "kind": "perception",
+        "operation": "perception.detectAnomalies",
+        "purpose": "Find the primary exception or period that should anchor the investigation."
+      },
+      {
+        "kind": "action",
+        "operation": "line.selectXValue",
+        "purpose": "Select the exception so all linked views update to the same event context."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.summarizeVisible",
+        "purpose": "Read the updated segment, process, and relationship summaries after propagation settles."
+      },
+      {
+        "kind": "action",
+        "operation": "parallelCoordinates.selectCohort",
+        "purpose": "Refine the explanation with feature-level constraints when the linked summaries point to a subgroup."
+      },
+      {
+        "kind": "action",
+        "operation": "sankey.focusFlow",
+        "purpose": "Inspect whether the refined cohort concentrates in a process path or transition."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.findOutliers",
+        "purpose": "Identify exceptional records or members that carry the explanation."
+      },
+      {
+        "kind": "perception",
+        "operation": "perception.compareGroups",
+        "purpose": "Compare the exception cohort with a baseline or non-exception context before answering."
+      }
+    ],
+    "id": "WF-6V-END-TO-END-EXCEPTION-INVESTIGATION-01",
+    "scope": "multi_widget",
+    "semanticName": "End-to-end exception investigation"
   }
 ]),
 })
