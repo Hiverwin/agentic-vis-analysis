@@ -6,6 +6,7 @@ from evaluators.tool_evaluator import ToolEvaluator
 from evaluators.state_evaluator import StateEvaluator
 from evaluators.run_evaluation import format_summary, summarize_results, write_instance_evaluations
 from benchmark.runner import build_scoring_result, expand_task_paths
+from tools.operation_equivalence import derive_alternative_params, materialize_step_alternatives
 
 
 def test_openrouter_judge_request_explicitly_mentions_json(monkeypatch):
@@ -924,3 +925,132 @@ def test_benchmark_runner_expands_files_and_directories_without_duplicates():
     assert len(paths) == 12
     assert paths[0] == one
     assert len({path.name for path in paths}) == 12
+
+
+def test_tool_evaluator_accepts_instance_operation_alternatives():
+    instance = {
+        "evaluation": {
+            "tool": {
+                "steps": [{
+                    "step_id": "tool_1",
+                    "operation": "scatter.brushRegion",
+                    "alternatives": ["scatter.selectRegion"],
+                    "alternative_steps": [{
+                        "operation": "scatter.selectRegion",
+                        "params": {"xRange": [0, 10], "yRange": [20, 30]},
+                    }],
+                    "target_widget_ref": "w_scatter",
+                    "params": {"xRange": [99, 100], "yRange": [20, 30]},
+                    "requirement": "required",
+                }]
+            }
+        }
+    }
+    result = {
+        "tool": {
+            "executions": [{
+                "step_id": "agent_1",
+                "execution": {
+                    "ok": True,
+                    "name": "scatter.selectRegion",
+                    "target_widget_ref": "w_scatter",
+                    "params": {"xRange": [0, 10], "yRange": [20, 30]},
+                },
+            }]
+        }
+    }
+
+    evaluated = ToolEvaluator().evaluate(instance, result)
+
+    assert evaluated.score == 1.0
+    step = evaluated.details["required"]["steps"][0]
+    assert step["operation_match"] == "alternative"
+    assert step["actual_operation"] == "scatter.selectRegion"
+    assert step["alternative_operation"] == "scatter.selectRegion"
+
+
+def test_tool_evaluator_does_not_use_alternative_params_when_operation_matches():
+    instance = {
+        "evaluation": {
+            "tool": {
+                "steps": [{
+                    "step_id": "tool_1",
+                    "operation": "scatter.brushRegion",
+                    "alternatives": ["scatter.selectRegion"],
+                    "alternative_steps": [{
+                        "operation": "scatter.selectRegion",
+                        "params": {"xRange": [0, 10], "yRange": [20, 30]},
+                    }],
+                    "target_widget_ref": "w_scatter",
+                    "params": {"xRange": [99, 100], "yRange": [20, 30]},
+                    "requirement": "required",
+                }]
+            }
+        }
+    }
+    result = {
+        "tool": {
+            "executions": [{
+                "execution": {
+                    "ok": True,
+                    "name": "scatter.brushRegion",
+                    "target_widget_ref": "w_scatter",
+                    "params": {"xRange": [0, 10], "yRange": [20, 30]},
+                },
+            }]
+        }
+    }
+
+    evaluated = ToolEvaluator().evaluate(instance, result)
+
+    assert evaluated.score == 0.5
+    step = evaluated.details["required"]["steps"][0]
+    assert step["operation_match"] == "exact"
+    assert step["alternative_operation"] is None
+
+
+def test_materialize_step_alternatives_generates_only_derivable_runtime_shaped_steps():
+    steps = [{
+        "step_id": "tool_1",
+        "operation": "bar.selectCategory",
+        "target_widget_ref": "w_bar",
+        "params": {"field": "region", "values": ["West"]},
+    }]
+    equivalence = {"bar.selectCategory": ["bar.clickCategory", "bar.filterCategories", "not.derivable"]}
+
+    materialized = materialize_step_alternatives(steps, equivalence)
+
+    assert materialized[0]["alternatives"] == ["bar.clickCategory", "bar.filterCategories", "not.derivable"]
+    assert materialized[0]["alternative_steps"] == [
+        {"operation": "bar.clickCategory", "params": {"field": "region", "values": ["West"]}},
+        {"operation": "bar.filterCategories", "params": {"categories": ["West"], "field": "region"}},
+    ]
+    assert "alternatives" not in steps[0]
+
+
+def test_alternative_param_derivation_uses_runtime_facing_shapes():
+    assert derive_alternative_params(
+        "bar.selectCategory",
+        "bar.filterCategories",
+        {"field": "region", "values": ["West"]},
+    ) == {"categories": ["West"], "field": "region"}
+    assert derive_alternative_params(
+        "line.selectSeries",
+        "line.focusLines",
+        {"field": "series", "values": ["A"]},
+    ) == {"lines": ["A"], "lineField": "series"}
+    assert derive_alternative_params(
+        "line.focusLines",
+        "line.boldLines",
+        {"lineField": "series", "lines": ["A"]},
+    ) == {"lineNames": ["A"], "lineField": "series"}
+    assert derive_alternative_params(
+        "heatmap.filterCellsByRegion",
+        "heatmap.highlightRegion",
+        {"xValue": "Q1", "yValue": "A"},
+    ) == {"xValues": ["Q1"], "yValues": ["A"]}
+    assert derive_alternative_params(
+        "bar.filterCategories",
+        "bar.selectCategory",
+        {"categoriesToRemove": ["East"], "field": "region"},
+    ) is None

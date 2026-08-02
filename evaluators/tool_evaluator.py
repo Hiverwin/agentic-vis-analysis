@@ -40,12 +40,22 @@ class ToolEvaluator:
                 if score > best_score:
                     best_index, best_score = index, score
             matched = best_index is not None and best_score == 1.0
+            matched_call = actual[best_index] if best_index is not None else {}
+            matched_candidate = self._match_candidate(step, matched_call) if matched_call else None
             if matched:
                 used.add(best_index)
             match = {
                 "step_id": step.get("step_id"),
                 "score": best_score,
                 "matched": matched,
+                "expected_operation": step.get("operation"),
+                "actual_operation": matched_call.get("operation"),
+                "operation_match": self._operation_match_kind(step, matched_call),
+                "alternative_operation": (
+                    matched_candidate.get("operation")
+                    if matched_candidate and matched_candidate is not step
+                    else None
+                ),
                 "dependency_satisfied": dependency_satisfied,
                 "order_ok": (
                     True if not dependencies else None
@@ -97,12 +107,13 @@ class ToolEvaluator:
         return calls
 
     def _match_score(self, expected: Dict[str, Any], actual: Dict[str, Any]) -> float:
-        if expected.get("operation") != actual.get("operation"):
+        candidate = self._match_candidate(expected, actual)
+        if candidate is None:
             return 0.0
         target = expected.get("target_widget_ref")
         if target and self._widget_identity(actual.get("target_widget_ref")) != self._widget_identity(target):
             return 0.0
-        expected_params = expected.get("params", {})
+        expected_params = candidate.get("params", {})
         actual_params = actual.get("params", {})
         if not expected_params:
             return 1.0
@@ -117,5 +128,25 @@ class ToolEvaluator:
         return widget_ref
 
     @staticmethod
+    def _operation_match_kind(expected: Dict[str, Any], actual: Dict[str, Any]) -> str:
+        candidate = ToolEvaluator._match_candidate(expected, actual)
+        if candidate is None:
+            return "none"
+        if candidate is expected:
+            return "exact"
+        return "alternative"
+
+    @staticmethod
+    def _match_candidate(expected: Dict[str, Any], actual: Dict[str, Any]) -> Dict[str, Any] | None:
+        expected_operation = expected.get("operation")
+        actual_operation = actual.get("operation")
+        if expected_operation == actual_operation:
+            return expected
+        for alternative in expected.get("alternative_steps") or []:
+            if alternative.get("operation") == actual_operation:
+                return alternative
+        return None
+
+    @staticmethod
     def _has_operation(step: Dict[str, Any], actual: List[Dict[str, Any]]) -> bool:
-        return any(call.get("operation") == step.get("operation") for call in actual)
+        return any(ToolEvaluator._operation_match_kind(step, call) != "none" for call in actual)

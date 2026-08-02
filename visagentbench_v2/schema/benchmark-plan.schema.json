@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://visagentbench.local/schema/benchmark-plan.schema.json",
+  "title": "VisAgentBench widget-kit benchmark instance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "benchmark_id",
+    "task_id",
+    "benchmark_partition",
+    "asl",
+    "query",
+    "taxonomy",
+    "workspace",
+    "materializations",
+    "evaluation"
+  ],
+  "properties": {
+    "benchmark_id": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "minLength": 1 },
+    "benchmark_partition": {
+      "type": "string",
+      "enum": ["main", "hinted", "stress", "pilot"]
+    },
+    "asl": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "query": { "type": "string", "minLength": 1 },
+    "taxonomy": { "$ref": "#/$defs/taxonomy" },
+    "workspace": { "$ref": "#/$defs/workspace" },
+    "materializations": { "$ref": "#/$defs/materializations" },
+    "evaluation": { "$ref": "#/$defs/evaluation" },
+    "planner_context": { "$ref": "#/$defs/plannerContext" }
+  },
+  "$defs": {
+    "ref": {
+      "type": "string",
+      "pattern": "^wl://",
+      "minLength": 6
+    },
+    "taxonomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["answer_determinacy", "interaction_horizon", "workspace_scope"],
+      "properties": {
+        "answer_determinacy": {
+          "type": "string",
+          "enum": ["verifiable_target", "open_ended_insight"]
+        },
+        "interaction_horizon": {
+          "type": "string",
+          "enum": ["single_operation", "multi_operation"]
+        },
+        "workspace_scope": {
+          "type": "string",
+          "enum": ["single_widget", "multi_widget"]
+        }
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workspace_id", "widgets", "links"],
+      "properties": {
+        "workspace_id": { "type": "string", "minLength": 1 },
+        "widgets": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/widget" }
+        },
+        "links": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/stateLink" }
+        }
+      }
+    },
+    "widget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "kind"],
+      "properties": {
+        "ref": { "$ref": "#/$defs/ref" },
+        "kind": {
+          "type": "string",
+          "enum": ["bar", "line", "scatter", "heatmap", "parallelCoordinates", "sankey", "custom"]
+        }
+      }
+    },
+    "stateLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sourceStateRef", "targetStateRef", "relation", "transform", "activation"],
+      "properties": {
+        "ref": { "$ref": "#/$defs/ref" },
+        "id": { "type": "string", "minLength": 1 },
+        "linkId": { "type": "string", "minLength": 1 },
+        "sourceStateRef": { "$ref": "#/$defs/ref" },
+        "targetStateRef": { "$ref": "#/$defs/ref" },
+        "relation": { "type": "string", "enum": ["controls", "derives"] },
+        "transform": { "$ref": "#/$defs/linkTransform" },
+        "activation": { "type": "string", "enum": ["automatic", "manual"] }
+      }
+    },
+    "linkTransform": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "fieldMapping": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sourceField", "targetField"],
+            "properties": {
+              "sourceField": { "type": "string", "minLength": 1 },
+              "targetField": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "channelMapping": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sourceChannel", "targetField"],
+            "properties": {
+              "sourceChannel": { "type": "string", "minLength": 1 },
+              "targetField": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "materializations": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/materialization" }
+    },
+    "materialization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["renderer", "status", "widgets"],
+      "properties": {
+        "renderer": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "enum": ["contract_ready", "packaged_ready"] },
+        "widgets": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/materializedWidget" }
+        }
+      }
+    },
+    "materializedWidget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spec_path"],
+      "properties": {
+        "spec_path": { "type": "string", "minLength": 1 }
+      }
+    },
+    "plannerContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "analysis_to_action_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "relation_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "workflow_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["answer", "state", "tool"],
+      "properties": {
+        "answer": { "$ref": "#/$defs/answerEvaluation" },
+        "state": { "$ref": "#/$defs/stateEvaluation" },
+        "tool": { "$ref": "#/$defs/toolEvaluation" }
+      }
+    },
+    "answerEvaluation": {
+      "oneOf": [
+        { "$ref": "#/$defs/numericAnswer" },
+        { "$ref": "#/$defs/categoricalAnswer" },
+        { "$ref": "#/$defs/intervalAnswer" },
+        { "$ref": "#/$defs/booleanAnswer" },
+        { "$ref": "#/$defs/verifiableTargetAnswer" },
+        { "$ref": "#/$defs/openInsightAnswer" }
+      ]
+    },
+    "numericAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value"],
+      "properties": {
+        "type": { "const": "numeric" },
+        "value": { "type": "number" },
+        "tolerance": { "type": "number", "minimum": 0 }
+      }
+    },
+    "categoricalAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value"],
+      "properties": {
+        "type": { "const": "categorical" },
+        "value": { "oneOf": [{ "type": "string" }, { "type": "array" }] }
+      }
+    },
+    "intervalAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value"],
+      "properties": {
+        "type": { "const": "interval" },
+        "value": { "type": "array", "minItems": 2, "maxItems": 2 }
+      }
+    },
+    "booleanAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value"],
+      "properties": {
+        "type": { "const": "boolean" },
+        "value": { "oneOf": [{ "type": "boolean" }, { "type": "string" }] }
+      }
+    },
+    "verifiableTargetAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "answer", "checks"],
+      "properties": {
+        "type": { "const": "verifiable_target" },
+        "answer": {},
+        "checks": { "type": "array", "items": { "$ref": "#/$defs/atomicCheck" } }
+      }
+    },
+    "openInsightAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "answer", "metrics", "reference_insights"],
+      "properties": {
+        "type": { "const": "open_ended_insight" },
+        "answer": { "type": "string", "minLength": 1 },
+        "metrics": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["insight_precision", "insight_recall", "groundedness"] },
+          "uniqueItems": true
+        },
+        "reference_insights": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["insight_id", "claim", "evidence"],
+            "properties": {
+              "insight_id": { "type": "string", "minLength": 1 },
+              "claim": { "type": "string", "minLength": 1 },
+              "evidence": { "type": "object" }
+            }
+          }
+        }
+      }
+    },
+    "stateEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicable", "checks"],
+      "properties": {
+        "applicable": { "type": "boolean" },
+        "checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/stateCheck" }
+        }
+      }
+    },
+    "stateCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check_id", "state_ref", "property", "check", "expected"],
+      "properties": {
+        "check_id": { "type": "string", "minLength": 1 },
+        "state_ref": { "$ref": "#/$defs/ref" },
+        "property": { "type": "string", "enum": ["encodings", "transforms", "selections", "view"] },
+        "check": { "type": "string", "enum": ["numeric", "categorical", "interval", "boolean"] },
+        "expected": {},
+        "method": { "type": "string", "enum": ["exact", "contains", "subset", "set_equal", "overlap", "approx"] },
+        "tolerance": { "type": "number", "minimum": 0 }
+      }
+    },
+    "toolEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["steps"],
+      "properties": {
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/toolStep" }
+        }
+      }
+    },
+    "toolStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step_id", "operation", "target_widget_ref", "params"],
+      "properties": {
+        "step_id": { "type": "string", "minLength": 1 },
+        "operation": { "type": "string", "minLength": 1 },
+        "target_widget_ref": { "$ref": "#/$defs/ref" },
+        "params": { "type": "object" },
+        "depends_on": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "requirement": {
+          "type": "string",
+          "enum": ["required", "optional"]
+        },
+        "alternatives": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "alternative_steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/toolAlternativeStep" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "toolAlternativeStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "params"],
+      "properties": {
+        "operation": { "type": "string", "minLength": 1 },
+        "params": { "type": "object" }
+      }
+    },
+    "atomicCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "check", "expected"],
+      "properties": {
+        "field": { "type": "string", "minLength": 1 },
+        "check": { "type": "string", "enum": ["numeric", "categorical", "interval", "boolean"] },
+        "expected": {},
+        "method": { "type": "string", "enum": ["exact", "contains", "subset", "set_equal", "overlap", "approx"] },
+        "tolerance": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}
