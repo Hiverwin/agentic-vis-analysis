@@ -18,61 +18,9 @@ class ToolEvaluator:
         required = [step for step in expected if step.get("requirement") == "required"]
         optional = [step for step in expected if step.get("requirement") != "required"]
         actual = self._successful_calls(result)
-        required_ids = {step.get("step_id") for step in required}
-        matches_by_id = {}
-        used = set()
-        matches = []
-        for step in required:
-            dependencies = [step_id for step_id in step.get("depends_on", []) if step_id in required_ids]
-            dependency_matches = [matches_by_id.get(step_id) for step_id in dependencies]
-            dependency_satisfied = all(match and match.get("matched") for match in dependency_matches)
-            # Dependencies constrain ordering only. They must not prevent an
-            # independently executed child step from earning its own score.
-            first_index = 0
-            best_index = None
-            best_score = 0.0
-            for index, call in enumerate(actual):
-                if index < first_index:
-                    continue
-                if index in used:
-                    continue
-                score = self._match_score(step, call)
-                if score > best_score:
-                    best_index, best_score = index, score
-            matched = best_index is not None and best_score == 1.0
-            matched_call = actual[best_index] if best_index is not None else {}
-            matched_candidate = self._match_candidate(step, matched_call) if matched_call else None
-            if matched:
-                used.add(best_index)
-            match = {
-                "step_id": step.get("step_id"),
-                "score": best_score,
-                "matched": matched,
-                "expected_operation": step.get("operation"),
-                "actual_operation": matched_call.get("operation"),
-                "operation_match": self._operation_match_kind(step, matched_call),
-                "alternative_operation": (
-                    matched_candidate.get("operation")
-                    if matched_candidate and matched_candidate is not step
-                    else None
-                ),
-                "dependency_satisfied": dependency_satisfied,
-                "order_ok": (
-                    True if not dependencies else None
-                    if not all(
-                        dependency_matches[index].get("actual_index") is not None
-                        for index in range(len(dependency_matches))
-                    ) else bool(
-                        matched and all(
-                            dependency_matches[index]["actual_index"] < best_index
-                            for index in range(len(dependency_matches))
-                        )
-                    )
-                ),
-                "actual_index": best_index if matched else None,
-            }
-            matches_by_id[step.get("step_id")] = match
-            matches.append(match)
+        alignment = self._align_required_steps(required, actual)
+        used = {item["actual_index"] for item in alignment.values() if item.get("actual_index") is not None}
+        matches = [self._format_match(step, actual, alignment.get(index)) for index, step in enumerate(required)]
         score = sum(item["score"] for item in matches) / len(matches) if matches else None
         return ToolEvalResult(
             score=score,
@@ -86,6 +34,74 @@ class ToolEvaluator:
                 "extra_calls_penalized": False,
             },
         )
+
+    def _align_required_steps(
+        self,
+        required: List[Dict[str, Any]],
+        actual: List[Dict[str, Any]],
+    ) -> Dict[int, Dict[str, Any]]:
+        row_count = len(required)
+        column_count = len(actual)
+        dp = [[0.0 for _ in range(column_count + 1)] for _ in range(row_count + 1)]
+        decisions = [["" for _ in range(column_count + 1)] for _ in range(row_count + 1)]
+
+        for row in range(row_count - 1, -1, -1):
+            for column in range(column_count - 1, -1, -1):
+                match_score = self._match_score(required[row], actual[column])
+                match_total = match_score + dp[row + 1][column + 1] if match_score > 0 else -1.0
+                skip_expected = dp[row + 1][column]
+                skip_actual = dp[row][column + 1]
+                best = max(match_total, skip_expected, skip_actual)
+                dp[row][column] = best
+                if match_total == best and match_score > 0:
+                    decisions[row][column] = "match"
+                elif skip_expected == best:
+                    decisions[row][column] = "skip_expected"
+                else:
+                    decisions[row][column] = "skip_actual"
+
+        alignment = {}
+        row = 0
+        column = 0
+        while row < row_count and column < column_count:
+            decision = decisions[row][column]
+            if decision == "match":
+                alignment[row] = {
+                    "actual_index": column,
+                    "score": self._match_score(required[row], actual[column]),
+                }
+                row += 1
+                column += 1
+            elif decision == "skip_expected":
+                row += 1
+            else:
+                column += 1
+        return alignment
+
+    def _format_match(
+        self,
+        step: Dict[str, Any],
+        actual: List[Dict[str, Any]],
+        aligned: Dict[str, Any] | None,
+    ) -> Dict[str, Any]:
+        score = aligned.get("score", 0.0) if aligned else 0.0
+        actual_index = aligned.get("actual_index") if aligned else None
+        matched_call = actual[actual_index] if actual_index is not None else {}
+        matched_candidate = self._match_candidate(step, matched_call) if matched_call else None
+        return {
+            "step_id": step.get("step_id"),
+            "score": score,
+            "matched": score == 1.0,
+            "expected_operation": step.get("operation"),
+            "actual_operation": matched_call.get("operation"),
+            "operation_match": self._operation_match_kind(step, matched_call),
+            "alternative_operation": (
+                matched_candidate.get("operation")
+                if matched_candidate and matched_candidate is not step
+                else None
+            ),
+            "actual_index": actual_index,
+        }
 
     def _successful_calls(self, result: Dict[str, Any]) -> List[Dict[str, Any]]:
         calls = []
@@ -110,7 +126,7 @@ class ToolEvaluator:
         candidate = self._match_candidate(expected, actual)
         if candidate is None:
             return 0.0
-        target = expected.get("target_widget_ref")
+        target = candidate.get("target_widget_ref", expected.get("target_widget_ref"))
         if target and self._widget_identity(actual.get("target_widget_ref")) != self._widget_identity(target):
             return 0.0
         expected_params = candidate.get("params", {})

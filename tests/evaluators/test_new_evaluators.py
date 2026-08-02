@@ -554,7 +554,7 @@ def test_tool_matches_canonical_runtime_metrics_and_fields():
     assert evaluated.details["required"]["matched"] == 1
 
 
-def test_tool_partial_parameter_match_does_not_satisfy_a_required_dependency():
+def test_tool_scores_partial_parameter_match_and_continues_sequence():
     instance = {"evaluation": {"tool": {"steps": [
         {
             "step_id": "select_source",
@@ -595,13 +595,14 @@ def test_tool_partial_parameter_match_does_not_satisfy_a_required_dependency():
 
     evaluated = ToolEvaluator().evaluate(instance, result)
 
+    assert evaluated.score == 0.75
+    assert evaluated.details["required"]["steps"][0]["score"] == 0.5
     assert evaluated.details["required"]["steps"][0]["matched"] is False
-    assert evaluated.details["required"]["steps"][1]["dependency_satisfied"] is False
     assert evaluated.details["required"]["steps"][1]["matched"] is True
-    assert evaluated.details["required"]["steps"][1]["order_ok"] is None
+    assert evaluated.details["required"]["steps"][1]["actual_index"] == 1
 
 
-def test_tool_rejects_linked_observation_that_happens_before_required_source_action():
+def test_tool_scores_required_steps_by_trajectory_order():
     instance = {"evaluation": {"tool": {"steps": [
         {
             "step_id": "select_source",
@@ -632,9 +633,11 @@ def test_tool_rejects_linked_observation_that_happens_before_required_source_act
 
     evaluated = ToolEvaluator().evaluate(instance, result)
 
-    assert evaluated.score == 1.0
-    assert evaluated.details["required"]["steps"][1]["dependency_satisfied"] is True
-    assert evaluated.details["required"]["steps"][1]["order_ok"] is False
+    assert evaluated.score == 0.5
+    assert evaluated.details["required"]["matched"] == 1
+    assert evaluated.details["required"]["steps"][0]["matched"] is False
+    assert evaluated.details["required"]["steps"][1]["matched"] is True
+    assert evaluated.details["required"]["steps"][1]["actual_index"] == 0
 
 
 def test_state_uses_canonical_checks_and_returns_null_when_inapplicable():
@@ -968,6 +971,102 @@ def test_tool_evaluator_accepts_instance_operation_alternatives():
     assert step["alternative_operation"] == "scatter.selectRegion"
 
 
+def test_tool_evaluator_keeps_sequence_after_alternative_step_match():
+    instance = {
+        "evaluation": {
+            "tool": {
+                "steps": [
+                    {
+                        "step_id": "tool_1",
+                        "operation": "scatter.brushRegion",
+                        "alternative_steps": [{
+                            "operation": "scatter.selectRegion",
+                            "target_widget_ref": "w_scatter",
+                            "params": {"xRange": [0, 10]},
+                        }],
+                        "target_widget_ref": "w_scatter",
+                        "params": {"xRange": [99, 100]},
+                        "requirement": "required",
+                    },
+                    {
+                        "step_id": "tool_2",
+                        "operation": "perception.summarizeVisible",
+                        "target_widget_ref": "w_bar",
+                        "params": {"metrics": ["count"]},
+                        "requirement": "required",
+                    },
+                ]
+            }
+        }
+    }
+    result = {
+        "tool": {
+            "executions": [
+                {
+                    "execution": {
+                        "ok": True,
+                        "name": "scatter.selectRegion",
+                        "target_widget_ref": "w_scatter",
+                        "params": {"xRange": [0, 10]},
+                    },
+                },
+                {
+                    "execution": {
+                        "ok": True,
+                        "name": "perception.summarizeVisible",
+                        "target_widget_ref": "w_bar",
+                        "params": {"metrics": ["count"]},
+                    },
+                },
+            ]
+        }
+    }
+
+    evaluated = ToolEvaluator().evaluate(instance, result)
+
+    assert evaluated.score == 1.0
+    assert [step["actual_index"] for step in evaluated.details["required"]["steps"]] == [0, 1]
+    assert evaluated.details["required"]["steps"][0]["operation_match"] == "alternative"
+
+
+def test_tool_evaluator_allows_alternative_specific_target():
+    instance = {
+        "evaluation": {
+            "tool": {
+                "steps": [{
+                    "step_id": "tool_1",
+                    "operation": "bar.selectCategory",
+                    "target_widget_ref": "w_source",
+                    "params": {"values": ["A"]},
+                    "alternative_steps": [{
+                        "operation": "scatter.selectRegion",
+                        "target_widget_ref": "w_target",
+                        "params": {"xRange": [1, 2]},
+                    }],
+                    "requirement": "required",
+                }]
+            }
+        }
+    }
+    result = {
+        "tool": {
+            "executions": [{
+                "execution": {
+                    "ok": True,
+                    "name": "scatter.selectRegion",
+                    "target_widget_ref": "w_target",
+                    "params": {"xRange": [1, 2]},
+                },
+            }]
+        }
+    }
+
+    evaluated = ToolEvaluator().evaluate(instance, result)
+
+    assert evaluated.score == 1.0
+    assert evaluated.details["required"]["steps"][0]["operation_match"] == "alternative"
+
+
 def test_tool_evaluator_does_not_use_alternative_params_when_operation_matches():
     instance = {
         "evaluation": {
@@ -1052,3 +1151,18 @@ def test_alternative_param_derivation_uses_runtime_facing_shapes():
         "bar.selectCategory",
         {"categoriesToRemove": ["East"], "field": "region"},
     ) is None
+
+
+def test_alternative_param_derivation_uses_widget_context_fields():
+    assert derive_alternative_params(
+        "bar.filterCategories",
+        "bar.selectCategory",
+        {"categories": ["East", "North"]},
+        {"categoryField": "region"},
+    ) == {"field": "region", "values": ["East", "North"]}
+    assert derive_alternative_params(
+        "line.focusLines",
+        "line.boldLines",
+        {"mode": "dim", "lines": ["China"]},
+        {"lineField": "Entity"},
+    ) == {"lineNames": ["China"], "lineField": "Entity"}
