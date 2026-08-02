@@ -145,27 +145,19 @@ function summarizeCorrelationResult(result = null) {
   return parts.join('; ')
 }
 
-function readGroupLabel(group = {}) {
-  const candidates = [
-    group.group,
-    group.category,
-    group.key,
-    group.name,
-    group.value,
-    group.label,
-  ]
-  for (const candidate of candidates) {
-    if (typeof candidate === 'string' && candidate.length > 0) return candidate
-    if (Number.isFinite(candidate)) return String(candidate)
-  }
-  return null
-}
-
-function summarizeGroupRow(group = {}) {
-  if (!isPlainObject(group)) return null
-  const label = readGroupLabel(group)
-  if (!label) return null
-  const parts = [label]
+function summarizeGroupRow(group = {}, groupBy = []) {
+  if (!isPlainObject(group) || !Array.isArray(groupBy) || groupBy.length === 0) return null
+  const labels = groupBy
+    .filter((field) => typeof field === 'string' && field.length > 0)
+    .map((field) => {
+      const value = group[field]
+      if (typeof value === 'string' && value.length > 0) return `${field}=${value}`
+      if (Number.isFinite(value) || typeof value === 'boolean') return `${field}=${String(value)}`
+      return null
+    })
+    .filter(Boolean)
+  if (labels.length === 0) return null
+  const parts = labels
   for (const key of ['count', 'mean', 'average', 'avg', 'sum', 'min', 'max', 'median', 'share', 'rate']) {
     const value = group[key]
     const formatted = formatNumber(value)
@@ -174,8 +166,14 @@ function summarizeGroupRow(group = {}) {
   return parts.length > 1 ? parts.join(' ') : null
 }
 
-function summarizeGroupedResult(result = null) {
+function summarizeGroupedResult(result = null, query = null) {
   if (!isPlainObject(result)) return null
+  const groupBy = Array.isArray(query?.groupBy) && query.groupBy.length > 0
+    ? query.groupBy
+    : Array.isArray(result.groupBy) && result.groupBy.length > 0
+      ? result.groupBy
+      : []
+  if (groupBy.length === 0) return null
   const groups = Array.isArray(result.groups)
     ? result.groups
     : Array.isArray(result.aggregates)
@@ -185,7 +183,7 @@ function summarizeGroupedResult(result = null) {
         : []
   if (groups.length === 0) return null
   const groupSummaries = groups
-    .map((group) => summarizeGroupRow(group))
+    .map((group) => summarizeGroupRow(group, groupBy))
     .filter(Boolean)
   if (groupSummaries.length === 0) return null
   const prefix = Number.isFinite(result.rowCount)
@@ -342,7 +340,7 @@ function compactEvidenceValue(value, depth = 0) {
   return String(value)
 }
 
-function summarizeNestedResult(payload = null) {
+function summarizeNestedResult(payload = null, query = null) {
   const result = readResultObject(payload)
   if (!result) return null
   return (
@@ -350,20 +348,20 @@ function summarizeNestedResult(payload = null) {
     || summarizeAnomalyResult(result)
     || summarizeConversionResult(result)
     || summarizeBottleneckResult(result)
-    || summarizeGroupedResult(result)
+    || summarizeGroupedResult(result, query)
     || summarizeRowsResult(result)
     || (typeof result.message === 'string' && result.message.length > 0 ? result.message : null)
     || (typeof result.summary === 'string' && result.summary.length > 0 ? result.summary : null)
   )
 }
 
-export function summarizeFormalRuntimePayload(payload = null) {
+export function summarizeFormalRuntimePayload(payload = null, query = null) {
   if (!payload || typeof payload !== 'object') return null
   if (typeof payload.outputSummary === 'string' && payload.outputSummary.length > 0) return payload.outputSummary
   if (typeof payload.actionResult?.outputSummary === 'string' && payload.actionResult.outputSummary.length > 0) return payload.actionResult.outputSummary
   if (typeof payload.summary === 'string' && payload.summary.length > 0) return payload.summary
   if (typeof payload.message === 'string' && payload.message.length > 0) return payload.message
-  const nestedSummary = summarizeNestedResult(payload)
+  const nestedSummary = summarizeNestedResult(payload, query)
   if (nestedSummary) return nestedSummary
   if (typeof payload?.actionResult?.error?.message === 'string' && payload.actionResult.error.message.length > 0) return payload.actionResult.error.message
   if (typeof payload?.error?.message === 'string' && payload.error.message.length > 0) return payload.error.message
@@ -403,7 +401,7 @@ export function buildFormalActPayload(plan = {}, result = {}) {
     ...(operation.params && Object.keys(operation.params).length > 0 ? { params: clone(operation.params) } : {}),
     ...(operation.target ? { target: clone(operation.target) } : {}),
     ok: deriveFormalActOk(result),
-    outputSummary: summarizeFormalRuntimePayload(result),
+    outputSummary: summarizeFormalRuntimePayload(result, operation.params),
     ...(evidence ? { evidence } : {}),
     ...(resultFingerprint ? { resultFingerprint } : {}),
     stateId: deriveFormalStateId(result),

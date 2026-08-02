@@ -147,14 +147,37 @@ test('runtime payload summary exposes nested perception evidence values', () => 
     summarizeFormalRuntimePayload({
       result: {
         rowCount: 1000,
+        groupBy: ['group'],
         groups: [
           { group: 'group E', count: 140, mean: 73.82142857142857 },
           { group: 'group A', count: 89, mean: 61.62921348314607 },
         ],
       },
     }),
-    '1000 rows; group E count=140 mean=73.8214; group A count=89 mean=61.6292',
+    '1000 rows; group=group E count=140 mean=73.8214; group=group A count=89 mean=61.6292',
   )
+})
+
+test('grouped summaries use explicit groupBy fields instead of guessing label keys', () => {
+  assert.equal(
+    summarizeFormalRuntimePayload({
+      result: {
+        rows: [
+          { customer_type: 'new', count: 25 },
+          { customer_type: 'repeat', count: 38 },
+        ],
+      },
+    }, { groupBy: ['customer_type'] }),
+    'customer_type=new count=25; customer_type=repeat count=38',
+  )
+
+  const withoutGroupBy = summarizeFormalRuntimePayload({
+    result: {
+      rows: [{ group: 'new', count: 25 }],
+    },
+  })
+  assert.equal(withoutGroupBy, '1 rows: new count=25')
+  assert.doesNotMatch(withoutGroupBy, /group=new/)
 })
 
 test('formal perception act fingerprints but does not retain the full runtime result', () => {
