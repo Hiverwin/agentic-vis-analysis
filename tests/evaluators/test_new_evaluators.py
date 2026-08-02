@@ -934,7 +934,6 @@ def test_tool_evaluator_accepts_instance_operation_alternatives():
                 "steps": [{
                     "step_id": "tool_1",
                     "operation": "scatter.brushRegion",
-                    "alternatives": ["scatter.selectRegion"],
                     "alternative_steps": [{
                         "operation": "scatter.selectRegion",
                         "params": {"xRange": [0, 10], "yRange": [20, 30]},
@@ -976,7 +975,6 @@ def test_tool_evaluator_does_not_use_alternative_params_when_operation_matches()
                 "steps": [{
                     "step_id": "tool_1",
                     "operation": "scatter.brushRegion",
-                    "alternatives": ["scatter.selectRegion"],
                     "alternative_steps": [{
                         "operation": "scatter.selectRegion",
                         "params": {"xRange": [0, 10], "yRange": [20, 30]},
@@ -1020,7 +1018,7 @@ def test_materialize_step_alternatives_generates_only_derivable_runtime_shaped_s
 
     materialized = materialize_step_alternatives(steps, equivalence)
 
-    assert materialized[0]["alternatives"] == ["bar.clickCategory", "bar.filterCategories", "not.derivable"]
+    assert "alternatives" not in materialized[0]
     assert materialized[0]["alternative_steps"] == [
         {"operation": "bar.clickCategory", "params": {"field": "region", "values": ["West"]}},
         {"operation": "bar.filterCategories", "params": {"categories": ["West"], "field": "region"}},

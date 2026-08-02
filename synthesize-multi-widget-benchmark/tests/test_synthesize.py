@@ -64,7 +64,13 @@ class SynthesisSmokeTest(unittest.TestCase):
                 step for step in instance["evaluation"]["tool"]["steps"]
                 if step["operation"] == "bar.selectCategory"
             ]
-            self.assertTrue(all("bar.clickCategory" in step["alternatives"] for step in select_steps))
+            self.assertTrue(all(
+                "bar.clickCategory" in [
+                    alternative["operation"]
+                    for alternative in step.get("alternative_steps", [])
+                ]
+                for step in select_steps
+            ))
             self.assertTrue(output["generated_specs"])
 
 

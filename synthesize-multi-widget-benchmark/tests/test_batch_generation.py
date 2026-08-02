@@ -60,7 +60,7 @@ class BatchGenerationTest(unittest.TestCase):
                 self.assertTrue(instance["evaluation"]["state"]["applicable"])
                 self.assertTrue(instance["evaluation"]["state"]["checks"])
                 alternative_steps += sum(
-                    bool(step.get("alternatives"))
+                    bool(step.get("alternative_steps"))
                     for step in instance["evaluation"]["tool"]["steps"]
                 )
             self.assertGreater(alternative_steps, 0)

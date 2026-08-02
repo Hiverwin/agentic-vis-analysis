@@ -49,8 +49,8 @@ def materialize_step_alternatives(
         if not isinstance(params, dict):
             raise ValueError(f"Invalid params for step {materialized.get('step_id')!r}")
         alternatives = operation_alternatives.get(operation, [])
+        materialized.pop("alternatives", None)
         if alternatives:
-            materialized["alternatives"] = alternatives
             alternative_steps = []
             for alternative in alternatives:
                 alternative_params = derive_alternative_params(operation, alternative, params)
@@ -64,7 +64,6 @@ def materialize_step_alternatives(
             else:
                 materialized.pop("alternative_steps", None)
         else:
-            materialized.pop("alternatives", None)
             materialized.pop("alternative_steps", None)
         materialized_steps.append(materialized)
     return materialized_steps
