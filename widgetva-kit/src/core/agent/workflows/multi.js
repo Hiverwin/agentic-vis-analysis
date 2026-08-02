@@ -513,7 +513,7 @@ export const multiWidgetWorkflows = Object.freeze({
     "steps": [
       { "kind": "action", "operation": "scatter.brushRegion", "purpose": "Define the initial cohort." },
       { "kind": "perception", "operation": "perception.summarizeVisible", "purpose": "Derive the category from fresh linked composition evidence." },
-      { "kind": "action", "operation": "widget.filterByValues", "purpose": "Condition the outcome view on the observed category while preserving cohort context." }
+      { "kind": "action", "operation": "heatmap.filterCellsByRegion", "purpose": "Condition the outcome heatmap on the observed category while preserving cohort context." }
     ],
     "id": "WF-3V-DERIVED-COHORT-TRIANGULATION-13",
     "scope": "multi_widget",

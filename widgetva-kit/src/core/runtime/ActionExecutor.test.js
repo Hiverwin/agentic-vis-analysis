@@ -459,7 +459,7 @@ test('ActionExecutor owns workspace reset fallback', () => {
   assert.equal(nextState.widgets?.[widgetRef]?.data?.selectedCount, 0)
 })
 
-test('ActionExecutor generic widget actions update semantic state without requiring a provider base spec', async () => {
+test('ActionExecutor no longer registers generic widget view/filter/highlight actions', async () => {
   const widgetRef = 'wl://demo/workspace/main/widget/bar_a'
   const dataRef = 'wl://demo/workspace/main/data/current_view'
   const store = {
@@ -495,6 +495,12 @@ test('ActionExecutor generic widget actions update semantic state without requir
   const executor = new ActionExecutor({ store })
   registerGenericWidgetRuntimeActions(executor)
 
+  assert.equal(executor.has('widget.zoomDomain'), false)
+  assert.equal(executor.has('widget.sortEncoding'), false)
+  assert.equal(executor.has('widget.filterByRange'), false)
+  assert.equal(executor.has('widget.filterByValues'), false)
+  assert.equal(executor.has('widget.highlightValues'), false)
+
   const result = await executor.run({
     callId: 'call_filter_without_spec',
     name: 'widget.filterByValues',
@@ -505,13 +511,9 @@ test('ActionExecutor generic widget actions update semantic state without requir
     },
   })
 
-  assert.equal(result.ok, true)
-  assert.deepEqual(result.updatedRefs, [widgetRef])
-  assert.equal(store.widgets[widgetRef].transforms[0].kind, 'filter')
-  assert.deepEqual(store.widgets[widgetRef].transforms[0].spec.predicates, [
-    { field: 'region', op: 'in', value: ['west'] },
-  ])
-  assert.equal(store.widgets[widgetRef].data.visibleCount, 2)
+  assert.equal(result.ok, false)
+  assert.equal(result.error?.code, 'UNKNOWN_OPERATION')
+  assert.equal(store.widgets[widgetRef].transforms.length, 0)
 })
 
 test('ActionExecutor scatter.zoomDomain propagates from the target view zoom state ref', async () => {

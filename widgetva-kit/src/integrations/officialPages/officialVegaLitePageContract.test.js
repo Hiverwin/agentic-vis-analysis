@@ -46,7 +46,6 @@ test('official page contract maps point params to executable WidgetVA actions wi
     actions: [
       { name: 'vegaLite.setPointParam' },
       { name: 'vegaLite.clearParam' },
-      { name: 'widget.filterByValues' },
       { name: 'scatter.identifyClusters' },
     ],
   }
@@ -57,7 +56,6 @@ test('official page contract maps point params to executable WidgetVA actions wi
       recognizedKinds: ['scatter'],
     })),
     [
-      'widget.filterByValues',
       'widget.clearSelection',
       'widget.resetView',
     ],
@@ -83,7 +81,6 @@ test('official page contract exposes bar category actions only when point select
       'bar.selectCategory',
       'bar.clickCategory',
       'bar.filterCategories',
-      'widget.filterByValues',
       'widget.clearSelection',
       'widget.resetView',
     ],

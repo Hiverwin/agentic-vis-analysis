@@ -79,24 +79,6 @@ const OFFICIAL_PAGE_FALLBACK_ACTION_DESCRIPTORS = [
       makeDomainEffect(null, 'Clears page-backed domain selections.'),
     ],
   }),
-  makeActionDescriptor({
-    name: 'widget.filterByValues',
-    title: 'Filter by values',
-    description: 'Filter the official page view to rows matching one or more categorical values when the underlying Vega-Lite spec exposes a point selection parameter.',
-    primitive: 'filter',
-    category: 'dataTransform',
-    paramsSchema: {
-      type: 'object',
-      required: ['field', 'values'],
-      properties: {
-        field: { type: 'string' },
-        values: { type: 'array', items: {}, minItems: 1 },
-      },
-    },
-    effects: [
-      makeSelectionEffect(null, 'Updates the page-backed point selection used for filtering.'),
-    ],
-  }),
 ]
 
 function readDescriptorName(descriptor = null) {
@@ -152,9 +134,6 @@ function addPointSelectionActions(actionNames, param = {}, recognizedKinds = [])
     actionNames.add('heatmap.selectSubmatrix')
   }
 
-  if (hasFilterConsumer) {
-    actionNames.add('widget.filterByValues')
-  }
 }
 
 function addIntervalSelectionActions(actionNames, param = {}, recognizedKinds = []) {

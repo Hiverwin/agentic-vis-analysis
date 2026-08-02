@@ -3,12 +3,6 @@ import { readNormalizedQueryScope } from '../../../core/runtime/support/querySco
 import {
   buildWidgetAggregatePatch,
   buildWidgetChangeEncodingPatch,
-  buildWidgetFilterByRangePatch,
-  buildWidgetFilterByValuesPatch,
-  buildWidgetHighlightValuesPatch,
-  buildWidgetSortEncodingPatch,
-  buildWidgetZoomDomainPatch,
-  uniqueWidgetValues,
 } from './semanticPatches.js'
 import {
   buildClearSelectionPatch,
@@ -22,13 +16,8 @@ import {
 } from '../../../workspace/state/selectionStateModel.js'
 
 const GENERIC_WIDGET_ACTIONS = [
-  'widget.highlightValues',
   'widget.aggregateData',
-  'widget.filterByRange',
-  'widget.sortEncoding',
   'widget.changeEncoding',
-  'widget.zoomDomain',
-  'widget.filterByValues',
   'widget.resetView',
   'widget.undoView',
 ]
@@ -363,161 +352,6 @@ export function registerGenericWidgetRuntimeActions(actionExecutor) {
 
   registerAction(
     actionExecutor,
-    { name: 'widget.highlightValues' },
-    async (params, ctx) => {
-      const field = typeof params.field === 'string' ? params.field : null
-      const values = uniqueWidgetValues(params.values)
-      const targetWidget = ctx.targetWidget()
-      const targetWidgetRef = targetWidget?.ref || null
-      if (!field || values.length === 0 || !targetWidgetRef) {
-        throw new Error('widget.highlightValues requires a target widget, field, and at least one value.')
-      }
-
-      const rows = ctx.readRows(targetWidgetRef)
-      const currentState = ctx.readCurrentState()
-      const highlightPatch = buildWidgetHighlightValuesPatch({
-        targetWidget,
-        currentState,
-        rows,
-        field,
-        values,
-      })
-
-      return {
-        patch: highlightPatch.patch,
-        affectedRefs: [targetWidgetRef, 'shared'],
-        result: {
-          widgetId: targetWidget?.widgetId || null,
-          field,
-          values,
-          highlightedCount: highlightPatch.highlightedCount,
-        },
-        verificationHints: [
-          'Call perception.inspectVisibleRows to verify matching rows now carry highlight markers.',
-          'Read the target widget state and confirm feedback.highlightedKeys contains the requested values.',
-        ],
-      }
-    },
-  )
-
-  registerAction(
-    actionExecutor,
-    { name: 'widget.filterByValues' },
-    async (params, ctx) => {
-      const field = typeof params.field === 'string' ? params.field : null
-      const values = Array.isArray(params.values) ? params.values.filter((value) => value != null) : []
-      const targetWidget = ctx.targetWidget()
-      const targetWidgetId = targetWidget?.widgetId || null
-      if (!field || values.length === 0 || !targetWidgetId) {
-        throw new Error('widget.filterByValues requires a target widget, field, and at least one value.')
-      }
-
-      const rows = ctx.readRows(targetWidget.ref)
-      const visibleCount = rows.filter((row) => values.includes(row?.[field])).length
-
-      return {
-        patch: buildWidgetFilterByValuesPatch({
-          targetWidget,
-          currentState: ctx.readCurrentState(),
-          field,
-          values,
-          visibleCount,
-        }),
-        affectedRefs: [targetWidget.ref],
-        result: {
-          widgetId: targetWidgetId,
-          field,
-          values,
-        },
-        verificationHints: [
-          'Call perception.inspectViewConfig to verify the target spec now includes the requested categorical filter transform.',
-          'Read the target widget state or visible rows to confirm the filtered subset propagated.',
-        ],
-      }
-    },
-  )
-
-  registerAction(
-    actionExecutor,
-    { name: 'widget.filterByRange' },
-    async (params, ctx) => {
-      const field = typeof params.field === 'string' ? params.field : null
-      const range = Array.isArray(params.range) ? params.range : null
-      const targetWidget = ctx.targetWidget()
-      const targetWidgetId = targetWidget?.widgetId || null
-      if (!field || !Array.isArray(range) || range.length !== 2 || !targetWidgetId) {
-        throw new Error('widget.filterByRange requires a target widget, field, and a two-value range.')
-      }
-
-      const normalizedRange = [Math.min(...range), Math.max(...range)]
-      const rows = ctx.readRows(targetWidget.ref)
-      const visibleCount = rows.filter((row) => {
-        const value = row?.[field]
-        return typeof value === 'number' && value >= normalizedRange[0] && value <= normalizedRange[1]
-      }).length
-
-      return {
-        patch: buildWidgetFilterByRangePatch({
-          targetWidget,
-          currentState: ctx.readCurrentState(),
-          field,
-          range: normalizedRange,
-          visibleCount,
-        }),
-        affectedRefs: [targetWidget.ref],
-        result: {
-          widgetId: targetWidgetId,
-          field,
-          range: normalizedRange,
-        },
-        verificationHints: [
-          'Call perception.inspectViewConfig to verify the target spec now includes the requested range filter transform.',
-          'Read the target widget state or visible rows to confirm the filtered numeric interval propagated.',
-        ],
-      }
-    },
-  )
-
-  registerAction(
-    actionExecutor,
-    { name: 'widget.sortEncoding' },
-    async (params, ctx) => {
-      const channel = typeof params.channel === 'string' ? params.channel : null
-      const order = typeof params.order === 'string' ? params.order : null
-      const field = typeof params.field === 'string' ? params.field : null
-      const aggregate = typeof params.aggregate === 'string' ? params.aggregate : null
-      const targetWidget = ctx.targetWidget()
-      const targetWidgetId = targetWidget?.widgetId || null
-      if (!channel || !order || !targetWidgetId) {
-        throw new Error('widget.sortEncoding requires a target widget, channel, and order.')
-      }
-
-      return {
-        patch: buildWidgetSortEncodingPatch({
-          targetWidget,
-          channel,
-          order,
-          field,
-          aggregate,
-        }),
-        affectedRefs: [targetWidget.ref],
-        result: {
-          widgetId: targetWidgetId,
-          channel,
-          order,
-          ...(field ? { field } : {}),
-          ...(aggregate ? { aggregate } : {}),
-        },
-        verificationHints: [
-          'Call perception.inspectViewConfig to verify the target encoding now includes the requested sort rule.',
-          'Read the target widget state to confirm the sort update propagated.',
-        ],
-      }
-    },
-  )
-
-  registerAction(
-    actionExecutor,
     { name: 'widget.changeEncoding' },
     async (params, ctx) => {
       const channel = typeof params.channel === 'string' ? params.channel : null
@@ -549,34 +383,6 @@ export function registerGenericWidgetRuntimeActions(actionExecutor) {
         verificationHints: [
           'Call perception.inspectViewConfig to verify the encoding channel now points to the new field.',
           'Read the target widget state to confirm the encoding update propagated.',
-        ],
-      }
-    },
-  )
-
-  registerAction(
-    actionExecutor,
-    { name: 'widget.zoomDomain' },
-    async (params, ctx) => {
-      const targetWidget = ctx.targetWidget()
-      const xDomain = Array.isArray(params.xDomain) ? params.xDomain : null
-      const yDomain = Array.isArray(params.yDomain) ? params.yDomain : null
-      if (!targetWidget || (!xDomain && !yDomain)) {
-        throw new Error('widget.zoomDomain requires a target widget and at least one domain range.')
-      }
-
-      return {
-        patch: buildWidgetZoomDomainPatch({ targetWidget, xDomain, yDomain }),
-        affectedRefs: [targetWidget.ref],
-        propagateFromRef: `${targetWidget.ref}/view/zoom`,
-        result: {
-          widgetId: targetWidget.widgetId,
-          ...(xDomain ? { xDomain } : {}),
-          ...(yDomain ? { yDomain } : {}),
-        },
-        verificationHints: [
-          'Call perception.inspectViewConfig to verify the target domain was updated.',
-          'Read the target widget view state to confirm the new x/y domain values.',
         ],
       }
     },

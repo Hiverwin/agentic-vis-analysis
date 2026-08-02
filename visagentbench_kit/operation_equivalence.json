@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "description": "Centrally maintained operation equivalence candidates for benchmark authoring. equivalent operations have substantially the same primary effect; alternatives can achieve a similar analytical effect but may differ in parameters, state, or propagation.",
+  "operations": {
+    "bar.selectCategory": {
+      "equivalent": [
+        "bar.clickCategory"
+      ],
+      "alternatives": [
+        "widget.updateSelection"
+      ],
+      "note": "bar.clickCategory uses the same runtime implementation. The other alternatives can isolate the same category but do not necessarily preserve selection-to-filter propagation."
+    },
+    "heatmap.selectSubmatrix": {
+      "equivalent": [],
+      "alternatives": [
+        "heatmap.highlightRegion",
+        "heatmap.filterCellsByRegion",
+        "widget.updateSelection"
+      ],
+      "note": "All can identify the same x/y region, but highlight changes emphasis, filter removes other cells, and updateSelection uses a generic selection payload."
+    },
+    "line.selectSeries": {
+      "equivalent": [],
+      "alternatives": [
+        "line.focusLines",
+        "line.boldLines",
+        "widget.updateSelection"
+      ],
+      "note": "These operations can isolate or emphasize the same series. Only selection-producing operations preserve linked-selection propagation."
+    },
+    "line.selectXValue": {
+      "equivalent": [],
+      "alternatives": [
+        "widget.updateSelection"
+      ],
+      "note": "These operations can target the same x-axis value, but filtering and highlighting have different state effects from selection."
+    },
+    "line.zoomXRegion": {
+      "equivalent": [],
+      "alternatives": [],
+      "note": "Use line.zoomXRegion for line x-domain updates; the generic widget domain operation has been removed from the public tool surface."
+    },
+    "parallelCoordinates.selectCohort": {
+      "equivalent": [],
+      "alternatives": [
+        "widget.updateSelection",
+        "parallelCoordinates.filterDimension"
+      ],
+      "note": "A generic selection can represent the same multi-rule cohort. Range filters approximate the effect for a single dimension but do not preserve selection propagation."
+    },
+    "sankey.focusFlow": {
+      "equivalent": [],
+      "alternatives": [
+        "widget.updateSelection",
+        "sankey.traceNode",
+        "sankey.highlightPath"
+      ],
+      "note": "These operations can focus related flow structure, but node/path highlighting is narrower and does not necessarily create the same active selection."
+    },
+    "scatter.brushRegion": {
+      "equivalent": [
+        "scatter.selectRegion"
+      ],
+      "alternatives": [
+        "widget.updateSelection"
+      ],
+      "note": "scatter.brushRegion and scatter.selectRegion share the same region-selection implementation and parameters; their selection ids differ."
+    },
+    "scatter.selectRegion": {
+      "equivalent": [
+        "scatter.brushRegion"
+      ],
+      "alternatives": [
+        "widget.updateSelection"
+      ],
+      "note": "scatter.selectRegion and scatter.brushRegion share the same region-selection implementation and parameters; their selection ids differ."
+    },
+    "perception.compareGroups": {
+      "equivalent": [],
+      "alternatives": [
+        "perception.summarizeVisible",
+        "perception.inspectVisibleRows"
+      ],
+      "note": "Grouped summaries or visible rows can provide the same comparison evidence when the agent performs the comparison itself."
+    },
+    "perception.computeCorrelation": {
+      "equivalent": [],
+      "alternatives": [
+        "perception.inspectVisibleRows"
+      ],
+      "note": "Visible rows permit manual correlation calculation, but inspectVisibleRows does not compute the coefficient itself."
+    },
+    "perception.detectAnomalies": {
+      "equivalent": [],
+      "alternatives": [
+        "perception.findOutliers",
+        "perception.findExtremes"
+      ],
+      "note": "All identify unusual observations, but their statistical definitions and parameter names differ."
+    },
+    "perception.findBottleneck": {
+      "equivalent": [],
+      "alternatives": [
+        "perception.calculateConversionRate",
+        "perception.summarizeVisible",
+        "perception.inspectVisibleRows"
+      ],
+      "note": "Conversion rates or raw flow summaries can be used to derive a bottleneck, but they do not directly return the same ranked result."
+    },
+    "perception.findOutliers": {
+      "equivalent": [],
+      "alternatives": [
+        "perception.detectAnomalies",
+        "perception.findExtremes"
+      ],
+      "note": "All identify unusual observations, but their statistical definitions and parameter names differ."
+    },
+    "perception.summarizeSelection": {
+      "equivalent": [],
+      "alternatives": [
+        "perception.summarizeVisible",
+        "perception.inspectSelection",
+        "perception.inspectVisibleRows"
+      ],
+      "note": "These can expose the selected subset or its evidence when queryScope resolves to the active selection."
+    },
+    "perception.summarizeVisible": {
+      "equivalent": [],
+      "alternatives": [
+        "perception.compareGroups",
+        "perception.summarizeSelection",
+        "perception.inspectVisibleRows"
+      ],
+      "note": "The alternatives can provide similar aggregate or row evidence when their scope and requested fields cover the ground-truth summary."
+    }
+  }
+}

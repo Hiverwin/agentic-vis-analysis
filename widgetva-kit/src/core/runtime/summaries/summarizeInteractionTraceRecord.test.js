@@ -38,7 +38,7 @@ test('summarizeInteractionTraceRecord preserves failure provenance and recovery 
     actor: 'agent',
     eventKind: 'action',
     action: {
-      name: 'widget.filterByValues',
+      name: 'bar.filterCategories',
     },
     notes: {
       outcome: 'failure',
@@ -54,7 +54,7 @@ test('summarizeInteractionTraceRecord preserves failure provenance and recovery 
   })
 
   assert.equal(summary.eventFamily, 'action')
-  assert.equal(summary.displayName, 'widget.filterByValues')
+  assert.equal(summary.displayName, 'bar.filterCategories')
   assert.equal(summary.outcome, 'failure')
   assert.equal(summary.errorCode, 'INVALID_TARGET')
   assert.equal(summary.errorMessage, 'Target widget is not available.')

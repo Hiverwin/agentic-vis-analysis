@@ -1,9 +1,6 @@
 import {
   makeActionDescriptor,
-  makeDomainEffect,
   makeEncodingEffect,
-  makeFilterEffect,
-  makeHighlightEffect,
   makeSelectionEffect,
 } from '../../../../contracts/action-contracts.js'
 import { makePerceptionDescriptor } from '../../../../contracts/perception-contracts.js'
@@ -41,24 +38,12 @@ function buildSelectionAffectedStatePaths(affectedRefs, widgetRef) {
   return affectedRefs.map((ref) => (ref === widgetRef ? 'selections' : 'transforms'))
 }
 
-function buildHighlightAffectedStatePaths(affectedRefs) {
-  return affectedRefs.map(() => 'feedback')
-}
-
 function buildDataTransformAffectedStatePaths(affectedRefs) {
   return affectedRefs.flatMap(() => ['transforms', 'data.currentDataRef', 'data.visibleCount', 'data.selectedCount'])
 }
 
-function buildSortAffectedStatePaths(affectedRefs) {
-  return affectedRefs.flatMap(() => ['encodings', 'view.sort'])
-}
-
 function buildEncodingAffectedStatePaths(affectedRefs) {
   return affectedRefs.map(() => 'encodings')
-}
-
-function buildZoomAffectedStatePaths(affectedRefs) {
-  return affectedRefs.flatMap(() => ['view.xDomain', 'view.yDomain', 'view.zoom'])
 }
 
 function buildWorkspaceAffectedStatePaths(actionName, affectedRefs, widgetRef) {
@@ -458,53 +443,6 @@ export function buildActionDescriptors({
   if (widgetSourceKind === 'baseSpec') {
     descriptors.push(
       makeActionDescriptor({
-        name: 'widget.highlightValues',
-        title: 'Highlight matching values',
-        description: 'Highlight rows/items in the target widget that match a categorical field-value set without changing the active selection.',
-        category: 'coordination',
-        scope,
-        supportedWidgetKinds,
-        targetRef: widgetRef,
-        affectedRefs,
-        affectedStatePaths: buildHighlightAffectedStatePaths(affectedRefs),
-        paramsSchema: {
-          type: 'object',
-          properties: {
-            field: { type: 'string' },
-            values: { type: 'array', items: {}, minItems: 1 },
-          },
-          required: ['field', 'values'],
-        },
-        postconditions: [
-          {
-            description: 'The target widget should expose highlight feedback for the requested values.',
-          },
-          {
-            description: 'Matching rows/items should be marked as highlighted in runtime-visible state.',
-          },
-        ],
-        preconditions: [
-          {
-            description: 'The requested targetRef resolves to a valid widget in the current workspace.',
-            failureMessage: 'widget.highlightValues requires a valid target widget.',
-          },
-          {
-            description: 'The target widget is backed by an active base specification that can accept highlight updates.',
-            failureMessage: 'No active base spec is available for highlight updates.',
-          },
-        ],
-        effects: [
-          makeHighlightEffect(widgetRef, 'Applies direct runtime highlighting to matching values on the target widget.'),
-        ],
-        examples: [
-          {
-            userGoal: 'Temporarily highlight records from one category before deciding whether to filter.',
-            params: { field: 'Origin', values: ['USA'] },
-          },
-        ],
-        reversible: true,
-      }),
-      makeActionDescriptor({
         name: 'widget.aggregateData',
         title: 'Aggregate current data view',
         description: 'Apply or replace an aggregate transform on the current base specification to produce grouped summary rows.',
@@ -564,144 +502,6 @@ export function buildActionDescriptors({
         reversible: true,
       }),
       makeActionDescriptor({
-        name: 'widget.filterByValues',
-        title: 'Filter by categorical values',
-        description: 'Apply or replace a categorical filter transform on the current base specification.',
-        category: 'dataTransform',
-        scope,
-        supportedWidgetKinds,
-        targetRef: widgetRef,
-        affectedRefs,
-        affectedStatePaths: buildDataTransformAffectedStatePaths(affectedRefs),
-        paramsSchema: {
-          type: 'object',
-          properties: {
-            field: { type: 'string' },
-            values: { type: 'array', items: {}, minItems: 1 },
-          },
-          required: ['field', 'values'],
-        },
-        postconditions: [
-          {
-            description: 'The target widget spec should include a categorical filter transform for the requested field.',
-          },
-        ],
-        preconditions: [
-          {
-            description: 'The requested targetRef resolves to a valid widget in the current workspace.',
-            failureMessage: 'widget.filterByValues requires a valid target widget.',
-          },
-          {
-            description: 'The target widget is backed by an active base specification that can accept transform updates.',
-            failureMessage: 'No active base spec is available for filter updates.',
-          },
-        ],
-        effects: [
-          makeFilterEffect(widgetRef, 'Applies a categorical filter transform to the target widget specification.'),
-        ],
-        examples: [
-          {
-            userGoal: 'Restrict the chart to records from a small set of categories.',
-            params: { field: 'Origin', values: ['Japan', 'USA'] },
-          },
-        ],
-        reversible: true,
-      }),
-      makeActionDescriptor({
-        name: 'widget.filterByRange',
-        title: 'Filter by numeric range',
-        description: 'Apply or replace a numeric range filter transform on the current base specification.',
-        category: 'dataTransform',
-        scope,
-        supportedWidgetKinds,
-        targetRef: widgetRef,
-        affectedRefs,
-        affectedStatePaths: buildDataTransformAffectedStatePaths(affectedRefs),
-        paramsSchema: {
-          type: 'object',
-          properties: {
-            field: { type: 'string' },
-            range: { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 2 },
-          },
-          required: ['field', 'range'],
-        },
-        postconditions: [
-          {
-            description: 'The target widget spec should include a range filter transform for the requested field.',
-          },
-        ],
-        preconditions: [
-          {
-            description: 'The requested targetRef resolves to a valid widget in the current workspace.',
-            failureMessage: 'widget.filterByRange requires a valid target widget.',
-          },
-          {
-            description: 'The target widget is backed by an active base specification that can accept transform updates.',
-            failureMessage: 'No active base spec is available for filter updates.',
-          },
-        ],
-        effects: [
-          makeFilterEffect(widgetRef, 'Applies a numeric range filter transform to the target widget specification.'),
-        ],
-        examples: [
-          {
-            userGoal: 'Restrict the chart to a bounded numeric interval.',
-            params: { field: 'Horsepower', range: [80, 160] },
-          },
-        ],
-        reversible: true,
-      }),
-      makeActionDescriptor({
-        name: 'widget.sortEncoding',
-        title: 'Sort encoded values',
-        description: 'Apply a declarative sort rule to a target encoding channel in the current base specification.',
-        category: 'visualMapping',
-        scope,
-        supportedWidgetKinds,
-        targetRef: widgetRef,
-        affectedRefs,
-        affectedStatePaths: buildSortAffectedStatePaths(affectedRefs),
-        paramsSchema: {
-          type: 'object',
-          properties: {
-            channel: { type: 'string' },
-            field: { type: 'string' },
-            order: { type: 'string', enum: ['ascending', 'descending'] },
-            aggregate: { type: 'string' },
-          },
-          required: ['channel', 'order'],
-        },
-        postconditions: [
-          {
-            description: 'The target widget encoding should expose the requested sort rule.',
-          },
-        ],
-        preconditions: [
-          {
-            description: 'The requested targetRef resolves to a valid widget in the current workspace.',
-            failureMessage: 'widget.sortEncoding requires a valid target widget.',
-          },
-          {
-            description: 'The target widget is backed by an active base specification that can accept sort updates.',
-            failureMessage: 'No active base spec is available for sort updates.',
-          },
-          {
-            description: 'The requested encoding channel already exists on the active spec.',
-            failureMessage: 'The active spec does not define the requested encoding channel.',
-          },
-        ],
-        effects: [
-          makeEncodingEffect(widgetRef, 'Updates the target encoding channel sort rule in the base specification.'),
-        ],
-        examples: [
-          {
-            userGoal: 'Sort the category axis by descending count.',
-            params: { channel: 'x', order: 'descending', aggregate: 'count' },
-          },
-        ],
-        reversible: true,
-      }),
-      makeActionDescriptor({
         name: 'widget.changeEncoding',
         title: 'Change visual encoding',
         description: 'Rebind a widget encoding channel to a different field in the current base specification.',
@@ -743,72 +543,6 @@ export function buildActionDescriptors({
           {
             userGoal: 'Switch the y channel to a different measure.',
             params: { channel: 'y', field: 'Miles_per_Gallon', type: 'quantitative' },
-          },
-        ],
-        reversible: true,
-      }),
-      makeActionDescriptor({
-        name: 'widget.zoomDomain',
-        title: 'Zoom widget domain',
-        description: 'Update the data-space x/y domain of a widget without using pixel coordinates. Use null for an open lower or upper bound when only one side of the domain is known.',
-        category: 'viewTransform',
-        scope,
-        supportedWidgetKinds,
-        targetRef: widgetRef,
-        affectedRefs,
-        affectedStatePaths: buildZoomAffectedStatePaths(affectedRefs),
-        paramsSchema: {
-          type: 'object',
-          properties: {
-            xDomain: {
-              type: 'array',
-              items: {
-                anyOf: [{ type: 'number' }, { type: 'string' }, { type: 'null' }],
-              },
-              minItems: 2,
-              maxItems: 2,
-            },
-            yDomain: {
-              type: 'array',
-              items: {
-                anyOf: [{ type: 'number' }, { type: 'string' }, { type: 'null' }],
-              },
-              minItems: 2,
-              maxItems: 2,
-            },
-          },
-          anyOf: [{ required: ['xDomain'] }, { required: ['yDomain'] }],
-        },
-        postconditions: [
-          {
-            description: 'The target widget view domain should match the requested x/y ranges.',
-          },
-        ],
-        preconditions: [
-          {
-            description: 'The requested targetRef resolves to a valid widget in the current workspace.',
-            failureMessage: 'widget.zoomDomain requires a valid target widget.',
-          },
-          {
-            description: 'The target widget is backed by an active base specification that can accept domain updates.',
-            failureMessage: 'No active base spec is available for domain updates.',
-          },
-          {
-            description: 'Any requested x/y domain corresponds to an encoding channel present on the active spec.',
-            failureMessage: 'The active spec does not define the requested zoom domain channel.',
-          },
-        ],
-        effects: [
-          makeDomainEffect(widgetRef, 'Updates the x/y data-space domain of the target widget.'),
-        ],
-        examples: [
-          {
-            userGoal: 'Zoom to a narrower value range without using pixel coordinates.',
-            params: { xDomain: [0, 50], yDomain: [10, 100] },
-          },
-          {
-            userGoal: 'Zoom the x domain from 3000 upward while leaving the upper bound open.',
-            params: { xDomain: [3000, null] },
           },
         ],
         reversible: true,

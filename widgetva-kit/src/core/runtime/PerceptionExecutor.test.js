@@ -1586,7 +1586,7 @@ test('PerceptionExecutor records verification notes for verifyActionEffect', asy
           {
             stateId: 'main:s2',
             action: {
-              name: 'widget.filterByValues',
+              name: 'bar.filterCategories',
               targetRef: 'wl://widgetva-app/workspace/main/widget/bar_a',
             },
             affectedRefs: ['wl://widgetva-app/workspace/main/widget/bar_a'],
@@ -1676,17 +1676,17 @@ test('PerceptionExecutor records verification notes for verifyActionEffect', asy
   const result = await registry.query({
     callId: 'pq_verify',
     actor: 'agent',
-    name: 'perception.verifyActionEffect',
-    params: {
-      stateId: 'main:s2',
-      actionName: 'widget.filterByValues',
-      refs: ['wl://widgetva-app/workspace/main/widget/bar_a'],
-    },
+      name: 'perception.verifyActionEffect',
+      params: {
+        stateId: 'main:s2',
+        actionName: 'bar.filterCategories',
+        refs: ['wl://widgetva-app/workspace/main/widget/bar_a'],
+      },
   })
 
   assert.equal(result.ok, true)
   assert.equal(result.result.verified, true)
-  assert.equal(recorded?.notes?.userVisibleSummary, 'Verified the effect of widget.filterByValues on the requested runtime refs.')
+  assert.equal(recorded?.notes?.userVisibleSummary, 'Verified the effect of bar.filterCategories on the requested runtime refs.')
   assert.equal(recorded?.notes?.rationale, 'Post-action verification evidence was requested from the runtime trace and state patch.')
   assert.equal(
     recorded?.notes?.verification,

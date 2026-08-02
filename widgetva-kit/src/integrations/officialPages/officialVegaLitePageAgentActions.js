@@ -46,7 +46,6 @@ function isOfficialPageParamAction(actionCall) {
     || actionName === 'vegaLite.clearParam'
     || actionName === 'widget.clearSelection'
     || actionName === 'widget.resetView'
-    || actionName === 'widget.filterByValues'
     || actionName === 'bar.selectCategory'
     || actionName === 'bar.clickCategory'
     || actionName === 'bar.filterCategories'
@@ -323,16 +322,6 @@ function normalizePointActionIntent(actionCall = {}) {
       values: Array.isArray(params.categories) ? params.categories.filter((value) => value !== undefined) : [],
       record: null,
       preferredProducerMarks: ['bar'],
-    }
-  }
-
-  if (actionName === 'widget.filterByValues') {
-    return {
-      requestedParamName: null,
-      field: typeof params.field === 'string' ? params.field : null,
-      values: Array.isArray(params.values) ? params.values.filter((value) => value !== undefined) : [],
-      record: null,
-      preferredProducerMarks: [],
     }
   }
 

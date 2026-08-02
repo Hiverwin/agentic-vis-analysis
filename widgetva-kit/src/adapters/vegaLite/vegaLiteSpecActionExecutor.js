@@ -1,11 +1,6 @@
 import {
   executeVegaLiteAggregateData,
   executeVegaLiteChangeEncoding,
-  executeVegaLiteFilterByRange,
-  executeVegaLiteFilterByValues,
-  executeVegaLiteHighlightValues,
-  executeVegaLiteSortEncoding,
-  executeVegaLiteZoomDomain,
 } from './families/widgetSpecActions.js'
 import {
   executeVegaLiteScatterBrushLike,
@@ -71,18 +66,8 @@ export function executeVegaLiteSpecAction({ actionName = null, spec = null, para
   switch (actionName) {
     case 'widget.aggregateData':
       return { handled: true, nextSpec: executeVegaLiteAggregateData(spec, params) }
-    case 'widget.filterByValues':
-      return { handled: true, nextSpec: executeVegaLiteFilterByValues(spec, params) }
-    case 'widget.filterByRange':
-      return { handled: true, nextSpec: executeVegaLiteFilterByRange(spec, params) }
-    case 'widget.highlightValues':
-      return { handled: true, nextSpec: executeVegaLiteHighlightValues(spec, params) }
-    case 'widget.sortEncoding':
-      return { handled: true, nextSpec: executeVegaLiteSortEncoding(spec, params) }
     case 'widget.changeEncoding':
       return { handled: true, nextSpec: executeVegaLiteChangeEncoding(spec, params) }
-    case 'widget.zoomDomain':
-      return { handled: true, nextSpec: executeVegaLiteZoomDomain(spec, params) }
     case 'scatter.brushRegion':
       return { handled: true, nextSpec: executeVegaLiteScatterBrushLike(spec, params, 'brush') }
     case 'scatter.selectRegion':

@@ -120,6 +120,50 @@ function compactObject(value = {}) {
   )
 }
 
+function applyInlineDomainState(spec, { xDomain = null, yDomain = null } = {}) {
+  if (!isPlainObject(spec?.encoding)) return spec
+  const nextEncoding = { ...(spec.encoding || {}) }
+  if (Array.isArray(xDomain) && nextEncoding.x) {
+    nextEncoding.x = {
+      ...nextEncoding.x,
+      scale: { ...(nextEncoding.x.scale || {}), domain: clone(xDomain) },
+    }
+  }
+  if (Array.isArray(yDomain) && nextEncoding.y) {
+    nextEncoding.y = {
+      ...nextEncoding.y,
+      scale: { ...(nextEncoding.y.scale || {}), domain: clone(yDomain) },
+    }
+  }
+  const nextMark = typeof spec.mark === 'string'
+    ? { type: spec.mark, clip: true }
+    : isPlainObject(spec.mark)
+      ? { ...spec.mark, clip: true }
+      : spec.mark
+  return { ...spec, ...(nextMark ? { mark: nextMark } : {}), encoding: nextEncoding }
+}
+
+function applyInlineSortState(spec, sort = {}) {
+  if (!isPlainObject(spec?.encoding)) return spec
+  const channel = typeof sort?.channel === 'string' ? sort.channel : null
+  const order = typeof sort?.order === 'string' ? sort.order : null
+  if (!channel || !order || !isPlainObject(spec.encoding?.[channel])) return spec
+  const currentChannel = spec.encoding[channel]
+  const sortField = typeof sort.field === 'string' ? sort.field : currentChannel.field
+  return {
+    ...spec,
+    encoding: {
+      ...(spec.encoding || {}),
+      [channel]: {
+        ...currentChannel,
+        sort: sortField
+          ? { field: sortField, order, ...(typeof sort.aggregate === 'string' ? { op: sort.aggregate } : {}) }
+          : order,
+      },
+    },
+  }
+}
+
 function readTransformFields(transform = {}) {
   return Array.isArray(transform?.spec?.fields)
     ? transform.spec.fields.filter((field) => typeof field === 'string' && field.length > 0)
@@ -250,24 +294,20 @@ export function applyVegaLiteViewState(spec, view = {}) {
   const yDomain = Array.isArray(view?.yDomain) ? view.yDomain : null
   let nextSpec = spec
   if (xDomain || yDomain) {
-    const zoomActionName = view?.zoom?.sourceAction === 'line.zoomXRegion'
-      ? 'line.zoomXRegion'
-      : 'widget.zoomDomain'
-    const zoomParams = zoomActionName === 'line.zoomXRegion'
-      ? {
-          start: view.zoom?.start ?? xDomain?.[0],
-          end: view.zoom?.end ?? xDomain?.[1],
-        }
-      : {
-          ...(xDomain ? { xDomain } : {}),
-          ...(yDomain ? { yDomain } : {}),
-        }
-    nextSpec = applyVegaLiteSpecAction(spec, zoomActionName, zoomParams).nextSpec
+    if (view?.zoom?.sourceAction === 'line.zoomXRegion') {
+      nextSpec = applyVegaLiteSpecAction(spec, 'line.zoomXRegion', {
+        start: view.zoom?.start ?? xDomain?.[0],
+        end: view.zoom?.end ?? xDomain?.[1],
+      }).nextSpec
+    } else {
+      nextSpec = applyInlineDomainState(spec, { xDomain, yDomain })
+    }
   }
 
   if (isPlainObject(view?.sort)) {
-    const actionName = view.sort.sourceAction || 'widget.sortEncoding'
-    nextSpec = applyVegaLiteSpecAction(nextSpec, actionName, view.sort).nextSpec
+    const actionName = view.sort.sourceAction || null
+    const result = actionName ? applyVegaLiteSpecAction(nextSpec, actionName, view.sort) : { handled: false }
+    nextSpec = result.handled ? result.nextSpec : applyInlineSortState(nextSpec, view.sort)
   }
   if (isPlainObject(view?.drillDown)) {
     const actionName = view.drillDown.sourceAction || 'line.drillDownXAxis'

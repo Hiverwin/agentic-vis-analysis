@@ -54,9 +54,6 @@ test('materializeWorkspace exposes current_selection as a shared data handle plu
   const focusWidgetDescriptor = workspace.description.actions.find(
     (descriptor) => descriptor?.name === 'workspace.focusWidget',
   )
-  const zoomDomainDescriptor = workspace.description.actions.find(
-    (descriptor) => descriptor?.name === 'widget.zoomDomain',
-  )
   const resetViewDescriptor = workspace.description.actions.find(
     (descriptor) => descriptor?.name === 'widget.resetView',
   )
@@ -79,9 +76,13 @@ test('materializeWorkspace exposes current_selection as a shared data handle plu
   assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'workspace.resetWorkspace'), false)
   assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'widget.undoSelection'), false)
   assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'widget.redoSelection'), false)
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'widget.zoomDomain'), false)
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'widget.sortEncoding'), false)
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'widget.filterByRange'), false)
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'widget.filterByValues'), false)
+  assert.equal(workspace.description.actions.some((descriptor) => descriptor?.name === 'widget.highlightValues'), false)
   assert.deepEqual(resetViewDescriptor?.affectedStatePaths, ['view', 'transforms', 'selections', 'feedback'])
   assert.deepEqual(undoViewDescriptor?.affectedStatePaths, ['view', 'transforms', 'selections', 'feedback'])
-  assert.deepEqual(zoomDomainDescriptor?.affectedStatePaths, ['view.xDomain', 'view.yDomain', 'view.zoom'])
   assert.deepEqual(clearSelectionDescriptor?.supportedWidgetKinds, ['scatter'])
   assert.equal(updateSelectionDescriptor?.paramsSchema?.properties?.field?.type, 'string')
   assert.equal(updateSelectionDescriptor?.paramsSchema?.properties?.values?.type, 'array')
