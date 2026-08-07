@@ -3,6 +3,7 @@ import { useAppStore } from '../../../app/store/appStore.js'
 import { PanelHeader } from '../../../app/shell/PanelHeader.jsx'
 import { createFirstPartyRuntimeSessionFacade, getRuntimeSession } from '../../../appRuntime/contracts/runtimeBridge.js'
 import { hydrateImportedRuntimeWidgets } from '../imports/importedRuntimeHydration.js'
+import { buildKitLinkRows } from '../models/coordinationPresentation.js'
 import { WidgetSurface } from './WidgetSurface.jsx'
 
 function listCoordinationSelections(coordinationState = null) {
@@ -11,42 +12,10 @@ function listCoordinationSelections(coordinationState = null) {
   return Object.values(registry).filter((selection) => selection && typeof selection === 'object')
 }
 
-function readWidgetIdFromStateRef(value = '') {
-  const match = String(value || '').match(/\/widget\/([^/]+)/)
-  return match?.[1] || null
-}
-
-function readStateOperation(value = '', side = 'source') {
-  const stateRef = String(value || '')
-  const marker = stateRef.match(/\/widget\/[^/]+\/(.*)$/)?.[1] || ''
-  const [group, name = ''] = marker.split('/')
-  if (group === 'selection') return side === 'source' ? 'select' : 'filter'
-  if (group === 'transform') return 'filter'
-  if (group === 'view') {
-    if (name === 'zoom') return 'zoom'
-    if (name === 'highlight') return 'highlight'
-    if (name === 'reencode') return 'reencode'
-  }
-  return side === 'source' ? 'update' : 'apply'
-}
-
-function summarizeCoordinationLink(link = {}, widgetLookup = new Map()) {
-  const sourceWidgetId = link.sourceWidgetId || readWidgetIdFromStateRef(link.sourceStateRef)
-  const targetWidgetId = link.targetWidgetId || readWidgetIdFromStateRef(link.targetStateRef)
-  const sourceKind = widgetLookup.get(sourceWidgetId)?.widgetKind || widgetLookup.get(sourceWidgetId)?.kind || sourceWidgetId || 'source'
-  const targetKind = widgetLookup.get(targetWidgetId)?.widgetKind || widgetLookup.get(targetWidgetId)?.kind || targetWidgetId || 'target'
-  const sourceOperation = readStateOperation(link.sourceStateRef || link.from, 'source')
-  const targetOperation = readStateOperation(link.targetStateRef || link.to, 'target')
-  const field = link.transform?.fieldMapping?.[0]?.sourceField || link.transform?.fieldMapping?.[0]?.targetField || null
-  return `${sourceKind}.${sourceOperation}${field ? `(${field})` : ''} -> ${targetKind}.${targetOperation}${field ? `(${field})` : ''}`
-}
-
 function WorkspaceCoordinationSummary({ links = [], selections = [], propagation = null, widgets = [] }) {
   const activeLinks = Array.isArray(propagation?.activatedLinks) ? propagation.activatedLinks : []
   const skippedTargets = Array.isArray(propagation?.skippedTargets) ? propagation.skippedTargets : []
-  const widgetLookup = new Map((Array.isArray(widgets) ? widgets : [])
-    .map((widget) => [widget?.id || widget?.widgetId, widget])
-    .filter(([id]) => id))
+  const linkRows = buildKitLinkRows(links, widgets)
 
   return (
     <div className="workspace-coordination" aria-label="Kit coordination state">
@@ -55,10 +24,10 @@ function WorkspaceCoordinationSummary({ links = [], selections = [], propagation
         <div className="workspace-state-popover" role="tooltip">
           <strong>Links</strong>
         <ul>
-          {links.length > 0 ? links.map((link, index) => (
-            <li key={link.ref || link.linkRef || link.id || index}>
-              <strong>{summarizeCoordinationLink(link, widgetLookup)}</strong>
-              <span>{link.transform?.kind || link.relation || link.effect || link.kind || 'link'}</span>
+          {linkRows.length > 0 ? linkRows.map((link) => (
+            <li key={link.id}>
+              <strong>{link.source} → {link.target}</strong>
+              {link.transformKind ? <span>{link.transformKind}</span> : null}
             </li>
           )) : <li>No registered links.</li>}
         </ul>

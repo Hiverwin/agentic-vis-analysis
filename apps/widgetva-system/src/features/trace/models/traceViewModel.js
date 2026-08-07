@@ -72,6 +72,15 @@ function buildKindLabel(kind) {
   return 'Action'
 }
 
+function buildOperationTopic(step, kind) {
+  const name = `${step?.methodName || ''} ${step?.summary || ''}`.toLowerCase()
+  if (/(brush|select|selection|highlight)/.test(name)) return 'selection'
+  if (/(filter|domain|interval)/.test(name)) return 'filter'
+  if (/(zoom|viewport|focus|reencode)/.test(name)) return 'view'
+  if (kind === 'perception' || kind === 'data_query') return 'inspect'
+  return 'action'
+}
+
 function buildStreamBands(steps = [], branches = []) {
   const mainBranchId = steps.find((step) => step.transitionType !== 'branch')?.branchId || steps[0]?.branchId || 'main'
   const branchDepthById = new Map([[mainBranchId, 0]])
@@ -327,6 +336,7 @@ export function buildTraceTimelineModel(trace = [], options = {}) {
       status: normalizeStatus(step?.status),
       time: step?.time || null,
       methodName: step?.methodName || null,
+      operationTopic: buildOperationTopic(step, kind),
       widgetId: step?.widgetId || null,
       widgetTitle: step?.widgetTitle || step?.widgetId || 'Workspace',
       summary: buildSummary(step),
@@ -366,6 +376,8 @@ export function buildTraceTimelineModel(trace = [], options = {}) {
     laneIndex: step.laneIndex,
     kind: step.kind,
     kindLabel: step.kindLabel,
+    operationTopic: step.operationTopic,
+    methodName: step.methodName,
     transitionType: step.transitionType,
     widgetTitle: step.widgetTitle,
     shortLabel: step.shortLabel,

@@ -2,15 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAppStore } from '../../../app/store/appStore.js'
 import { buildTraceTimelineModel } from '../models/traceViewModel.js'
 
-const EDGE_COLORS = {
-  sequence: 'var(--accent)',
-  handoff: '#7b4cb8',
-  branch: 'var(--warning)',
-}
-
-const NODE_COLORS = {
-  human: '#7b4cb8',
-  agent: 'var(--accent)',
+const OPERATION_COLORS = {
+  action: 'var(--accent)',
+  selection: '#5d82b2',
+  filter: '#5a9b8d',
+  view: '#9272b4',
+  inspect: '#b47d43',
 }
 
 function clampZoom(value) {
@@ -38,7 +35,7 @@ function buildGraphLayout(nodes = []) {
 }
 
 function TraceNode({ node, position, layout, selected, onPointerDown }) {
-  const color = NODE_COLORS[node.actor] || NODE_COLORS.agent
+  const color = OPERATION_COLORS[node.operationTopic] || OPERATION_COLORS.action
   return (
     <g transform={`translate(${position.x}, ${position.y})`} onMouseDown={(event) => onPointerDown(event, node.id)} style={{ cursor: 'pointer' }}>
       <rect
@@ -50,14 +47,8 @@ function TraceNode({ node, position, layout, selected, onPointerDown }) {
         strokeWidth={selected ? 2 : 1.2}
       />
       <circle cx="12" cy="14" r="4" fill={color} />
-      <text x="22" y="17" fontSize="10" fontWeight="700" fill="var(--text)">{node.shortLabel.slice(0, 24)}</text>
-      <text x="10" y="33" fontSize="9" fill="var(--text-dim)">{node.actor} · {node.kindLabel} · {node.widgetTitle.slice(0, 18)}</text>
-      {node.transitionType === 'branch' ? (
-        <g>
-          <rect x={layout.nodeWidth - 48} y="5" width="40" height="13" rx="6" fill="rgba(171, 115, 45, 0.14)" stroke="var(--warning)" />
-          <text x={layout.nodeWidth - 28} y="14" textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--warning)">Branch</text>
-        </g>
-      ) : null}
+      <text x="22" y="17" fontSize="10" fontWeight="700" fill="var(--text)">{`${node.stepNumber}. ${node.shortLabel}`.slice(0, 26)}</text>
+      <text x="10" y="33" fontSize="9" fill="var(--text-dim)">{node.widgetTitle.slice(0, 24)}</text>
     </g>
   )
 }
@@ -145,7 +136,7 @@ export function TracePanel() {
   return (
     <div className="trace-graph-panel">
       <div className="trace-graph-toolbar">
-        <span>{model.stepCount} steps</span><span className="legend-agent">Agent</span><span className="legend-human">Human</span><span className="legend-branch">Branch</span>
+        <span>{model.stepCount} steps</span>
         <div className="trace-graph-actions">
           <button type="button" onClick={() => setZoom((value) => clampZoom(value - 0.1))} aria-label="Zoom out">−</button>
           <span>{Math.round(zoom * 100)}%</span>
@@ -175,13 +166,14 @@ export function TracePanel() {
               const source = positionFor(edge.from)
               const target = positionFor(edge.to)
               if (!source || !target) return null
-              const color = EDGE_COLORS[edge.kind] || EDGE_COLORS.sequence
+              const targetNode = nodeById.get(edge.to)
+              const color = OPERATION_COLORS[targetNode?.operationTopic] || OPERATION_COLORS.action
               const x1 = source.x + layout.nodeWidth
               const y1 = source.y + layout.nodeHeight / 2
               const x2 = target.x
               const y2 = target.y + layout.nodeHeight / 2
               const control = (x1 + x2) / 2
-              return <path key={edge.id} d={`M ${x1} ${y1} C ${control} ${y1}, ${control} ${y2}, ${x2} ${y2}`} fill="none" stroke={color} strokeWidth="1.7" strokeDasharray={edge.kind === 'branch' ? '4 3' : undefined} markerEnd="url(#trace-graph-arrow)" style={{ color }} />
+              return <path key={edge.id} d={`M ${x1} ${y1} C ${control} ${y1}, ${control} ${y2}, ${x2} ${y2}`} fill="none" stroke={color} strokeWidth="1.7" markerEnd="url(#trace-graph-arrow)" style={{ color }} />
             })}
             {model.nodes.map((node) => {
               const position = positionFor(node.id)
@@ -192,7 +184,7 @@ export function TracePanel() {
         </svg>
       </div>
       <div className="trace-graph-detail">
-        {selectedStep ? <><span>{selectedStep.actor} · {selectedStep.kindLabel}</span><strong>{selectedStep.summary}</strong><p>{selectedStep.detail || selectedStep.verificationSummary || 'Click and drag nodes to organize this trace.'}</p></> : null}
+        {selectedStep ? <><span>{selectedStep.kindLabel} · {selectedStep.widgetTitle}</span><strong>{selectedStep.summary}</strong><p>{selectedStep.detail || selectedStep.verificationSummary || 'Drag nodes to arrange the trace.'}</p></> : null}
       </div>
     </div>
   )

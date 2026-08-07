@@ -16,6 +16,14 @@ import {
   registerWorkspaceCaseOverride,
 } from '../../appRuntime/contracts/runtimeBridge.js'
 import { DEFAULT_OPENROUTER_VLM, formatAgentRuntimeError, runAgentSession } from '../../appRuntime/agent/agentRuntime.js'
+import {
+  beginAgentSessionControl,
+  clearAgentSessionControl,
+  isAgentSessionPauseRequested,
+  requestAgentSessionPause,
+  resumeAgentSession,
+  waitForAgentSessionResume,
+} from '../../appRuntime/agent/agentSessionControl.js'
 import { buildImportedVisualizationCase, buildVisualizationPreview } from '../../appRuntime/imports/importedArtifactLoader.js'
 import {
   buildVisualizationBindSummary,
@@ -698,6 +706,18 @@ export const useAppStore = create((set, get) => ({
     }))
     return result
   },
+  pauseAgentSession: () => {
+    const state = get()
+    if (state.agentStatus !== 'running') return
+    requestAgentSessionPause(readRuntimeSessionKeyFromState(state))
+    set({ agentStatus: 'paused' })
+  },
+  resumeAgentSession: () => {
+    const state = get()
+    if (state.agentStatus !== 'paused') return
+    resumeAgentSession(readRuntimeSessionKeyFromState(state))
+    set({ agentStatus: 'running' })
+  },
   runAgentStep: async (objectiveOverride) => {
     const state = get()
     const sessionKey = readRuntimeSessionKeyFromState(state)
@@ -705,6 +725,7 @@ export const useAppStore = create((set, get) => ({
     const objective = typeof objectiveOverride === 'string' && objectiveOverride.trim().length > 0
       ? objectiveOverride.trim()
       : state.agentObjective
+    beginAgentSessionControl(sessionKey)
     runtime.appendAgentMessage({
       role: 'user',
       text: objective,
@@ -763,6 +784,11 @@ export const useAppStore = create((set, get) => ({
               agentMessages: runtime.readAgentMessages(),
             }
           })
+          if (isAgentSessionPauseRequested(sessionKey)) {
+            set({ agentStatus: 'paused' })
+            await waitForAgentSessionResume(sessionKey)
+            set({ agentStatus: 'running' })
+          }
         },
       })
       set((current) => {
@@ -829,6 +855,8 @@ export const useAppStore = create((set, get) => ({
         agentMessages: runtime.readAgentMessages(),
       })
       throw error
+    } finally {
+      clearAgentSessionControl(sessionKey)
     }
   },
   addFinding: (title) =>

@@ -25,9 +25,13 @@ export function AgentPanel() {
   const trace = useAppStore((state) => state.trace)
   const setAgentObjective = useAppStore((state) => state.setAgentObjective)
   const runAgentStep = useAppStore((state) => state.runAgentStep)
+  const pauseAgentSession = useAppStore((state) => state.pauseAgentSession)
+  const resumeAgentSession = useAppStore((state) => state.resumeAgentSession)
   const [draftObjective, setDraftObjective] = useState(agentObjective)
   const chatEndRef = useRef(null)
   const isRunning = agentStatus === 'running'
+  const isPaused = agentStatus === 'paused'
+  const isActive = isRunning || isPaused
   const bindRequired = Boolean(loadedVisualizationPreview?.widget)
   const isBinding = visualizationBindStatus === 'binding'
   const importedWorkspace = workspaceSourceType === 'importedSpec'
@@ -67,7 +71,7 @@ export function AgentPanel() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView?.({ block: 'end' })
-  }, [conversationItems.length, isRunning])
+  }, [conversationItems.length, isActive])
 
   async function handleRunAgentStep(nextPrompt = '') {
     const nextObjective = typeof nextPrompt === 'string' && nextPrompt.trim().length > 0
@@ -85,14 +89,14 @@ export function AgentPanel() {
 
   function handleComposerSubmit(event) {
     event.preventDefault()
-    if (isRunning || bindRequired) return
+    if (isActive || bindRequired) return
     void handleRunAgentStep(draftObjective)
   }
 
   function handleComposerKeyDown(event) {
     if (event.key !== 'Enter' || event.shiftKey) return
     event.preventDefault()
-    if (isRunning || bindRequired) return
+    if (isActive || bindRequired) return
     void handleRunAgentStep(draftObjective)
   }
 
@@ -141,8 +145,17 @@ export function AgentPanel() {
               </section>
             ) : null
           )}
-          {isRunning ? (
-            <div className="agent-status-copy" role="status">Agent is responding...</div>
+          {isActive ? (
+            <div className="agent-status-copy" role="status">
+              {isPaused ? 'Agent paused between iterations.' : 'Agent is responding...'}
+              <button
+                type="button"
+                className="agent-session-control"
+                onClick={isPaused ? resumeAgentSession : pauseAgentSession}
+              >
+                {isPaused ? 'Resume' : 'Pause'}
+              </button>
+            </div>
           ) : null}
           <div ref={chatEndRef} />
         </div>
@@ -152,13 +165,15 @@ export function AgentPanel() {
       ) : null}
 
       <form className="agent-composer" onSubmit={handleComposerSubmit}>
-        {bindRequired || isRunning || isBinding ? (
+        {bindRequired || isActive || isBinding ? (
           <span className="agent-status-copy agent-composer-status">
             {bindRequired
               ? 'Bind the chart before asking the agent.'
               : isBinding
                 ? 'Binding chart to the runtime…'
-                : 'Agent is responding…'}
+                : isPaused
+                  ? 'Agent paused between iterations.'
+                  : 'Agent is responding…'}
           </span>
         ) : null}
         <div className="agent-composer-row">
@@ -175,9 +190,9 @@ export function AgentPanel() {
             type={bindRequired ? 'button' : 'submit'}
             className="primary-button compact"
             onClick={bindRequired ? () => { void handleBindCurrentVisualization() } : undefined}
-            disabled={isRunning || isBinding || (!bindRequired && draftObjective.trim().length === 0)}
+            disabled={isActive || isBinding || (!bindRequired && draftObjective.trim().length === 0)}
           >
-            {bindRequired ? (isBinding ? 'Binding…' : 'Bind chart') : (isRunning ? 'Sending…' : 'Send')}
+            {bindRequired ? (isBinding ? 'Binding…' : 'Bind chart') : (isActive ? 'Running…' : 'Send')}
           </button>
         </div>
       </form>

@@ -91,7 +91,7 @@ export function SystemShell() {
         />
         <div
           ref={centerStackRef}
-          className="center-stack"
+          className={`center-stack ${workspaceHeight ? 'is-resized' : ''}`}
           style={workspaceHeight ? { '--workspace-height': `${workspaceHeight}px` } : undefined}
         >
           <WorkspaceStage />

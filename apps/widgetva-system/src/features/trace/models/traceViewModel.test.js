@@ -97,6 +97,18 @@ test('buildTraceTimelineModel keeps same-actor progression as sequence edges', (
   assert.equal(model.selection.currentSegment?.id, model.segments[1]?.id)
 })
 
+test('buildTraceTimelineModel assigns compact trace colors by operation topic, not actor', () => {
+  const model = buildTraceTimelineModel([
+    { id: 'human-brush', actor: 'human', kind: 'action', methodName: 'scatter.brush', widgetTitle: 'Scatter' },
+    { id: 'agent-filter', actor: 'agent', kind: 'action', methodName: 'bar.filterCategorical', widgetTitle: 'Bar' },
+    { id: 'agent-verify', actor: 'agent', kind: 'perception', methodName: 'inspect.view', widgetTitle: 'Bar' },
+  ])
+
+  assert.equal(model.nodes[0].operationTopic, 'selection')
+  assert.equal(model.nodes[1].operationTopic, 'filter')
+  assert.equal(model.nodes[2].operationTopic, 'inspect')
+})
+
 test('buildTraceTimelineModel derives branch metadata from replay lineage semantics', () => {
   const model = buildTraceTimelineModel([
     {
