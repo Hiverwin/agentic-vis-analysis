@@ -2,7 +2,7 @@ import {
   createFirstPartyRuntimeSessionFacade,
 } from '../../appRuntime/contracts/runtimeBridge.js'
 
-export const DEFAULT_CASE_ID = 'starter-workspace'
+export const DEFAULT_CASE_ID = 'empty-workspace'
 
 export function buildDefaultAgentObjective(workspaceCase) {
   return ''

@@ -6,7 +6,7 @@ import { VgplotView } from '../renderers/VgplotView.jsx'
 import { VegaLiteView } from '../renderers/VegaLiteView.jsx'
 import { resolveWidgetNativePayload, resolveWidgetRenderMode } from '../models/widgetRenderSupport.js'
 
-function RuntimeBoundVegaLiteView({ widget, runtime, spec, className }) {
+function RuntimeBoundVegaLiteView({ widget, runtime, spec, className, fitToContainer = false }) {
   const bindingRef = useRef(null)
   const runHumanRuntimeAction = useAppStore((state) => state.runHumanRuntimeAction)
   const vaHost = useMemo(() => createWidgetVAHost({
@@ -50,12 +50,13 @@ function RuntimeBoundVegaLiteView({ widget, runtime, spec, className }) {
     <VegaLiteView
       spec={spec}
       className={className}
+      fitToContainer={fitToContainer}
       onViewReady={handleViewReady}
     />
   )
 }
 
-function renderVisualization(widget, { runtime = null } = {}) {
+function renderVisualization(widget, { runtime = null, fitToContainer = false } = {}) {
   const nativePayload = resolveWidgetNativePayload(widget)
   if ((nativePayload.mode === 'vega-lite' || nativePayload.mode === 'vega') && nativePayload.payload) {
     return (
@@ -64,6 +65,7 @@ function renderVisualization(widget, { runtime = null } = {}) {
         runtime={runtime}
         spec={nativePayload.payload}
         className="vega-shell"
+        fitToContainer={fitToContainer && nativePayload.mode === 'vega-lite'}
       />
     )
   }
@@ -171,7 +173,10 @@ export function WidgetSurface({ widget, runtime = null, singleViewMode = false, 
     [widget?.metrics],
   )
   const renderMode = useMemo(() => resolveWidgetRenderMode(widget), [widget])
-  const visualization = useMemo(() => renderVisualization(widget, { runtime }), [runtime, widget])
+  const visualization = useMemo(
+    () => renderVisualization(widget, { runtime, fitToContainer: !singleViewMode }),
+    [runtime, singleViewMode, widget],
+  )
   const widgetKind = widget.widgetKind || widget.kind || widget.type
   const typeLabel = widgetKind || 'widget'
   const rendererLabel = resolveRendererLabel(widget.provider, renderMode.mode)

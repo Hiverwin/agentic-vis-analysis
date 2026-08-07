@@ -12,13 +12,11 @@ body,
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at top left, rgba(45, 95, 152, 0.08), transparent 28%),
-    linear-gradient(180deg, #f6f9fc 0%, #eef2f7 100%);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 button,

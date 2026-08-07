@@ -1,5 +1,6 @@
 import { useAppStore } from '../store/appStore.js'
 import { TracePanel } from '../../features/trace/components/TracePanel.jsx'
+import { PanelHeader } from './PanelHeader.jsx'
 
 export function TraceDrawer() {
   const trace = useAppStore((state) => state.trace)
@@ -7,11 +8,7 @@ export function TraceDrawer() {
 
   return (
     <section className={`trace-drawer open ${hasTrace ? '' : 'is-empty'}`.trim()} aria-label="Trace drawer">
-      <div className="trace-drawer-bar">
-        <div>
-          <p className="eyebrow">Trace</p>
-        </div>
-      </div>
+      <PanelHeader kind="trace" title="Interaction Trace" />
       <div className="trace-content">
         {hasTrace ? (
           <TracePanel />

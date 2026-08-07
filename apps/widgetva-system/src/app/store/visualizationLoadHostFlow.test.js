@@ -227,6 +227,8 @@ test('imported same-source multi-widget visualizations derive executable coordin
       'w_imported_3',
     ])
     assert.deepEqual(description.widgets.map((widget) => widget.kind), ['bar', 'line', 'scatter'])
+    const structuralContext = runtime.readSharedStructuralContext()
+    assert.equal(structuralContext.links.definitions.length > 0, true)
     assert.equal(
       description.links.some((link) => typeof link.sourceStateRef === 'string' && typeof link.targetStateRef === 'string'),
       true,

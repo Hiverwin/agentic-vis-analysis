@@ -4,8 +4,35 @@ import { cloneJsonValue as clone } from '../../shared/clone.js'
 
 const caseOverrideRegistry = new Map()
 
+const EMPTY_WORKSPACE_CASE = {
+  id: 'empty-workspace',
+  sourceType: 'empty',
+  title: 'Untitled workspace',
+  summary: 'Load a visualization to begin.',
+  topology: 'single-view',
+  dataset: {
+    name: '',
+    rows: 0,
+    fields: 0,
+    coverage: '',
+    rowsData: [],
+  },
+  widgets: [],
+  coordinationLinks: [],
+  findings: [],
+  trace: [],
+  agentChat: [],
+  replaySteps: [],
+  branches: [],
+  log: [],
+  workspaceProviderEnvironment: 'vega-lite',
+}
+
 export function getWorkspaceCase(caseId) {
-  return caseOverrideRegistry.get(caseId) || WORKSPACE_CASES.find((item) => item.id === caseId) || WORKSPACE_CASES[0]
+  return caseOverrideRegistry.get(caseId)
+    || (caseId === EMPTY_WORKSPACE_CASE.id ? EMPTY_WORKSPACE_CASE : null)
+    || WORKSPACE_CASES.find((item) => item.id === caseId)
+    || EMPTY_WORKSPACE_CASE
 }
 
 export function registerWorkspaceCaseOverride(caseId, caseDef) {

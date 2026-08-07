@@ -58,31 +58,32 @@ export function ControlsPanel() {
   }
 
   return (
-    <div className="analysis-stack">
-      <section className="info-block compact">
-        <h4>{workspaceSourceType === 'starter' ? 'Starter mode' : 'Runtime controls'}</h4>
-        <p>
-          {workspaceSourceType === 'starter'
-            ? 'Load and bind a visualization to mount it into the host VA.'
-            : 'Controls here operate on the current kit runtime state, independent of any demo-specific dataset.'}
-        </p>
-      </section>
-      <section className="info-block">
-        <h4>Interaction state</h4>
-        <div className="button-grid">
-          <button type="button" className="primary-button" onClick={promoteSelectionToFilter} disabled={!canCommitSelectionAsFilter}>Filter to current selection</button>
-          <button type="button" className="primary-button" onClick={promoteSelectionToHighlight} disabled={!primarySelection}>Highlight current selection</button>
-          <button type="button" className="ghost-toggle block" onClick={clearSelection} disabled={!primarySelection}>Clear selection only</button>
-          <button type="button" className="ghost-toggle block" onClick={clearHighlight} disabled={!hasHighlight}>Clear highlight</button>
-          <button type="button" className="primary-button" onClick={clearFilters}>Clear active filters</button>
-          <button type="button" className="ghost-toggle block" onClick={() => void undoSelectionHistory()}>Undo selection</button>
-          <button type="button" className="ghost-toggle block" onClick={() => void redoSelectionHistory()}>Redo selection</button>
-          <button type="button" className="ghost-toggle block" onClick={() => void resetWorkspaceInteractions()}>Reset interaction state</button>
-          <button type="button" className="ghost-toggle block" onClick={() => void restorePreviousWorkspaceState()} disabled={!canRestorePreviousState}>Back to previous state</button>
-          <button type="button" className="ghost-toggle block" onClick={() => void restoreEarliestWorkspaceState()} disabled={!canRestoreEarliestState}>Restore earliest state</button>
-          <button type="button" className="ghost-toggle block" onClick={resetWorkspaceView}>Rebuild workspace view</button>
-        </div>
-      </section>
-    </div>
+    <details className="interaction-control-disclosure">
+      <summary>Interaction controls</summary>
+      <div className="analysis-stack">
+        <section className="info-block compact">
+          <p>
+            {workspaceSourceType === 'starter'
+              ? 'Load and bind a visualization to mount it into the host VA.'
+              : 'Kit runtime actions for the current workspace.'}
+          </p>
+        </section>
+        <section className="info-block">
+          <div className="button-grid">
+            <button type="button" className="primary-button" onClick={promoteSelectionToFilter} disabled={!canCommitSelectionAsFilter}>Filter to current selection</button>
+            <button type="button" className="primary-button" onClick={promoteSelectionToHighlight} disabled={!primarySelection}>Highlight current selection</button>
+            <button type="button" className="ghost-toggle block" onClick={clearSelection} disabled={!primarySelection}>Clear selection only</button>
+            <button type="button" className="ghost-toggle block" onClick={clearHighlight} disabled={!hasHighlight}>Clear highlight</button>
+            <button type="button" className="primary-button" onClick={clearFilters}>Clear active filters</button>
+            <button type="button" className="ghost-toggle block" onClick={() => void undoSelectionHistory()}>Undo selection</button>
+            <button type="button" className="ghost-toggle block" onClick={() => void redoSelectionHistory()}>Redo selection</button>
+            <button type="button" className="ghost-toggle block" onClick={() => void resetWorkspaceInteractions()}>Reset interaction state</button>
+            <button type="button" className="ghost-toggle block" onClick={() => void restorePreviousWorkspaceState()} disabled={!canRestorePreviousState}>Back to previous state</button>
+            <button type="button" className="ghost-toggle block" onClick={() => void restoreEarliestWorkspaceState()} disabled={!canRestoreEarliestState}>Restore earliest state</button>
+            <button type="button" className="ghost-toggle block" onClick={resetWorkspaceView}>Rebuild workspace view</button>
+          </div>
+        </section>
+      </div>
+    </details>
   )
 }

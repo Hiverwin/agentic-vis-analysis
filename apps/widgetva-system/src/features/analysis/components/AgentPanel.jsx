@@ -12,7 +12,6 @@ import {
 
 export function AgentPanel() {
   const workspaceSourceType = useAppStore((state) => state.workspaceSourceType)
-  const workspaceProviderEnvironment = useAppStore((state) => state.workspaceProviderEnvironment)
   const loadedVisualizationPreview = useAppStore((state) => state.loadedVisualizationPreview)
   const bindCurrentVisualization = useAppStore((state) => state.bindCurrentVisualization)
   const visualizationBindStatus = useAppStore((state) => state.visualizationBindStatus)
@@ -62,14 +61,6 @@ export function AgentPanel() {
   const composerPlaceholder = latestIteration || agentError || visualizationBindError
     ? 'Continue the analysis...'
     : objectivePlaceholder
-  const providerLabel = useMemo(() => {
-    if (workspaceProviderEnvironment === 'vega-lite') return 'Vega-Lite'
-    if (workspaceProviderEnvironment === 'vega') return 'Vega'
-    if (workspaceProviderEnvironment === 'echarts') return 'ECharts'
-    if (workspaceProviderEnvironment === 'vgplot') return 'VGPlot'
-    return workspaceProviderEnvironment || 'Unknown'
-  }, [workspaceProviderEnvironment])
-
   useEffect(() => {
     setDraftObjective(agentObjective)
   }, [agentObjective])
@@ -125,7 +116,6 @@ export function AgentPanel() {
               return (
                 <section key={item.id} className="agent-loop-card" aria-label="Agent execution loop">
                   <div className="agent-loop-meta">
-                    <span className="agent-loop-environment">{providerLabel}</span>
                     {item.source?.recordedAt ? (
                       <span className="agent-loop-timestamp">
                         {new Date(item.source.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -141,7 +131,6 @@ export function AgentPanel() {
             latestIteration ? (
               <section className="agent-loop-card" aria-label="Agent execution loop">
                 <div className="agent-loop-meta">
-                  <span className="agent-loop-environment">{providerLabel}</span>
                   {latestIterationSource?.recordedAt ? (
                     <span className="agent-loop-timestamp">
                       {new Date(latestIterationSource.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -163,27 +152,25 @@ export function AgentPanel() {
       ) : null}
 
       <form className="agent-composer" onSubmit={handleComposerSubmit}>
-        <textarea
-          id="agent-objective"
-          className="control-textarea agent-composer-input"
-          value={draftObjective}
-          onChange={(event) => setDraftObjective(event.target.value)}
-          onKeyDown={handleComposerKeyDown}
-          placeholder={composerPlaceholder}
-          rows={3}
-        />
+        {bindRequired || isRunning || isBinding ? (
+          <span className="agent-status-copy agent-composer-status">
+            {bindRequired
+              ? 'Bind the chart before asking the agent.'
+              : isBinding
+                ? 'Binding chart to the runtime…'
+                : 'Agent is responding…'}
+          </span>
+        ) : null}
         <div className="agent-composer-row">
-          {bindRequired || isRunning || isBinding ? (
-            <span className="agent-status-copy">
-              {bindRequired
-                ? 'Bind the chart before asking the agent.'
-                : isBinding
-                  ? 'Binding chart to the runtime…'
-                  : 'Agent is responding…'}
-            </span>
-          ) : (
-            <span className="agent-status-copy">{providerLabel}</span>
-          )}
+          <textarea
+            id="agent-objective"
+            className="control-textarea agent-composer-input"
+            value={draftObjective}
+            onChange={(event) => setDraftObjective(event.target.value)}
+            onKeyDown={handleComposerKeyDown}
+            placeholder={composerPlaceholder}
+            rows={2}
+          />
           <button
             type={bindRequired ? 'button' : 'submit'}
             className="primary-button compact"

@@ -8,10 +8,13 @@ import {
   registerWorkspaceCaseOverride,
 } from './workspaceCaseRegistry.js'
 
-test('workspace case registry returns built-in cases by id and falls back to the default case', () => {
-  const builtIn = getWorkspaceCase('starter-workspace')
-  assert.equal(builtIn.id, 'starter-workspace')
-  assert.equal(getWorkspaceCase('missing-case').id, builtIn.id)
+test('workspace case registry starts the application with an empty workspace', () => {
+  const builtIn = getWorkspaceCase('cars-horsepower')
+  assert.equal(builtIn.id, 'cars-horsepower')
+  const emptyWorkspace = getWorkspaceCase('empty-workspace')
+  assert.equal(emptyWorkspace.id, 'empty-workspace')
+  assert.deepEqual(emptyWorkspace.widgets, [])
+  assert.equal(getWorkspaceCase('missing-case').id, emptyWorkspace.id)
 })
 
 test('workspace case registry stores and clears first-party case overrides', () => {

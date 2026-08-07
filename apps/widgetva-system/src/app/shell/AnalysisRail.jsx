@@ -4,7 +4,7 @@ import { deriveWorkspaceProvenance } from '../../features/workspace/models/works
 import { InspectPanel } from '../../features/analysis/components/InspectPanel.jsx'
 import { AgentPanel } from '../../features/analysis/components/AgentPanel.jsx'
 import { EvidencePanel } from '../../features/analysis/components/EvidencePanel.jsx'
-import { ControlsPanel } from '../../features/analysis/components/ControlsPanel.jsx'
+import { PanelHeader } from './PanelHeader.jsx'
 
 const TABS = [
   { id: 'analysis', label: 'Human' },
@@ -31,9 +31,9 @@ export function AnalysisRail({ draftFinding, setDraftFinding }) {
 
   return (
     <aside className="rail rail-right" aria-label="Analysis panel">
+      <PanelHeader kind="analysis" title="Analysis" />
       <section className="panel-section analysis-shell">
         <div className="analysis-heading-block">
-          <p className="eyebrow">Analysis</p>
           <h2>{selectedWidgetTitle || 'Current analysis'}</h2>
         </div>
         <div className="tab-strip analysis-tab-strip full" role="tablist" aria-label="Analysis levels">
@@ -53,7 +53,6 @@ export function AnalysisRail({ draftFinding, setDraftFinding }) {
           <div className="analysis-stack human-tab-stack">
             <EvidencePanel draftFinding={draftFinding} setDraftFinding={setDraftFinding} />
             {importedOrStarterWorkspace ? null : <InspectPanel />}
-            {importedOrStarterWorkspace ? null : <ControlsPanel />}
           </div>
         ) : null}
         {analysisTab === 'agent' ? (

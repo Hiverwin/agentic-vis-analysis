@@ -1,276 +1,198 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAppStore } from '../../../app/store/appStore.js'
 import { buildTraceTimelineModel } from '../models/traceViewModel.js'
-import { deriveTraceBranchNarrative } from '../models/traceBranchNarrative.js'
-import { deriveTraceFocus } from '../models/traceFocus.js'
-import { buildTraceStreamLayout } from '../layout/traceLayout.js'
-import { TraceStreamBands } from './TraceStreamBands.jsx'
-import { TraceStreamEdges } from './TraceStreamEdges.jsx'
-import { TraceStreamNode } from './TraceStreamNode.jsx'
-import { TraceStreamPaths } from './TraceStreamPaths.jsx'
-import { TraceStreamSegments } from './TraceStreamSegments.jsx'
+
+const EDGE_COLORS = {
+  sequence: 'var(--accent)',
+  handoff: '#7b4cb8',
+  branch: 'var(--warning)',
+}
+
+const NODE_COLORS = {
+  human: '#7b4cb8',
+  agent: 'var(--accent)',
+}
+
+function clampZoom(value) {
+  return Math.max(0.5, Math.min(2.4, value))
+}
+
+function buildGraphLayout(nodes = []) {
+  const nodeWidth = 184
+  const nodeHeight = 48
+  const columnGap = 52
+  const rowGap = 24
+  const margin = 18
+  const positions = new Map(nodes.map((node, index) => [node.id, {
+    x: margin + index * (nodeWidth + columnGap),
+    y: margin + (node.branchDepth || 0) * (nodeHeight + rowGap),
+  }]))
+  const depth = Math.max(0, ...nodes.map((node) => node.branchDepth || 0))
+  return {
+    positions,
+    nodeWidth,
+    nodeHeight,
+    width: margin * 2 + Math.max(1, nodes.length) * nodeWidth + Math.max(0, nodes.length - 1) * columnGap,
+    height: margin * 2 + (depth + 1) * nodeHeight + depth * rowGap,
+  }
+}
+
+function TraceNode({ node, position, layout, selected, onPointerDown }) {
+  const color = NODE_COLORS[node.actor] || NODE_COLORS.agent
+  return (
+    <g transform={`translate(${position.x}, ${position.y})`} onMouseDown={(event) => onPointerDown(event, node.id)} style={{ cursor: 'pointer' }}>
+      <rect
+        width={layout.nodeWidth}
+        height={layout.nodeHeight}
+        rx="7"
+        fill="var(--surface)"
+        stroke={selected ? 'var(--accent)' : color}
+        strokeWidth={selected ? 2 : 1.2}
+      />
+      <circle cx="12" cy="14" r="4" fill={color} />
+      <text x="22" y="17" fontSize="10" fontWeight="700" fill="var(--text)">{node.shortLabel.slice(0, 24)}</text>
+      <text x="10" y="33" fontSize="9" fill="var(--text-dim)">{node.actor} · {node.kindLabel} · {node.widgetTitle.slice(0, 18)}</text>
+      {node.transitionType === 'branch' ? (
+        <g>
+          <rect x={layout.nodeWidth - 48} y="5" width="40" height="13" rx="6" fill="rgba(171, 115, 45, 0.14)" stroke="var(--warning)" />
+          <text x={layout.nodeWidth - 28} y="14" textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--warning)">Branch</text>
+        </g>
+      ) : null}
+    </g>
+  )
+}
 
 export function TracePanel() {
   const trace = useAppStore((state) => state.trace)
   const selectedTraceStepId = useAppStore((state) => state.selectedTraceStepId)
-  const activeReplayContext = useAppStore((state) => state.activeReplayContext)
-  const traceNavigationTarget = useAppStore((state) => state.traceNavigationTarget)
-  const collapsedTraceSegmentIds = useAppStore((state) => state.collapsedTraceSegmentIds)
   const selectTraceStep = useAppStore((state) => state.selectTraceStep)
-  const toggleTraceSegmentCollapsed = useAppStore((state) => state.toggleTraceSegmentCollapsed)
-  const clearTraceNavigationTarget = useAppStore((state) => state.clearTraceNavigationTarget)
-  const scrollRef = useRef(null)
-  const panRef = useRef({ dragging: false, startX: 0, startY: 0, scrollLeft: 0, scrollTop: 0 })
-  const [isDragging, setIsDragging] = useState(false)
+  const [zoom, setZoom] = useState(1)
+  const [nodeOffsets, setNodeOffsets] = useState({})
+  const viewportRef = useRef(null)
+  const panRef = useRef({ active: false, x: 0, y: 0, left: 0, top: 0 })
+  const dragRef = useRef(null)
+  const model = useMemo(
+    () => buildTraceTimelineModel(trace, { selectedStepId: selectedTraceStepId }),
+    [selectedTraceStepId, trace],
+  )
+  const layout = useMemo(() => buildGraphLayout(model.nodes), [model.nodes])
+  const nodeById = useMemo(() => new Map(model.nodes.map((node) => [node.id, node])), [model.nodes])
+  const selectedStep = model.selectedStep
 
-  const model = buildTraceTimelineModel(trace, {
-    selectedStepId: selectedTraceStepId,
-  })
-  const layout = buildTraceStreamLayout(model, {
-    collapsedSegmentIds: collapsedTraceSegmentIds,
-  })
-  const traceFocus = deriveTraceFocus({
-    traceModel: model,
-    activeReplayContext,
-  })
-  const branchNarrative = deriveTraceBranchNarrative({
-    traceModel: model,
-    traceFocus,
-  })
-  const currentBranchId = traceFocus.activeBranchId
-  const selectedBranchId = model.selection.selectedStep?.branchId || null
-  const hiddenStepIds = new Set(
-    (layout.placedNodes || [])
-      .filter((node) => !(layout.renderNodes || []).some((renderNode) => renderNode.id === node.id))
-      .map((node) => node.stepId),
-  )
-  const branchById = new Map((model.streamBands || []).map((band) => [band.branchId, band]))
-  const selectedBranch = selectedBranchId ? branchById.get(selectedBranchId) || null : null
-  const showSelectedBranchBadge = Boolean(
-    selectedBranch
-    && selectedBranchId !== currentBranchId
-    && selectedBranchId !== model.mainBranchId,
-  )
-  const isBranchMuted = (branchId) => (
-    traceFocus.hasBranchFocus
-    && branchId !== currentBranchId
-    && branchId !== selectedBranchId
-  )
+  const positionFor = (nodeId) => {
+    const position = layout.positions.get(nodeId)
+    if (!position) return null
+    const offset = nodeOffsets[nodeId] || { x: 0, y: 0 }
+    return { x: position.x + offset.x, y: position.y + offset.y }
+  }
+
+  const centerCurrent = () => {
+    const viewport = viewportRef.current
+    const position = positionFor(model.selection.currentNode?.id)
+    if (!viewport || !position) return
+    viewport.scrollLeft = Math.max(0, position.x * zoom - viewport.clientWidth / 2 + (layout.nodeWidth * zoom) / 2)
+    viewport.scrollTop = Math.max(0, position.y * zoom - viewport.clientHeight / 2 + (layout.nodeHeight * zoom) / 2)
+  }
+
+  const fitGraph = () => {
+    const viewport = viewportRef.current
+    if (!viewport) return
+    setZoom(clampZoom(Math.min(viewport.clientWidth / (layout.width + 40), viewport.clientHeight / (layout.height + 40))))
+  }
 
   useEffect(() => {
-    const container = scrollRef.current
-    if (!container || !selectedTraceStepId) return
-    const target = container.querySelector(`[data-trace-step-id="${selectedTraceStepId}"]`)
-    if (!target) return
-    const containerRect = container.getBoundingClientRect()
-    const targetRect = target.getBoundingClientRect()
-    const nextLeft = container.scrollLeft + (targetRect.left - containerRect.left) - (container.clientWidth / 2) + (targetRect.width / 2)
-    const nextTop = container.scrollTop + (targetRect.top - containerRect.top) - (container.clientHeight / 2) + (targetRect.height / 2)
-    container.scrollTo({
-      left: Math.max(0, nextLeft),
-      top: Math.max(0, nextTop),
-      behavior: 'smooth',
-    })
-  }, [selectedTraceStepId])
+    if (!model.selection.currentNode?.id) return
+    requestAnimationFrame(centerCurrent)
+  }, [model.selection.currentNode?.id])
 
-  useEffect(() => {
-    if (!traceNavigationTarget?.stepId) return undefined
-    const timerId = window.setTimeout(() => {
-      clearTraceNavigationTarget()
-    }, 1800)
-    return () => window.clearTimeout(timerId)
-  }, [clearTraceNavigationTarget, traceNavigationTarget?.stepId, traceNavigationTarget?.timestamp])
-
-  function handlePointerDown(event) {
+  const startNodeDrag = (event, nodeId) => {
     if (event.button !== 0) return
-    if (event.target?.closest?.('[data-trace-step-id]') || event.target?.closest?.('[data-trace-segment-id]')) return
-    const container = scrollRef.current
-    if (!container) return
-    panRef.current = {
-      dragging: true,
-      startX: event.clientX,
-      startY: event.clientY,
-      scrollLeft: container.scrollLeft,
-      scrollTop: container.scrollTop,
+    event.stopPropagation()
+    const offset = nodeOffsets[nodeId] || { x: 0, y: 0 }
+    dragRef.current = { nodeId, x: event.clientX, y: event.clientY, offsetX: offset.x, offsetY: offset.y, moved: false }
+  }
+
+  const startPan = (event) => {
+    if (event.button !== 0 || !viewportRef.current) return
+    panRef.current = { active: true, x: event.clientX, y: event.clientY, left: viewportRef.current.scrollLeft, top: viewportRef.current.scrollTop }
+  }
+
+  const movePointer = (event) => {
+    if (dragRef.current) {
+      const drag = dragRef.current
+      const x = (event.clientX - drag.x) / zoom
+      const y = (event.clientY - drag.y) / zoom
+      drag.moved ||= Math.abs(x) > 1 || Math.abs(y) > 1
+      setNodeOffsets((offsets) => ({ ...offsets, [drag.nodeId]: { x: drag.offsetX + x, y: drag.offsetY + y } }))
+      return
     }
-    setIsDragging(true)
+    if (!panRef.current.active || !viewportRef.current) return
+    viewportRef.current.scrollLeft = panRef.current.left - (event.clientX - panRef.current.x)
+    viewportRef.current.scrollTop = panRef.current.top - (event.clientY - panRef.current.y)
   }
 
-  function handlePointerMove(event) {
-    if (!panRef.current.dragging) return
-    const container = scrollRef.current
-    if (!container) return
-    const dx = event.clientX - panRef.current.startX
-    const dy = event.clientY - panRef.current.startY
-    container.scrollLeft = panRef.current.scrollLeft - dx
-    container.scrollTop = panRef.current.scrollTop - dy
+  const stopPointer = () => {
+    const drag = dragRef.current
+    if (drag && !drag.moved) selectTraceStep(drag.nodeId)
+    dragRef.current = null
+    panRef.current.active = false
   }
 
-  function handlePointerUp() {
-    if (!panRef.current.dragging) return
-    panRef.current.dragging = false
-    setIsDragging(false)
+  if (model.stepCount === 0) {
+    return <div className="trace-timeline-empty"><strong>No trace yet</strong><p>Interact with a widget or run an agent step to record the workspace trajectory.</p></div>
   }
 
   return (
-    <div className="trace-panel-shell">
-      <div
-        ref={scrollRef}
-        className="trace-stream-shell"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-      >
-        <div
-          className="trace-stream-scroll"
-          style={{
-            '--trace-columns': model.stepCount,
-            '--trace-bands': layout.bandCount,
-            '--trace-gutter': `${layout.metrics.gutterWidth}px`,
-          }}
-        >
-          {model.stepCount > 0 ? (
-              <div className="trace-step-scale trace-step-scale-stream">
-              <span className="trace-scale-gutter" aria-hidden="true" />
-              <div className="trace-step-scale-grid" style={{ width: `${layout.canvasWidth}px` }}>
-                {Array.from({ length: model.stepCount }, (_, index) => (
-                  <span key={`trace-step-${index}`}>step {index + 1}</span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-          <div className={`trace-stream-frame ${model.stepCount === 0 ? 'empty' : ''} ${traceFocus.hasBranchFocus ? 'branch-focused' : ''}`}>
-            {model.stepCount === 0 ? (
-              <div className="trace-stream-empty">
-                <strong>No interaction trace yet</strong>
-                <p>Brush, focus, zoom, or run an agent step to start the provenance stream.</p>
-              </div>
-            ) : null}
-            {traceFocus.hasBranchFocus ? (
-              <div className="trace-stream-focus-banner">
-                <div className="trace-stream-focus-banner-pills">
-                  <span className="trace-stream-focus-pill">{activeReplayContext ? 'Replay branch' : 'Active branch'}</span>
-                  {showSelectedBranchBadge ? <span className="trace-stream-focus-pill secondary">Selected branch</span> : null}
-                </div>
-                <strong>{branchNarrative?.branchLabel || currentBranchId}</strong>
-                {branchNarrative ? <p>{branchNarrative.description}</p> : null}
-                {showSelectedBranchBadge ? (
-                  <p>
-                    Inspecting {selectedBranch?.label || selectedBranchId}
-                    {selectedBranch?.originStepNumber ? ` · fork from step ${selectedBranch.originStepNumber}` : ''}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-            <div className="trace-stream-band-labels">
-              {layout.bandLabels.map((band) => (
-                <div
-                  key={band.id}
-                  className={`trace-stream-band-label ${band.depth === 0 ? 'main' : 'branch'} ${band.branchId === currentBranchId ? 'current' : ''} ${band.branchId === selectedBranchId ? 'selected' : ''} ${isBranchMuted(band.branchId) ? 'muted' : ''}`}
-                  style={{
-                    top: `${band.y}px`,
-                    left: `${band.x}px`,
-                  }}
-                >
-                  <span className={`trace-band-dot ${band.depth === 0 ? 'main' : 'branch'}`} />
-                  <span>{band.label}</span>
-                </div>
-              ))}
-            </div>
-            <div
-              className="trace-stream-canvas"
-              style={{
-                marginLeft: `${layout.metrics.gutterWidth}px`,
-                width: `${layout.canvasWidth}px`,
-                height: `${layout.canvasHeight}px`,
-              }}
-            >
-              <div className="trace-stream-band-rails" aria-hidden="true">
-                {layout.bandRails.map((band) => (
-                  <div
-                    key={`${band.id}-rail`}
-                    className={`trace-stream-band-rail ${band.depth === 0 ? 'main' : 'branch'} ${band.branchId === currentBranchId ? 'current' : ''} ${band.branchId === selectedBranchId ? 'selected' : ''} ${isBranchMuted(band.branchId) ? 'muted' : ''}`}
-                    style={{
-                      top: `${band.y}px`,
-                      left: `${band.x}px`,
-                      width: `${band.width}px`,
-                    }}
-                  />
-                ))}
-              </div>
-              <TraceStreamBands
-                bandFlows={layout.bandFlows}
-                branchJunctions={layout.branchJunctions}
-                currentBranchId={currentBranchId}
-                selectedBranchId={selectedBranchId}
-                branchFocusActive={traceFocus.hasBranchFocus}
-              />
-              <TraceStreamPaths
-                paths={layout.pathChips}
-                currentBranchId={currentBranchId}
-                selectedBranchId={selectedBranchId}
-                branchFocusActive={traceFocus.hasBranchFocus}
-              />
-              <TraceStreamSegments
-                segments={layout.segmentChips}
-                currentBranchId={currentBranchId}
-                selectedBranchId={selectedBranchId}
-                branchFocusActive={traceFocus.hasBranchFocus}
-                collapsedSegmentIds={collapsedTraceSegmentIds}
-                onSelect={selectTraceStep}
-                onToggleCollapsed={toggleTraceSegmentCollapsed}
-              />
-              <div className="trace-stream-band-markers" aria-hidden="true">
-                {layout.bandMarkers.map((band) => (
-                  <div
-                    key={`${band.id}-marker`}
-                    className={`trace-stream-band-marker ${band.branchId === currentBranchId ? 'current' : ''} ${band.branchId === selectedBranchId ? 'selected' : ''} ${isBranchMuted(band.branchId) ? 'muted' : ''}`}
-                    style={{
-                      left: `${band.x}px`,
-                      top: `${band.y}px`,
-                    }}
-                  >
-                    <span className="trace-stream-band-marker-dot" />
-                    <span>{band.label}</span>
-                  </div>
-                ))}
-              </div>
-              <TraceStreamEdges
-                edges={layout.renderEdges}
-                nodes={layout.renderNodes}
-                width={layout.canvasWidth}
-                height={layout.canvasHeight}
-                currentBranchId={currentBranchId}
-                selectedBranchId={selectedBranchId}
-                branchFocusActive={traceFocus.hasBranchFocus}
-                selectedStepId={model.selection.selectedStepId}
-              />
-              <div className="trace-stream-node-layer">
-                {layout.renderNodes.map((node) => (
-                  <TraceStreamNode
-                    key={node.id}
-                    node={node}
-                    onSelect={selectTraceStep}
-                    navigationKind={traceNavigationTarget?.stepId === node.stepId ? traceNavigationTarget.kind : null}
-                    isCurrentBranch={node.branchId === currentBranchId}
-                    isSelectedBranch={node.branchId === selectedBranchId}
-                    branchFocusActive={traceFocus.hasBranchFocus}
-                    collapsedInterior={hiddenStepIds.has(node.stepId)}
-                    style={{
-                      position: 'absolute',
-                      left: `${node.x}px`,
-                      top: `${node.y}px`,
-                      width: `${node.width}px`,
-                      minHeight: `${node.height}px`,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+    <div className="trace-graph-panel">
+      <div className="trace-graph-toolbar">
+        <span>{model.stepCount} steps</span><span className="legend-agent">Agent</span><span className="legend-human">Human</span><span className="legend-branch">Branch</span>
+        <div className="trace-graph-actions">
+          <button type="button" onClick={() => setZoom((value) => clampZoom(value - 0.1))} aria-label="Zoom out">−</button>
+          <span>{Math.round(zoom * 100)}%</span>
+          <button type="button" onClick={() => setZoom((value) => clampZoom(value + 0.1))} aria-label="Zoom in">+</button>
+          <button type="button" onClick={fitGraph}>Fit</button>
+          <button type="button" onClick={() => setNodeOffsets({})}>Reset</button>
+          <button type="button" onClick={centerCurrent}>Center</button>
         </div>
+      </div>
+      <div
+        ref={viewportRef}
+        className="trace-graph-viewport"
+        onMouseDown={startPan}
+        onMouseMove={movePointer}
+        onMouseUp={stopPointer}
+        onMouseLeave={stopPointer}
+        onWheel={(event) => {
+          if (!event.ctrlKey) return
+          event.preventDefault()
+          setZoom((value) => clampZoom(value + (event.deltaY > 0 ? -0.08 : 0.08)))
+        }}
+      >
+        <svg width={Math.max(240, layout.width * zoom)} height={Math.max(150, layout.height * zoom)}>
+          <defs><marker id="trace-graph-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" /></marker></defs>
+          <g transform={`scale(${zoom})`}>
+            {model.edges.map((edge) => {
+              const source = positionFor(edge.from)
+              const target = positionFor(edge.to)
+              if (!source || !target) return null
+              const color = EDGE_COLORS[edge.kind] || EDGE_COLORS.sequence
+              const x1 = source.x + layout.nodeWidth
+              const y1 = source.y + layout.nodeHeight / 2
+              const x2 = target.x
+              const y2 = target.y + layout.nodeHeight / 2
+              const control = (x1 + x2) / 2
+              return <path key={edge.id} d={`M ${x1} ${y1} C ${control} ${y1}, ${control} ${y2}, ${x2} ${y2}`} fill="none" stroke={color} strokeWidth="1.7" strokeDasharray={edge.kind === 'branch' ? '4 3' : undefined} markerEnd="url(#trace-graph-arrow)" style={{ color }} />
+            })}
+            {model.nodes.map((node) => {
+              const position = positionFor(node.id)
+              if (!position) return null
+              return <TraceNode key={node.id} node={node} position={position} layout={layout} selected={node.id === selectedTraceStep?.id} onPointerDown={startNodeDrag} />
+            })}
+          </g>
+        </svg>
+      </div>
+      <div className="trace-graph-detail">
+        {selectedStep ? <><span>{selectedStep.actor} · {selectedStep.kindLabel}</span><strong>{selectedStep.summary}</strong><p>{selectedStep.detail || selectedStep.verificationSummary || 'Click and drag nodes to organize this trace.'}</p></> : null}
       </div>
     </div>
   )

@@ -1,15 +1,39 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as vega from 'vega'
 import embed from 'vega-embed'
 
 const OFFICIAL_VEGA_LITE_EXAMPLES_BASE_URL = 'https://vega.github.io/vega-lite/examples/'
 
-export function VegaLiteView({ spec, className = '', onItemClick = null, signalListeners = [], onViewReady = null }) {
+function createViewportFittedSpec(spec, fitToContainer) {
+  if (!fitToContainer || !spec?.$schema?.includes('vega-lite')) return spec
+
+  const existingAutosize = typeof spec.autosize === 'object' && !Array.isArray(spec.autosize)
+    ? spec.autosize
+    : {}
+
+  return {
+    ...spec,
+    width: 'container',
+    height: 'container',
+    autosize: {
+      ...existingAutosize,
+      type: 'fit',
+      contains: 'padding',
+      resize: true,
+    },
+  }
+}
+
+export function VegaLiteView({ spec, className = '', fitToContainer = false, onItemClick = null, signalListeners = [], onViewReady = null }) {
   const containerRef = useRef(null)
   const onItemClickRef = useRef(onItemClick)
   const signalListenersRef = useRef(signalListeners)
   const onViewReadyRef = useRef(onViewReady)
   const [errorMessage, setErrorMessage] = useState('')
+  const embeddedSpec = useMemo(
+    () => createViewportFittedSpec(spec, fitToContainer),
+    [fitToContainer, spec],
+  )
 
   useEffect(() => {
     onItemClickRef.current = onItemClick
@@ -29,10 +53,10 @@ export function VegaLiteView({ spec, className = '', onItemClick = null, signalL
     const unregister = []
 
     async function mount() {
-      if (!containerRef.current || !spec) return
+      if (!containerRef.current || !embeddedSpec) return
       setErrorMessage('')
       try {
-        const result = await embed(containerRef.current, spec, {
+        const result = await embed(containerRef.current, embeddedSpec, {
           actions: false,
           renderer: 'svg',
           loader: vega.loader({
@@ -45,6 +69,14 @@ export function VegaLiteView({ spec, className = '', onItemClick = null, signalL
         }
         view = result.view
         view.__widgetVAChangesetFactory = () => vega.changeset()
+
+        if (fitToContainer && typeof ResizeObserver !== 'undefined') {
+          const resizeObserver = new ResizeObserver(() => {
+            void view?.resize().runAsync()
+          })
+          resizeObserver.observe(containerRef.current)
+          unregister.push(() => resizeObserver.disconnect())
+        }
 
         if (typeof onItemClickRef.current === 'function') {
           const clickHandler = (_event, item) => {
@@ -87,7 +119,7 @@ export function VegaLiteView({ spec, className = '', onItemClick = null, signalL
       }
       view?.finalize()
     }
-  }, [spec])
+  }, [embeddedSpec])
 
   if (errorMessage) {
     return (
