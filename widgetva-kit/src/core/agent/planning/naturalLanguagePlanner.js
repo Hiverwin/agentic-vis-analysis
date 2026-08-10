@@ -265,15 +265,23 @@ export function formatAgentPlannerError(error) {
 }
 
 function buildAgentMessages({ objective, observe, knowledge = null, history = null, plannerContext = null, responseRequirements = null }) {
+  const directTools = Array.isArray(knowledge?.tools)
   const systemPrompt = [
     'You are an analyst agent operating a widget-based visual analytics workspace.',
     'Your job is to convert the user objective into exactly one next structured operation.',
     'Use only the actions and perceptions already exposed by the provided knowledge and current observation.',
     'Use history to avoid repeating operations unless repetition is necessary with different parameters.',
     'If the objective requires comparing multiple subsets, use history to track which subset has already been inspected.',
-    'Treat action names as semantic widget operations: the runtime will update widget/workspace state and the provider will apply that state to the active visualization environment.',
-    'Prefer shared-state updates that let the provider rematerialize the page instead of trying to mutate private provider internals directly.',
-    'Do not reason as if you need to touch private Vega runtime internals, tuple stores, or signal handles.',
+    ...(directTools
+      ? [
+        'The provided tools are direct calls. Use the supplied target.widgetRef exactly as written.',
+        'Do not infer unsupported tools, hidden targets, or implementation details.',
+      ]
+      : [
+        'Treat action names as semantic widget operations: the runtime will update widget/workspace state and the provider will apply that state to the active visualization environment.',
+        'Prefer shared-state updates that let the provider rematerialize the page instead of trying to mutate private provider internals directly.',
+        'Do not reason as if you need to touch private Vega runtime internals, tuple stores, or signal handles.',
+      ]),
     'Return JSON only.',
     'The JSON must contain assistantMessage, rationale, and operation.',
     'operation.kind must be exactly one of: action or perception.',
@@ -282,14 +290,18 @@ function buildAgentMessages({ objective, observe, knowledge = null, history = nu
     'Do not use widgetId, title, kind, or a shortened identifier as operation.target.widgetRef.',
     'For action/perception operations, put arguments in operation.params.',
     'If the objective explicitly requests a state-changing action, execute that action; a perception result that could answer the numeric question is not a substitute for the requested view change.',
-    'For a linked subset, cohort, category, or interval objective, prioritize the source action that establishes the relevant linked state before using perceptions. Then use perceptions to verify the propagated target state and gather the requested evidence.',
-    'Before choosing a perception, compare the requested fields and visual state with the current encodings. If the requested visual state is not present, plan the state-changing operation first.',
+    ...(!directTools ? [
+      'For a linked subset, cohort, category, or interval objective, prioritize the source action that establishes the relevant linked state before using perceptions. Then use perceptions to verify the propagated target state and gather the requested evidence.',
+      'Before choosing a perception, compare the requested fields and visual state with the current encodings. If the requested visual state is not present, plan the state-changing operation first.',
+    ] : []),
     'When responseRequirements are present, treat them as output-format requirements only. They never contain the expected answer values.',
-    'When an action requires category, series, or line identifiers, choose exact values from observe.state.widgets[].data.fieldValues when available.',
-    'Use plannerContext only when it is present. It contains instance-selected analysis guidance, relation guidance, and at most one selected workflow; it is not a catalog of all possible workflows.',
-    'When plannerContext.workflow is present, treat its steps as the required next-step sequence: use history to find the first unfinished step, and do not substitute another exposed operation merely because it is available.',
-    'When plannerContext.workflowProgress is present, use nextStepId and nextOperation as the current workflow position; do not repeat a completed step unless its evidence was not verified.',
-    'If a workflow is provided, prefer following that workflow for the analysis before choosing an alternative path.',
+    ...(!directTools ? [
+      'When an action requires category, series, or line identifiers, choose exact values from observe.state.widgets[].data.fieldValues when available.',
+      'Use plannerContext only when it is present. It contains instance-selected analysis guidance, relation guidance, and at most one selected workflow; it is not a catalog of all possible workflows.',
+      'When plannerContext.workflow is present, treat its steps as the required next-step sequence: use history to find the first unfinished step, and do not substitute another exposed operation merely because it is available.',
+      'When plannerContext.workflowProgress is present, use nextStepId and nextOperation as the current workflow position; do not repeat a completed step unless its evidence was not verified.',
+      'If a workflow is provided, prefer following that workflow for the analysis before choosing an alternative path.',
+    ] : []),
     'Do not return markdown fences.',
     `Return exactly one JSON object matching this shape: ${JSON.stringify(PLANNER_RESPONSE_SHAPE)}.`,
   ].join(' ')
@@ -301,7 +313,7 @@ function buildAgentMessages({ objective, observe, knowledge = null, history = nu
     knowledge: normalizeKnowledgeForPrompt(knowledge),
     observe: normalizedObserve,
     history: normalizeHistoryForPrompt(history),
-    plannerContext: sanitizePromptValue(plannerContext),
+    plannerContext: directTools ? null : sanitizePromptValue(plannerContext),
     responseRequirements: sanitizePromptValue(responseRequirements),
     requiredResponseShape: PLANNER_RESPONSE_SHAPE,
   })
@@ -313,20 +325,25 @@ function buildAgentMessages({ objective, observe, knowledge = null, history = nu
 }
 
 function buildRepairMessages({ objective, observe, knowledge = null, history = null, plannerContext = null, responseRequirements = null, previousContent = '' }) {
+  const directTools = Array.isArray(knowledge?.tools)
   const systemPrompt = [
     'You previously returned an invalid plan for a widget-based visual analytics agent.',
     'Remember: use only currently exposed actions and perceptions from the provided knowledge and observation.',
-    'Remember: action names are semantic widget operations; do not touch private Vega runtime internals, tuple stores, or signal handles.',
+    ...(directTools
+      ? ['Remember: choose an exact supplied direct tool and copy its target.widgetRef exactly.']
+      : ['Remember: action names are semantic widget operations; do not touch private Vega runtime internals, tuple stores, or signal handles.']),
     'Return JSON only.',
     'Your JSON must contain assistantMessage, rationale, and operation.',
     'operation.kind must be exactly one of: action or perception.',
     'If operation.kind is action or perception, include operation.name.',
     'If operation.kind is action or perception, include operation.target.widgetRef. Copy exactly one full ref string from observe.state.widgets[].ref.',
     'Do not use widgetId, title, kind, or a shortened identifier as operation.target.widgetRef.',
-    'When required params need category, series, or line identifiers, choose exact values from observe.state.widgets[].data.fieldValues when available.',
-    'Use only the instance-selected plannerContext when present; do not assume an unseen workflow or relation.',
-    'When plannerContext.workflow is present, repair toward the first unfinished workflow step instead of choosing a different available operation.',
-    'When plannerContext.workflowProgress is present, repair toward its nextStepId and nextOperation.',
+    ...(!directTools ? [
+      'When required params need category, series, or line identifiers, choose exact values from observe.state.widgets[].data.fieldValues when available.',
+      'Use only the instance-selected plannerContext when present; do not assume an unseen workflow or relation.',
+      'When plannerContext.workflow is present, repair toward the first unfinished workflow step instead of choosing a different available operation.',
+      'When plannerContext.workflowProgress is present, repair toward its nextStepId and nextOperation.',
+    ] : []),
     'When responseRequirements are present, preserve those output-format requirements without guessing or inventing expected values.',
     'Do not include markdown fences or explanatory prose.',
     `Return exactly one JSON object matching this shape: ${JSON.stringify(PLANNER_RESPONSE_SHAPE)}.`,
@@ -337,7 +354,7 @@ function buildRepairMessages({ objective, observe, knowledge = null, history = n
     knowledge: normalizeKnowledgeForPrompt(knowledge),
     observe: normalizeObserveForPrompt(observe, { objective }),
     history: normalizeHistoryForPrompt(history),
-    plannerContext: sanitizePromptValue(plannerContext),
+    plannerContext: directTools ? null : sanitizePromptValue(plannerContext),
     responseRequirements: sanitizePromptValue(responseRequirements),
     previousContent,
     requiredResponseShape: PLANNER_RESPONSE_SHAPE,
@@ -751,6 +768,14 @@ function normalizeOperation(plan = {}, observe = {}) {
 }
 
 function operationMatchesTargetFamily(operation = {}, observe = {}, knowledge = null) {
+  const directTools = Array.isArray(knowledge?.tools) ? knowledge.tools : null
+  if (directTools) {
+    return directTools.some((tool) => (
+      tool?.kind === operation.kind
+      && tool?.name === operation.name
+      && tool?.target?.widgetRef === operation?.target?.widgetRef
+    ))
+  }
   const widgetKind = readWidgetKindForRef(observe, operation?.target?.widgetRef || null)
   if (!widgetKind) return true
   const fieldName = operation.kind === 'perception' ? 'perceptions' : 'actions'
@@ -808,9 +833,15 @@ function choosePreferredName(names = [], preferredNames = []) {
 function buildSafeFallbackOperation(observe = {}, knowledge = null) {
   const focusedWidgetRef = readFocusedWidgetRef(observe)
   const focusedWidgetKind = readWidgetKindForRef(observe, focusedWidgetRef)
-  const perceptionNames = [
-    ...readFamilyNamesForWidget(knowledge, focusedWidgetKind, 'perceptions'),
-  ].filter((name, index, names) => names.indexOf(name) === index)
+  const directTools = Array.isArray(knowledge?.tools) ? knowledge.tools : null
+  const perceptionNames = directTools
+    ? directTools
+      .filter((tool) => tool?.kind === 'perception' && tool?.target?.widgetRef === focusedWidgetRef)
+      .map((tool) => tool?.name)
+      .filter((name, index, names) => typeof name === 'string' && name.length > 0 && names.indexOf(name) === index)
+    : [
+      ...readFamilyNamesForWidget(knowledge, focusedWidgetKind, 'perceptions'),
+    ].filter((name, index, names) => names.indexOf(name) === index)
   const fallbackPerception = choosePreferredName(perceptionNames, [
     'perception.inspectViewConfig',
     'perception.summarizeVisible',

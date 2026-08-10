@@ -162,6 +162,8 @@ input.on('line', async (line) => {
       return
     } else if (request.method === 'describe') {
       result = { workspace: describeKitWorkspace(), state: runtime.readState() }
+    } else if (request.method === 'observe') {
+      result = await agentTarget.readObservation({ query: request.query || null })
     } else if (request.method === 'state') {
       result = runtime.readState(request.options || {})
     } else if (request.method === 'action') {

@@ -168,7 +168,7 @@ async def main() -> None:
     parser = argparse.ArgumentParser(description="Run the WidgetVA Kit benchmark matrix")
     parser.add_argument("instances", nargs="+", help="Instance JSON files or directories")
     parser.add_argument("--models", nargs="+", choices=list_benchmark_models(), default=list_benchmark_models())
-    parser.add_argument("--planner-levels", nargs="+", type=int, choices=(1, 2, 3), default=[1, 2, 3])
+    parser.add_argument("--planner-levels", nargs="+", type=int, choices=(0, 1, 2, 3), default=[0, 1, 2, 3])
     parser.add_argument("--task-filter", nargs="*", help="Filter by instance filename prefix")
     parser.add_argument("--task-pattern", help="Filter by instance filename glob")
     parser.add_argument("--output-dir", default="benchmark/results/batch")

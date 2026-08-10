@@ -181,7 +181,9 @@ export function projectPlannerKnowledge(knowledge = {}, { level = 2, observation
       if (!family || !widget?.ref) continue
       for (const descriptor of [...(family.actions || []), ...(family.perceptions || [])]) {
         tools.push({
-          ...clone(descriptor),
+          name: descriptor.name,
+          description: descriptor.description || '',
+          paramsSchema: clone(descriptor.paramsSchema || { type: 'object', properties: {} }),
           kind: descriptor.name.startsWith('perception.') ? 'perception' : 'action',
           target: { widgetRef: widget.ref },
         })
@@ -193,6 +195,28 @@ export function projectPlannerKnowledge(knowledge = {}, { level = 2, observation
   // Level 2 and Level 3 share the widget abstraction. Selected guidance is
   // injected separately as plannerContext, never through the global catalog.
   return { widgetFamilies: families }
+}
+
+/** Keep direct-tool planning targetable without exposing widget semantics. */
+export function projectPlannerObservation(observation = {}, { level = 2 } = {}) {
+  if (level !== 1) return clone(observation)
+
+  const widgets = Array.isArray(observation?.state?.widgets) ? observation.state.widgets : []
+  return {
+    ...(typeof observation?.query === 'string' ? { query: observation.query } : {}),
+    state: {
+      stateId: observation?.state?.stateId || null,
+      widgets: widgets
+        .filter((widget) => typeof widget?.ref === 'string' && widget.ref.length > 0)
+        .map((widget) => ({
+          ref: widget.ref,
+          focused: Boolean(widget.focused),
+        })),
+    },
+    view: {
+      ...(observation?.view?.image ? { image: clone(observation.view.image) } : {}),
+    },
+  }
 }
 
 export function findWidgetFamilyKnowledge(knowledge = null, widgetKind = null) {

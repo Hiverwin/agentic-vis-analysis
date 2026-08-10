@@ -23,8 +23,8 @@ def expand_run_specs(
     paths = list(instance_paths)
     selected_models = list(models)
     levels = list(planner_levels)
-    if not levels or any(level not in (1, 2, 3) for level in levels):
-        raise ValueError("planner_levels must contain only 1, 2, or 3")
+    if not levels or any(level not in (0, 1, 2, 3) for level in levels):
+        raise ValueError("planner_levels must contain only 0, 1, 2, or 3")
     for model_key in selected_models:
         get_benchmark_model(model_key)
     return [
@@ -33,4 +33,3 @@ def expand_run_specs(
         for model_key in selected_models
         for level in levels
     ]
-

@@ -18,13 +18,15 @@ def test_matrix_expands_all_planner_levels_for_each_instance():
     specs = expand_run_specs(
         [Path("instances/a.json"), Path("instances/b.json")],
         models=["gemini"],
-        planner_levels=[1, 2, 3],
+        planner_levels=[0, 1, 2, 3],
     )
 
     assert [(spec.instance_path.name, spec.planner_level) for spec in specs] == [
+        ("a.json", 0),
         ("a.json", 1),
         ("a.json", 2),
         ("a.json", 3),
+        ("b.json", 0),
         ("b.json", 1),
         ("b.json", 2),
         ("b.json", 3),
@@ -42,4 +44,17 @@ def test_result_directory_is_stable_and_model_agnostic():
 
     assert path == Path(
         "benchmark/results/20260728_120000/kimi/planner_level_2/sp_barscatter_001"
+    )
+
+
+def test_result_directory_supports_the_no_tool_baseline():
+    path = result_directory(
+        Path("benchmark/results/20260728_120000"),
+        model_key="gemini",
+        planner_level=0,
+        benchmark_id="scatter_001",
+    )
+
+    assert path == Path(
+        "benchmark/results/20260728_120000/gemini/planner_level_0/scatter_001"
     )

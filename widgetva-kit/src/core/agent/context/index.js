@@ -8,6 +8,7 @@ export {
 export {
   buildAgentKnowledge,
   projectPlannerKnowledge,
+  projectPlannerObservation,
   findWidgetFamilyKnowledge,
   listWidgetFamilyActionNames,
   listWidgetFamilyPerceptionNames,

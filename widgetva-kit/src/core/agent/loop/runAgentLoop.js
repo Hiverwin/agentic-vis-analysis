@@ -4,6 +4,7 @@ import {
   buildAgentObservation,
   mergeSessionHistory,
   projectPlannerKnowledge,
+  projectPlannerObservation,
   shouldStopAgentSession,
 } from '../context/index.js'
 import {
@@ -507,6 +508,9 @@ export async function runAgentLoop(target, options = {}) {
     level: plannerLevel,
     observation: observe,
   })
+  const plannerObservation = plannerLevel === 1
+    ? projectPlannerObservation(observe, { level: plannerLevel })
+    : observe
   const history = mergeSessionHistory(
     options?.sessionHistory || null,
     options?.sessionTurns || [],
@@ -514,7 +518,7 @@ export async function runAgentLoop(target, options = {}) {
   const turnPlannerContext = addWorkflowProgress(plannerContext, history)
   const planningResult = await resolvePlanningResult({
     planner,
-    observe,
+    observe: plannerObservation,
     knowledge,
     history,
     workspacePlan,
@@ -542,7 +546,11 @@ export async function runAgentLoop(target, options = {}) {
   const compactObserve = compactObservationForTurn(observe)
   const reason = await reasoner({
     objective,
-    observe: clone(compactObserve),
+    observe: clone(
+      plannerLevel === 1
+        ? projectPlannerObservation(compactObserve, { level: plannerLevel })
+        : compactObserve,
+    ),
     history: clone(history),
     plan: clone(plan),
     result: clone(execution.result),

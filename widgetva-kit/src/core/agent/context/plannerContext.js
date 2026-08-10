@@ -21,10 +21,12 @@ export function buildPlannerContext({
   level = 3,
 } = {}) {
   return {
-    analysisToAction: (Array.isArray(analysisToActionIds) ? analysisToActionIds : [])
-      .map((id) => getAnalysisToAction(id))
-      .filter(Boolean)
-      .map(clone),
+    analysisToAction: level >= 2
+      ? (Array.isArray(analysisToActionIds) ? analysisToActionIds : [])
+        .map((id) => getAnalysisToAction(id))
+        .filter(Boolean)
+        .map(clone)
+      : [],
     relations: level >= 2 ? resolveRelationGuidance(relationIds) : [],
     workflow: level >= 3 && workflowId
       ? projectWorkflowForPlanner(getWorkflow(workflowId))

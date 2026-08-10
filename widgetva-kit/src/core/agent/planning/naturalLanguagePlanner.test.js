@@ -172,6 +172,68 @@ test('createNaturalLanguagePlanner produces a valid structured operation from JS
   assert.match(userPrompt, /"requiredResponseShape":\{/)
 })
 
+test('direct-tools planner accepts only an exposed target-bound tool without abstraction guidance', async () => {
+  const requests = []
+  const responses = [
+    {
+      assistantMessage: 'I will use an unavailable operation.',
+      rationale: 'Incorrect tool choice.',
+      operation: {
+        kind: 'action',
+        name: 'scatter.filterCategorical',
+        target: { widgetRef: 'scatter-ref' },
+        params: {},
+      },
+    },
+    {
+      assistantMessage: 'I will zoom the visible scatterplot.',
+      rationale: 'The direct tool is available.',
+      operation: {
+        kind: 'action',
+        name: 'scatter.zoomDomain',
+        target: { widgetRef: 'scatter-ref' },
+        params: { xDomain: [80, 160], yDomain: [18, 32] },
+      },
+    },
+  ]
+  const planner = createNaturalLanguagePlanner({
+    completeChat: async (request) => {
+      requests.push(request)
+      return { content: JSON.stringify(responses.shift()) }
+    },
+  })
+
+  const result = await planner({
+    objective: 'Focus on the central scatterplot region.',
+    knowledge: {
+      tools: [{
+        kind: 'action',
+        name: 'scatter.zoomDomain',
+        description: 'Zoom the scatterplot to the supplied domains.',
+        paramsSchema: { type: 'object', properties: {} },
+        target: { widgetRef: 'scatter-ref' },
+      }],
+    },
+    plannerContext: {
+      analysisToAction: [{ id: 'should-not-be-visible' }],
+      relations: [{ id: 'should-not-be-visible' }],
+    },
+    observe: {
+      state: { widgets: [{ ref: 'scatter-ref', kind: 'scatter', focused: true }] },
+      view: null,
+    },
+  })
+
+  assert.equal(requests.length, 2)
+  assert.equal(result.operation.name, 'scatter.zoomDomain')
+  assert.deepEqual(result.operation.target, { widgetRef: 'scatter-ref' })
+  assert.doesNotMatch(requests[0].messages[0].content, /semantic widget operations/i)
+  assert.doesNotMatch(requests[0].messages[0].content, /linked subset, cohort, category, or interval/i)
+  const payload = JSON.parse(requests[0].messages[1].content)
+  assert.deepEqual(Object.keys(payload.knowledge), ['tools'])
+  assert.equal(payload.plannerContext, null)
+})
+
 test('planner receives answer requirements derived from check types without expected values', async () => {
   const requests = []
   const planner = createNaturalLanguagePlanner({

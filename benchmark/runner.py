@@ -68,6 +68,49 @@ def build_response_requirements(instance: dict[str, Any]) -> dict[str, Any]:
     return {"mode": "open_ended"}
 
 
+def build_no_tool_messages(
+    *,
+    objective: str,
+    observation: dict[str, Any],
+    response_requirements: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Build the visual-only baseline prompt from the normal first observation."""
+    image = ((observation.get("view") or {}).get("image") or {})
+    raw_image = image.get("data") or image.get("dataUrl") or image.get("base64")
+    if not isinstance(raw_image, str) or not raw_image:
+        raise RuntimeError("No captured observation image is available for planner level 0.")
+    mime_type = image.get("mimeType") or "image/png"
+    image_url = raw_image if raw_image.startswith("data:") else f"data:{mime_type};base64,{raw_image}"
+    answer_type = response_requirements.get("answerType") if response_requirements.get("mode") == "verifiable" else None
+    typed_instruction = (
+        f"Return one {answer_type} answer value in the answer field."
+        if answer_type
+        else "Return a concise answer in the answer field."
+    )
+    payload = json.dumps({
+        "objective": objective,
+        "responseRequirements": response_requirements,
+        "requiredResponseShape": {"answer": "typed value or string"},
+    }, ensure_ascii=False)
+    return [
+        {
+            "role": "system",
+            "content": (
+                "You are answering a visual analytics question from the supplied image. "
+                "Do not assume access to tools, widget state, source data, or hidden specifications. "
+                f"{typed_instruction} Return JSON only with exactly one top-level answer key."
+            ),
+        },
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": payload},
+                {"type": "image_url", "image_url": {"url": image_url}},
+            ],
+        },
+    ]
+
+
 EVALUATION_STATE_DROP_KEYS = {
     "rawSpec",
     "replayContext",
@@ -635,17 +678,6 @@ def run_benchmark(
         described = bridge.call("describe")
         workspace = described["workspace"]
         query = instance["query"]
-        session = bridge.call(
-            "agent_session",
-            objective=query,
-            model=CONFIG["model"],
-            temperature=CONFIG["temperature"],
-            maxTurns=CONFIG["max_iterations"],
-            plannerContext=instance.get("planner_context") or instance.get("plannerContext"),
-            plannerLevel=planner_level,
-            responseRequirements=build_response_requirements(instance),
-        )
-        final_state = bridge.call("state")
         output_dir = result_directory(
             results_root or ROOT / "benchmark" / "results",
             model_key=model_key,
@@ -657,8 +689,44 @@ def run_benchmark(
         if not instance_snapshot.exists():
             shutil.copy2(instance_path, instance_snapshot)
         image_dir = output_dir / "images"
-        observation_images = save_observation_images(session, image_dir)
-        post_images = save_post_turn_images(bridge.post_turn_images, image_dir)
+        response_requirements = build_response_requirements(instance)
+        if planner_level == 0:
+            initial_observation = bridge.call("observe", query=query)
+            no_tool_response = complete_chat({
+                "model": CONFIG["model"],
+                "temperature": CONFIG["temperature"],
+                "responseFormat": {"type": "json_object"},
+                "messages": build_no_tool_messages(
+                    objective=query,
+                    observation=initial_observation,
+                    response_requirements=response_requirements,
+                ),
+            })
+            parsed = parse_json(no_tool_response.get("content") or "")
+            session = {
+                "answer": parsed.get("answer") if isinstance(parsed, dict) else parsed,
+                "turns": [],
+                "status": "completed",
+            }
+            observation_images = save_observation_images(
+                {"turns": [{"observe": initial_observation}]},
+                image_dir,
+            )
+            post_images = []
+        else:
+            session = bridge.call(
+                "agent_session",
+                objective=query,
+                model=CONFIG["model"],
+                temperature=CONFIG["temperature"],
+                maxTurns=CONFIG["max_iterations"],
+                plannerContext=instance.get("planner_context") or instance.get("plannerContext"),
+                plannerLevel=planner_level,
+                responseRequirements=response_requirements,
+            )
+            observation_images = save_observation_images(session, image_dir)
+            post_images = save_post_turn_images(bridge.post_turn_images, image_dir)
+        final_state = bridge.call("state")
         all_images = observation_images + post_images
         scoring = build_scoring_result(
             session,
@@ -729,7 +797,7 @@ def main() -> None:
     parser.add_argument(
         "--planner-level",
         type=int,
-        choices=(1, 2, 3),
+        choices=(0, 1, 2, 3),
         required=True,
         help="Planner guidance level, independent of the instance ASL variant.",
     )

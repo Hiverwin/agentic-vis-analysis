@@ -7,6 +7,7 @@ import {
   listRelationGuidance,
   buildAgentKnowledge,
   projectPlannerKnowledge,
+  projectPlannerObservation,
   buildPlannerContextFromInstance,
 } from './index.js'
 
@@ -22,15 +23,16 @@ test('planner context resolves only explicitly selected guidance', () => {
   assert.equal(context.workflow.id, 'WF-1V-CONSTRAINED-RANKING-01')
 })
 
-test('planner context gates relations and workflow by benchmark level', () => {
+test('planner context gates abstraction guidance and workflow by benchmark level', () => {
   const ids = {
     analysisToActionIds: ['AT-1V-IDENTIFY-THE-MOST-OR-LEAST-IMPORTANT-CATEGORIES-01'],
     relationIds: ['REL-2V-BAR-SELECTCATEGORY-01'],
     workflowId: 'WF-1V-CONSTRAINED-RANKING-01',
   }
-  assert.equal(buildPlannerContext({ ...ids, level: 1 }).analysisToAction.length, 1)
+  assert.equal(buildPlannerContext({ ...ids, level: 1 }).analysisToAction.length, 0)
   assert.equal(buildPlannerContext({ ...ids, level: 1 }).relations.length, 0)
   assert.equal(buildPlannerContext({ ...ids, level: 1 }).workflow, null)
+  assert.equal(buildPlannerContext({ ...ids, level: 2 }).analysisToAction.length, 1)
   assert.equal(buildPlannerContext({ ...ids, level: 2 }).relations.length, 1)
   assert.equal(buildPlannerContext({ ...ids, level: 2 }).workflow, null)
   assert.equal(buildPlannerContext({ ...ids, level: 3 }).workflow.id, ids.workflowId)
@@ -94,5 +96,43 @@ test('benchmark planner projections remove global agent guidance', () => {
   assert.equal('agentGuidance' in flat, false)
   assert.equal('agentGuidance' in widget, false)
   assert.equal(flat.tools.some((tool) => tool.name === 'bar.sortBars'), true)
+  assert.deepEqual(
+    Object.keys(flat.tools.find((tool) => tool.name === 'bar.sortBars')).sort(),
+    ['description', 'kind', 'name', 'paramsSchema', 'target'],
+  )
   assert.deepEqual(Object.keys(widget), ['widgetFamilies'])
+})
+
+test('direct-tools observation exposes only target refs and the captured image', () => {
+  const observation = {
+    query: 'Inspect the chart.',
+    state: {
+      stateId: 'state:1',
+      widgets: [{
+        ref: 'wl://workspace/w/widget/w_bar',
+        kind: 'bar',
+        title: 'Category sales',
+        focused: true,
+        encodings: { x: { field: 'category' } },
+        data: { fieldValues: { category: ['A', 'B'] } },
+      }],
+      sharedAnalyticalState: { filters: { category: ['A'] } },
+    },
+    view: {
+      image: { ref: 'image:1', mimeType: 'image/png', data: 'data:image/png;base64,abc' },
+      summary: 'A bar chart.',
+    },
+  }
+
+  const direct = projectPlannerObservation(observation, { level: 1 })
+  const semantic = projectPlannerObservation(observation, { level: 2 })
+
+  assert.deepEqual(direct.state, {
+    stateId: 'state:1',
+    widgets: [{ ref: 'wl://workspace/w/widget/w_bar', focused: true }],
+  })
+  assert.deepEqual(direct.view, {
+    image: observation.view.image,
+  })
+  assert.deepEqual(semantic, observation)
 })
