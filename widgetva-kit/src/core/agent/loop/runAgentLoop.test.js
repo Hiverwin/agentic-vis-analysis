@@ -219,6 +219,62 @@ test('runAgentLoop executes an explicit observe-plan-act-verify-reason loop thro
   ])
 })
 
+test('planner level 1 receives the global flat registry instead of the observed widget family', async () => {
+  const { port } = createObservedPort()
+
+  await runAgentTurn(port, {
+    objective: 'Inspect the current chart.',
+    plannerLevel: 1,
+    planner: async ({ observe, knowledge }) => {
+      assert.equal('state' in observe, false)
+      assert.equal(knowledge.tools.some((tool) => tool.name === 'scatter.brushRegion'), true)
+      assert.equal(knowledge.tools.some((tool) => tool.name === 'bar.sortBars'), true)
+      return {
+        assistantMessage: 'I will inspect the chart.',
+        rationale: 'A view inspection is the next useful step.',
+        operation: {
+          kind: 'perception',
+          name: 'perception.inspectViewConfig',
+          target: { widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter' },
+          params: {},
+        },
+      }
+    },
+    reasoner: async () => ({ answer: 'Done.', completion: { status: 'answered' } }),
+  })
+})
+
+test('planner level 1 routes an untargeted operation to the only workspace widget', async () => {
+  const { port, observedCalls } = createObservedPort()
+
+  await runAgentLoop(port, {
+    objective: 'Brush the dense middle cluster.',
+    plannerLevel: 1,
+    async planner({ observe, knowledge }) {
+      assert.equal('state' in observe, false)
+      assert.equal(knowledge.tools.some((tool) => tool.name === 'scatter.brushRegion'), true)
+      assert.equal(knowledge.tools.some((tool) => tool.name === 'bar.sortBars'), true)
+      return {
+        operation: {
+          kind: 'action',
+          name: 'scatter.brushRegion',
+          params: {
+            xField: 'Horsepower',
+            yField: 'Miles_per_Gallon',
+            xRange: [80, 160],
+            yRange: [18, 32],
+          },
+        },
+      }
+    },
+  })
+
+  const executeCall = observedCalls.find((entry) => entry[0] === 'executeVerifiedAction')?.[1]
+  assert.deepEqual(executeCall.target, {
+    widgetRef: 'wl://widgetva-app/workspace/main/widget/scatter',
+  })
+})
+
 test('runAgentLoop uses readObservation as the only agent observation entrypoint', async () => {
   const { port, observedCalls } = createObservedPort({
     async readAgentObservation() {

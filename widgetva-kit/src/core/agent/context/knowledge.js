@@ -175,17 +175,21 @@ export function projectPlannerKnowledge(knowledge = {}, { level = 2, observation
   const families = Array.isArray(knowledge?.widgetFamilies) ? clone(knowledge.widgetFamilies) : []
   if (level === 1) {
     const widgets = Array.isArray(observation?.state?.widgets) ? observation.state.widgets : []
+    const targetWidgetRef = widgets.find((widget) => widget?.focused)?.ref || widgets[0]?.ref || null
     const tools = []
-    for (const widget of widgets) {
-      const family = families.find((entry) => entry.kind === widget?.kind)
-      if (!family || !widget?.ref) continue
+    const seenTools = new Set()
+    for (const family of families) {
       for (const descriptor of [...(family.actions || []), ...(family.perceptions || [])]) {
+        const kind = descriptor.name.startsWith('perception.') ? 'perception' : 'action'
+        const key = `${kind}:${descriptor.name}`
+        if (seenTools.has(key)) continue
+        seenTools.add(key)
         tools.push({
           name: descriptor.name,
           description: descriptor.description || '',
           paramsSchema: clone(descriptor.paramsSchema || { type: 'object', properties: {} }),
-          kind: descriptor.name.startsWith('perception.') ? 'perception' : 'action',
-          target: { widgetRef: widget.ref },
+          kind,
+          ...(targetWidgetRef ? { target: { widgetRef: targetWidgetRef } } : {}),
         })
       }
     }
@@ -201,18 +205,8 @@ export function projectPlannerKnowledge(knowledge = {}, { level = 2, observation
 export function projectPlannerObservation(observation = {}, { level = 2 } = {}) {
   if (level !== 1) return clone(observation)
 
-  const widgets = Array.isArray(observation?.state?.widgets) ? observation.state.widgets : []
   return {
     ...(typeof observation?.query === 'string' ? { query: observation.query } : {}),
-    state: {
-      stateId: observation?.state?.stateId || null,
-      widgets: widgets
-        .filter((widget) => typeof widget?.ref === 'string' && widget.ref.length > 0)
-        .map((widget) => ({
-          ref: widget.ref,
-          focused: Boolean(widget.focused),
-        })),
-    },
     view: {
       ...(observation?.view?.image ? { image: clone(observation.view.image) } : {}),
     },

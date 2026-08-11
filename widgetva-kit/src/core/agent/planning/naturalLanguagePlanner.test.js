@@ -172,7 +172,7 @@ test('createNaturalLanguagePlanner produces a valid structured operation from JS
   assert.match(userPrompt, /"requiredResponseShape":\{/)
 })
 
-test('direct-tools planner accepts only an exposed target-bound tool without abstraction guidance', async () => {
+test('direct-tools planner accepts an exposed tool for a target selected from observation', async () => {
   const requests = []
   const responses = [
     {
@@ -227,8 +227,8 @@ test('direct-tools planner accepts only an exposed target-bound tool without abs
   assert.equal(requests.length, 2)
   assert.equal(result.operation.name, 'scatter.zoomDomain')
   assert.deepEqual(result.operation.target, { widgetRef: 'scatter-ref' })
-  assert.doesNotMatch(requests[0].messages[0].content, /semantic widget operations/i)
-  assert.doesNotMatch(requests[0].messages[0].content, /linked subset, cohort, category, or interval/i)
+  assert.match(requests[0].messages[0].content, /semantic widget operations/i)
+  assert.match(requests[0].messages[0].content, /linked subset, cohort, category, or interval/i)
   const payload = JSON.parse(requests[0].messages[1].content)
   assert.deepEqual(Object.keys(payload.knowledge), ['tools'])
   assert.equal(payload.plannerContext, null)

@@ -78,8 +78,8 @@ test('relation catalog resolves canonical multidimensional filter guidance', () 
   assert.equal(context.relations[0].action, 'parallelCoordinates.selectCohort')
 })
 
-test('benchmark planner projections remove global agent guidance', () => {
-  const knowledge = buildAgentKnowledge({ widgetKinds: ['bar'] })
+test('benchmark planner projections separate global flat tools from widget abstractions', () => {
+  const knowledge = buildAgentKnowledge()
   const observation = {
     state: {
       widgets: [{
@@ -96,14 +96,21 @@ test('benchmark planner projections remove global agent guidance', () => {
   assert.equal('agentGuidance' in flat, false)
   assert.equal('agentGuidance' in widget, false)
   assert.equal(flat.tools.some((tool) => tool.name === 'bar.sortBars'), true)
+  assert.equal(flat.tools.some((tool) => tool.name === 'scatter.brushRegion'), true)
+  assert.equal(flat.tools.filter((tool) => tool.name === 'perception.inspectViewConfig').length, 1)
   assert.deepEqual(
     Object.keys(flat.tools.find((tool) => tool.name === 'bar.sortBars')).sort(),
     ['description', 'kind', 'name', 'paramsSchema', 'target'],
   )
+  assert.deepEqual(flat.tools.find((tool) => tool.name === 'bar.sortBars').target, {
+    widgetRef: 'wl://workspace/w/widget/w_bar',
+  })
   assert.deepEqual(Object.keys(widget), ['widgetFamilies'])
+  assert.equal(widget.widgetFamilies.some((family) => family.kind === 'bar'), true)
+  assert.equal(widget.widgetFamilies.some((family) => family.kind === 'scatter'), true)
 })
 
-test('direct-tools observation exposes only target refs and the captured image', () => {
+test('flat-tool observation hides structured widget state', () => {
   const observation = {
     query: 'Inspect the chart.',
     state: {
@@ -127,10 +134,7 @@ test('direct-tools observation exposes only target refs and the captured image',
   const direct = projectPlannerObservation(observation, { level: 1 })
   const semantic = projectPlannerObservation(observation, { level: 2 })
 
-  assert.deepEqual(direct.state, {
-    stateId: 'state:1',
-    widgets: [{ ref: 'wl://workspace/w/widget/w_bar', focused: true }],
-  })
+  assert.equal('state' in direct, false)
   assert.deepEqual(direct.view, {
     image: observation.view.image,
   })
